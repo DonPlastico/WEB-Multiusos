@@ -78,8 +78,12 @@ async function cargarJuegosIGDB() {
                 : 'https://via.placeholder.com/264x374?text=SIN+PORTADA';
 
             // Convertimos el Timestamp de IGDB a año
-            const año = juego.first_release_date
-                ? new Date(juego.first_release_date * 1000).getFullYear()
+            const fechaFormateada = juego.first_release_date
+                ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                })
                 : 'TBA';
 
             // Lógica de plataformas (PC +X)
@@ -89,7 +93,7 @@ async function cargarJuegosIGDB() {
                 : '';
 
             const tarjetaHTML = `
-                <div class="game-card">
+                <div class="game-card" data-game-title="${juego.name}">
                     <div class="game-cover-container">
                         <div class="top-platform-tag">${platPrincipal.split(' ')[0]}</div>
                         <img src="${portada}" alt="${juego.name}" class="game-cover">
@@ -97,15 +101,34 @@ async function cargarJuegosIGDB() {
                     <div class="game-info">
                         <h3 class="game-title">${juego.name}</h3>
                         <div class="game-release-info">
-                            <span class="date">${año}</span>
+                            <span class="date">${fechaFormateada}</span>
                             <span class="dot">•</span>
                             <span class="main-plat">PC</span>
                             ${extraCount}
+                        </div>
+                        <div class="game-price" data-title="${juego.name}">
+                            <span class="price-loading">Buscando precio...</span>
                         </div>
                     </div>
                 </div>
             `;
             gridJuegos.innerHTML += tarjetaHTML;
+        });
+        
+        // Carga precios lazy sin bloquear el grid
+        document.querySelectorAll('.game-price').forEach(async (el) => {
+            const title = el.getAttribute('data-title');
+            try {
+                const r = await fetch(`/api/itad?title=${encodeURIComponent(title)}`);
+                const data = await r.json();
+                if (data.precio) {
+                    el.innerHTML = `<span class="price-badge">Desde <strong>${data.precio.toFixed(2)} €</strong>${data.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
+                } else {
+                    el.innerHTML = `<span class="price-na">No disponible</span>`;
+                }
+            } catch {
+                el.innerHTML = '';
+            }
         });
     } catch (error) {
         console.error("Error cargando juegos:", error);
