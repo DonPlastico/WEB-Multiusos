@@ -11,15 +11,21 @@ export default async function handler(req, res) {
             `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1`,
             { headers: { 'Authorization': `Bearer ${API_KEY}` } }
         );
-        const searchData = await searchRes.json();
+        const searchRaw = await searchRes.text();
+        console.log('SEARCH STATUS:', searchRes.status);
+        console.log('SEARCH RAW:', searchRaw);
+
+        let searchData;
+        try { searchData = JSON.parse(searchRaw); }
+        catch { return res.status(500).json({ error: 'Search no JSON', raw: searchRaw }); }
 
         if (!searchData?.length) {
-            return res.status(200).json({ precio: null });
+            return res.status(200).json({ precio: null, debug: 'juego no encontrado', status: searchRes.status, raw: searchRaw });
         }
 
-        const gameId = searchData[0].id;
-
         // PASO 2: pedir precios en EUR para España
+        const gameId = searchData[0].id;
+        
         const preciosRes = await fetch(
             `https://api.isthereanydeal.com/games/prices/v3?country=ES`,
             {
