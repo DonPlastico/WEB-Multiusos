@@ -180,14 +180,14 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    // Recuperamos tu código original para sacar la plataforma real y las extra
     const platOriginal = juego.platforms && juego.platforms.length > 0 ? juego.platforms[0].name : 'PC';
-    const platPrincipal = platOriginal.split(' ')[0]; // Para que ponga "Xbox" en vez de "Xbox Series X|S" en la etiqueta pequeña
+    const platPrincipal = platOriginal.split(' ')[0];
     const extraCount = juego.platforms && juego.platforms.length > 1
         ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
         : '';
 
-    // Montamos el bloque del precio con los datos que YA vienen del backend
+    const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : 'pc';
+
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
         htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong>${juego.itad.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
@@ -198,7 +198,7 @@ function crearTarjeta(juego) {
     const storesData = juego.itad ? juego.itad.stores : 'none';
 
     return `
-        <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}">
+        <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
                 <div class="top-platform-tag">${platPrincipal}</div>
                 <img src="${portada}" alt="${juego.name}" class="game-cover">
@@ -251,7 +251,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         });
 
         // Al terminar de pintar todo, aplicamos los filtros que estén marcados
-        aplicarFiltrosTienda();
+        aplicarFiltros();
 
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
@@ -333,84 +333,87 @@ if (buscadorGeneros) {
 //   LOGICA DE FILTROS
 // ==========================================================================
 
-// TODAS exclusivo para TIENDAS
 const tiendasTodas = document.getElementById('tienda-todas');
 const tiendasItems = document.querySelectorAll('.tienda-item');
+const platTodas = document.getElementById('plat-todas');
+const platItems = document.querySelectorAll('.plat-item input');
 
-function aplicarFiltrosTienda() {
+function aplicarFiltros() {
+    // 1. Recoger Tiendas seleccionadas
     const tiendasSeleccionadas = Array.from(tiendasItems)
         .filter(cb => cb.checked)
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
+    const filtroTodasTiendas = tiendasTodas.checked;
 
-    const filtroTodas = tiendasTodas.checked;
-    let cartasVisibles = 0; // Llevaremos la cuenta de cuántas quedan en pantalla
+    // 2. Recoger Plataformas seleccionadas
+    const platSeleccionadas = Array.from(platItems)
+        .filter(cb => cb.checked)
+        .map(cb => cb.parentElement.textContent.trim().toLowerCase());
+    const filtroTodasPlat = platTodas.checked;
 
+    let cartasVisibles = 0;
+
+    // 3. Evaluar cada tarjeta
     document.querySelectorAll('.game-card').forEach(card => {
-        const storesStr = card.getAttribute('data-stores');
+        const storesStr = card.getAttribute('data-stores') || '';
+        const platStr = card.getAttribute('data-platforms') || '';
 
-        // Si no hay filtro o el precio aún no ha cargado, lo mostramos
-        if (filtroTodas || !storesStr) {
+        // Comprobamos Tienda
+        let pasaTienda = false;
+        if (filtroTodasTiendas) {
+            pasaTienda = true;
+        } else if (storesStr !== 'none') {
+            pasaTienda = tiendasSeleccionadas.some(t => storesStr.includes(t));
+        }
+
+        // Comprobamos Plataforma
+        let pasaPlat = false;
+        if (filtroTodasPlat) {
+            pasaPlat = true;
+        } else {
+            pasaPlat = platSeleccionadas.some(p => platStr.includes(p));
+        }
+
+        // Si cumple ambos filtros, se muestra
+        if (pasaTienda && pasaPlat) {
             card.style.display = 'flex';
             cartasVisibles++;
-            return;
-        }
-
-        // Si ITAD respondió pero no hay tiendas, lo ocultamos
-        if (storesStr === 'none') {
+        } else {
             card.style.display = 'none';
-            return;
         }
-
-        // Verifica si el string de tiendas incluye ALGUNA de las seleccionadas
-        const coincide = tiendasSeleccionadas.some(tiendaBuscada => storesStr.includes(tiendaBuscada));
-
-        card.style.display = coincide ? 'flex' : 'none';
-        if (coincide) cartasVisibles++; // Sumamos si la tarjeta ha pasado el filtro
     });
 
-    // AUTO-RELLENADO (Lazy Loading Inteligente)
+    // 4. Lazy Loading (Auto-búsqueda)
     const btnMas = document.getElementById('btn-cargar-mas');
-
-    // Si NO estamos en "Todas", quedan menos de 20 tarjetas visibles,
-    // no estamos ya buscando datos, y el botón de cargar más existe...
-    if (!filtroTodas && cartasVisibles < 20 && !cargando && btnMas) {
-        // Cambiamos el texto del botón para que el usuario sepa qué pasa
+    if ((!filtroTodasTiendas || !filtroTodasPlat) && cartasVisibles < 20 && !cargando && btnMas) {
         btnMas.querySelector('button').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Auto-buscando...';
-        // Disparamos la carga de la siguiente página automáticamente
         cargarMas();
     }
 }
 
+// Escuchadores de Tiendas
 tiendasTodas.addEventListener('change', () => {
-    if (tiendasTodas.checked) {
-        tiendasItems.forEach(cb => cb.checked = false);
-    }
-    aplicarFiltrosTienda();
+    if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
+    aplicarFiltros();
 });
-
 tiendasItems.forEach(cb => {
     cb.addEventListener('change', () => {
         if (cb.checked) tiendasTodas.checked = false;
-        // si desmarcan todos, vuelve a TODAS
         if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
-        aplicarFiltrosTienda();
+        aplicarFiltros();
     });
 });
 
-// TODAS exclusivo para PLATAFORMAS
-const platTodas = document.getElementById('plat-todas');
-const platItems = document.querySelectorAll('.plat-item input');
-
+// Escuchadores de Plataformas
 platTodas.addEventListener('change', () => {
-    if (platTodas.checked) {
-        platItems.forEach(cb => cb.checked = false);
-    }
+    if (platTodas.checked) platItems.forEach(cb => cb.checked = false);
+    aplicarFiltros();
 });
-
 platItems.forEach(cb => {
     cb.addEventListener('change', () => {
         if (cb.checked) platTodas.checked = false;
         if ([...platItems].every(c => !c.checked)) platTodas.checked = true;
+        aplicarFiltros();
     });
 });
 
