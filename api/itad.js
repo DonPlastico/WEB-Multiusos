@@ -2,33 +2,36 @@ export default async function handler(req, res) {
     const { title } = req.query;
     if (!title) return res.status(400).json({ error: 'Falta el título' });
 
-    const CLIENT_ID = process.env.ITAD_CLIENT_ID;
+    const CLIENT_ID     = process.env.ITAD_CLIENT_ID;
     const CLIENT_SECRET = process.env.ITAD_CLIENT_SECRET;
 
-    // DEBUG: comprobamos que las variables existen
     if (!CLIENT_ID || !CLIENT_SECRET) {
-        return res.status(500).json({ error: 'Faltan variables de entorno', CLIENT_ID: !!CLIENT_ID, CLIENT_SECRET: !!CLIENT_SECRET });
+        return res.status(500).json({ error: 'Faltan variables de entorno' });
     }
 
     try {
-        // PASO 1: token
-        const tokenRes = await fetch('https://oauth.isthereanydeal.com/token', {
+        // Token con Basic Auth (alternativa más compatible)
+        const credenciales = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+
+        const tokenRes = await fetch('https://isthereanydeal.com/oauth/token/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': `Basic ${credenciales}`
+            },
             body: new URLSearchParams({
                 grant_type: 'client_credentials',
-                client_id: CLIENT_ID,
-                client_secret: CLIENT_SECRET,
                 scope: 'user:public'
             })
         });
 
-        const tokenRaw = await tokenRes.text(); // texto plano pa ver q devuelve exacto
-        console.log('TOKEN RESPONSE:', tokenRaw);
+        const tokenRaw = await tokenRes.text();
+        console.log('TOKEN STATUS:', tokenRes.status);
+        console.log('TOKEN RAW:', tokenRaw);
 
         let tokenData;
         try { tokenData = JSON.parse(tokenRaw); }
-        catch { return res.status(500).json({ error: 'Token no es JSON', raw: tokenRaw }); }
+        catch { return res.status(500).json({ error: 'Token no es JSON', status: tokenRes.status, raw: tokenRaw }); }
 
         if (!tokenData.access_token) {
             return res.status(500).json({ error: 'Sin access_token', tokenData });
@@ -36,56 +39,50 @@ export default async function handler(req, res) {
 
         const token = tokenData.access_token;
 
-        // PASO 2: buscar juego
+        // Buscar juego
         const searchRes = await fetch(
             `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
-        const searchRaw = await searchRes.text();
-        console.log('SEARCH RESPONSE:', searchRaw);
+        const searchData = await searchRes.json();
 
-        let searchData;
-        try { searchData = JSON.parse(searchRaw); }
-        catch { return res.status(500).json({ error: 'Search no es JSON', raw: searchRaw }); }
-
-        if (!searchData?.length) return res.status(200).json({ precio: null, debug: 'juego no encontrado', searchData });
+        if (!searchData?.length) {
+            return res.status(200).json({ precio: null, debug: 'juego no encontrado en ITAD' });
+        }
 
         const gameId = searchData[0].id;
 
-        // PASO 3: precios
+        // Precios
         const preciosRes = await fetch(
             `https://api.isthereanydeal.com/games/prices/v3?country=ES`,
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
                 body: JSON.stringify([gameId])
             }
         );
-        const preciosRaw = await preciosRes.text();
-        console.log('PRECIOS RESPONSE:', preciosRaw);
-
-        let preciosData;
-        try { preciosData = JSON.parse(preciosRaw); }
-        catch { return res.status(500).json({ error: 'Precios no es JSON', raw: preciosRaw }); }
+        const preciosData = await preciosRes.json();
 
         if (!preciosData?.[0]?.deals?.length) {
-            return res.status(200).json({ precio: null, debug: 'sin deals', preciosData });
+            return res.status(200).json({ precio: null, debug: 'sin deals para este juego' });
         }
 
         const deals = preciosData[0].deals.sort((a, b) => a.price.amount - b.price.amount);
         const mejor = deals[0];
 
         return res.status(200).json({
-            precio: mejor.price.amount,
-            moneda: mejor.price.currency,
-            tienda: mejor.shop.name,
+            precio:  mejor.price.amount,
+            moneda:  mejor.price.currency,
+            tienda:  mejor.shop.name,
             voucher: mejor.voucher || null,
-            url: mejor.url,
-            todos: deals.slice(0, 5)
+            url:     mejor.url,
+            todos:   deals.slice(0, 5)
         });
 
     } catch (err) {
-        console.error('CATCH ERROR:', err);
-        return res.status(500).json({ error: 'Error interno', mensaje: err.message });
+        return res.status(500).json({ error: 'Error interno', mensaje: err.message, stack: err.stack });
     }
 }
