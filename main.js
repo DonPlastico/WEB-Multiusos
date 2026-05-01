@@ -180,8 +180,12 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    // Como ahora solo traemos PC, forzamos la etiqueta principal
-    const platPrincipal = 'PC';
+    // Recuperamos tu código original para sacar la plataforma real y las extra
+    const platOriginal = juego.platforms && juego.platforms.length > 0 ? juego.platforms[0].name : 'PC';
+    const platPrincipal = platOriginal.split(' ')[0]; // Para que ponga "Xbox" en vez de "Xbox Series X|S" en la etiqueta pequeña
+    const extraCount = juego.platforms && juego.platforms.length > 1
+        ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
+        : '';
 
     // Montamos el bloque del precio con los datos que YA vienen del backend
     let htmlPrecio = '';
@@ -204,7 +208,8 @@ function crearTarjeta(juego) {
                 <div class="game-release-info">
                     <span class="date">${fechaFormateada}</span>
                     <span class="dot">•</span>
-                    <span class="main-plat">PC</span>
+                    <span class="main-plat">${platPrincipal}</span>
+                    ${extraCount}
                 </div>
                 <div class="game-price">
                     ${htmlPrecio}

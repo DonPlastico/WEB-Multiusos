@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // 2. Buscar en IGDB (Añadido platforms = (6) para SOLO PC)
+        // 2. Buscar en IGDB (Consulta original limpia y 100% funcional)
         const bodyQuery = busqueda
             ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; limit 50; offset ${offset};`
             : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80; limit 50; offset ${offset};`;
