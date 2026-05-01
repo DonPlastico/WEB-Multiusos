@@ -180,23 +180,45 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    const platOriginal = juego.platforms && juego.platforms.length > 0 ? juego.platforms[0].name : 'PC';
-    const platPrincipal = platOriginal.split(' ')[0];
+    // 1. SOLUCIÓN A LA ILUSIÓN ÓPTICA DE LAS ETIQUETAS
+    // Priorizamos de forma inteligente qué logo mostrar en la tarjeta
+    let platPrincipal = 'PC';
+    const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
+    const hasPC = pNamesLower.some(n => n.includes('pc') || n.includes('windows'));
+
+    if (juego.platforms && juego.platforms.length > 0) {
+        if (hasPC) {
+            platPrincipal = 'PC';
+        } else if (pNamesLower.some(n => n.includes('playstation'))) {
+            platPrincipal = 'PlayStation';
+        } else if (pNamesLower.some(n => n.includes('xbox'))) {
+            platPrincipal = 'Xbox';
+        } else if (pNamesLower.some(n => n.includes('nintendo') || n.includes('switch'))) {
+            platPrincipal = 'Nintendo';
+        } else {
+            platPrincipal = juego.platforms[0].name.split(' ')[0];
+        }
+    }
+
     const extraCount = juego.platforms && juego.platforms.length > 1
         ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
         : '';
 
-    // Guardamos las tiendas para el filtro 1
+    // Guardamos los datos ocultos para que el filtro unificado los lea perfectamente
     const storesData = juego.itad ? juego.itad.stores : 'none';
-    
-    // Guardamos las plataformas para el filtro 2 (CRÍTICO PARA QUE FUNCIONE EL CHECKBOX)
     const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
+    // 2. SOLUCIÓN AL TEXTO CONFUSO DE "NO DISPONIBLE"
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
+        // Encontró oferta en ITAD (Es de PC)
         htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong>${juego.itad.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
+    } else if (!hasPC) {
+        // No está en PC, así que es imposible que ITAD tenga su precio
+        htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> Edición Consola</span>`;
     } else {
-        htmlPrecio = `<span class="price-na">No disponible</span>`;
+        // Está en PC pero no hay ofertas ahora mismo
+        htmlPrecio = `<span class="price-na">Sin ofertas actuales</span>`;
     }
 
     return `
