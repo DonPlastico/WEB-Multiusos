@@ -629,7 +629,6 @@ body {
     overflow-y: auto;
     flex-grow: 1;
     overscroll-behavior: contain;
-    padding-bottom: 20px;
 }
 
 .filters-scroll-area::-webkit-scrollbar {
