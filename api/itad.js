@@ -6,34 +6,24 @@ export default async function handler(req, res) {
     if (!API_KEY) return res.status(500).json({ error: 'Falta ITAD_API_KEY' });
 
     try {
-        // PASO 1: buscar el juego por título
+        // PASO 1: buscar el juego — API Key va como ?key= en la URL
         const searchRes = await fetch(
-            `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1`,
-            { headers: { 'Authorization': `Bearer ${API_KEY}` } }
+            `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1&key=${API_KEY}`
         );
-        const searchRaw = await searchRes.text();
-        console.log('SEARCH STATUS:', searchRes.status);
-        console.log('SEARCH RAW:', searchRaw);
-
-        let searchData;
-        try { searchData = JSON.parse(searchRaw); }
-        catch { return res.status(500).json({ error: 'Search no JSON', raw: searchRaw }); }
+        const searchData = await searchRes.json();
 
         if (!searchData?.length) {
-            return res.status(200).json({ precio: null, debug: 'juego no encontrado', status: searchRes.status, raw: searchRaw });
+            return res.status(200).json({ precio: null });
         }
 
-        // PASO 2: pedir precios en EUR para España
         const gameId = searchData[0].id;
-        
+
+        // PASO 2: precios — API Key también como ?key=
         const preciosRes = await fetch(
-            `https://api.isthereanydeal.com/games/prices/v3?country=ES`,
+            `https://api.isthereanydeal.com/games/prices/v3?country=ES&key=${API_KEY}`,
             {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_KEY}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify([gameId])
             }
         );
