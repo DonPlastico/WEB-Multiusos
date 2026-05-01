@@ -60,12 +60,12 @@ const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
 const inputBuscar = document.getElementById('search-juegos');
 
-async function cargarJuegosIGDB() {
+async function cargarJuegosIGDB(busqueda = '') {
     gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:#00f3ff; font-size:1.2rem; text-shadow:0 0 10px rgba(0,243,255,0.5);">Sincronizando con la red neuronal de IGDB...</div>';
 
     try {
         // Llamamos a tu API interna de Vercel (el archivo igdb.js de la carpeta api)
-        const respuesta = await fetch('/api/igdb');
+        const respuesta = await fetch(`/api/igdb${busqueda ? `?query=${encodeURIComponent(busqueda)}` : ''}`);
         if (!respuesta.ok) throw new Error('Error en el servidor de Vercel');
 
         const datos = await respuesta.json();
@@ -114,7 +114,7 @@ async function cargarJuegosIGDB() {
             `;
             gridJuegos.innerHTML += tarjetaHTML;
         });
-        
+
         // Carga precios lazy sin bloquear el grid
         document.querySelectorAll('.game-price').forEach(async (el) => {
             const title = el.getAttribute('data-title');
@@ -139,15 +139,13 @@ async function cargarJuegosIGDB() {
 // Disparo la carga inicial
 cargarJuegosIGDB();
 
-// Eventos para el buscador (aunque ahora cargan los top por defecto)
 btnBuscar.addEventListener('click', () => {
-    // Por ahora recarga los destacados, luego implementaremos el buscador real de IGDB
-    cargarJuegosIGDB();
+    cargarJuegosIGDB(inputBuscar.value.trim());
 });
 
 inputBuscar.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        cargarJuegosIGDB();
+        cargarJuegosIGDB(inputBuscar.value.trim());
     }
 });
 
