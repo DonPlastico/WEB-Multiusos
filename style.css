@@ -370,8 +370,7 @@ body {
    ========================================================================== */
 
 .cyber-container {
-    padding: 40px 50px;
-    max-width: 1400px;
+    padding: 50px 150px;
     margin: 0 auto;
 }
 
@@ -505,56 +504,6 @@ body {
     justify-content: center;
     font-size: 1rem;
     border-radius: 16px;
-}
-
-/* ==========================================================================
-   FOOTER MEJORADO
-   ========================================================================== */
-
-.cyber-footer {
-    margin-top: 80px;
-    padding: 0 50px 50px;
-    max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.footer-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 40px;
-    padding: 50px 40px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 24px;
-}
-
-.footer-col h3 {
-    color: var(--neon-white);
-    margin-bottom: 20px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.footer-col ul {
-    list-style: none;
-}
-
-.footer-col ul li {
-    margin-bottom: 12px;
-}
-
-.footer-col ul li a {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: 0.2s;
-}
-
-.footer-col ul li a:hover {
-    color: var(--neon-white);
-    padding-left: 5px;
 }
 
 /* ==========================================================================
@@ -1086,11 +1035,6 @@ body {
 
     .subtitle-hero {
         font-size: 1rem;
-    }
-
-    .footer-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
     }
 
     .section-title {

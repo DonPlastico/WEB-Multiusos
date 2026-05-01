@@ -123,20 +123,22 @@
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
                             </div>
                             <div class="accordion-content">
-                                <label class="custom-check"><input type="checkbox" checked><span class="box"></span>
-                                    TODAS</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
-                                    Steam</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Epic
-                                    Games</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> GOG</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
-                                    Battle.net</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
-                                    Ubisoft</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> EA</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Amazon
-                                    Games</label>
+                                <label class="custom-check"><input type="checkbox" id="tienda-todas" checked
+                                        data-exclusive="true"><span class="box"></span> TODAS</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> Steam</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> Epic Games</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> GOG</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> Battle.net</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> Ubisoft</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> EA</label>
+                                <label class="custom-check"><input type="checkbox" class="tienda-item"><span
+                                        class="box"></span> Amazon Games</label>
                             </div>
                         </div>
 
@@ -147,35 +149,42 @@
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
                             </div>
                             <div class="accordion-content">
-                                <input type="text" class="cyber-input mini-search" placeholder="Buscar plataforma...">
+                                <label class="custom-check"><input type="checkbox" id="plat-todas" checked
+                                        data-exclusive="true"><span class="box"></span> TODAS</label>
+                                <label class="custom-check plat-item"><input type="checkbox"><span class="box"></span>
+                                    PC</label>
+                                <label class="custom-check plat-item"><input type="checkbox"><span class="box"></span>
+                                    Xbox Series X|S</label>
+                                <label class="custom-check plat-item"><input type="checkbox"><span class="box"></span>
+                                    PlayStation 5</label>
 
-                                <label class="custom-check"><input type="checkbox" checked><span class="box"></span>
-                                    TODAS</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PC</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
-                                    5</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox Series
-                                    X/S</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
-                                    Switch</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Switch
-                                    2</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
-                                    4</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox
-                                    One</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
-                                    3</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox
-                                    360</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
-                                    2</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
-                                    1</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> 3DS</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Wii
-                                    U</label>
-                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Wii</label>
+                                <!-- plataformas ocultas por defecto -->
+                                <div id="plat-extra" style="display:none;">
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Switch</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Switch 2</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> PlayStation 4</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Xbox One</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> PlayStation 3</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Xbox 360</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> PlayStation 2</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> PlayStation 1</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> 3DS</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Wii U</label>
+                                    <label class="custom-check plat-item"><input type="checkbox"><span
+                                            class="box"></span> Wii</label>
+                                </div>
+
+                                <button id="btn-ver-plats" class="btn-ver-mas">+ Ver todo</button>
                             </div>
                         </div>
 
@@ -300,48 +309,6 @@
         </section>
 
     </main>
-
-    <!-- el footer gigante q me pediste, lo maqeao en forma de grid -->
-    <footer class="cyber-footer">
-        <div class="footer-grid glass-panel">
-            <div class="footer-col">
-                <h3>Lo básico</h3>
-                <ul>
-                    <li><a href="#">Sobre TMDB</a></li>
-                    <li><a href="#">Contacto</a></li>
-                    <li><a href="#">API Documentation</a></li>
-                    <li><a href="#">API for Business</a></li>
-                    <li><a href="#">Estado del sistema</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Participa</h3>
-                <ul>
-                    <li><a href="#">Guía de aportaciones</a></li>
-                    <li><a href="#">Añadir nueva película</a></li>
-                    <li><a href="#">Añadir nueva serie</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Comunidad</h3>
-                <ul>
-                    <li><a href="#">Directrices</a></li>
-                    <li><a href="#">Debates</a></li>
-                    <li><a href="#">Tabla de clasificación</a></li>
-                    <li><a href="#">Foros de ayuda</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="#">Términos de uso</a></li>
-                    <li><a href="#">Términos de uso de la API</a></li>
-                    <li><a href="#">Política de privacidad</a></li>
-                    <li><a href="#">Política DMCA</a></li>
-                </ul>
-            </div>
-        </div>
-    </footer>
 
     <script type="module" src="main.js"></script>
 </body>

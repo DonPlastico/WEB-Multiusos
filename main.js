@@ -288,23 +288,68 @@ if (buscadorGeneros) {
         itemsGenero.forEach(item => {
             const nombreGenero = item.querySelector('span').textContent.toLowerCase();
             const checkbox = item.querySelector('input');
+            const esOculto = item.classList.contains('hidden-genre');
 
             if (txt === '') {
-                if (item.classList.contains('hidden-genre') && !checkbox.checked) {
-                    item.style.display = 'none';
-                } else {
-                    item.style.display = 'inline-block';
-                }
+                // al borrar: los hidden-genre solo se muestran si están marcados
+                item.style.display = (esOculto && !checkbox.checked) ? 'none' : '';
             } else {
-                if (nombreGenero.includes(txt)) {
-                    item.style.display = 'inline-block';
-                } else {
-                    item.style.display = 'none';
-                }
+                // con texto: muestra si coincide, oculta si no
+                item.style.display = nombreGenero.includes(txt) ? '' : 'none';
             }
         });
     });
 }
+
+// ==========================================================================
+//   LOGICA DE FILTROS
+// ==========================================================================
+
+// TODAS exclusivo para TIENDAS
+const tiendasTodas = document.getElementById('tienda-todas');
+const tiendasItems = document.querySelectorAll('.tienda-item');
+
+tiendasTodas.addEventListener('change', () => {
+    if (tiendasTodas.checked) {
+        tiendasItems.forEach(cb => cb.checked = false);
+    }
+});
+
+tiendasItems.forEach(cb => {
+    cb.addEventListener('change', () => {
+        if (cb.checked) tiendasTodas.checked = false;
+        // si desmarcan todos, vuelve a TODAS
+        if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
+    });
+});
+
+// TODAS exclusivo para PLATAFORMAS
+const platTodas = document.getElementById('plat-todas');
+const platItems = document.querySelectorAll('.plat-item input');
+
+platTodas.addEventListener('change', () => {
+    if (platTodas.checked) {
+        platItems.forEach(cb => cb.checked = false);
+    }
+});
+
+platItems.forEach(cb => {
+    cb.addEventListener('change', () => {
+        if (cb.checked) platTodas.checked = false;
+        if ([...platItems].every(c => !c.checked)) platTodas.checked = true;
+    });
+});
+
+// VER TODO plataformas
+const btnVerPlats = document.getElementById('btn-ver-plats');
+const platExtra = document.getElementById('plat-extra');
+let platExtraVisible = false;
+
+btnVerPlats.addEventListener('click', () => {
+    platExtraVisible = !platExtraVisible;
+    platExtra.style.display = platExtraVisible ? 'block' : 'none';
+    btnVerPlats.textContent = platExtraVisible ? '− Ver menos' : '+ Ver todo';
+});
 
 // ==========================================================================
 //   LOGICA DE LOS ACORDEONES
