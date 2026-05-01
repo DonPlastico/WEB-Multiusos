@@ -60,83 +60,125 @@ const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
 const inputBuscar = document.getElementById('search-juegos');
 
-async function cargarJuegosIGDB(busqueda = '') {
-    gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:#00f3ff; font-size:1.2rem; text-shadow:0 0 10px rgba(0,243,255,0.5);">Sincronizando con la red neuronal de IGDB...</div>';
+let offsetActual = 0;        // pa saber por donde vamos
+let busquedaActual = '';     // pa q el "cargar mas" use el mismo filtro
+let cargando = false;        // evita doble click
+
+function crearTarjeta(juego) {
+    const portada = juego.cover
+        ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+        : 'https://via.placeholder.com/264x374?text=SIN+PORTADA';
+
+    const fechaFormateada = juego.first_release_date
+        ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        })
+        : 'TBA';
+
+    const platPrincipal = juego.platforms ? juego.platforms[0].name : 'PC';
+    const extraCount = juego.platforms && juego.platforms.length > 1
+        ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
+        : '';
+
+    return `
+        <div class="game-card" data-game-title="${juego.name}">
+            <div class="game-cover-container">
+                <div class="top-platform-tag">${platPrincipal.split(' ')[0]}</div>
+                <img src="${portada}" alt="${juego.name}" class="game-cover">
+            </div>
+            <div class="game-info">
+                <h3 class="game-title">${juego.name}</h3>
+                <div class="game-release-info">
+                    <span class="date">${fechaFormateada}</span>
+                    <span class="dot">•</span>
+                    <span class="main-plat">PC</span>
+                    ${extraCount}
+                </div>
+                <div class="game-price" data-title="${juego.name}">
+                    <span class="price-loading">Buscando precio...</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function cargarPrecios(elementos) {
+    elementos.forEach(async (el, index) => {
+        await new Promise(resolve => setTimeout(resolve, index * 300));
+        const title = el.getAttribute('data-title');
+        try {
+            const r = await fetch(`/api/itad?title=${encodeURIComponent(title)}`);
+            const data = await r.json();
+            if (data.precio) {
+                el.innerHTML = `<span class="price-badge">Desde <strong>${data.precio.toFixed(2)} €</strong>${data.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
+            } else {
+                el.innerHTML = `<span class="price-na">No disponible</span>`;
+            }
+        } catch {
+            el.innerHTML = '';
+        }
+    });
+}
+
+async function cargarJuegosIGDB(busqueda = '', resetear = true) {
+    if (cargando) return;
+    cargando = true;
+
+    if (resetear) {
+        offsetActual = 0;
+        busquedaActual = busqueda;
+        gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:#00f3ff; font-size:1.2rem; text-shadow:0 0 10px rgba(0,243,255,0.5);">Sincronizando con la red neuronal de IGDB...</div>';
+        // borro el botón de cargar más si existía
+        document.getElementById('btn-cargar-mas')?.remove();
+    }
 
     try {
-        // Llamamos a tu API interna de Vercel (el archivo igdb.js de la carpeta api)
-        const respuesta = await fetch(`/api/igdb${busqueda ? `?query=${encodeURIComponent(busqueda)}` : ''}`);
+        const url = `/api/igdb?offset=${offsetActual}${busquedaActual ? `&query=${encodeURIComponent(busquedaActual)}` : ''}`;
+        const respuesta = await fetch(url);
         if (!respuesta.ok) throw new Error('Error en el servidor de Vercel');
 
         const datos = await respuesta.json();
-        gridJuegos.innerHTML = '';
+
+        if (resetear) gridJuegos.innerHTML = '';
+
+        // quitamos el botón viejo antes de añadir tarjetas nuevas
+        document.getElementById('btn-cargar-mas')?.remove();
+
+        // guardamos cuántos elementos había antes pa pillar solo los nuevos
+        const anteriorCount = gridJuegos.querySelectorAll('.game-price').length;
 
         datos.forEach(juego => {
-            // Ajustamos la imagen: IGDB da miniaturas por defecto, las pasamos a 720p (t_720p) o cover_big
-            const portada = juego.cover
-                ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
-                : 'https://via.placeholder.com/264x374?text=SIN+PORTADA';
-
-            // Convertimos el Timestamp de IGDB a año
-            const fechaFormateada = juego.first_release_date
-                ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                })
-                : 'TBA';
-
-            // Lógica de plataformas (PC +X)
-            const platPrincipal = juego.platforms ? juego.platforms[0].name : 'PC';
-            const extraCount = juego.platforms && juego.platforms.length > 1
-                ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
-                : '';
-
-            const tarjetaHTML = `
-                <div class="game-card" data-game-title="${juego.name}">
-                    <div class="game-cover-container">
-                        <div class="top-platform-tag">${platPrincipal.split(' ')[0]}</div>
-                        <img src="${portada}" alt="${juego.name}" class="game-cover">
-                    </div>
-                    <div class="game-info">
-                        <h3 class="game-title">${juego.name}</h3>
-                        <div class="game-release-info">
-                            <span class="date">${fechaFormateada}</span>
-                            <span class="dot">•</span>
-                            <span class="main-plat">PC</span>
-                            ${extraCount}
-                        </div>
-                        <div class="game-price" data-title="${juego.name}">
-                            <span class="price-loading">Buscando precio...</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            gridJuegos.innerHTML += tarjetaHTML;
+            gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
-        // Carga precios lazy sin bloquear el grid
-        document.querySelectorAll('.game-price').forEach(async (el) => {
-            const title = el.getAttribute('data-title');
-            try {
-                const r = await fetch(`/api/itad?title=${encodeURIComponent(title)}`);
-                const data = await r.json();
-                if (data.precio) {
-                    el.innerHTML = `<span class="price-badge">Desde <strong>${data.precio.toFixed(2)} €</strong>${data.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
-                } else {
-                    el.innerHTML = `<span class="price-na">No disponible</span>`;
-                }
-            } catch {
-                el.innerHTML = '';
-            }
-        });
+        // pillamos solo los nuevos elementos pa cargar sus precios
+        const todosLosPrecios = gridJuegos.querySelectorAll('.game-price');
+        const nuevosPrecios = Array.from(todosLosPrecios).slice(anteriorCount);
+        cargarPrecios(nuevosPrecios);
+
+        // si devuelve 50 juegos, puede haber más — mostramos el botón
+        if (datos.length === 50) {
+            const btnMas = document.createElement('div');
+            btnMas.id = 'btn-cargar-mas';
+            btnMas.innerHTML = `<button onclick="cargarMas()">Cargar 50 más</button>`;
+            gridJuegos.after(btnMas);
+        }
+
+        offsetActual += datos.length;
+
     } catch (error) {
         console.error("Error cargando juegos:", error);
         gridJuegos.innerHTML = '<div style="color:#ff4757; text-align:center; width:100%;">Error crítico al conectar con IGDB. Revisa los logs de Vercel.</div>';
     }
+
+    cargando = false;
 }
 
-// Disparo la carga inicial
+function cargarMas() {
+    cargarJuegosIGDB(busquedaActual, false);
+}
+
+// Carga inicial
 cargarJuegosIGDB();
 
 btnBuscar.addEventListener('click', () => {
