@@ -12,8 +12,8 @@ export default async function handler(req, res) {
         const accessToken = tokenData.access_token;
 
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80; limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; where category = (0,8,9); limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80 & category = (0,8,9); limit 50; offset ${offset};`;
 
         const igdbResponse = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',

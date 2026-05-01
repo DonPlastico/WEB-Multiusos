@@ -193,17 +193,27 @@ function cargarPrecios(elementos) {
     elementos.forEach(async (el, index) => {
         await new Promise(resolve => setTimeout(resolve, index * 300));
         const title = el.getAttribute('data-title');
+        const card = el.closest('.game-card'); // Seleccionamos la tarjeta entera
+
         try {
             const r = await fetch(`/api/itad?title=${encodeURIComponent(title)}`);
             const data = await r.json();
             if (data.precio) {
+                // Extraemos todas las tiendas disponibles y las guardamos como un string en el dataset
+                const stores = data.todos.map(d => d.shop.name.toLowerCase()).join(',');
+                card.setAttribute('data-stores', stores);
+
                 el.innerHTML = `<span class="price-badge">Desde <strong>${data.precio.toFixed(2)} €</strong>${data.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
             } else {
+                card.setAttribute('data-stores', 'none');
                 el.innerHTML = `<span class="price-na">No disponible</span>`;
             }
         } catch {
+            card.setAttribute('data-stores', 'none');
             el.innerHTML = '';
         }
+
+        aplicarFiltrosTienda(); // Refrescar filtros cada vez que carga un precio
     });
 }
 
@@ -309,10 +319,40 @@ if (buscadorGeneros) {
 const tiendasTodas = document.getElementById('tienda-todas');
 const tiendasItems = document.querySelectorAll('.tienda-item');
 
+function aplicarFiltrosTienda() {
+    const tiendasSeleccionadas = Array.from(tiendasItems)
+        .filter(cb => cb.checked)
+        .map(cb => cb.parentElement.textContent.trim().toLowerCase());
+
+    const filtroTodas = tiendasTodas.checked;
+
+    document.querySelectorAll('.game-card').forEach(card => {
+        const storesStr = card.getAttribute('data-stores');
+
+        // Si no hay filtro o el precio aún no ha cargado, lo mostramos
+        if (filtroTodas || !storesStr) {
+            card.style.display = 'flex';
+            return;
+        }
+
+        // Si ITAD respondió pero no hay tiendas (none), y tenemos filtros activos, lo ocultamos
+        if (storesStr === 'none') {
+            card.style.display = 'none';
+            return;
+        }
+
+        // Verifica si el string de tiendas del juego incluye ALGUNA de las seleccionadas
+        const coincide = tiendasSeleccionadas.some(tiendaBuscada => storesStr.includes(tiendaBuscada));
+
+        card.style.display = coincide ? 'flex' : 'none';
+    });
+}
+
 tiendasTodas.addEventListener('change', () => {
     if (tiendasTodas.checked) {
         tiendasItems.forEach(cb => cb.checked = false);
     }
+    aplicarFiltrosTienda();
 });
 
 tiendasItems.forEach(cb => {
@@ -320,6 +360,7 @@ tiendasItems.forEach(cb => {
         if (cb.checked) tiendasTodas.checked = false;
         // si desmarcan todos, vuelve a TODAS
         if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
+        aplicarFiltrosTienda();
     });
 });
 
