@@ -1,27 +1,45 @@
 // ==========================================================================
-//   NAVEGACIÓN ENTRE VISTAS
+//   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
 // ==========================================================================
 
 const linksMenu = document.querySelectorAll('.nav-links a');
 const vistas = document.querySelectorAll('.view');
 
+function cambiarVista(target) {
+    // 1. Guardamos la pestaña actual en la memoria del navegador
+    localStorage.setItem('dp_sys_active_view', target);
+
+    // 2. Actualizamos el color del menú
+    linksMenu.forEach(link => {
+        if (link.getAttribute('data-target') === target) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // 3. Mostramos la vista correcta y ocultamos las demás
+    vistas.forEach(vista => {
+        if (vista.id === target) {
+            vista.classList.add('active');
+        } else {
+            vista.classList.remove('active');
+        }
+    });
+}
+
+// Evento al hacer clic en los enlaces
 linksMenu.forEach(link => {
     link.addEventListener('click', (evento) => {
         evento.preventDefault();
-
-        linksMenu.forEach(l => l.classList.remove('active'));
-        link.classList.add('active');
-
         const target = link.getAttribute('data-target');
-
-        vistas.forEach(vista => {
-            vista.classList.remove('active');
-            if (vista.id === target) {
-                vista.classList.add('active');
-            }
-        });
+        cambiarVista(target);
     });
 });
+
+// Al recargar (F5), leemos qué vista estaba guardada. Si es la primera vez, cargamos 'home'
+const vistaGuardada = localStorage.getItem('dp_sys_active_view') || 'home';
+cambiarVista(vistaGuardada);
 
 // ==========================================================================
 //   SISTEMA DE TEMAS (CLARO / OSCURO / SISTEMA)
@@ -286,7 +304,7 @@ inputBuscar.addEventListener('input', () => {
     clearTimeout(temporizadorBusqueda); // Si sigue escribiendo, reiniciamos el reloj
     temporizadorBusqueda = setTimeout(() => {
         cargarJuegosIGDB(inputBuscar.value.trim());
-    }, 2000); // 2000 ms = 2 segundos
+    }, 500); // 500 ms = 0.5 segundos
 });
 
 // 2. Click en la lupa (por si el usuario es impaciente y no quiere esperar)
