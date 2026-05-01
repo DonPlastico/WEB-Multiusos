@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DP_SYS | Nexus</title>
+    <!-- pillo la fuente tecknica y los iconos del fontawesome pa los botoncicos -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- este div sigue aki pa ponerle las rallas de tele vieja a to la web -->
+    <div class="scanlines"></div>
+
+    <!-- barra navegacion to wapa en 3 cachos -->
+    <nav class="cyber-nav">
+        <!-- izq: logo -->
+        <div class="logo">DP<span>_SYS</span></div>
+
+        <!-- centro: los enlaces -->
+        <ul class="nav-links">
+            <li><a href="#" data-target="home" class="active">HOME</a></li>
+            <li><a href="#" data-target="games">JUEGOS</a></li>
+            <li><a href="#" data-target="movies">PELICULAS</a></li>
+            <li><a href="#" data-target="series">SERIES</a></li>
+        </ul>
+
+        <!-- derecha: los iconos que me as pedio -->
+        <div class="nav-right">
+            <!-- boton pal color d la web. por defecto le dejo el del pc -->
+            <button class="icon-btn" id="theme-toggle" title="Tema del sistema">
+                <i class="fas fa-desktop"></i>
+            </button>
+
+            <!-- la banderita del idioma -->
+            <button class="icon-btn" id="lang-toggle" title="Idioma">
+                <img src="https://flagcdn.com/24x18/es.png" alt="ES">
+            </button>
+
+            <!-- icono pal perfil del nota -->
+            <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
+                <i class="fas fa-user-circle"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- contenedor principal con las vistas -->
+    <main class="cyber-container">
+
+        <!-- VISTA: HOME (Aki va lo tocho) -->
+        <section id="home" class="view active">
+
+            <!-- el hero o cabezera de la pag -->
+            <div class="hero-section glass-panel">
+                <h1 class="glitch-text">Te damos la bienvenida.</h1>
+                <p class="subtitle-hero">Millones de películas, series y gente por descubrir. Explora ya.</p>
+            </div>
+
+            <!-- aki preparo to los huecos dnd escupire la api lueo -->
+            <div class="trends-container">
+                <h2 class="section-title">Tendencias en Juegos</h2>
+                <div class="horizontal-scroll glass-panel" id="trend-games">Aki iran las tarjetitas...</div>
+            </div>
+
+            <div class="trends-container">
+                <h2 class="section-title">Tendencias en Películas</h2>
+                <div class="horizontal-scroll glass-panel" id="trend-movies">Aki iran las tarjetitas...</div>
+            </div>
+
+            <div class="trends-container">
+                <h2 class="section-title">Tendencias en Series</h2>
+                <div class="horizontal-scroll glass-panel" id="trend-series">Aki iran las tarjetitas...</div>
+            </div>
+
+            <div class="trends-container">
+                <h2 class="section-title">Últimos Tráilers</h2>
+                <div class="horizontal-scroll glass-panel" id="latest-trailers">Aki iran los videos...</div>
+            </div>
+
+            <div class="trends-container">
+                <h2 class="section-title">Lo Más Popular</h2>
+                <div class="horizontal-scroll glass-panel" id="popular-all">Aki la mezcla de to...</div>
+            </div>
+
+        </section>
+
+        <!-- VISTA: JUEGOS -->
+        <section id="games" class="view">
+            <!-- e kitao el h1 gigante d DATA_JUEGOS y e dejao solo el texto pekeño -->
+            <p class="subtitle" style="margin-bottom: 20px;">Base de datos sincronizada. Últimos lanzamientos y
+                tendencias.</p>
+
+            <div class="games-layout">
+
+                <!-- ZONA IZQUIERDA: EL CONTENIDO -->
+                <div class="games-content">
+                    <div class="search-box glass-panel">
+                        <input type="text" id="search-juegos" placeholder="Buscar en la base de datos...">
+                        <button id="btn-buscar-juegos"><i class="fas fa-search"></i></button>
+                    </div>
+
+                    <div id="games-grid" class="cyber-grid">
+                        <div style="text-align: center; width: 100%; color: #666;">Conectando con la red d keyshops...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ZONA DERECHA: LOS FILTROS TO WAPOS -->
+                <aside class="filter-sidebar glass-panel">
+                    <div class="filter-main-header">
+                        <h2>Filtros</h2>
+                        <button id="btn-reset-filters">Limpiar</button>
+                    </div>
+
+                    <div class="filters-scroll-area">
+
+                        <!-- TIENDAS / LAUNCHERS (NUEVO) -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check"><input type="checkbox" checked><span class="box"></span>
+                                    TODAS</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Steam</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Epic
+                                    Games</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> GOG</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Battle.net</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Ubisoft</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> EA</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Amazon
+                                    Games</label>
+                            </div>
+                        </div>
+
+                        <!-- PLATAFORMAS -->
+                        <!-- e kitao el "active" d todas las class="accordion-item" pa k salgan cerraos -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" class="cyber-input mini-search" placeholder="Buscar plataforma...">
+
+                                <label class="custom-check"><input type="checkbox" checked><span class="box"></span>
+                                    TODAS</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PC</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
+                                    5</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox Series
+                                    X/S</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Switch</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Switch
+                                    2</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
+                                    4</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox
+                                    One</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
+                                    3</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Xbox
+                                    360</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
+                                    2</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> PlayStation
+                                    1</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> 3DS</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Wii
+                                    U</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Wii</label>
+                            </div>
+                        </div>
+
+                        <!-- PRECIOS -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> PRECIO</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="fake-range-slider">
+                                    <div class="track"></div>
+                                    <div class="thumb left"></div>
+                                    <div class="thumb right"></div>
+                                </div>
+
+                                <div class="price-inputs-row">
+                                    <div class="price-box">
+                                        <label>Min</label>
+                                        <div class="input-wrapper">
+                                            <span>€</span><input type="number" placeholder="0" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="price-box">
+                                        <label>Max</label>
+                                        <div class="input-wrapper">
+                                            <span>€</span><input type="number" placeholder="0" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TOP GENEROS -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> TOP GÉNEROS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" id="search-genre" class="cyber-input mini-search"
+                                    placeholder="Buscar género...">
+
+                                <div id="genre-list">
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Acción</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Aventura</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Casual</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> RPG</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Carreras</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Simulación</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Deportes</label>
+                                    <label class="custom-check genre-item"><input type="checkbox"><span
+                                            class="box"></span> Estrategia</label>
+
+                                    <label class="custom-check genre-item hidden-genre" style="display:none;"><input
+                                            type="checkbox"><span class="box"></span> Acción-RPG</label>
+                                    <label class="custom-check genre-item hidden-genre" style="display:none;"><input
+                                            type="checkbox"><span class="box"></span> MMO</label>
+                                    <label class="custom-check genre-item hidden-genre" style="display:none;"><input
+                                            type="checkbox"><span class="box"></span> Puzle</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FECHAS -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE SALIDA</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
+                                <input type="date" class="cyber-input date-picker">
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
+                                <input type="date" class="cyber-input date-picker">
+                            </div>
+                        </div>
+
+                        <!-- JUGADORES -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> JUGADORES</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> 4 Jugadores
+                                    Local</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Cooperativo</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> Single
+                                    Player</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Multijugador</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span>
+                                    Multijugador en Local</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> En
+                                    Línea</label>
+                                <label class="custom-check"><input type="checkbox"><span class="box"></span> 16
+                                    Jugadores Online</label>
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+
+            </div>
+        </section>
+
+        <!-- VISTA: PELICULAS -->
+        <section id="movies" class="view">
+            <h1 class="glitch-text">DATA_PELICULAS</h1>
+        </section>
+
+        <!-- VISTA: SERIES -->
+        <section id="series" class="view">
+            <h1 class="glitch-text">DATA_SERIES</h1>
+        </section>
+
+    </main>
+
+    <!-- el footer gigante q me pediste, lo maqeao en forma de grid -->
+    <footer class="cyber-footer">
+        <div class="footer-grid glass-panel">
+            <div class="footer-col">
+                <h3>Lo básico</h3>
+                <ul>
+                    <li><a href="#">Sobre TMDB</a></li>
+                    <li><a href="#">Contacto</a></li>
+                    <li><a href="#">API Documentation</a></li>
+                    <li><a href="#">API for Business</a></li>
+                    <li><a href="#">Estado del sistema</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Participa</h3>
+                <ul>
+                    <li><a href="#">Guía de aportaciones</a></li>
+                    <li><a href="#">Añadir nueva película</a></li>
+                    <li><a href="#">Añadir nueva serie</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Comunidad</h3>
+                <ul>
+                    <li><a href="#">Directrices</a></li>
+                    <li><a href="#">Debates</a></li>
+                    <li><a href="#">Tabla de clasificación</a></li>
+                    <li><a href="#">Foros de ayuda</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="#">Términos de uso</a></li>
+                    <li><a href="#">Términos de uso de la API</a></li>
+                    <li><a href="#">Política de privacidad</a></li>
+                    <li><a href="#">Política DMCA</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

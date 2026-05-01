@@ -1,0 +1,759 @@
+/* reseteo to lo basico pa no rayarme */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* defino los colores base */
+:root {
+    --bg-dark: #050505;
+    --glass-bg: rgba(20, 20, 25, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --neon-white: #ffffff;
+    --neon-glow: 0 0 10px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.2);
+    --text-main: #cccccc;
+    --font-cyber: 'Rajdhani', sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-cyber);
+    overflow-x: hidden;
+}
+
+/* la barra de ariba ahora la pongo como grid pa q las 3 cosas qeden to cuadras */
+.cyber-nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 15px 40px;
+    background: rgba(5, 5, 5, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* LOGO */
+.logo {
+    justify-self: start;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+    letter-spacing: 2px;
+}
+
+.logo span {
+    color: #444;
+    text-shadow: none;
+}
+
+/* LINKS CENTRALES */
+.nav-links {
+    justify-self: center;
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px 30px;
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+}
+
+.nav-links a {
+    color: #666;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    transition: 0.3s all;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+}
+
+/* ICONOS DERECHA */
+.nav-right {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* estilo pa q los botones no parezcan botones de windows 98 */
+.icon-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.icon-btn img {
+    width: 24px;
+    border-radius: 3px;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.icon-btn:hover,
+.icon-btn:hover img {
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+    opacity: 1;
+}
+
+.user-btn {
+    font-size: 1.8rem;
+}
+
+/* CONTENEDORES Y VISTAS */
+.cyber-container {
+    padding: 40px 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.view {
+    display: none;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* TEXTOS DEL HERO Y SECCIONES */
+.hero-section {
+    padding: 60px 40px;
+    margin-bottom: 50px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(20, 20, 25, 0.8) 0%, rgba(5, 5, 5, 0.4) 100%);
+}
+
+.glitch-text {
+    font-size: 3.5rem;
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+}
+
+.subtitle-hero {
+    font-size: 1.5rem;
+    color: #888;
+}
+
+.trends-container {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--neon-white);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-left: 3px solid var(--neon-white);
+    padding-left: 10px;
+}
+
+/* las cajas de cristal dnd ire poniendo cosas */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.horizontal-scroll {
+    padding: 30px;
+    min-height: 200px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* EL FOOTER */
+.cyber-footer {
+    margin-top: 80px;
+    padding: 0 50px 50px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    padding: 40px;
+}
+
+.footer-col h3 {
+    color: var(--neon-white);
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+.footer-col ul {
+    list-style: none;
+}
+
+.footer-col ul li {
+    margin-bottom: 10px;
+}
+
+.footer-col ul li a {
+    color: #888;
+    font-size: 1rem;
+}
+
+.footer-col ul li a:hover {
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+}
+
+/* la ralla de tele antigua pos si me mola */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.15;
+}
+
+/* ==========================================================================
+   VISTA JUEGOS
+   ========================================================================== */
+
+/* el buscadorcito d arriba */
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding: 15px;
+}
+
+.search-box input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: var(--neon-white);
+    font-family: var(--font-cyber);
+    font-size: 1.1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-box input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.search-box button {
+    background: var(--accent-secondary);
+    border: none;
+    color: white;
+    padding: 0 25px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: 0.3s;
+}
+
+.search-box button:hover {
+    background: var(--accent-primary);
+    box-shadow: var(--neon-glow);
+    color: black;
+}
+
+/* ago las tarjetas mas pekeñas, de 280px a 200px d minimo pa q kepan mas */
+.cyber-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+/* la tarjeta del juego, cristalito oscuro q brilla al pasar el raton */
+.game-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.game-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--accent-primary);
+    box-shadow: 0 15px 30px var(--accent-glow);
+}
+
+/* la foto tmbn mas bajita pa q propocione bn */
+.game-cover {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--glass-border);
+    transition: 0.4s;
+}
+
+.game-card:hover .game-cover {
+    filter: brightness(1.2);
+}
+
+.game-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.game-title {
+    font-size: 1.3rem;
+    color: var(--neon-white);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-meta {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* aki simulamos el precio de allkeyshop q decias */
+.game-price-tag {
+    margin-top: auto;
+    background: rgba(0, 243, 255, 0.1);
+    border: 1px solid var(--accent-primary);
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.game-price-tag span {
+    font-family: var(--font-code);
+    color: var(--accent-primary);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.game-price-tag i {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   LAYOUT DE JUEGOS Y BARRA DE FILTROS
+   ========================================================================== */
+
+/* kiero 1 fraccion pal contenido y 320px fijos pa la barra lateral */
+.games-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 40px;
+    align-items: start;
+    /* mu inportante pa k el sticky funcione bien */
+}
+
+/* la caja de los filtros q keda flotando a la derexa */
+.filter-sidebar {
+    position: sticky;
+    top: 100px;
+    /* se qeda pegao a 100px dl borde d arriba al escrolear */
+    padding: 25px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    /* si m paso d filtros sale rula pa vajar */
+}
+
+/* toco la rula de la barra lateral pa q encaje con el tema dark */
+.filter-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.filter-sidebar::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 15px;
+}
+
+.filter-header h2 {
+    font-size: 1.2rem;
+    color: var(--neon-white);
+    letter-spacing: 1px;
+}
+
+#btn-reset-filters {
+    background: transparent;
+    border: 1px solid #555;
+    color: #888;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    transition: 0.3s;
+}
+
+#btn-reset-filters:hover {
+    color: var(--neon-white);
+    border-color: var(--neon-white);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.filter-group {
+    margin-bottom: 25px;
+}
+
+.filter-title {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+/* inputs unificados xra buscar generos, precios y fexas */
+.cyber-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    padding: 10px;
+    border-radius: 4px;
+    color: white;
+    font-family: var(--font-cyber);
+    outline: none;
+    transition: 0.3s;
+}
+
+.cyber-input:focus {
+    border-color: var(--accent-primary);
+}
+
+/* las cajas d precios y fexas una al lao d la otra */
+.price-inputs,
+.date-inputs {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.genre-search {
+    margin-bottom: 15px;
+}
+
+/* ==========================================================================
+   ACORDEON DE FILTROS NUEVO (TIPO TMDB/STEAM)
+   ========================================================================== */
+
+.filter-sidebar {
+    position: sticky;
+    top: 100px;
+    padding: 0;
+    /* aora el padding lo llevan los items por dentro */
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    background: rgba(15, 15, 20, 0.6);
+    /* un pelin mas oscuro d fondo */
+}
+
+.filter-main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.filter-main-header h2 {
+    font-size: 1.1rem;
+    color: var(--neon-white);
+}
+
+#btn-reset-filters {
+    background: transparent;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-family: var(--font-main);
+    font-size: 0.85rem;
+    transition: 0.3s;
+}
+
+#btn-reset-filters:hover {
+    color: var(--neon-white);
+    text-shadow: var(--neon-glow);
+}
+
+/* ==========================================================================
+   ACORDEON DE FILTROS NUEVO (TIPO TMDB/STEAM)
+   ========================================================================== */
+.filters-scroll-area {
+    overflow-y: auto;
+    flex-grow: 1;
+    /* ESTA ES LA MAGIA: overscroll-behavior ace k cuando llegues abajo del menu
+       no te siga escorleando la pantalla d detras */
+    overscroll-behavior: contain;
+}
+
+.filters-scroll-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.filters-scroll-area::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+/* Items del acordeon */
+.accordion-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.accordion-header {
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: 0.3s;
+    user-select: none;
+}
+
+.accordion-header:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.accordion-header span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chevron-icon {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: #666;
+}
+
+/* animacion d la flechita pa q de vueltas */
+.accordion-item.active .chevron-icon {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    padding: 0 20px 20px 40px;
+    /* sangria xra q kede mas padentro q el titulo */
+    display: none;
+}
+
+.accordion-item.active .accordion-content {
+    display: block;
+}
+
+/* ==========================================================================
+   INPUTS Y CHECKBOXES CUADRADOS
+   ========================================================================== */
+.mini-search {
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.custom-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #aaa;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.custom-check:hover {
+    color: #fff;
+}
+
+.custom-check input {
+    display: none;
+}
+
+/* la cajita del check k e excho a mano */
+.custom-check .box {
+    width: 16px;
+    height: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #555;
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+
+/* cuando pinchas se rellena y le pongo el tick d fontawesome */
+.custom-check input:checked+.box {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px grey;
+}
+
+.custom-check input:checked+.box::after {
+    content: '\f00c';
+    /* codigo del tick d fontawesome */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.7rem;
+    color: white;
+}
+
+/* ==========================================================================
+   ZONA DE PRECIOS Y FECHAS
+   ========================================================================== */
+.fake-range-slider {
+    position: relative;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    margin: 15px 0 25px;
+}
+
+.fake-range-slider .track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: var(--accent-primary);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+}
+
+.fake-range-slider .thumb {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background: var(--neon-white);
+    border: 2px solid var(--accent-primary);
+    border-radius: 50%;
+}
+
+.fake-range-slider .thumb.left {
+    left: 0;
+    transform: translate(-50%, -50%);
+}
+
+.fake-range-slider .thumb.right {
+    right: 0;
+    transform: translate(50%, -50%);
+}
+
+.price-inputs-row {
+    display: flex;
+    gap: 15px;
+}
+
+.price-box label {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 4px;
+    padding: 0 10px;
+}
+
+.input-wrapper span {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.input-wrapper input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 8px 5px;
+    outline: none;
+    font-family: var(--font-code);
+}
+
+.date-picker {
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+/* arreglar iconito de calendario oscuro */
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+}
