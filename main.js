@@ -224,7 +224,12 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
     if (resetear) {
         offsetActual = 0;
         busquedaActual = busqueda;
-        gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:var(--primary); font-size:1.2rem;">Sincronizando con la red neuronal de IGDB...</div>';
+        gridJuegos.innerHTML = `
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
+            </div>
+        `;
         document.getElementById('btn-cargar-mas')?.remove();
     }
 
@@ -274,12 +279,26 @@ window.cargarMas = cargarMas;
 
 cargarJuegosIGDB();
 
+let temporizadorBusqueda; // Guardará el tiempo de espera
+
+// 1. Evento cuando el usuario escribe (Auto-búsqueda a los 2 segundos)
+inputBuscar.addEventListener('input', () => {
+    clearTimeout(temporizadorBusqueda); // Si sigue escribiendo, reiniciamos el reloj
+    temporizadorBusqueda = setTimeout(() => {
+        cargarJuegosIGDB(inputBuscar.value.trim());
+    }, 2000); // 2000 ms = 2 segundos
+});
+
+// 2. Click en la lupa (por si el usuario es impaciente y no quiere esperar)
 btnBuscar.addEventListener('click', () => {
+    clearTimeout(temporizadorBusqueda);
     cargarJuegosIGDB(inputBuscar.value.trim());
 });
 
+// 3. Pulsar Enter (por la misma razón)
 inputBuscar.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
+        clearTimeout(temporizadorBusqueda);
         cargarJuegosIGDB(inputBuscar.value.trim());
     }
 });
