@@ -362,6 +362,7 @@ function aplicarFiltrosTienda() {
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
 
     const filtroTodas = tiendasTodas.checked;
+    let cartasVisibles = 0; // Llevaremos la cuenta de cuántas quedan en pantalla
 
     document.querySelectorAll('.game-card').forEach(card => {
         const storesStr = card.getAttribute('data-stores');
@@ -369,20 +370,34 @@ function aplicarFiltrosTienda() {
         // Si no hay filtro o el precio aún no ha cargado, lo mostramos
         if (filtroTodas || !storesStr) {
             card.style.display = 'flex';
+            cartasVisibles++;
             return;
         }
 
-        // Si ITAD respondió pero no hay tiendas (none), y tenemos filtros activos, lo ocultamos
+        // Si ITAD respondió pero no hay tiendas, lo ocultamos
         if (storesStr === 'none') {
             card.style.display = 'none';
             return;
         }
 
-        // Verifica si el string de tiendas del juego incluye ALGUNA de las seleccionadas
+        // Verifica si el string de tiendas incluye ALGUNA de las seleccionadas
         const coincide = tiendasSeleccionadas.some(tiendaBuscada => storesStr.includes(tiendaBuscada));
 
         card.style.display = coincide ? 'flex' : 'none';
+        if (coincide) cartasVisibles++; // Sumamos si la tarjeta ha pasado el filtro
     });
+
+    // AUTO-RELLENADO (Lazy Loading Inteligente)
+    const btnMas = document.getElementById('btn-cargar-mas');
+
+    // Si NO estamos en "Todas", quedan menos de 20 tarjetas visibles,
+    // no estamos ya buscando datos, y el botón de cargar más existe...
+    if (!filtroTodas && cartasVisibles < 20 && !cargando && btnMas) {
+        // Cambiamos el texto del botón para que el usuario sepa qué pasa
+        btnMas.querySelector('button').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Auto-buscando...';
+        // Disparamos la carga de la siguiente página automáticamente
+        cargarMas();
+    }
 }
 
 tiendasTodas.addEventListener('change', () => {
