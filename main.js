@@ -53,90 +53,78 @@ themeBtn.addEventListener('click', () => {
 });
 
 // ==========================================================================
-//   LOGICA DE JUEGOS (CHEAPSHARK API - SIN REGISTRO NI MIERDAS)
+//   LOGICA DE JUEGOS (IGDB API via Vercel Serverless)
 // ==========================================================================
 
-// pillo los elementos de la web
 const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
 const inputBuscar = document.getElementById('search-juegos');
 
-// llamo a la api del cheapshark q me da los precios reales d las paginas de keys
-function cargarJuegos(busqueda = '') {
-    
-    // aki le e metio el sortBy=Release pa k m los tire x fexa de salida dl reves (de aora a viejos)
-    let url = `https://www.cheapshark.com/api/1.0/deals?sortBy=Release&onSale=1&pageSize=24`;
-    
-    // si el usuario a escrio argo, cambio a la url de buskeda
-    if (busqueda !== '') {
-        url = `https://www.cheapshark.com/api/1.0/games?title=${busqueda}&limit=24`;
-    }
+async function cargarJuegosIGDB() {
+    gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:#00f3ff; font-size:1.2rem; text-shadow:0 0 10px rgba(0,243,255,0.5);">Sincronizando con la red neuronal de IGDB...</div>';
 
-    // mensaje to guapo mientras carga
-    gridJuegos.innerHTML = '<div style="width:100%; text-align:center; color:#00f3ff; font-size:1.2rem; text-shadow:0 0 10px rgba(0,243,255,0.5);">Conectando con la red de keyshops...</div>';
+    try {
+        // Llamamos a tu API interna de Vercel (el archivo igdb.js de la carpeta api)
+        const respuesta = await fetch('/api/igdb');
+        if (!respuesta.ok) throw new Error('Error en el servidor de Vercel');
 
-    fetch(url)
-        .then(respuesta => {
-            if (!respuesta.ok) throw new Error('a petao el tiburon tu');
-            return respuesta.json();
-        })
-        .then(datos => {
-            gridJuegos.innerHTML = '';
+        const datos = await respuesta.json();
+        gridJuegos.innerHTML = '';
 
-            // si busca algo q no existe
-            if (datos.length === 0) {
-                gridJuegos.innerHTML = '<div style="color:#ff4757; text-align:center; width:100%;">no ai juegos con ese nombre pisha...</div>';
-                return;
-            }
+        datos.forEach(juego => {
+            // Ajustamos la imagen: IGDB da miniaturas por defecto, las pasamos a 720p (t_720p) o cover_big
+            const portada = juego.cover
+                ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+                : 'https://via.placeholder.com/264x374?text=SIN+PORTADA';
 
-            // recorro lo q m a devuelto la api
-            datos.forEach(juego => {
-                // el json me devuelve cosas con nombres distintos si toy buscando o en portada
-                const titulo = juego.title || juego.external;
-                const imagen = juego.thumb || 'https://via.placeholder.com/400x350/1a1a1a/00f3ff?text=NO+IMAGE';
+            // Convertimos el Timestamp de IGDB a año
+            const año = juego.first_release_date
+                ? new Date(juego.first_release_date * 1000).getFullYear()
+                : 'TBA';
 
-                // aki pillo el precio rebajao y el normal pa q se vea la oferta
-                const precioActual = juego.salePrice || juego.cheapest || "0.00";
+            // Lógica de plataformas (PC +X)
+            const platPrincipal = juego.platforms ? juego.platforms[0].name : 'PC';
+            const extraCount = juego.platforms && juego.platforms.length > 1
+                ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
+                : '';
 
-                // si tiene precio normal (viejo), se lo pongo tachao al lao
-                const precioViejo = juego.normalPrice ? `<span style="text-decoration: line-through; color: #666; font-size: 0.9rem; margin-right: 10px;">${juego.normalPrice}€</span>` : '';
-
-                // lo clavo en la web
-                const tarjetaHTML = `
-                    <div class="game-card">
-                        <img src="${imagen}" alt="${titulo}" class="game-cover">
-                        <div class="game-info">
-                            <h3 class="game-title">${titulo}</h3>
-                            
-                            <div class="game-price-tag">
-                                <div><i class="fas fa-tag"></i> Oferta actual</div>
-                                <span>${precioViejo}${precioActual}€</span>
-                            </div>
+            const tarjetaHTML = `
+                <div class="game-card">
+                    <div class="game-cover-container">
+                        <div class="top-platform-tag">${platPrincipal.split(' ')[0]}</div>
+                        <img src="${portada}" alt="${juego.name}" class="game-cover">
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">${juego.name}</h3>
+                        <div class="game-release-info">
+                            <span class="date">${año}</span>
+                            <span class="dot">•</span>
+                            <span class="main-plat">PC</span>
+                            ${extraCount}
                         </div>
                     </div>
-                `;
-                gridJuegos.innerHTML += tarjetaHTML;
-            });
-        })
-        .catch(error => {
-            // porsiaka explota la api
-            console.error("pos a dao un error reventando el fetch:", error);
-            gridJuegos.innerHTML = '<div style="color:#ff4757; text-align:center; width:100%;">El ciberespacio esta jodido oy. No cargan los juegos.</div>';
+                </div>
+            `;
+            gridJuegos.innerHTML += tarjetaHTML;
         });
+    } catch (error) {
+        console.error("Error cargando juegos:", error);
+        gridJuegos.innerHTML = '<div style="color:#ff4757; text-align:center; width:100%;">Error crítico al conectar con IGDB. Revisa los logs de Vercel.</div>';
+    }
 }
 
-// disparo la funcion namas empezar
-cargarJuegos();
+// Disparo la carga inicial
+cargarJuegosIGDB();
 
-// pa cuando le dan al boton d la lupa
+// Eventos para el buscador (aunque ahora cargan los top por defecto)
 btnBuscar.addEventListener('click', () => {
-    cargarJuegos(inputBuscar.value);
+    // Por ahora recarga los destacados, luego implementaremos el buscador real de IGDB
+    cargarJuegosIGDB();
 });
 
-// pa q funcione dandole al enter q si no es un coñazo
 inputBuscar.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        cargarJuegos(inputBuscar.value);
+        cargarJuegosIGDB();
     }
 });
 
