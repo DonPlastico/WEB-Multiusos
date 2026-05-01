@@ -180,15 +180,23 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    const platPrincipal = juego.platforms ? juego.platforms[0].name : 'PC';
-    const extraCount = juego.platforms && juego.platforms.length > 1
-        ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
-        : '';
+    // Como ahora solo traemos PC, forzamos la etiqueta principal
+    const platPrincipal = 'PC';
+
+    // Montamos el bloque del precio con los datos que YA vienen del backend
+    let htmlPrecio = '';
+    if (juego.itad && juego.itad.precio !== null) {
+        htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong>${juego.itad.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
+    } else {
+        htmlPrecio = `<span class="price-na">No disponible</span>`;
+    }
+
+    const storesData = juego.itad ? juego.itad.stores : 'none';
 
     return `
-        <div class="game-card" data-game-title="${juego.name}">
+        <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}">
             <div class="game-cover-container">
-                <div class="top-platform-tag">${platPrincipal.split(' ')[0]}</div>
+                <div class="top-platform-tag">${platPrincipal}</div>
                 <img src="${portada}" alt="${juego.name}" class="game-cover">
             </div>
             <div class="game-info">
@@ -197,42 +205,13 @@ function crearTarjeta(juego) {
                     <span class="date">${fechaFormateada}</span>
                     <span class="dot">•</span>
                     <span class="main-plat">PC</span>
-                    ${extraCount}
                 </div>
-                <div class="game-price" data-title="${juego.name}">
-                    <span class="price-loading">Buscando precio...</span>
+                <div class="game-price">
+                    ${htmlPrecio}
                 </div>
             </div>
         </div>
     `;
-}
-
-function cargarPrecios(elementos) {
-    elementos.forEach(async (el, index) => {
-        await new Promise(resolve => setTimeout(resolve, index * 300));
-        const title = el.getAttribute('data-title');
-        const card = el.closest('.game-card'); // Seleccionamos la tarjeta entera
-
-        try {
-            const r = await fetch(`/api/itad?title=${encodeURIComponent(title)}`);
-            const data = await r.json();
-            if (data.precio) {
-                // Extraemos todas las tiendas disponibles y las guardamos como un string en el dataset
-                const stores = data.todos.map(d => d.shop.name.toLowerCase()).join(',');
-                card.setAttribute('data-stores', stores);
-
-                el.innerHTML = `<span class="price-badge">Desde <strong>${data.precio.toFixed(2)} €</strong>${data.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
-            } else {
-                card.setAttribute('data-stores', 'none');
-                el.innerHTML = `<span class="price-na">No disponible</span>`;
-            }
-        } catch {
-            card.setAttribute('data-stores', 'none');
-            el.innerHTML = '';
-        }
-
-        aplicarFiltrosTienda(); // Refrescar filtros cada vez que carga un precio
-    });
 }
 
 async function cargarJuegosIGDB(busqueda = '', resetear = true) {
@@ -245,7 +224,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         gridJuegos.innerHTML = `
             <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
+                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">SINTETIZANDO DATOS...</h3>
             </div>
         `;
         document.getElementById('btn-cargar-mas')?.remove();
@@ -254,23 +233,20 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
     try {
         const url = `/api/igdb?offset=${offsetActual}${busquedaActual ? `&query=${encodeURIComponent(busquedaActual)}` : ''}`;
         const respuesta = await fetch(url);
-        if (!respuesta.ok) throw new Error('Error en el servidor de Vercel');
+        if (!respuesta.ok) throw new Error('Error en el servidor');
 
         const datos = await respuesta.json();
 
         if (resetear) gridJuegos.innerHTML = '';
-
         document.getElementById('btn-cargar-mas')?.remove();
 
-        const anteriorCount = gridJuegos.querySelectorAll('.game-price').length;
-
+        // Inyectar tarjetas instantáneamente, ¡ya tienen el precio y la tienda!
         datos.forEach(juego => {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
-        const todosLosPrecios = gridJuegos.querySelectorAll('.game-price');
-        const nuevosPrecios = Array.from(todosLosPrecios).slice(anteriorCount);
-        cargarPrecios(nuevosPrecios);
+        // Al terminar de pintar todo, aplicamos los filtros que estén marcados
+        aplicarFiltrosTienda();
 
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
@@ -282,8 +258,8 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         offsetActual += datos.length;
 
     } catch (error) {
-        console.error("Error cargando juegos:", error);
-        gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Error crítico al conectar con IGDB. Revisa los logs de Vercel.</div>';
+        console.error("Error:", error);
+        gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar.</div>';
     }
 
     cargando = false;
