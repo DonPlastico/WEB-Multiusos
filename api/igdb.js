@@ -11,10 +11,10 @@ export default async function handler(req, res) {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // 2. Buscar en IGDB (Consulta original limpia y 100% funcional)
+        // 2. Tu consulta 100% original, SOLO añadiendo la palabra "category" a los fields
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80; limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; where total_rating > 80; limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -27,11 +27,17 @@ export default async function handler(req, res) {
         });
 
         if (!igdbRes.ok) throw new Error('Error IGDB');
-        const juegosIGDB = await igdbRes.json();
+        const dataRaw = await igdbRes.json();
+
+        // 3. EL FILTRO SEGURO: Solo dejamos pasar juegos base (0), remakes (8), remasters (9), o ediciones expandidas (10)
+        // Si por algún motivo IGDB no nos manda la categoría, lo dejamos pasar (undefined) para que nunca se quede en blanco.
+        const juegosIGDB = dataRaw.filter(j =>
+            j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10
+        );
 
         if (juegosIGDB.length === 0) return res.status(200).json([]);
 
-        // 3. Buscar las IDs de ITAD de todos los juegos a la vez (en paralelo)
+        // 4. Buscar las IDs de ITAD
         const promesasITAD = juegosIGDB.map(async (juego) => {
             try {
                 const searchRes = await fetch(`https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(juego.name)}&limit=1&key=${ITAD_API_KEY}`);
@@ -46,7 +52,7 @@ export default async function handler(req, res) {
         const resultadosITAD = (await Promise.all(promesasITAD)).filter(r => r !== null);
         const itadIds = resultadosITAD.map(r => r.itadId);
 
-        // 4. Buscar todos los precios de ITAD en UNA SOLA LLAMADA
+        // 5. Precios de ITAD
         let mapaPrecios = {};
         if (itadIds.length > 0) {
             const preciosRes = await fetch(`https://api.isthereanydeal.com/games/prices/v3?country=ES&key=${ITAD_API_KEY}`, {
@@ -58,7 +64,7 @@ export default async function handler(req, res) {
             preciosData.forEach(item => { mapaPrecios[item.id] = item.deals; });
         }
 
-        // 5. Fusionar los datos de IGDB con los de ITAD
+        // 6. Fusión
         const jsonFinal = juegosIGDB.map(juego => {
             const matchITAD = resultadosITAD.find(r => r.igdbId === juego.id);
             let infoPrecio = { precio: null, stores: 'none' };
@@ -76,7 +82,6 @@ export default async function handler(req, res) {
             return { ...juego, itad: infoPrecio };
         });
 
-        // 6. Enviar a la web el paquete perfecto
         res.status(200).json(jsonFinal);
 
     } catch (error) {

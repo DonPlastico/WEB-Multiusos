@@ -186,7 +186,11 @@ function crearTarjeta(juego) {
         ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
         : '';
 
-    const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : 'pc';
+    // Guardamos las tiendas para el filtro 1
+    const storesData = juego.itad ? juego.itad.stores : 'none';
+    
+    // Guardamos las plataformas para el filtro 2 (CRÍTICO PARA QUE FUNCIONE EL CHECKBOX)
+    const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
@@ -194,8 +198,6 @@ function crearTarjeta(juego) {
     } else {
         htmlPrecio = `<span class="price-na">No disponible</span>`;
     }
-
-    const storesData = juego.itad ? juego.itad.stores : 'none';
 
     return `
         <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
@@ -336,16 +338,16 @@ if (buscadorGeneros) {
 const tiendasTodas = document.getElementById('tienda-todas');
 const tiendasItems = document.querySelectorAll('.tienda-item');
 const platTodas = document.getElementById('plat-todas');
-const platItems = document.querySelectorAll('.plat-item input');
+const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
 
 function aplicarFiltros() {
-    // 1. Recoger Tiendas seleccionadas
+    // 1. Sacamos qué tiendas están marcadas
     const tiendasSeleccionadas = Array.from(tiendasItems)
         .filter(cb => cb.checked)
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
     const filtroTodasTiendas = tiendasTodas.checked;
 
-    // 2. Recoger Plataformas seleccionadas
+    // 2. Sacamos qué plataformas están marcadas
     const platSeleccionadas = Array.from(platItems)
         .filter(cb => cb.checked)
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
@@ -353,12 +355,12 @@ function aplicarFiltros() {
 
     let cartasVisibles = 0;
 
-    // 3. Evaluar cada tarjeta
+    // 3. Revisamos tarjeta por tarjeta
     document.querySelectorAll('.game-card').forEach(card => {
         const storesStr = card.getAttribute('data-stores') || '';
         const platStr = card.getAttribute('data-platforms') || '';
 
-        // Comprobamos Tienda
+        // ¿Pasa el filtro de la tienda?
         let pasaTienda = false;
         if (filtroTodasTiendas) {
             pasaTienda = true;
@@ -366,7 +368,7 @@ function aplicarFiltros() {
             pasaTienda = tiendasSeleccionadas.some(t => storesStr.includes(t));
         }
 
-        // Comprobamos Plataforma
+        // ¿Pasa el filtro de la plataforma?
         let pasaPlat = false;
         if (filtroTodasPlat) {
             pasaPlat = true;
@@ -374,7 +376,7 @@ function aplicarFiltros() {
             pasaPlat = platSeleccionadas.some(p => platStr.includes(p));
         }
 
-        // Si cumple ambos filtros (Tienda Y Plataforma), se muestra
+        // Mostrar solo si pasa AMBOS filtros
         if (pasaTienda && pasaPlat) {
             card.style.display = 'flex';
             cartasVisibles++;
@@ -383,7 +385,7 @@ function aplicarFiltros() {
         }
     });
 
-    // 4. Lazy Loading (Auto-búsqueda)
+    // 4. Auto-recarga inteligente (Lazy loading)
     const btnMas = document.getElementById('btn-cargar-mas');
     if ((!filtroTodasTiendas || !filtroTodasPlat) && cartasVisibles < 20 && !cargando && btnMas) {
         btnMas.querySelector('button').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Auto-buscando...';
@@ -391,7 +393,7 @@ function aplicarFiltros() {
     }
 }
 
-// Escuchadores de Tiendas
+// ----- EVENTOS TIENDAS -----
 tiendasTodas.addEventListener('change', () => {
     if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
     aplicarFiltros();
@@ -404,7 +406,7 @@ tiendasItems.forEach(cb => {
     });
 });
 
-// Escuchadores de Plataformas
+// ----- EVENTOS PLATAFORMAS -----
 platTodas.addEventListener('change', () => {
     if (platTodas.checked) platItems.forEach(cb => cb.checked = false);
     aplicarFiltros();
