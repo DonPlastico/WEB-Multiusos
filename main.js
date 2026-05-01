@@ -330,7 +330,7 @@ if (buscadorGeneros) {
 }
 
 // ==========================================================================
-//   LOGICA DE FILTROS
+//   LOGICA DE FILTROS UNIFICADA (TIENDAS + PLATAFORMAS)
 // ==========================================================================
 
 const tiendasTodas = document.getElementById('tienda-todas');
@@ -374,7 +374,7 @@ function aplicarFiltros() {
             pasaPlat = platSeleccionadas.some(p => platStr.includes(p));
         }
 
-        // Si cumple ambos filtros, se muestra
+        // Si cumple ambos filtros (Tienda Y Plataforma), se muestra
         if (pasaTienda && pasaPlat) {
             card.style.display = 'flex';
             cartasVisibles++;
