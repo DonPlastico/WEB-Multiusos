@@ -11,10 +11,10 @@ export default async function handler(req, res) {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // 2. Buscar en IGDB (Solo Juegos Principales, Remakes, Remasters y Versiones Extendidas)
+        // Usamos la fuerza bruta con el operador OR (|) para evitar el bug de los paréntesis de IGDB
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; where category = (0,8,9,10); limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80 & category = (0,8,9,10); limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating; search "${busqueda}"; where category = 0 | category = 8 | category = 9 | category = 10; limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating; sort first_release_date desc; where total_rating > 80 & (category = 0 | category = 8 | category = 9 | category = 10); limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
