@@ -40,6 +40,12 @@
                 <img src="https://flagcdn.com/24x18/es.png" alt="ES">
             </button>
 
+            <!-- boton pal admin panel. por defecto lo dejo oculto, y ya se mostrara si el usuario es admin -->
+            <button class="icon-btn" id="btn-admin" title="Panel de Control"
+                style="display: none; color: var(--primary);">
+                <i class="fas fa-user-shield"></i>
+            </button>
+
             <!-- icono pal perfil del nota -->
             <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
                 <i class="fas fa-user-circle"></i>
@@ -324,6 +330,48 @@
                         <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
                     </div>
                     <div id="series-grid" class="cyber-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="admin-panel" class="view">
+            <div class="hero-section glass-panel">
+                <h1 class="glitch-text" style="color: var(--primary);">NEXUS_CORE // ADMIN</h1>
+                <p class="subtitle-hero">Centro de mando, telemetría y gestión de la plataforma.</p>
+            </div>
+
+            <div class="games-layout" style="margin-top: 30px;">
+                <div class="games-content" style="grid-column: 1 / -1;">
+                    <div class="cyber-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+
+                        <div class="glass-panel"
+                            style="padding: 30px; text-align: center; border-top: 3px solid var(--primary);">
+                            <i class="fas fa-users"
+                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">USUARIOS TOTALES</h3>
+                            <p style="font-size: 3.5rem; color: var(--primary); font-weight: bold; margin-top: 10px;"
+                                id="metric-users">1</p>
+                        </div>
+
+                        <div class="glass-panel"
+                            style="padding: 30px; text-align: center; border-top: 3px solid var(--success);">
+                            <i class="fas fa-server"
+                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">ESTADO DEL SISTEMA</h3>
+                            <p style="font-size: 2rem; color: var(--success); font-weight: bold; margin-top: 25px;">
+                                ÓPTIMO</p>
+                        </div>
+
+                        <div class="glass-panel"
+                            style="padding: 30px; text-align: center; border-top: 3px solid var(--warning);">
+                            <i class="fas fa-bullhorn"
+                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">LANZAR ANUNCIO</h3>
+                            <button class="auth-btn secondary" style="width: 100%; margin-top: 20px;">CREAR
+                                POST</button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </section>

@@ -40,6 +40,16 @@ linksMenu.forEach(link => {
     });
 });
 
+// Navegación especial para el botón oculto de Administrador
+const btnAdminTop = document.getElementById('btn-admin');
+if (btnAdminTop) {
+    btnAdminTop.addEventListener('click', () => {
+        cambiarVista('admin-panel');
+        // Quitamos la clase 'active' de los enlaces principales para que no parezca que estás en Juegos o Pelis
+        linksMenu.forEach(l => l.classList.remove('active'));
+    });
+}
+
 // Al recargar (F5), leemos qué vista estaba guardada. Si es la primera vez, cargamos 'home'
 const vistaGuardada = localStorage.getItem('dp_sys_active_view') || 'home';
 cambiarVista(vistaGuardada);
@@ -683,17 +693,34 @@ btnLogin.addEventListener('click', async () => {
     btnLogin.textContent = "INICIAR SESIÓN";
 });
 
-// VERIFICAR SESIÓN ACTIVA (Mantiene al usuario logueado al pulsar F5)
+// VERIFICAR SESIÓN ACTIVA Y ROLES
 async function verificarSesion() {
     const { data: { session } } = await supabase.auth.getSession();
+    const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
-        // Usuario Logueado
+        // 1. Usuario Logueado (Cambiamos el icono)
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
-        // Más adelante aquí inyectaremos el Panel Admin
+
+        // 2. EL MURO DE SEGURIDAD REAL: Consultar a la base de datos
+        // Buscamos en la tabla 'roles' si el email de esta sesión existe
+        const { data: datosRol, error } = await supabase
+            .from('roles')
+            .select('rol')
+            .eq('email', session.user.email)
+            .maybeSingle(); // maybeSingle evita errores si un usuario normal no está en esta tabla
+
+        // 3. Comprobamos la respuesta de la base de datos
+        if (datosRol && datosRol.rol === 'admin') {
+            btnAdmin.style.display = 'inline-flex'; // ¡Es un admin! Revelamos el escudo
+        } else {
+            btnAdmin.style.display = 'none'; // Usuario normal, escudo oculto
+        }
+
     } else {
         // No Logueado
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
+        if (btnAdmin) btnAdmin.style.display = 'none';
     }
 }
 
