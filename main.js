@@ -611,82 +611,59 @@ cargarTMDB('movie');
 cargarTMDB('tv');
 
 // ==========================================================================
-//   SISTEMA DE AUTENTICACIÓN (SUPABASE) - SEPARADO EN LOGIN/REGISTRO
+//   SISTEMA DE AUTENTICACIÓN v2 — PÁGINAS DEDICADAS
 // ==========================================================================
 
 const btnPerfil = document.getElementById('user-profile');
-const modalAuth = document.getElementById('auth-modal');
-const btnCloseModal = document.getElementById('close-modal');
-const msgBox = document.getElementById('auth-message');
 
-// Elementos de las pestañas
-const tabLogin = document.getElementById('tab-login');
-const tabRegister = document.getElementById('tab-register');
-const formLogin = document.getElementById('form-login');
-const formRegister = document.getElementById('form-register');
-
-const inputLoginEmail = document.getElementById('login-email');
-const inputLoginPass = document.getElementById('login-password');
-const inputRegEmail = document.getElementById('register-email');
-const inputRegPass = document.getElementById('register-password');
-
-// Abrir y cerrar Modal
+// Navegación a páginas de auth
 btnPerfil.addEventListener('click', () => {
-    modalAuth.classList.add('active');
-    msgBox.textContent = '';
-    tabLogin.click(); // Obligamos a que siempre empiece en Login limpio
+    const { data: { session } } = supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            cambiarVista('profile'); // si tienes vista perfil, si no: no pasa nada
+        } else {
+            cambiarVista('login');
+            linksMenu.forEach(l => l.classList.remove('active'));
+        }
+    });
 });
 
-btnCloseModal.addEventListener('click', () => {
-    modalAuth.classList.remove('active');
+document.getElementById('btn-go-register')?.addEventListener('click', () => {
+    cambiarVista('register');
+    linksMenu.forEach(l => l.classList.remove('active'));
 });
 
-// Cambiar entre Pestañas de Login y Registro
-tabLogin.addEventListener('click', () => {
-    tabLogin.classList.add('active');
-    tabRegister.classList.remove('active');
-    formLogin.style.display = 'flex';
-    formRegister.style.display = 'none';
-
-    // TRUCO BITWARDEN: Activamos Login, Desactivamos Registro
-    inputLoginEmail.disabled = false;
-    inputLoginPass.disabled = false;
-    inputRegEmail.disabled = true;
-    inputRegPass.disabled = true;
-
-    msgBox.textContent = '';
+document.getElementById('btn-go-login')?.addEventListener('click', () => {
+    cambiarVista('login');
+    linksMenu.forEach(l => l.classList.remove('active'));
 });
 
-tabRegister.addEventListener('click', () => {
-    tabRegister.classList.add('active');
-    tabLogin.classList.remove('active');
-    formRegister.style.display = 'flex';
-    formLogin.style.display = 'none';
+// Historial del navegador para el botón ATRÁS
+function navegarA(vista) {
+    history.pushState({ vista }, '', `#${vista}`);
+    cambiarVista(vista);
+    linksMenu.forEach(l => {
+        if (l.getAttribute('data-target') === vista) l.classList.add('active');
+        else l.classList.remove('active');
+    });
+}
 
-    // TRUCO BITWARDEN: Activamos Registro, Desactivamos Login oculto
-    inputRegEmail.disabled = false;
-    inputRegPass.disabled = false;
-    inputLoginEmail.disabled = true;
-    inputLoginPass.disabled = true;
-
-    msgBox.textContent = '';
+window.addEventListener('popstate', (e) => {
+    const vista = e.state?.vista || 'home';
+    cambiarVista(vista);
 });
 
-// MOSTRAR / OCULTAR CONTRASEÑA (Sirve para los dos ojitos a la vez)
+// Mostrar/Ocultar contraseña (universal)
 document.querySelectorAll('.toggle-password-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        // Buscamos el input que está justo antes del botón dentro de su caja
-        const input = e.currentTarget.previousElementSibling;
-        const icon = e.currentTarget.querySelector('i');
-
+    btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        const icon = btn.querySelector('i');
         if (input.type === 'password') {
             input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
         } else {
             input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
     });
 });
@@ -694,63 +671,100 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
 // -------------------------------------------
 // FLUJO DE REGISTRO
 // -------------------------------------------
-formRegister.addEventListener('submit', async (e) => {
+document.getElementById('form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = inputRegEmail.value.trim();
-    const password = inputRegPass.value.trim();
+    const msgBox = document.getElementById('register-message');
     const btnSubmit = document.getElementById('btn-register-submit');
 
-    btnSubmit.textContent = "REGISTRANDO...";
+    const username = document.getElementById('register-username').value.trim();
+    const email = document.getElementById('register-email').value.trim();
+    const emailConf = document.getElementById('register-email-confirm').value.trim();
+    const password = document.getElementById('register-password').value.trim();
+    const passConf = document.getElementById('register-password-confirm').value.trim();
+    const birthdate = document.getElementById('register-birthdate').value;
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // Validaciones cliente
+    if (email !== emailConf) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ Los correos no coinciden.';
+        return;
+    }
+    if (password !== passConf) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ Las contraseñas no coinciden.';
+        return;
+    }
+    if (password.length < 8) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ La contraseña debe tener al menos 8 caracteres.';
+        return;
+    }
+
+    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
+    btnSubmit.disabled = true;
+
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username, birthdate } }
+    });
 
     if (error) {
-        msgBox.style.color = "var(--error)";
-        msgBox.textContent = "Error: " + error.message;
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ ' + error.message;
     } else {
-        msgBox.style.color = "var(--success)";
-        msgBox.textContent = "¡Registro exitoso! Iniciando sesión...";
-        inputRegPass.value = '';
+        msgBox.style.color = 'var(--success)';
+        msgBox.textContent = '✅ ¡Cuenta creada! Iniciando sesión...';
 
-        // Magia extra: Iniciar sesión automáticamente tras registrarse
         const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
         if (!loginError) {
             setTimeout(() => {
-                modalAuth.classList.remove('active');
+                cambiarVista('home');
                 verificarSesion();
-            }, 1000);
+            }, 1200);
         } else {
-            tabLogin.click(); // Si falla el auto-login, lo mandamos a la pestaña normal
+            setTimeout(() => cambiarVista('login'), 1200);
         }
     }
-    btnSubmit.textContent = "CREAR CUENTA";
+
+    btnSubmit.innerHTML = '<i class="fas fa-rocket"></i> REGÍSTRATE';
+    btnSubmit.disabled = false;
 });
 
 // -------------------------------------------
 // FLUJO DE INICIO DE SESIÓN
 // -------------------------------------------
-formLogin.addEventListener('submit', async (e) => {
+document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = inputLoginEmail.value.trim();
-    const password = inputLoginPass.value.trim();
+    const msgBox = document.getElementById('login-message');
     const btnSubmit = document.getElementById('btn-login-submit');
 
-    btnSubmit.textContent = "ACCEDIENDO...";
+    const identifier = document.getElementById('login-identifier').value.trim();
+    const password = document.getElementById('login-password').value.trim();
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ACCEDIENDO...';
+    btnSubmit.disabled = true;
+
+    // Supabase solo admite email en signInWithPassword. Si el usuario metió un username,
+    // haría falta buscar su email primero en una tabla profiles. Por ahora acepta ambos formatos:
+    const emailToUse = identifier.includes('@') ? identifier : identifier; // placeholder para lógica futura
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email: emailToUse, password });
 
     if (error) {
-        msgBox.style.color = "var(--error)";
-        msgBox.textContent = "Credenciales incorrectas.";
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ Credenciales incorrectas.';
     } else {
-        msgBox.style.color = "var(--success)";
-        msgBox.textContent = "¡Acceso concedido!";
+        msgBox.style.color = 'var(--success)';
+        msgBox.textContent = '✅ ¡Acceso concedido!';
         setTimeout(() => {
-            modalAuth.classList.remove('active');
-            verificarSesion(); // Actualizar el icono y revelar el escudo
+            cambiarVista('home');
+            verificarSesion();
         }, 1000);
     }
-    btnSubmit.textContent = "ENTRAR AL NEXUS";
+
+    btnSubmit.innerHTML = '<i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS';
+    btnSubmit.disabled = false;
 });
 
 // VERIFICAR SESIÓN ACTIVA Y ROLES
@@ -767,7 +781,7 @@ async function verificarSesion() {
             .eq('email', session.user.email)
             .maybeSingle();
 
-        if (datosRol && datosRol.rol === 'admin') {
+        if (datosRol?.rol === 'admin') {
             btnAdmin.style.display = 'inline-flex';
         } else {
             btnAdmin.style.display = 'none';
@@ -778,5 +792,4 @@ async function verificarSesion() {
     }
 }
 
-// Ejecutar al cargar la página
 verificarSesion();

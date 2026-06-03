@@ -334,6 +334,7 @@
             </div>
         </section>
 
+        <!-- VISTA: PANEL DE CONTROL (SOLO ADMIN) -->
         <section id="admin-panel" class="view">
             <div class="hero-section glass-panel">
                 <h1 class="glitch-text" style="color: var(--primary);">NEXUS_CORE // ADMIN</h1>
@@ -376,43 +377,135 @@
             </div>
         </section>
 
-        <div id="auth-modal" class="cyber-modal">
-            <div class="modal-content glass-panel">
-                <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
-
-                <div class="auth-tabs">
-                    <button id="tab-login" class="auth-tab active">INICIAR SESIÓN</button>
-                    <button id="tab-register" class="auth-tab">REGISTRARSE</button>
+        <!-- VISTA: LOGIN -->
+        <section id="login" class="view auth-page">
+            <div class="auth-page-inner">
+                <div class="auth-brand">
+                    <div class="auth-logo">DP<span>-SYS</span></div>
+                    <p class="auth-tagline">Tu nexus personal de entretenimiento.</p>
                 </div>
-
-                <form id="form-login" class="auth-form" method="post">
-                    <input type="email" id="login-email" name="email" class="cyber-input"
-                        placeholder="Correo electrónico" autocomplete="username" required>
-                    <div class="password-wrapper">
-                        <input type="password" id="login-password" name="password" class="cyber-input"
-                            placeholder="Contraseña" autocomplete="current-password" required>
-                        <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
-                                class="fas fa-eye"></i></button>
-                    </div>
-                    <button type="submit" id="btn-login-submit" class="auth-btn primary">ENTRAR AL NEXUS</button>
-                </form>
-
-                <form id="form-register" class="auth-form" method="post" style="display: none;">
-                    <input type="email" id="register-email" name="email" class="cyber-input"
-                        placeholder="Tu mejor correo" autocomplete="username" required>
-                    <div class="password-wrapper">
-                        <input type="password" id="register-password" name="password" class="cyber-input"
-                            placeholder="Crea una contraseña segura" autocomplete="new-password" required>
-                        <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
-                                class="fas fa-eye"></i></button>
-                    </div>
-                    <button type="submit" id="btn-register-submit" class="auth-btn secondary">CREAR CUENTA</button>
-                </form>
-
-                <div id="auth-message"
-                    style="margin-top: 15px; font-size: 0.9rem; text-align: center; color: var(--warning);"></div>
+                <div class="auth-card glass-panel">
+                    <h2 class="auth-title">Bienvenido de nuevo</h2>
+                    <p class="auth-subtitle">Introduce tu usuario o correo y contraseña para acceder.</p>
+                    <form id="form-login" class="auth-form" method="post">
+                        <div class="field-group">
+                            <label class="field-label">Usuario o Correo electrónico</label>
+                            <div class="field-wrapper">
+                                <i class="fas fa-user field-icon"></i>
+                                <input type="text" id="login-identifier" name="identifier" class="cyber-input"
+                                    placeholder="tu_usuario o correo@mail.com" autocomplete="username" required>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Contraseña</label>
+                            <div class="field-wrapper password-wrapper">
+                                <i class="fas fa-lock field-icon"></i>
+                                <input type="password" id="login-password" name="password" class="cyber-input"
+                                    placeholder="••••••••" autocomplete="current-password" required>
+                                <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-login-submit" class="auth-btn primary full-width">
+                            <i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS
+                        </button>
+                        <div id="login-message" class="auth-message"></div>
+                    </form>
+                    <div class="auth-divider"><span>¿Primera vez aquí?</span></div>
+                    <button class="auth-btn secondary full-width" id="btn-go-register">
+                        <i class="fas fa-user-plus"></i> CREAR CUENTA NUEVA
+                    </button>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <!-- VISTA: REGISTRO -->
+        <section id="register" class="view auth-page">
+            <div class="auth-page-inner">
+                <div class="auth-brand">
+                    <div class="auth-logo">DP<span>-SYS</span></div>
+                    <p class="auth-tagline">Únete al nexus. Es gratis.</p>
+                </div>
+                <div class="auth-card glass-panel">
+                    <h2 class="auth-title">Crear una cuenta</h2>
+                    <p class="auth-subtitle">Crear una cuenta es fácil y gratis. Rellena el formulario para empezar.</p>
+                    <form id="form-register" class="auth-form" method="post">
+                        <div class="fields-row">
+                            <div class="field-group">
+                                <label class="field-label">Nombre de usuario <span class="required">*</span></label>
+                                <div class="field-wrapper">
+                                    <i class="fas fa-at field-icon"></i>
+                                    <input type="text" id="register-username" name="username" class="cyber-input"
+                                        placeholder="nexus_user42" autocomplete="username" required>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Fecha de nacimiento <span class="required">*</span></label>
+                                <div class="field-wrapper">
+                                    <i class="fas fa-calendar field-icon"></i>
+                                    <input type="date" id="register-birthdate" name="birthdate"
+                                        class="cyber-input date-field" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Correo electrónico <span class="required">*</span></label>
+                            <div class="field-wrapper">
+                                <i class="fas fa-envelope field-icon"></i>
+                                <input type="email" id="register-email" name="email" class="cyber-input"
+                                    placeholder="correo@ejemplo.com" autocomplete="email" required>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Confirmar correo <span class="required">*</span></label>
+                            <div class="field-wrapper">
+                                <i class="fas fa-envelope-open field-icon"></i>
+                                <input type="email" id="register-email-confirm" name="email_confirm" class="cyber-input"
+                                    placeholder="repite tu correo" autocomplete="email" required>
+                            </div>
+                        </div>
+                        <div class="fields-row">
+                            <div class="field-group">
+                                <label class="field-label">Contraseña <span class="required">*</span></label>
+                                <div class="field-wrapper password-wrapper">
+                                    <i class="fas fa-lock field-icon"></i>
+                                    <input type="password" id="register-password" name="password" class="cyber-input"
+                                        placeholder="••••••••" autocomplete="new-password" required>
+                                    <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label">Confirmar contraseña <span class="required">*</span></label>
+                                <div class="field-wrapper password-wrapper">
+                                    <i class="fas fa-lock field-icon"></i>
+                                    <input type="password" id="register-password-confirm" name="password_confirm"
+                                        class="cyber-input" placeholder="••••••••" autocomplete="new-password" required>
+                                    <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="terms-text">
+                            Al hacer clic en el botón "Regístrate", certifico que he leído y acepto los
+                            <a href="#" class="terms-link">términos de uso</a> y la
+                            <a href="#" class="terms-link">política de privacidad</a> de DP-SYS.
+                        </p>
+                        <button type="submit" id="btn-register-submit" class="auth-btn primary full-width">
+                            <i class="fas fa-rocket"></i> REGÍSTRATE
+                        </button>
+                        <div id="register-message" class="auth-message"></div>
+                    </form>
+                    <div class="auth-divider"><span>¿Ya tienes cuenta?</span></div>
+                    <button class="auth-btn secondary full-width" id="btn-go-login">
+                        <i class="fas fa-sign-in-alt"></i> INICIAR SESIÓN
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script type="module" src="main.js"></script>

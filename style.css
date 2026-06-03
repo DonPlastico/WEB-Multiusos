@@ -877,155 +877,251 @@ body {
     text-decoration: underline;
 }
 
-/* ==========================================================================
-   MODAL DE AUTENTICACIÓN
-   ========================================================================== */
-.cyber-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-}
+/* ============================================================
+   AUTH PAGES - LOGIN & REGISTER
+   ============================================================ */
 
-.cyber-modal.active {
+.auth-page {
+    min-height: calc(100vh - 70px);
     display: flex;
-    animation: fadeIn 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
 }
 
-.modal-content {
-    padding: 40px;
-    width: 90%;
-    max-width: 420px;
-    position: relative;
+.auth-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 20% 40%, rgba(var(--primary-rgb, 108, 92, 231), 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(var(--primary-rgb, 108, 92, 231), 0.08) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.auth-page-inner {
+    width: 100%;
+    max-width: 580px;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    border: 1px solid var(--primary);
-    box-shadow: 0 0 20px var(--primary-soft);
+    gap: 28px;
+    position: relative;
+    z-index: 1;
 }
 
-.close-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: none;
-    border: none;
+/* Para la vista de registro el card puede ser más ancho */
+#register .auth-page-inner {
+    max-width: 700px;
+}
+
+.auth-brand {
+    text-align: center;
+}
+
+.auth-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.auth-logo span {
+    color: var(--primary);
+}
+
+.auth-tagline {
     color: var(--text-muted);
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    margin-top: 8px;
+    text-transform: uppercase;
 }
 
-.close-btn:hover {
-    color: var(--error);
-    transform: scale(1.1);
+.auth-card {
+    padding: 40px;
+    border-top: 3px solid var(--primary);
+    position: relative;
+    overflow: hidden;
 }
 
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0.6;
+}
+
+.auth-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Campos */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
 }
 
-.auth-btn {
-    padding: 14px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    border: none;
-    font-family: var(--font-cyber);
-    letter-spacing: 1px;
+.fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
 }
 
-.auth-btn.primary {
-    background: var(--primary);
-    color: white;
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.auth-btn.primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+.field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
 }
 
-.auth-btn.secondary {
-    background: transparent;
-    border: 1px solid var(--primary);
+.required {
     color: var(--primary);
 }
 
-.auth-btn.secondary:hover {
-    background: var(--primary-soft);
-}
-
-/* Contenedor relativo para el input y el ojito */
-.password-wrapper {
+.field-wrapper {
     position: relative;
-    width: 100%;
     display: flex;
+    align-items: center;
 }
 
-/* Dejamos espacio a la derecha para que el texto no se pise con el icono */
-.password-wrapper .cyber-input {
-    width: 100%;
-    padding-right: 45px;
-}
-
-/* Estilo del botón del ojito */
-.toggle-password-btn {
+.field-icon {
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
+    left: 14px;
     color: var(--text-muted);
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.3s ease;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 1;
+    transition: color 0.2s;
 }
 
-.toggle-password-btn:hover {
+.field-wrapper .cyber-input {
+    padding-left: 38px !important;
+    width: 100%;
+}
+
+.field-wrapper .cyber-input:focus~.field-icon,
+.field-wrapper:focus-within .field-icon {
     color: var(--primary);
 }
 
-/* Pestañas del Modal de Autenticación */
-.auth-tabs {
+/* Override: input de fecha */
+.date-field {
+    color-scheme: dark;
+}
+
+/* Contraseña dentro de field-wrapper */
+.field-wrapper.password-wrapper .cyber-input {
+    padding-right: 44px !important;
+}
+
+.field-wrapper.password-wrapper .toggle-password-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.field-wrapper.password-wrapper .toggle-password-btn:hover {
+    color: var(--primary);
+}
+
+/* Botones full width */
+.auth-btn.full-width {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    margin-top: 4px;
+}
+
+/* Mensaje de error/éxito */
+.auth-message {
+    font-size: 0.88rem;
+    text-align: center;
+    min-height: 20px;
+    padding: 4px 0;
+    letter-spacing: 0.5px;
+}
+
+/* Divider con texto */
+.auth-divider {
     display: flex;
-    gap: 10px;
-    margin-bottom: 5px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-}
-
-.auth-tab {
-    flex: 1;
-    background: transparent;
-    border: none;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 16px;
     color: var(--text-muted);
-    font-family: var(--font-cyber);
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 10px;
-    transition: 0.3s;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-.auth-tab:hover {
-    color: var(--text-main);
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.auth-tab.active {
+/* Texto de términos */
+.terms-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 2px solid var(--primary);
+    border-radius: 0 4px 4px 0;
+    margin-top: 4px;
+}
+
+.terms-link {
     color: var(--primary);
-    border-bottom: 2px solid var(--primary);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.terms-link:hover {
+    opacity: 0.8;
+    text-decoration: underline;
 }
 
 
@@ -1294,5 +1390,15 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .fields-row {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-card {
+        padding: 28px 20px;
     }
 }
