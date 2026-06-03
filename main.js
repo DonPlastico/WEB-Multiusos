@@ -1,3 +1,6 @@
+// Importamos el cliente de Supabase para futuras funcionalidades (registro, login, etc.)
+import { supabase } from './supabase.js';
+
 // ==========================================================================
 //   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
 // ==========================================================================
@@ -596,3 +599,103 @@ inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clear
 // Llamada inicial
 cargarTMDB('movie');
 cargarTMDB('tv');
+
+// ==========================================================================
+//   SISTEMA DE AUTENTICACIÓN (SUPABASE)
+// ==========================================================================
+
+const btnPerfil = document.getElementById('user-profile');
+const modalAuth = document.getElementById('auth-modal');
+const btnCloseModal = document.getElementById('close-modal');
+
+const inputEmail = document.getElementById('auth-email');
+const inputPassword = document.getElementById('auth-password');
+const btnLogin = document.getElementById('btn-login');
+const btnRegister = document.getElementById('btn-register');
+const msgBox = document.getElementById('auth-message');
+
+// Abrir y cerrar Modal
+btnPerfil.addEventListener('click', () => {
+    modalAuth.classList.add('active');
+    msgBox.textContent = '';
+});
+
+btnCloseModal.addEventListener('click', () => {
+    modalAuth.classList.remove('active');
+});
+
+// REGISTRO
+btnRegister.addEventListener('click', async () => {
+    const email = inputEmail.value.trim();
+    const password = inputPassword.value.trim();
+
+    if (!email || !password) {
+        msgBox.textContent = "Por favor, rellena todos los campos.";
+        return;
+    }
+
+    btnRegister.textContent = "REGISTRANDO...";
+
+    const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        msgBox.style.color = "var(--error)";
+        msgBox.textContent = "Error: " + error.message;
+    } else {
+        msgBox.style.color = "var(--success)";
+        msgBox.textContent = "¡Registro exitoso! Ya puedes iniciar sesión.";
+        inputPassword.value = '';
+    }
+    btnRegister.textContent = "REGISTRAR NUEVA CUENTA";
+});
+
+// INICIO DE SESIÓN
+btnLogin.addEventListener('click', async () => {
+    const email = inputEmail.value.trim();
+    const password = inputPassword.value.trim();
+
+    if (!email || !password) {
+        msgBox.textContent = "Por favor, rellena todos los campos.";
+        return;
+    }
+
+    btnLogin.textContent = "ACCEDIENDO...";
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        msgBox.style.color = "var(--error)";
+        msgBox.textContent = "Credenciales incorrectas.";
+    } else {
+        msgBox.style.color = "var(--success)";
+        msgBox.textContent = "¡Acceso concedido!";
+        setTimeout(() => {
+            modalAuth.classList.remove('active');
+            verificarSesion(); // Actualizar UI
+        }, 1000);
+    }
+    btnLogin.textContent = "INICIAR SESIÓN";
+});
+
+// VERIFICAR SESIÓN ACTIVA (Mantiene al usuario logueado al pulsar F5)
+async function verificarSesion() {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+        // Usuario Logueado
+        btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+        // Más adelante aquí inyectaremos el Panel Admin
+    } else {
+        // No Logueado
+        btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
+    }
+}
+
+// Ejecutar al cargar la página
+verificarSesion();

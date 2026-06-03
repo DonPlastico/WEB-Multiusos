@@ -877,6 +877,125 @@ body {
     text-decoration: underline;
 }
 
+/* ==========================================================================
+   MODAL DE AUTENTICACIÓN
+   ========================================================================== */
+.cyber-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+}
+
+.cyber-modal.active {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    padding: 40px;
+    width: 90%;
+    max-width: 420px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid var(--primary);
+    box-shadow: 0 0 20px var(--primary-soft);
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-btn:hover {
+    color: var(--error);
+    transform: scale(1.1);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-btn {
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    border: none;
+    font-family: var(--font-cyber);
+    letter-spacing: 1px;
+}
+
+.auth-btn.primary {
+    background: var(--primary);
+    color: white;
+}
+
+.auth-btn.primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.auth-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+.auth-btn.secondary:hover {
+    background: var(--primary-soft);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
