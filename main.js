@@ -678,6 +678,20 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
     });
 });
 
+// ==========================================================================
+//   INICIALIZACIÓN DE FLATPICKR (Selector de Fecha Personalizado)
+// ==========================================================================
+if (document.getElementById('register-birthdate')) {
+    flatpickr("#register-birthdate", {
+        locale: "es",                  // Idioma español
+        dateFormat: "Y-m-d",           // Formato que guarda Supabase (Ej: 1995-10-24)
+        altInput: true,                // Crea un input bonito extra para mostrar
+        altFormat: "d / m / Y",        // Formato visible para el usuario (Ej: 24 / 10 / 1995)
+        maxDate: "today",              // No pueden haber nacido en el futuro
+        disableMobile: true            // Fuerza a usar nuestro diseño en móviles (evita la rueda fea de iOS/Android)
+    });
+}
+
 // -------------------------------------------
 // FLUJO DE REGISTRO
 // -------------------------------------------
@@ -763,7 +777,13 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
 
     if (error) {
         msgBox.style.color = 'var(--error)';
-        msgBox.textContent = '❌ Credenciales incorrectas.';
+        // Supabase nos dice exactamente si es porque falta confirmar el correo
+        if (error.message.includes('Email not confirmed')) {
+            msgBox.style.color = 'var(--warning)';
+            msgBox.innerHTML = '<i class="fas fa-envelope-open-text"></i> Pendiente de confirmación al correo...';
+        } else {
+            msgBox.textContent = '❌ Credenciales incorrectas.';
+        }
     } else {
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '✅ ¡Acceso concedido!';
@@ -803,3 +823,20 @@ async function verificarSesion() {
 }
 
 verificarSesion();
+
+// ==========================================================================
+//   DETECTOR DE CONFIRMACIÓN DE CORREO
+// ==========================================================================
+// Cuando Supabase redirecciona desde el correo, añade "type=signup" en la URL
+if (window.location.hash.includes('type=signup')) {
+    // 1. Mostramos tu nueva miniweb
+    cambiarVista('verified-account');
+
+    // 2. Limpiamos la URL para que no quede un churrete largo y feo arriba
+    window.history.replaceState(null, null, window.location.pathname);
+}
+
+// Botón de la pantalla de verificado para ir al login
+document.getElementById('btn-go-login-verified')?.addEventListener('click', () => {
+    cambiarVista('login');
+});

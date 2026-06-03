@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="img/Logo.png" type="image/png">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 </head>
 
 <body>
@@ -503,6 +507,25 @@
                     <div class="auth-divider"><span>¿Ya tienes cuenta?</span></div>
                     <button class="auth-btn secondary full-width" id="btn-go-login">
                         <i class="fas fa-sign-in-alt"></i> INICIAR SESIÓN
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA: CUENTA VERIFICADA -->
+        <section id="verified-account" class="view auth-page">
+            <div class="auth-page-inner" style="text-align: center;">
+                <div class="auth-brand" style="margin-bottom: 20px;">
+                    <div class="auth-logo">DP<span>-SYS</span></div>
+                </div>
+                <div class="auth-card glass-panel">
+                    <i class="fas fa-check-circle"
+                        style="font-size: 4rem; color: var(--success); margin-bottom: 20px; text-shadow: 0 0 15px var(--success);"></i>
+                    <h2 class="auth-title">¡Identidad Confirmada!</h2>
+                    <p class="auth-subtitle">Tu correo ha sido verificado en el sistema. Ya tienes acceso total al
+                        Nexus.</p>
+                    <button class="auth-btn primary" id="btn-go-login-verified" style="margin-top: 10px;">
+                        <i class="fas fa-sign-in-alt"></i> IR A INICIAR SESIÓN
                     </button>
                 </div>
             </div>
