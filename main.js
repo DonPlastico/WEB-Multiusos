@@ -1,9 +1,6 @@
 // Importamos el cliente de Supabase para futuras funcionalidades (registro, login, etc.)
 import { supabase } from './supabase.js';
 
-// Importamos el script de Analytics de Vercel para tener estadísticas básicas de uso (opcional)
-// import { Analytics } from "@vercel/analytics/next"
-
 // ==========================================================================
 //   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
 // ==========================================================================
@@ -619,11 +616,11 @@ cargarTMDB('tv');
 
 const btnPerfil = document.getElementById('user-profile');
 
-// Navegación a páginas de auth
+// Botón perfil del nav → va a login (si no hay sesión)
 btnPerfil.addEventListener('click', () => {
-    const { data: { session } } = supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            cambiarVista('profile'); // si tienes vista perfil, si no: no pasa nada
+            cambiarVista('profile'); // o la vista que tengas para el perfil
         } else {
             cambiarVista('login');
             linksMenu.forEach(l => l.classList.remove('active'));
@@ -631,11 +628,13 @@ btnPerfil.addEventListener('click', () => {
     });
 });
 
+// Botón "Crear cuenta nueva" en la página de login → va a register
 document.getElementById('btn-go-register')?.addEventListener('click', () => {
     cambiarVista('register');
     linksMenu.forEach(l => l.classList.remove('active'));
 });
 
+// Botón "Iniciar sesión" en la página de register → vuelve a login
 document.getElementById('btn-go-login')?.addEventListener('click', () => {
     cambiarVista('login');
     linksMenu.forEach(l => l.classList.remove('active'));

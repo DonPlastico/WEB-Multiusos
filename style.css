@@ -878,6 +878,22 @@ body {
     text-decoration: underline;
 }
 
+#login.view,
+#register.view {
+    display: none;
+}
+
+#login.view.active,
+#register.view.active {
+    display: flex;
+}
+
+/* Cuando login/register están activos, ocultar el nav del menú principal si quieres (opcional, lo dejo comentado)*/
+/* body.auth-mode .nav-links {
+    opacity: 0.4;
+    pointer-events: none;
+} */
+
 /* ============================================================
    AUTH PAGES - LOGIN & REGISTER
    ============================================================ */
@@ -1060,6 +1076,119 @@ body {
 
 .field-wrapper.password-wrapper .toggle-password-btn:hover {
     color: var(--primary);
+}
+
+/* Las vistas de auth NO deben mostrarse con scroll, son páginas exclusivas */
+#login.view,
+#register.view {
+    display: none;
+}
+
+#login.view.active,
+#register.view.active {
+    display: flex;
+}
+
+/* Cuando login/register están activos, ocultar el nav del menú principal si quieres
+   (opcional, lo dejo comentado)
+*/
+/* body.auth-mode .nav-links { opacity: 0.4; pointer-events: none; } */
+
+/* ---- BOTONES MEJORADOS ---- */
+.auth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px 24px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+/* Efecto shimmer en hover */
+.auth-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.12),
+            transparent);
+    transform: skewX(-20deg);
+    transition: left 0.45s ease;
+}
+
+.auth-btn:hover::after {
+    left: 160%;
+}
+
+/* PRIMARY: fondo sólido color primario, texto oscuro */
+.auth-btn.primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
+}
+
+.auth-btn.primary:hover {
+    background: color-mix(in srgb, var(--primary) 85%, white);
+    box-shadow: 0 6px 28px rgba(108, 92, 231, 0.6);
+    transform: translateY(-2px);
+}
+
+.auth-btn.primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(108, 92, 231, 0.4);
+}
+
+/* SECONDARY: borde con primario, fondo transparente */
+.auth-btn.secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+}
+
+.auth-btn.secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(108, 92, 231, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(108, 92, 231, 0.15);
+}
+
+.auth-btn.secondary:active {
+    transform: translateY(0);
+}
+
+/* Icono del botón más pequeño y alineado */
+.auth-btn i {
+    font-size: 0.95em;
+    flex-shrink: 0;
+}
+
+/* Botón deshabilitado */
+.auth-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.auth-btn:disabled::after {
+    display: none;
 }
 
 /* Botones full width */
