@@ -737,6 +737,9 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ ' + error.message;
     } else {
+        // 1. Guardamos la relación usuario-correo en nuestro "traductor" (la tabla usuarios)
+        await supabase.from('usuarios').insert([{ username: username, email: email }]);
+
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '✅ ¡Cuenta creada! Iniciando sesión...';
 
@@ -769,15 +772,33 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ACCEDIENDO...';
     btnSubmit.disabled = true;
 
-    // Supabase solo admite email en signInWithPassword. Si el usuario metió un username,
-    // haría falta buscar su email primero en una tabla profiles. Por ahora acepta ambos formatos:
-    const emailToUse = identifier.includes('@') ? identifier : identifier; // placeholder para lógica futura
+    let emailToUse = identifier;
 
+    // Si NO tiene una arroba (@), asumimos que es un nombre de usuario
+    if (!identifier.includes('@')) {
+        // Le preguntamos a nuestra tabla 'usuarios' cuál es el correo de este usuario
+        const { data: userData } = await supabase
+            .from('usuarios')
+            .select('email')
+            .eq('username', identifier)
+            .maybeSingle();
+
+        if (userData && userData.email) {
+            emailToUse = userData.email; // Traducción completada
+        } else {
+            msgBox.style.color = 'var(--error)';
+            msgBox.textContent = '❌ Usuario no encontrado en el Nexus.';
+            btnSubmit.innerHTML = '<i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS';
+            btnSubmit.disabled = false;
+            return; // Cortamos aquí porque el usuario no existe
+        }
+    }
+
+    // Ahora intentamos iniciar sesión con el correo real
     const { data, error } = await supabase.auth.signInWithPassword({ email: emailToUse, password });
 
     if (error) {
         msgBox.style.color = 'var(--error)';
-        // Supabase nos dice exactamente si es porque falta confirmar el correo
         if (error.message.includes('Email not confirmed')) {
             msgBox.style.color = 'var(--warning)';
             msgBox.innerHTML = '<i class="fas fa-envelope-open-text"></i> Pendiente de confirmación al correo...';
