@@ -379,47 +379,35 @@
         <div id="auth-modal" class="cyber-modal">
             <div class="modal-content glass-panel">
                 <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
-                <h2 id="auth-title" class="glitch-text" style="font-size: 2.2rem;">ACCESO_NEXUS</h2>
-                <div id="auth-modal" class="cyber-modal">
-                    <div class="modal-content glass-panel">
-                        <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
 
-                        <div class="auth-tabs">
-                            <button id="tab-login" class="auth-tab active">INICIAR SESIÓN</button>
-                            <button id="tab-register" class="auth-tab">REGISTRARSE</button>
-                        </div>
-
-                        <form id="form-login" class="auth-form" method="post">
-                            <input type="email" id="login-email" name="email" class="cyber-input"
-                                placeholder="Correo electrónico" autocomplete="username" required>
-                            <div class="password-wrapper">
-                                <input type="password" id="login-password" name="password" class="cyber-input"
-                                    placeholder="Contraseña" autocomplete="current-password" required>
-                                <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
-                                        class="fas fa-eye"></i></button>
-                            </div>
-                            <button type="submit" id="btn-login-submit" class="auth-btn primary">ENTRAR AL
-                                NEXUS</button>
-                        </form>
-
-                        <form id="form-register" class="auth-form" method="post" style="display: none;">
-                            <input type="email" id="register-email" name="email" class="cyber-input"
-                                placeholder="Tu mejor correo" autocomplete="username" required>
-                            <div class="password-wrapper">
-                                <input type="password" id="register-password" name="new-password" class="cyber-input"
-                                    placeholder="Crea una contraseña segura" autocomplete="new-password" required>
-                                <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
-                                        class="fas fa-eye"></i></button>
-                            </div>
-                            <button type="submit" id="btn-register-submit" class="auth-btn secondary">CREAR
-                                CUENTA</button>
-                        </form>
-
-                        <div id="auth-message"
-                            style="margin-top: 15px; font-size: 0.9rem; text-align: center; color: var(--warning);">
-                        </div>
-                    </div>
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab active">INICIAR SESIÓN</button>
+                    <button id="tab-register" class="auth-tab">REGISTRARSE</button>
                 </div>
+
+                <form id="form-login" class="auth-form" method="post">
+                    <input type="email" id="login-email" name="email" class="cyber-input"
+                        placeholder="Correo electrónico" autocomplete="username" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-password" name="password" class="cyber-input"
+                            placeholder="Contraseña" autocomplete="current-password" required>
+                        <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
+                                class="fas fa-eye"></i></button>
+                    </div>
+                    <button type="submit" id="btn-login-submit" class="auth-btn primary">ENTRAR AL NEXUS</button>
+                </form>
+
+                <form id="form-register" class="auth-form" method="post" style="display: none;">
+                    <input type="email" id="register-email" name="email" class="cyber-input"
+                        placeholder="Tu mejor correo" autocomplete="username" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="register-password" name="new-password" class="cyber-input"
+                            placeholder="Crea una contraseña segura" autocomplete="new-password" required>
+                        <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar"><i
+                                class="fas fa-eye"></i></button>
+                    </div>
+                    <button type="submit" id="btn-register-submit" class="auth-btn secondary">CREAR CUENTA</button>
+                </form>
 
                 <div id="auth-message"
                     style="margin-top: 15px; font-size: 0.9rem; text-align: center; color: var(--warning);"></div>
