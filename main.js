@@ -626,7 +626,7 @@ const btnPerfil = document.getElementById('user-profile');
 
 // 1. Crear el menú desplegable para cerrar sesión (clonando el estilo del tema)
 const userMenu = document.createElement('div');
-userMenu.className = 'theme-menu'; 
+userMenu.className = 'theme-menu';
 userMenu.innerHTML = `
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
@@ -656,7 +656,7 @@ btnPerfil.addEventListener('click', (e) => {
             // Si NO estás logueado, te lleva al login
             cambiarVista('login');
             // Quitamos el subrayado activo de la barra superior
-            linksMenu.forEach(l => l.classList.remove('active')); 
+            linksMenu.forEach(l => l.classList.remove('active'));
         }
     });
 });
@@ -673,11 +673,11 @@ document.addEventListener('click', (e) => {
 document.getElementById('btn-logout').addEventListener('click', async () => {
     // Le decimos a la caja fuerte que destruya el carnet de identidad
     await supabase.auth.signOut();
-    
+
     // Ocultamos el menú
     userMenu.classList.remove('show');
     userMenuOpen = false;
-    
+
     // Volvemos a la pantalla de inicio y actualizamos la interfaz (vuelve a ser el icono gris)
     cambiarVista('home');
     verificarSesion();
@@ -788,17 +788,14 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         await supabase.from('usuarios').insert([{ username: username, email: email }]);
 
         msgBox.style.color = 'var(--success)';
-        msgBox.textContent = '✅ ¡Cuenta creada! Iniciando sesión...';
+        msgBox.textContent = '✅ ¡Cuenta creada! Revisa tu correo.';
 
-        const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-        if (!loginError) {
-            setTimeout(() => {
-                cambiarVista('home');
-                verificarSesion();
-            }, 1200);
-        } else {
-            setTimeout(() => cambiarVista('login'), 1200);
-        }
+        // En lugar de hacer auto-login, mandamos a la pantalla de aviso de correo
+        setTimeout(() => {
+            cambiarVista('waiting-confirmation');
+            // Reseteamos el formulario por si acaso
+            document.getElementById('form-register').reset();
+        }, 1500);
     }
 
     btnSubmit.innerHTML = '<i class="fas fa-rocket"></i> REGÍSTRATE';
@@ -907,4 +904,24 @@ if (window.location.hash.includes('type=signup')) {
 // Botón de la pantalla de verificado para ir al login
 document.getElementById('btn-go-login-verified')?.addEventListener('click', () => {
     cambiarVista('login');
+});
+
+// ==========================================================================
+//   DETECTOR DE CONFIRMACIÓN DE CORREO Y AUTO-LOGIN
+// ==========================================================================
+// Cuando Supabase redirecciona desde el correo, trae el token mágico en la URL
+if (window.location.hash.includes('type=signup') || window.location.hash.includes('access_token')) {
+    // 1. Mostramos tu pantalla de éxito
+    cambiarVista('verified-account');
+
+    // 2. Le damos 1 segundo a Supabase para que procese el token en la sombra y te loguee
+    setTimeout(() => {
+        window.history.replaceState(null, null, window.location.pathname); // Limpiar URL fea
+        verificarSesion(); // Actualiza el icono para que salga el casco de astronauta
+    }, 1000);
+}
+
+// 3. Ahora el botón sí tiene el ID correcto y te manda directo al HOME (ya estarás logueado)
+document.getElementById('btn-go-home-verified')?.addEventListener('click', () => {
+    cambiarVista('home');
 });

@@ -880,13 +880,15 @@ body {
 
 #login.view,
 #register.view,
-#verified-account.view {
+#verified-account.view,
+#waiting-confirmation.view {
     display: none;
 }
 
 #login.view.active,
 #register.view.active,
-#verified-account.view.active {
+#verified-account.view.active,
+#waiting-confirmation.view.active {
     display: flex;
 }
 
@@ -1079,22 +1081,6 @@ body.auth-mode .nav-links {
 .field-wrapper.password-wrapper .toggle-password-btn:hover {
     color: var(--primary);
 }
-
-/* Las vistas de auth NO deben mostrarse con scroll, son páginas exclusivas */
-#login.view,
-#register.view {
-    display: none;
-}
-
-#login.view.active,
-#register.view.active {
-    display: flex;
-}
-
-/* Cuando login/register están activos, ocultar el nav del menú principal si quieres
-   (opcional, lo dejo comentado)
-*/
-/* body.auth-mode .nav-links { opacity: 0.4; pointer-events: none; } */
 
 /* ---- BOTONES MEJORADOS ---- */
 .auth-btn {
