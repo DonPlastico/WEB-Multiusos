@@ -1352,7 +1352,43 @@ span.flatpickr-weekday {
     color: var(--text-main) !important;
 }
 
+/* ==========================================================================
+   ESTILOS DEL MENÚ DE USUARIO AVANZADO
+   ========================================================================== */
+.user-menu-panel {
+    min-width: 240px;
+    /* Lo hacemos más ancho para que quepa todo el texto */
+}
 
+.user-dropdown-header {
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.user-dropdown-header:hover {
+    background: var(--bg-hover);
+}
+
+.dropdown-username {
+    font-weight: 700;
+    color: var(--neon-white);
+    font-size: 1.05rem;
+}
+
+.dropdown-subtext {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+}
 
 
 

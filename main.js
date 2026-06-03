@@ -624,13 +624,34 @@ cargarTMDB('tv');
 
 const btnPerfil = document.getElementById('user-profile');
 
-// 1. Crear el menú desplegable para cerrar sesión (clonando el estilo del tema)
+// 1. Crear el menú desplegable avanzado para el usuario
 const userMenu = document.createElement('div');
-userMenu.className = 'theme-menu';
+userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
+    <div class="user-dropdown-header" id="btn-ver-perfil">
+        <span id="dropdown-username" class="dropdown-username">Usuario</span>
+        <span class="dropdown-subtext">Ver perfil</span>
+    </div>
+    
+    <div class="dropdown-divider"></div>
+    
+    <button class="theme-option"><i class="fas fa-comments"></i><span>Debates</span></button>
+    <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
+    <button class="theme-option"><i class="fas fa-star-half-alt"></i><span>Reseñas</span></button>
+    <button class="theme-option"><i class="fas fa-star"></i><span>Valoraciones</span></button>
+    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Lista de seguimiento</span></button>
+    
+    <div class="dropdown-divider"></div>
+    
+    <button class="theme-option"><i class="fas fa-code"></i><span>API Subscription</span></button>
+    <button class="theme-option"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
+    <button class="theme-option"><i class="fas fa-cog"></i><span>Ajustes</span></button>
+    
+    <div class="dropdown-divider"></div>
+    
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
-        <span style="color: var(--error);">Cerrar Sesión</span>
+        <span style="color: var(--error);">Cerrar sesión</span>
     </button>
 `;
 
@@ -869,6 +890,14 @@ async function verificarSesion() {
 
     if (session) {
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+
+        // MAGIA NUEVA: Ponemos el nombre del usuario en la cabecera del menú
+        const usernameDisplay = document.getElementById('dropdown-username');
+        if (usernameDisplay) {
+            // Buscamos el nombre con el que se registró, y si falla, usamos la primera parte de su correo
+            const nombre = session.user.user_metadata?.username || session.user.email.split('@')[0];
+            usernameDisplay.textContent = nombre;
+        }
 
         const { data: datosRol } = await supabase
             .from('roles')
