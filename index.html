@@ -300,12 +300,32 @@
 
         <!-- VISTA: PELICULAS -->
         <section id="movies" class="view">
-            <h1 class="glitch-text">DATA_PELICULAS</h1>
+            <p class="subtitle" style="margin-bottom: 20px;">Sincronizado con TMDB. Descubre dónde ver tus películas.
+            </p>
+            <div class="games-layout">
+                <div class="games-content" style="grid-column: 1 / -1;">
+                    <div class="search-box glass-panel">
+                        <input type="text" id="search-movies" placeholder="Buscar películas...">
+                        <button id="btn-buscar-movies"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div id="movies-grid" class="cyber-grid"></div>
+                </div>
+            </div>
         </section>
 
         <!-- VISTA: SERIES -->
         <section id="series" class="view">
-            <h1 class="glitch-text">DATA_SERIES</h1>
+            <p class="subtitle" style="margin-bottom: 20px;">Sincronizado con TMDB. Seguimiento de temporadas y
+                episodios.</p>
+            <div class="games-layout">
+                <div class="games-content" style="grid-column: 1 / -1;">
+                    <div class="search-box glass-panel">
+                        <input type="text" id="search-series" placeholder="Buscar series...">
+                        <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div id="series-grid" class="cyber-grid"></div>
+                </div>
+            </div>
         </section>
 
     </main>

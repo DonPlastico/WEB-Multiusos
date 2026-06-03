@@ -464,3 +464,135 @@ accordions.forEach(header => {
         parentItem.classList.toggle('active');
     });
 });
+
+// ==========================================================================
+//   LOGICA DE PELICULAS Y SERIES (TMDB API)
+// ==========================================================================
+
+let pageMovies = 1;
+let searchMoviesActual = '';
+let pageSeries = 1;
+let searchSeriesActual = '';
+let cargandoTMDB = false;
+
+function crearTarjetaTMDB(media, tipo) {
+    const isMovie = tipo === 'movie';
+    const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA'; // Solo el año
+
+    // Configurar la info extra dependiente de si es peli o serie
+    let extraInfo = '';
+    if (isMovie) {
+        extraInfo = media.duracion ? `<span class="plat-count">${media.duracion} min</span>` : '';
+    } else {
+        extraInfo = media.temporadas ? `<span class="plat-count">T${media.temporadas} | E${media.episodios}</span>` : '';
+    }
+
+    const iconoPlataforma = media.plataformas === 'No disponible en streaming'
+        ? '<i class="fas fa-times-circle" style="color:var(--error);"></i>'
+        : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
+
+    return `
+        <div class="game-card">
+            <div class="game-cover-container">
+                <div class="top-platform-tag"><i class="fas fa-star" style="color:gold;"></i> ${media.nota}</div>
+                <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
+            </div>
+            <div class="game-info">
+                <h3 class="game-title">${media.titulo}</h3>
+                <div class="game-release-info">
+                    <span class="date">${fechaFormat}</span>
+                    <span class="dot">•</span>
+                    <span class="main-plat">${isMovie ? 'Película' : 'Serie'}</span>
+                    ${extraInfo}
+                </div>
+                <div class="game-price" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                    ${iconoPlataforma} <strong>${media.plataformas}</strong>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function cargarTMDB(tipo, busqueda = '', resetear = true) {
+    if (cargandoTMDB) return;
+    cargandoTMDB = true;
+
+    const grid = document.getElementById(tipo === 'movie' ? 'movies-grid' : 'series-grid');
+
+    if (resetear) {
+        if (tipo === 'movie') { pageMovies = 1; searchMoviesActual = busqueda; }
+        else { pageSeries = 1; searchSeriesActual = busqueda; }
+
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">SINTETIZANDO DATOS DE TMDB...</h3>
+            </div>
+        `;
+        document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
+    }
+
+    const pageActual = tipo === 'movie' ? pageMovies : pageSeries;
+    const searchActual = tipo === 'movie' ? searchMoviesActual : searchSeriesActual;
+
+    try {
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}`;
+        const respuesta = await fetch(url);
+        const datos = await respuesta.json();
+
+        if (resetear) grid.innerHTML = '';
+        document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
+
+        datos.forEach(item => {
+            grid.innerHTML += crearTarjetaTMDB(item, tipo);
+        });
+
+        if (datos.length > 0) {
+            const btnMas = document.createElement('div');
+            btnMas.id = `btn-cargar-mas-${tipo}`;
+            btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
+            btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
+            grid.after(btnMas);
+        }
+
+        if (tipo === 'movie') pageMovies++; else pageSeries++;
+
+    } catch (error) {
+        console.error(error);
+        grid.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar con TMDB.</div>';
+    }
+
+    cargandoTMDB = false;
+}
+
+window.cargarMasTMDB = function (tipo) {
+    cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, false);
+};
+
+// ----- LISTENERS PELICULAS -----
+const inputMovies = document.getElementById('search-movies');
+const btnMovies = document.getElementById('btn-buscar-movies');
+let tempMovies;
+
+inputMovies.addEventListener('input', () => {
+    clearTimeout(tempMovies);
+    tempMovies = setTimeout(() => cargarTMDB('movie', inputMovies.value.trim()), 500);
+});
+btnMovies.addEventListener('click', () => { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); });
+inputMovies.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); } });
+
+// ----- LISTENERS SERIES -----
+const inputSeries = document.getElementById('search-series');
+const btnSeries = document.getElementById('btn-buscar-series');
+let tempSeries;
+
+inputSeries.addEventListener('input', () => {
+    clearTimeout(tempSeries);
+    tempSeries = setTimeout(() => cargarTMDB('tv', inputSeries.value.trim()), 500);
+});
+btnSeries.addEventListener('click', () => { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); });
+inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); } });
+
+// Llamada inicial
+cargarTMDB('movie');
+cargarTMDB('tv');
