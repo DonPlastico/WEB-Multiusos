@@ -966,6 +966,37 @@ body {
     background: var(--primary-soft);
 }
 
+/* Contenedor relativo para el input y el ojito */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+}
+
+/* Dejamos espacio a la derecha para que el texto no se pise con el icono */
+.password-wrapper .cyber-input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+/* Estilo del botón del ojito */
+.toggle-password-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.toggle-password-btn:hover {
+    color: var(--primary);
+}
+
 
 
 

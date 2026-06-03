@@ -620,6 +620,8 @@ const btnCloseModal = document.getElementById('close-modal');
 
 const inputEmail = document.getElementById('auth-email');
 const inputPassword = document.getElementById('auth-password');
+const btnTogglePassword = document.getElementById('toggle-password');
+const toggleIcon = btnTogglePassword.querySelector('i');
 const btnLogin = document.getElementById('btn-login');
 const btnRegister = document.getElementById('btn-register');
 const msgBox = document.getElementById('auth-message');
@@ -632,6 +634,21 @@ btnPerfil.addEventListener('click', () => {
 
 btnCloseModal.addEventListener('click', () => {
     modalAuth.classList.remove('active');
+});
+
+// MOSTRAR / OCULTAR CONTRASEÑA
+btnTogglePassword.addEventListener('click', () => {
+    if (inputPassword.type === 'password') {
+        // Mostrar contraseña
+        inputPassword.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        // Ocultar contraseña
+        inputPassword.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
 });
 
 // REGISTRO
