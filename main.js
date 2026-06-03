@@ -662,15 +662,14 @@ btnRegister.addEventListener('click', async () => {
     btnRegister.textContent = "REGISTRAR NUEVA CUENTA";
 });
 
-// INICIO DE SESIÓN
-btnLogin.addEventListener('click', async () => {
+const authForm = document.getElementById('auth-form-element');
+
+// INICIO DE SESIÓN (Ahora detecta el envío del formulario)
+authForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // MUY IMPORTANTE: Evita que la página web se recargue al darle al botón
+
     const email = inputEmail.value.trim();
     const password = inputPassword.value.trim();
-
-    if (!email || !password) {
-        msgBox.textContent = "Por favor, rellena todos los campos.";
-        return;
-    }
 
     btnLogin.textContent = "ACCEDIENDO...";
 

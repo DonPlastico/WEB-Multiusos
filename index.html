@@ -381,12 +381,14 @@
                 <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
                 <h2 id="auth-title" class="glitch-text" style="font-size: 2.2rem;">ACCESO_NEXUS</h2>
 
-                <div class="auth-form">
-                    <input type="email" id="auth-email" class="cyber-input" placeholder="Correo electrónico">
-                    <input type="password" id="auth-password" class="cyber-input" placeholder="Contraseña">
-                    <button id="btn-login" class="auth-btn primary">INICIAR SESIÓN</button>
-                    <button id="btn-register" class="auth-btn secondary">REGISTRAR NUEVA CUENTA</button>
-                </div>
+                <form id="auth-form-element" class="auth-form">
+                    <input type="email" id="auth-email" name="email" class="cyber-input"
+                        placeholder="Correo electrónico" autocomplete="username" required>
+                    <input type="password" id="auth-password" name="password" class="cyber-input"
+                        placeholder="Contraseña" autocomplete="current-password" required>
+                    <button type="submit" id="btn-login" class="auth-btn primary">INICIAR SESIÓN</button>
+                    <button type="button" id="btn-register" class="auth-btn secondary">REGISTRAR NUEVA CUENTA</button>
+                </form>
 
                 <div id="auth-message"
                     style="margin-top: 15px; font-size: 0.9rem; text-align: center; color: var(--warning);"></div>
