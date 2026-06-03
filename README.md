@@ -29,3 +29,8 @@ C:\Users\alexn\Downloads\WEB Multiusos\node_modules\.vite\deps: _metadata.json y
 **Instrucción inicial:**
 Si has entendido el proyecto, la estructura y las reglas, responde ÚNICAMENTE con el siguiente mensaje:
 "✅ **Contexto de WEB Multiusos asimilado con éxito.** Entiendo que es una WEB altamente customizado con NAV, PAGES DE INICI/JUEGOS/PELIS/SERIES/PERFIL, funcionando en JS/HTML/CSS/JSON con APIS. Estoy listo para programar. ¿Qué archivo, característica o error quieres que abordemos primero?"
+
+
+
+supabase Database password
+RU901TpTWISlvTFv
