@@ -634,6 +634,7 @@ const inputRegPass = document.getElementById('register-password');
 btnPerfil.addEventListener('click', () => {
     modalAuth.classList.add('active');
     msgBox.textContent = '';
+    tabLogin.click(); // Obligamos a que siempre empiece en Login limpio
 });
 
 btnCloseModal.addEventListener('click', () => {
@@ -646,6 +647,13 @@ tabLogin.addEventListener('click', () => {
     tabRegister.classList.remove('active');
     formLogin.style.display = 'flex';
     formRegister.style.display = 'none';
+
+    // TRUCO BITWARDEN: Activamos Login, Desactivamos Registro
+    inputLoginEmail.disabled = false;
+    inputLoginPass.disabled = false;
+    inputRegEmail.disabled = true;
+    inputRegPass.disabled = true;
+
     msgBox.textContent = '';
 });
 
@@ -654,6 +662,13 @@ tabRegister.addEventListener('click', () => {
     tabLogin.classList.remove('active');
     formRegister.style.display = 'flex';
     formLogin.style.display = 'none';
+
+    // TRUCO BITWARDEN: Activamos Registro, Desactivamos Login oculto
+    inputRegEmail.disabled = false;
+    inputRegPass.disabled = false;
+    inputLoginEmail.disabled = true;
+    inputLoginPass.disabled = true;
+
     msgBox.textContent = '';
 });
 
