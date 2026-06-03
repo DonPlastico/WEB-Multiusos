@@ -1,6 +1,14 @@
 // Importamos el cliente de Supabase para futuras funcionalidades (registro, login, etc.)
 import { supabase } from './supabase.js';
 
+// // Importamos Vercel Analytics para tener datos de uso y mejorar el proyecto con el tiempo
+import { inject } from '@vercel/analytics';
+inject();
+
+// // Importamos Vercel Speed Insights para monitorear el rendimiento y optimizar la experiencia
+import { injectSpeedInsights } from '@vercel/speed-insights';
+injectSpeedInsights();
+
 // ==========================================================================
 //   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
 // ==========================================================================
