@@ -1,6 +1,9 @@
 // Importamos el cliente de Supabase para futuras funcionalidades (registro, login, etc.)
 import { supabase } from './supabase.js';
 
+// Importamos el script de Analytics de Vercel para tener estadísticas básicas de uso (opcional)
+import { Analytics } from "@vercel/analytics/next"
+
 // ==========================================================================
 //   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
 // ==========================================================================
