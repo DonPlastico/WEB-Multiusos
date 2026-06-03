@@ -635,15 +635,11 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-comments"></i><span>Debates</span></button>
     <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
-    <button class="theme-option"><i class="fas fa-star-half-alt"></i><span>Reseñas</span></button>
-    <button class="theme-option"><i class="fas fa-star"></i><span>Valoraciones</span></button>
     <button class="theme-option"><i class="fas fa-bookmark"></i><span>Lista de seguimiento</span></button>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-code"></i><span>API Subscription</span></button>
     <button class="theme-option"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
     <button class="theme-option"><i class="fas fa-cog"></i><span>Ajustes</span></button>
     
@@ -891,11 +887,17 @@ async function verificarSesion() {
     if (session) {
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // MAGIA NUEVA: Ponemos el nombre del usuario en la cabecera del menú
+        // Buscamos el nombre de usuario real en nuestra tabla 'usuarios'
         const usernameDisplay = document.getElementById('dropdown-username');
         if (usernameDisplay) {
-            // Buscamos el nombre con el que se registró, y si falla, usamos la primera parte de su correo
-            const nombre = session.user.user_metadata?.username || session.user.email.split('@')[0];
+            const { data: userData } = await supabase
+                .from('usuarios')
+                .select('username')
+                .eq('email', session.user.email)
+                .maybeSingle();
+
+            // Si lo encuentra ponemos el usuario (ej: PacaMascachapas), si falla, cortamos el correo
+            const nombre = userData?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombre;
         }
 
