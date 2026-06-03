@@ -619,21 +619,68 @@ cargarTMDB('movie');
 cargarTMDB('tv');
 
 // ==========================================================================
-//   SISTEMA DE AUTENTICACIÓN v2 — PÁGINAS DEDICADAS
+//   SISTEMA DE AUTENTICACIÓN — PÁGINAS DEDICADAS Y CERRAR SESIÓN
 // ==========================================================================
 
 const btnPerfil = document.getElementById('user-profile');
 
-// Botón perfil del nav → va a login (si no hay sesión)
-btnPerfil.addEventListener('click', () => {
+// 1. Crear el menú desplegable para cerrar sesión (clonando el estilo del tema)
+const userMenu = document.createElement('div');
+userMenu.className = 'theme-menu'; 
+userMenu.innerHTML = `
+    <button class="theme-option" id="btn-logout">
+        <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
+        <span style="color: var(--error);">Cerrar Sesión</span>
+    </button>
+`;
+
+// Envolvemos el botón del perfil para que funcione el desplegable
+const userContainer = document.createElement('div');
+userContainer.className = 'theme-dropdown';
+btnPerfil.parentNode.insertBefore(userContainer, btnPerfil);
+userContainer.appendChild(btnPerfil);
+userContainer.appendChild(userMenu);
+
+let userMenuOpen = false;
+
+// 2. Lógica del botón de perfil
+btnPerfil.addEventListener('click', (e) => {
+    e.stopPropagation();
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            cambiarVista('profile'); // o la vista que tengas para el perfil
+            // Si estás logueado, abrimos el menú
+            userMenuOpen = !userMenuOpen;
+            if (userMenuOpen) userMenu.classList.add('show');
+            else userMenu.classList.remove('show');
         } else {
+            // Si NO estás logueado, te lleva al login
             cambiarVista('login');
-            linksMenu.forEach(l => l.classList.remove('active'));
+            // Quitamos el subrayado activo de la barra superior
+            linksMenu.forEach(l => l.classList.remove('active')); 
         }
     });
+});
+
+// Cerrar menú al hacer clic fuera
+document.addEventListener('click', (e) => {
+    if (!userContainer.contains(e.target) && userMenu) {
+        userMenu.classList.remove('show');
+        userMenuOpen = false;
+    }
+});
+
+// 3. Lógica para CERRAR SESIÓN
+document.getElementById('btn-logout').addEventListener('click', async () => {
+    // Le decimos a la caja fuerte que destruya el carnet de identidad
+    await supabase.auth.signOut();
+    
+    // Ocultamos el menú
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+    
+    // Volvemos a la pantalla de inicio y actualizamos la interfaz (vuelve a ser el icono gris)
+    cambiarVista('home');
+    verificarSesion();
 });
 
 // Botón "Crear cuenta nueva" en la página de login → va a register

@@ -879,20 +879,22 @@ body {
 }
 
 #login.view,
-#register.view {
+#register.view,
+#verified-account.view {
     display: none;
 }
 
 #login.view.active,
-#register.view.active {
+#register.view.active,
+#verified-account.view.active {
     display: flex;
 }
 
 /* Cuando login/register están activos, ocultar el nav del menú principal si quieres (opcional, lo dejo comentado)*/
-/* body.auth-mode .nav-links {
+body.auth-mode .nav-links {
     opacity: 0.4;
     pointer-events: none;
-} */
+}
 
 /* ============================================================
    AUTH PAGES - LOGIN & REGISTER
