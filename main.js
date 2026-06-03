@@ -611,20 +611,24 @@ cargarTMDB('movie');
 cargarTMDB('tv');
 
 // ==========================================================================
-//   SISTEMA DE AUTENTICACIÓN (SUPABASE)
+//   SISTEMA DE AUTENTICACIÓN (SUPABASE) - SEPARADO EN LOGIN/REGISTRO
 // ==========================================================================
 
 const btnPerfil = document.getElementById('user-profile');
 const modalAuth = document.getElementById('auth-modal');
 const btnCloseModal = document.getElementById('close-modal');
-
-const inputEmail = document.getElementById('auth-email');
-const inputPassword = document.getElementById('auth-password');
-const btnTogglePassword = document.getElementById('toggle-password');
-const toggleIcon = btnTogglePassword.querySelector('i');
-const btnLogin = document.getElementById('btn-login');
-const btnRegister = document.getElementById('btn-register');
 const msgBox = document.getElementById('auth-message');
+
+// Elementos de las pestañas
+const tabLogin = document.getElementById('tab-login');
+const tabRegister = document.getElementById('tab-register');
+const formLogin = document.getElementById('form-login');
+const formRegister = document.getElementById('form-register');
+
+const inputLoginEmail = document.getElementById('login-email');
+const inputLoginPass = document.getElementById('login-password');
+const inputRegEmail = document.getElementById('register-email');
+const inputRegPass = document.getElementById('register-password');
 
 // Abrir y cerrar Modal
 btnPerfil.addEventListener('click', () => {
@@ -636,64 +640,89 @@ btnCloseModal.addEventListener('click', () => {
     modalAuth.classList.remove('active');
 });
 
-// MOSTRAR / OCULTAR CONTRASEÑA
-btnTogglePassword.addEventListener('click', () => {
-    if (inputPassword.type === 'password') {
-        // Mostrar contraseña
-        inputPassword.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        // Ocultar contraseña
-        inputPassword.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
-    }
+// Cambiar entre Pestañas de Login y Registro
+tabLogin.addEventListener('click', () => {
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+    formLogin.style.display = 'flex';
+    formRegister.style.display = 'none';
+    msgBox.textContent = '';
 });
 
-// REGISTRO
-btnRegister.addEventListener('click', async () => {
-    const email = inputEmail.value.trim();
-    const password = inputPassword.value.trim();
+tabRegister.addEventListener('click', () => {
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+    formRegister.style.display = 'flex';
+    formLogin.style.display = 'none';
+    msgBox.textContent = '';
+});
 
-    if (!email || !password) {
-        msgBox.textContent = "Por favor, rellena todos los campos.";
-        return;
-    }
+// MOSTRAR / OCULTAR CONTRASEÑA (Sirve para los dos ojitos a la vez)
+document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        // Buscamos el input que está justo antes del botón dentro de su caja
+        const input = e.currentTarget.previousElementSibling;
+        const icon = e.currentTarget.querySelector('i');
 
-    btnRegister.textContent = "REGISTRANDO...";
-
-    const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     });
+});
+
+// -------------------------------------------
+// FLUJO DE REGISTRO
+// -------------------------------------------
+formRegister.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = inputRegEmail.value.trim();
+    const password = inputRegPass.value.trim();
+    const btnSubmit = document.getElementById('btn-register-submit');
+
+    btnSubmit.textContent = "REGISTRANDO...";
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
         msgBox.style.color = "var(--error)";
         msgBox.textContent = "Error: " + error.message;
     } else {
         msgBox.style.color = "var(--success)";
-        msgBox.textContent = "¡Registro exitoso! Ya puedes iniciar sesión.";
-        inputPassword.value = '';
+        msgBox.textContent = "¡Registro exitoso! Iniciando sesión...";
+        inputRegPass.value = '';
+
+        // Magia extra: Iniciar sesión automáticamente tras registrarse
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (!loginError) {
+            setTimeout(() => {
+                modalAuth.classList.remove('active');
+                verificarSesion();
+            }, 1000);
+        } else {
+            tabLogin.click(); // Si falla el auto-login, lo mandamos a la pestaña normal
+        }
     }
-    btnRegister.textContent = "REGISTRAR NUEVA CUENTA";
+    btnSubmit.textContent = "CREAR CUENTA";
 });
 
-const authForm = document.getElementById('auth-form-element');
+// -------------------------------------------
+// FLUJO DE INICIO DE SESIÓN
+// -------------------------------------------
+formLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = inputLoginEmail.value.trim();
+    const password = inputLoginPass.value.trim();
+    const btnSubmit = document.getElementById('btn-login-submit');
 
-// INICIO DE SESIÓN (Ahora detecta el envío del formulario)
-authForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // MUY IMPORTANTE: Evita que la página web se recargue al darle al botón
+    btnSubmit.textContent = "ACCEDIENDO...";
 
-    const email = inputEmail.value.trim();
-    const password = inputPassword.value.trim();
-
-    btnLogin.textContent = "ACCEDIENDO...";
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
         msgBox.style.color = "var(--error)";
@@ -703,10 +732,10 @@ authForm.addEventListener('submit', async (e) => {
         msgBox.textContent = "¡Acceso concedido!";
         setTimeout(() => {
             modalAuth.classList.remove('active');
-            verificarSesion(); // Actualizar UI
+            verificarSesion(); // Actualizar el icono y revelar el escudo
         }, 1000);
     }
-    btnLogin.textContent = "INICIAR SESIÓN";
+    btnSubmit.textContent = "ENTRAR AL NEXUS";
 });
 
 // VERIFICAR SESIÓN ACTIVA Y ROLES
@@ -715,26 +744,20 @@ async function verificarSesion() {
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
-        // 1. Usuario Logueado (Cambiamos el icono)
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // 2. EL MURO DE SEGURIDAD REAL: Consultar a la base de datos
-        // Buscamos en la tabla 'roles' si el email de esta sesión existe
-        const { data: datosRol, error } = await supabase
+        const { data: datosRol } = await supabase
             .from('roles')
             .select('rol')
             .eq('email', session.user.email)
-            .maybeSingle(); // maybeSingle evita errores si un usuario normal no está en esta tabla
+            .maybeSingle();
 
-        // 3. Comprobamos la respuesta de la base de datos
         if (datosRol && datosRol.rol === 'admin') {
-            btnAdmin.style.display = 'inline-flex'; // ¡Es un admin! Revelamos el escudo
+            btnAdmin.style.display = 'inline-flex';
         } else {
-            btnAdmin.style.display = 'none'; // Usuario normal, escudo oculto
+            btnAdmin.style.display = 'none';
         }
-
     } else {
-        // No Logueado
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
         if (btnAdmin) btnAdmin.style.display = 'none';
     }
