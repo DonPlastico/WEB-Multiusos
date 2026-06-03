@@ -887,18 +887,12 @@ async function verificarSesion() {
     if (session) {
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // Buscamos el nombre de usuario real en nuestra tabla 'usuarios'
+        // MAGIA NUEVA: Leemos el nombre directamente de los metadatos internos de tu sesión
         const usernameDisplay = document.getElementById('dropdown-username');
         if (usernameDisplay) {
-            const { data: userData } = await supabase
-                .from('usuarios')
-                .select('username')
-                .eq('email', session.user.email)
-                .maybeSingle();
-
-            // Si lo encuentra ponemos el usuario (ej: PacaMascachapas), si falla, cortamos el correo
-            const nombre = userData?.username || session.user.email.split('@')[0];
-            usernameDisplay.textContent = nombre;
+            // Saca el usuario con el que te registraste. Si algo fallase extremo, usa el correo.
+            const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
+            usernameDisplay.textContent = nombreReal;
         }
 
         const { data: datosRol } = await supabase
