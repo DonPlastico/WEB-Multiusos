@@ -34,7 +34,14 @@ let juegosCargados = false;
 let peliculasCargadas = false;
 let seriesCargadas = false;
 
+// Memoria de Scroll: Guardará a qué altura se quedó cada página
+const memoriaScroll = {};
+let vistaActualGlobal = 'home'; // Para saber de dónde nos vamos
+
 function cambiarVista(target, guardarEnHistorial = true) {
+    // 1. Antes de irnos de la pestaña actual, guardamos a qué altura estábamos
+    memoriaScroll[vistaActualGlobal] = window.scrollY;
+
     // Actualizamos el color del menú
     linksMenu.forEach(link => {
         if (link.getAttribute('data-target') === target) {
@@ -52,6 +59,18 @@ function cambiarVista(target, guardarEnHistorial = true) {
             vista.classList.remove('active');
         }
     });
+
+    // 2. Restauramos el scroll de la vista a la que acabamos de entrar
+    // Le damos un mini-retraso (10ms) para que al navegador le dé tiempo a pintar el HTML primero
+    setTimeout(() => {
+        window.scrollTo({
+            top: memoriaScroll[target] || 0, // Si nunca había entrado, top será 0
+            behavior: 'instant' // Instantáneo para que no se note un salto raro
+        });
+    }, 10);
+
+    // Actualizamos nuestra variable de control
+    vistaActualGlobal = target;
 
     // LAZY LOADING: Cargar la API correspondiente solo la primera vez que se entra a la sección
     if (target === 'games' && !juegosCargados) {
@@ -362,13 +381,17 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
 
         document.getElementById('btn-cargar-mas')?.remove();
     } else {
-        // Transformar el botón de "Cargar más" en un loader bonito
+        // Transformar el botón de "Cargar más" en un loader, pero dejando un botón de seguridad debajo
         const btnMas = document.getElementById('btn-cargar-mas');
         if (btnMas) {
             btnMas.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
-                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600;">CARGANDO MÁS JUEGOS...</span>
+                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">CARGANDO MÁS JUEGOS...</span>
+                    
+                    <button onclick="cargando=false; cargarMas()" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); padding:0.5rem 1.5rem; border-radius:40px; cursor:pointer; font-size: 0.8rem; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <i class="fas fa-redo"></i> ¿Tarda mucho? Reintentar manualmente
+                    </button>
                 </div>
             `;
         }
@@ -663,14 +686,18 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
 
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
     } else {
-        // Transformar el botón en un loader 
+        // Transformar el botón en un loader, manteniendo un botón de seguridad debajo
         const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
         if (btnMas) {
             const textoTipo = tipo === 'movie' ? 'PELÍCULAS' : 'SERIES';
             btnMas.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
-                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600;">CARGANDO MÁS ${textoTipo}...</span>
+                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">CARGANDO MÁS ${textoTipo}...</span>
+                    
+                    <button onclick="cargandoTMDB=false; cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); padding:0.5rem 1.5rem; border-radius:40px; cursor:pointer; font-size: 0.8rem; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <i class="fas fa-redo"></i> ¿Tarda mucho? Reintentar manualmente
+                    </button>
                 </div>
             `;
         }
@@ -1080,3 +1107,27 @@ if (window.location.hash.includes('type=signup') || window.location.hash.include
 document.getElementById('btn-go-home-verified')?.addEventListener('click', () => {
     cambiarVista('home');
 });
+
+// ==========================================================================
+//   BOTÓN VOLVER ARRIBA Y DETECCIÓN DE SCROLL
+// ==========================================================================
+const btnScrollTop = document.getElementById('btn-scroll-top');
+
+if (btnScrollTop) {
+    // Cuando el usuario hace scroll, comprobamos si bajamos más de 500 píxeles
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) {
+            btnScrollTop.classList.add('visible');
+        } else {
+            btnScrollTop.classList.remove('visible');
+        }
+    });
+
+    // Al hacer clic, subimos suavemente hasta el pixel 0
+    btnScrollTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}

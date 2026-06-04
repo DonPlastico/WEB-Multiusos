@@ -1390,7 +1390,46 @@ span.flatpickr-weekday {
     margin: 6px 0;
 }
 
+/* ==========================================================================
+   BOTÓN VOLVER ARRIBA
+   ========================================================================== */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    background: var(--bg-card);
+    color: var(--primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 999;
+    box-shadow: var(--shadow-md);
+}
 
+.scroll-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--neon-glow);
+    transform: translateY(-5px);
+    /* Efecto de flotar un poquito más al pasar el ratón */
+}
 
 
 
