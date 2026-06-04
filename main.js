@@ -587,9 +587,9 @@ const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
 
-btnVerPlats.addEventListener('click', () => {
+btnVerPlats?.addEventListener('click', () => {
     platExtraVisible = !platExtraVisible;
-    platExtra.style.display = platExtraVisible ? 'block' : 'none';
+    if (platExtra) platExtra.style.display = platExtraVisible ? 'block' : 'none';
     btnVerPlats.textContent = platExtraVisible ? '− Ver menos' : '+ Ver todo';
 });
 
