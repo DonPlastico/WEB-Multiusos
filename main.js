@@ -1163,11 +1163,11 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // Creamos las 5 cards por defecto (imágenes de prueba de placeholder)
+        // Creamos las 5 cards por defecto usando placehold.co
         for (let i = 1; i <= 5; i++) {
             modalGrid.innerHTML += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'predeterminado_${i}')">
-                    <img src="https://via.placeholder.com/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}">
+                    <img src="https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}">
                 </div>
             `;
         }
@@ -1184,11 +1184,11 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
         modalGrid.classList.add('avatar-grid');
 
-        // Creamos las 11 cards por defecto
+        // Creamos las 11 cards por defecto usando placehold.co
         for (let i = 1; i <= 11; i++) {
             modalGrid.innerHTML += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'predeterminado_${i}')">
-                    <img src="https://via.placeholder.com/300x300/14141c/2dd4bf?text=AV+${i}" alt="Avatar ${i}">
+                    <img src="https://placehold.co/300x300/14141c/2dd4bf?text=AV+${i}" alt="Avatar ${i}">
                 </div>
             `;
         }
