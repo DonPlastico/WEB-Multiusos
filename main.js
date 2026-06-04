@@ -75,8 +75,16 @@ function cambiarVista(target, guardarEnHistorial = true) {
 
     // lazy loading, cargo la api solo la primera vez que entro
     if (target === 'games' && !juegosCargados) {
+        console.log('📥 Primera carga de juegos detectada');
         cargarJuegosIGDB();
         juegosCargados = true;
+    } else if (target === 'games' && juegosCargados) {
+        // si ya estaban cargados pero el grid está vacío, intenta de nuevo
+        const gridContent = gridJuegos.innerHTML.trim();
+        if (!gridContent || gridContent.includes('Conectando') || gridContent.includes('BUSCANDO')) {
+            console.log('⚠️ Grid vacío, reintentando carga');
+            cargarJuegosIGDB();
+        }
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
@@ -400,13 +408,28 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtros.platforms) url += `&platforms=${filtros.platforms}`;
 
+        console.log('📡 Llamada a:', url);
         const respuesta = await fetch(url);
-        if (!respuesta.ok) throw new Error('Error en el servidor');
+        if (!respuesta.ok) {
+            const errorMsg = `Error HTTP ${respuesta.status}`;
+            console.error('❌ API error:', errorMsg);
+            throw new Error(errorMsg);
+        }
 
         const datos = await respuesta.json();
+        console.log('✅ Datos recibidos:', datos.length, 'juegos');
 
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
+
+        // si no hay datos, muestra mensaje
+        if (datos.length === 0) {
+            if (resetear) {
+                gridJuegos.innerHTML = '<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">Sin resultados. Intenta otra busqueda.</div>';
+            }
+            cargando = false;
+            return;
+        }
 
         // inyecto las tarjetas
         datos.forEach(juego => {
@@ -429,9 +452,15 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
         offsetActual += datos.length;
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error cargando juegos:", error);
         if (resetear) {
-            gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar.</div>';
+            gridJuegos.innerHTML = `
+                <div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">
+                    <i class="fas fa-exclamation-circle"></i> Fallo al conectar con la API<br>
+                    <small style="font-size: 0.8rem; color: var(--text-muted);">${error.message}</small>
+                    <button onclick="location.reload()" style="margin-top: 1rem; background:transparent; border:1px solid var(--error); color:var(--error); padding:0.5rem 1rem; border-radius:20px; cursor:pointer;">Reintentar</button>
+                </div>
+            `;
         } else {
             // si falla muestro el boton para reintentar
             const btnMas = document.getElementById('btn-cargar-mas');
