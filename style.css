@@ -2337,7 +2337,9 @@ span.flatpickr-weekday {
         gap: 8px;
     }
 
-    #btn-close-filters-drawer {
+    #btn-close-filters-drawer,
+    #btn-close-movies-mobile,
+    #btn-close-series-mobile {
         background: transparent;
         border: 1px solid var(--border-color);
         color: var(--text-muted);
@@ -2352,7 +2354,9 @@ span.flatpickr-weekday {
         transition: 0.2s ease;
     }
 
-    #btn-close-filters-drawer:hover {
+    #btn-close-filters-drawer:hover,
+    #btn-close-movies-mobile:hover,
+    #btn-close-series-mobile:hoverS {
         border-color: var(--primary);
         color: var(--primary);
     }
