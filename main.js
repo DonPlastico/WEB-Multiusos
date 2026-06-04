@@ -525,14 +525,23 @@ const platTodas = document.getElementById('plat-todas');
 const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
 
 function aplicarFiltros() {
-    // 1. Recolectar valores (Asegúrate de que tus checkboxes tengan los values correctos: PC=6, PS5=167, etc.)
+    // 1. Recolectar valores de las plataformas
+    // Nos aseguramos de que solo pasen los que tienen un value numérico
     const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
-        .map(cb => cb.value)
+        .map(cb => cb.value) // Esto debería ser el ID (ej: "6")
+        .filter(val => val && val !== 'on') // FILTRO ANTI-ERROR: Si el value es "on", lo ignoramos
         .join(',');
 
-    // 2. Lanzar carga nueva (resetear = true)
-    // Pasamos el nuevo objeto de filtros
-    cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas });
+    // 2. Depuración para ver qué está pasando antes de enviar
+    console.log("IDs de plataforma enviados:", platSeleccionadas);
+
+    // 3. Lanzar carga
+    if (platSeleccionadas) {
+        cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas });
+    } else {
+        // Si no hay nada seleccionado, recargamos normal
+        cargarJuegosIGDB(busquedaActual, true);
+    }
 }
 
 // eventos de tiendas
