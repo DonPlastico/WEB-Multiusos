@@ -1200,7 +1200,7 @@ function openCustomizationModal(type) {
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="/img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
