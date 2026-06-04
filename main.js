@@ -1224,6 +1224,18 @@ function openCustomizationModal(type) {
                 <span style="font-weight: 700; font-family: var(--font-cyber);">SUBIR CUSTOM</span>
             </div>
         `;
+    } else if (type === 'stats') {
+        // ESTADÍSTICAS GLOBALES (Solo de ejemplo, sin funcionalidad real)
+        modalTitle.innerHTML = '<i class="fas fa-chart-bar"></i> ESTADÍSTICAS GLOBALES';
+        modalGrid.className = 'modal-grid'; // Aseguramos que no tenga formato de banner o avatar
+
+        htmlAcumulado = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
+                <i class="fas fa-satellite-dish fa-pulse" style="font-size: 3.5rem; color: var(--primary); margin-bottom: 25px; opacity: 0.8;"></i>
+                <h3 style="letter-spacing: 2px; color: var(--neon-white);">RECIBIENDO TELEMETRÍA...</h3>
+                <p style="margin-top: 15px; font-size: 0.95rem;">El panel de desglose de datos y gráficos avanzados se desbloqueará en futuras versiones del sistema.</p>
+            </div>
+        `;
     }
 
     // 2. INYECCIÓN ÚNICA: Metemos todo el bloque de HTML de una sola vez
@@ -1355,4 +1367,9 @@ modalEdit?.addEventListener('click', (evento) => {
     if (evento.target === modalEdit) {
         modalEdit.classList.remove('show');
     }
+});
+
+// Al pulsar la flecha de estadísticas
+document.getElementById('btn-open-stats-modal')?.addEventListener('click', () => {
+    openCustomizationModal('stats');
 });

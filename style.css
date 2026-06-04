@@ -1760,6 +1760,135 @@ span.flatpickr-weekday {
     /* La rayita que separa las cajas */
 }
 
+/* ==========================================================================
+   ESTADÍSTICAS DETALLADAS (Cine y Series)
+   ========================================================================== */
+.profile-detailed-stats {
+    margin-top: 40px;
+    margin-bottom: 60px;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.stats-header h2 {
+    font-size: 1.8rem;
+    color: var(--neon-white);
+    letter-spacing: 1px;
+}
+
+/* Flecha elegante y redonda */
+.stats-arrow-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.stats-arrow-btn:hover {
+    background: var(--primary);
+    color: white !important;
+    border-color: var(--primary);
+    transform: translateX(6px);
+    /* Efecto de deslizarse hacia la derecha */
+}
+
+/* Contenedor general de las tarjetas */
+.stats-cards-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 15px;
+    background: var(--bg-main);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.stats-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    border-color: var(--primary-soft);
+}
+
+.stats-card-header {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--neon-white);
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--bg-secondary);
+}
+
+.stats-card-header i {
+    color: var(--text-muted);
+}
+
+.stats-card-body {
+    padding: 20px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.stats-card-body.single-number .num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--neon-white);
+}
+
+.stats-card-body.multi-number {
+    gap: 25px;
+}
+
+.stats-card-body.multi-number div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stats-card-body.multi-number .num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-white);
+}
+
+.stats-card-body.multi-number .lbl {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* Divisor visual gigante entre Series y Películas */
+.stats-main-divider {
+    width: 2px;
+    background: var(--border-color);
+    margin: 0 15px;
+    border-radius: 2px;
+}
 
 
 

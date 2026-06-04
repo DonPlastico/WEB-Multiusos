@@ -555,7 +555,10 @@
         <section id="profile" class="view">
             <div class="profile-layout">
                 <div class="profile-banner glass-panel" id="banner-edit-trigger">
-                    <div class="edit-overlay"><i class="fas fa-camera"></i><span> Cambiar Portada</span></div>
+                    <div class="edit-overlay">
+                        <i class="fas fa-camera"></i>
+                        <span> Cambiar Portada</span>
+                    </div>
 
                     <div class="profile-header-info">
                         <div class="profile-avatar" id="avatar-edit-trigger">
@@ -582,6 +585,49 @@
                         <div class="stat-box">
                             <span class="stat-num">0</span>
                             <span class="stat-label">comentarios</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-detailed-stats">
+                    <div class="stats-header">
+                        <h2>Estadísticas</h2>
+                        <button class="icon-btn stats-arrow-btn" id="btn-open-stats-modal">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="stats-cards-wrapper">
+                        <div class="stats-card">
+                            <div class="stats-card-header"><i class="fas fa-tv"></i> Tiempo de series</div>
+                            <div class="stats-card-body multi-number">
+                                <div><span class="num">7</span><span class="lbl">MESES</span></div>
+                                <div><span class="num">20</span><span class="lbl">DÍAS</span></div>
+                                <div><span class="num">17</span><span class="lbl">HORAS</span></div>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-card-header"><i class="fas fa-tv"></i> Episodios vistos</div>
+                            <div class="stats-card-body single-number">
+                                <span class="num">7.385</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-main-divider"></div>
+
+                        <div class="stats-card">
+                            <div class="stats-card-header"><i class="fas fa-film"></i> Tiempo de cine</div>
+                            <div class="stats-card-body multi-number">
+                                <div><span class="num">1</span><span class="lbl">MES</span></div>
+                                <div><span class="num">21</span><span class="lbl">DÍAS</span></div>
+                                <div><span class="num">17</span><span class="lbl">HORAS</span></div>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-card-header"><i class="fas fa-film"></i> Películas vistas</div>
+                            <div class="stats-card-body single-number">
+                                <span class="num">667</span>
+                            </div>
                         </div>
                     </div>
                 </div>
