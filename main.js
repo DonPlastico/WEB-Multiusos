@@ -290,6 +290,7 @@ const inputBuscar = document.getElementById('search-juegos');
 let offsetActual = 0;
 let busquedaActual = '';
 let cargando = false;
+let filtrosGlobales = {};
 
 function crearTarjeta(juego) {
     const portada = juego.cover
@@ -351,13 +352,18 @@ function crearTarjeta(juego) {
     `;
 }
 
-async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
+async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
     if (cargando) return;
     cargando = true;
 
     if (resetear) {
         offsetActual = 0;
         busquedaActual = busqueda;
+
+        // Guardamos los filtros en la variable global para que el scroll los recuerde
+        if (filtros !== null) {
+            filtrosGlobales = filtros;
+        }
 
         // muestro el loader
         gridJuegos.innerHTML = `
@@ -367,7 +373,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
             </div>
         `;
 
-        // cambio el texto del loader
         setTimeout(() => {
             const loaderText = document.querySelector('#loader-games .loading-text');
             if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
@@ -382,36 +387,26 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
                     <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">CARGANDO MÁS JUEGOS...</span>
-                    
-                    <button onclick="cargando=false; cargarMas()" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); padding:0.5rem 1.5rem; border-radius:40px; cursor:pointer; font-size: 0.8rem; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='rgba(255,255,255,0.1)'">
-                        <i class="fas fa-redo"></i> ¿Tarda mucho? Reintentar manualmente
-                    </button>
                 </div>
             `;
         }
     }
 
     try {
-        // Construimos la URL incluyendo los nuevos filtros
+        // === USAMOS LA VARIABLE GLOBAL PARA CONSTRUIR LA URL ===
         let url = `/api/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
-        if (filtros.platforms) url += `&platforms=${filtros.platforms}`;
+        if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
 
         console.log('📡 Llamada a:', url);
         const respuesta = await fetch(url);
-        if (!respuesta.ok) {
-            const errorMsg = `Error HTTP ${respuesta.status}`;
-            console.error('❌ API error:', errorMsg);
-            throw new Error(errorMsg);
-        }
+        if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
 
         const datos = await respuesta.json();
-        console.log('✅ Datos recibidos:', datos.length, 'juegos');
 
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
 
-        // si no hay datos, muestra mensaje
         if (datos.length === 0) {
             if (resetear) {
                 gridJuegos.innerHTML = '<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">Sin resultados. Intenta otra busqueda.</div>';
@@ -420,10 +415,10 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
             return;
         }
 
-        // inyecto las tarjetas
-        const precioMin = filtros.precioMin ?? 0;
-        const precioMax = filtros.precioMax ?? 9999;
-        const tiendasFiltro = filtros.stores || [];
+        // === USAMOS LA VARIABLE GLOBAL PARA FILTRAR EN LOCAL ===
+        const precioMin = filtrosGlobales.precioMin ?? 0;
+        const precioMax = filtrosGlobales.precioMax ?? 9999;
+        const tiendasFiltro = filtrosGlobales.stores || [];
 
         const datosFiltrados = datos.filter(juego => {
             // A) Filtro de Precio
@@ -437,7 +432,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
             let pasaTienda = true;
             if (tiendasFiltro.length > 0) {
                 const storesDelJuego = juego.itad?.stores || '';
-                // Comprobamos si el juego tiene alguna de las tiendas marcadas
                 pasaTienda = tiendasFiltro.some(tienda => storesDelJuego.includes(tienda));
             }
 
@@ -448,14 +442,13 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
+        // Solo ponemos botón de cargar más si IGDB nos dio los 50 completos
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
             btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
             gridJuegos.after(btnMas);
-
-            // Le decimos al vigilante que vigile este botón
             observadorScroll.observe(btnMas);
         }
 
@@ -464,19 +457,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
     } catch (error) {
         console.error("❌ Error cargando juegos:", error);
         if (resetear) {
-            gridJuegos.innerHTML = `
-                <div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">
-                    <i class="fas fa-exclamation-circle"></i> Fallo al conectar con la API<br>
-                    <small style="font-size: 0.8rem; color: var(--text-muted);">${error.message}</small>
-                    <button onclick="location.reload()" style="margin-top: 1rem; background:transparent; border:1px solid var(--error); color:var(--error); padding:0.5rem 1rem; border-radius:20px; cursor:pointer;">Reintentar</button>
-                </div>
-            `;
-        } else {
-            // si falla muestro el boton para reintentar
-            const btnMas = document.getElementById('btn-cargar-mas');
-            if (btnMas) {
-                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--error); color:var(--error); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Reintentar carga</button>`;
-            }
+            gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">Fallo al conectar con la API.</div>';
         }
     }
 
@@ -484,6 +465,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
 }
 
 function cargarMas() {
+    // Ya no hace falta pasar filtros, la función usará filtrosGlobales
     cargarJuegosIGDB(busquedaActual, false);
 }
 
