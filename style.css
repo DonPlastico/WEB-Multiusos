@@ -1886,8 +1886,24 @@ span.flatpickr-weekday {
     box-shadow: var(--shadow-sm);
 }
 
+/* ==========================================================================
+   DRAWER DE FILTROS — MÓVIL
+   ========================================================================== */
 
+/* Overlay oscuro */
+.filters-overlay {
+    display: none;
+}
 
+/* Fila de cierre dentro del drawer — oculta en desktop */
+.filter-drawer-close-row {
+    display: none;
+}
+
+/* Botón de abrir filtros en móvil — oculto en desktop */
+.btn-mobile-filters {
+    display: none;
+}
 
 
 
@@ -2039,9 +2055,21 @@ span.flatpickr-weekday {
     }
 
     .filter-sidebar {
-        position: static;
-        margin-top: 30px;
-        max-height: none;
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: min(85vw, 360px);
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        border-left: 1px solid var(--border-color);
+        z-index: 1000;
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 0;
+    }
+
+    .filter-sidebar.drawer-open {
+        right: 0;
     }
 
     .cyber-nav {
@@ -2245,16 +2273,91 @@ span.flatpickr-weekday {
         padding: 4px 8px;
     }
 
-    /* Animaciones sutiles para móvil */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+    /* DRAWER DE FILTROS */
+    .filters-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(3px);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .filters-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .filter-drawer-close-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .filter-drawer-title {
+        font-family: var(--font-cyber);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--neon-white);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #btn-close-filters-drawer {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: 0.2s ease;
+    }
+
+    #btn-close-filters-drawer:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-mobile-filters {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        border: none;
+        color: #fff;
+        width: 46px;
+        height: 46px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        transition: background 0.2s ease;
+    }
+}
+
+/* Animaciones sutiles para móvil */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

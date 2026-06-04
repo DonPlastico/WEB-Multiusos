@@ -1329,6 +1329,36 @@ async function cargarDisenoPerfil(email) {
     }
 }
 
+// ==========================================================================
+//   DRAWER DE FILTROS — SOLO MÓVIL
+// ==========================================================================
+
+const btnMobileFilters = document.getElementById('btn-mobile-filters');
+const btnCloseDrawer = document.getElementById('btn-close-filters-drawer');
+const filtersOverlay = document.getElementById('filters-overlay');
+const filterSidebar = document.querySelector('.filter-sidebar');
+
+function abrirDrawerFiltros() {
+    filterSidebar?.classList.add('drawer-open');
+    filtersOverlay?.classList.add('active');
+    document.body.style.overflow = 'hidden'; // evita scroll del fondo
+}
+
+function cerrarDrawerFiltros() {
+    filterSidebar?.classList.remove('drawer-open');
+    filtersOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+btnMobileFilters?.addEventListener('click', abrirDrawerFiltros);
+btnCloseDrawer?.addEventListener('click', cerrarDrawerFiltros);
+filtersOverlay?.addEventListener('click', cerrarDrawerFiltros);
+
+// cerrar con Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarDrawerFiltros();
+});
+
 // ============================================
 // LISTENERS
 // ============================================

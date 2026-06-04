@@ -115,8 +115,18 @@
                     </div>
                 </div>
 
+                <!-- overlay oscuro para cerrar el drawer -->
+                <div id="filters-overlay" class="filters-overlay"></div>
+
                 <!-- zona derecha con los filtros -->
                 <aside class="filter-sidebar glass-panel">
+                    <!-- botón cerrar — solo visible en móvil dentro del drawer -->
+                    <div class="filter-drawer-close-row">
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
+                        <button id="btn-close-filters-drawer" aria-label="Cerrar filtros">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <div class="filter-main-header">
                         <h2>Filtros</h2>
                         <button id="btn-reset-filters">Limpiar</button>
