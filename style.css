@@ -1875,7 +1875,16 @@ span.flatpickr-weekday {
     margin: 0 30px;
 }
 
-
+.plat-tag {
+    background: var(--primary);
+    color: white;
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+}
 
 
 

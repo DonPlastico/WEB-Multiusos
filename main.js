@@ -305,60 +305,46 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    // elijo que plataforma mostrar en la tarjeta
-    // intento priorizar bien
-    let platPrincipal = 'PC';
-    const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
-    const hasPC = pNamesLower.some(n => n.includes('pc') || n.includes('windows'));
-
+    // NUEVA LÓGICA: Obtener todas las plataformas únicas
+    let htmlPlataformas = '';
     if (juego.platforms && juego.platforms.length > 0) {
-        if (hasPC) {
-            platPrincipal = 'PC';
-        } else if (pNamesLower.some(n => n.includes('playstation'))) {
-            platPrincipal = 'PlayStation';
-        } else if (pNamesLower.some(n => n.includes('xbox'))) {
-            platPrincipal = 'Xbox';
-        } else if (pNamesLower.some(n => n.includes('nintendo') || n.includes('switch'))) {
-            platPrincipal = 'Nintendo';
-        } else {
-            platPrincipal = juego.platforms[0].name.split(' ')[0];
-        }
-    }
+        // Obtenemos los nombres únicos para no repetir (ej: si tiene PC y Windows, que salga una vez)
+        const nombresPlat = [...new Set(juego.platforms.map(p => p.name))];
 
-    const extraCount = juego.platforms && juego.platforms.length > 1
-        ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
-        : '';
+        // Creamos una etiqueta por cada plataforma
+        htmlPlataformas = nombresPlat.map(name => `
+            <span class="plat-tag">${name.split(' ')[0]}</span>
+        `).join('');
+    }
 
     // guardo datos ocultos para el filtro
     const storesData = juego.itad ? juego.itad.stores : 'none';
     const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
-    // muestro el precio o si no esta disponible
+    const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
+    const hasPC = pNamesLower.some(n => n.includes('pc') || n.includes('windows'));
+
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
-        // encontro oferta en itad (es de pc)
-        htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong>${juego.itad.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
+        htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong></span>`;
     } else if (!hasPC) {
-        // no es de pc, asi que itad no tiene precio
         htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> Edición Consola</span>`;
     } else {
-        // esta en pc pero sin ofertas ahora
         htmlPrecio = `<span class="price-na">Sin ofertas actuales</span>`;
     }
 
     return `
         <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
-                <div class="top-platform-tag">${platPrincipal}</div>
+                <div class="platforms-container" style="position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-wrap:wrap; gap:4px;">
+                    ${htmlPlataformas}
+                </div>
                 <img src="${portada}" alt="${juego.name}" class="game-cover">
             </div>
             <div class="game-info">
                 <h3 class="game-title">${juego.name}</h3>
                 <div class="game-release-info">
                     <span class="date">${fechaFormateada}</span>
-                    <span class="dot">•</span>
-                    <span class="main-plat">${platPrincipal}</span>
-                    ${extraCount}
                 </div>
                 <div class="game-price">
                     ${htmlPrecio}
