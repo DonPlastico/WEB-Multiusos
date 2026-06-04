@@ -1446,13 +1446,13 @@ span.flatpickr-weekday {
 }
 
 .profile-header-info {
+    z-index: 20;
+    gap: 20px;
+    display: flex;
     position: absolute;
     bottom: -45px;
     left: 40px;
-    display: flex;
-    align-items: flex-end;
-    gap: 20px;
-    z-index: 20;
+    align-items: center;
 }
 
 .profile-text {
@@ -1474,7 +1474,7 @@ span.flatpickr-weekday {
 
 .profile-banner {
     position: relative;
-    height: 220px;
+    height: 422px;
     width: 100%;
     background: var(--bg-elevated);
     border: 1px solid var(--border-color);
@@ -1680,7 +1680,18 @@ span.flatpickr-weekday {
     font-size: 2rem;
 }
 
+.avatar-grid .custom-card-item.avatar-custom-btn {
+    grid-column: 1 / -1;
+    aspect-ratio: auto;
+    border-radius: 12px;
+    height: 70px;
+    flex-direction: row;
+    gap: 12px;
+}
 
+.avatar-grid .custom-card-item.avatar-custom-btn i {
+    font-size: 1.5rem;
+}
 
 
 

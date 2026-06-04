@@ -85,7 +85,7 @@ function cambiarVista(target, guardarEnHistorial = true) {
         seriesCargadas = true;
     }
 
-    // Magia: Cambiar la URL del navegador sin recargar la página
+    // Cambiar la URL del navegador sin recargar la página
     if (guardarEnHistorial && mapaRutas[target]) {
         window.history.pushState({ vista: target }, '', mapaRutas[target]);
     }
@@ -109,7 +109,7 @@ if (btnAdminTop) {
     });
 }
 
-// Magia: Detectar cuando el usuario usa los botones Atrás / Adelante del navegador
+// Detectar cuando el usuario usa los botones Atrás / Adelante del navegador
 window.addEventListener('popstate', (evento) => {
     if (evento.state && evento.state.vista) {
         // Volvemos a la vista anterior SIN crear una nueva entrada en el historial (false)
@@ -1156,24 +1156,26 @@ const triggerAvatar = document.getElementById('avatar-edit-trigger');
 
 function openCustomizationModal(type) {
     // 1. Limpiamos las clases antiguas
-    modalGrid.innerHTML = '';
     modalGrid.className = 'modal-grid';
+
+    // Creamos una variable de texto vacía para acumular el HTML
+    let htmlAcumulado = '';
 
     if (type === 'banner') {
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // Creamos las 5 cards por defecto usando placehold.co
+        // Acumulamos las 5 cards sin tocar el DOM
         for (let i = 1; i <= 5; i++) {
-            modalGrid.innerHTML += `
+            htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'predeterminado_${i}')">
-                    <img src="https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}">
+                    <img src="https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}" loading="lazy">
                 </div>
             `;
         }
 
-        // Creamos la última card destacada (CUSTOM)
-        modalGrid.innerHTML += `
+        // Acumulamos la última card destacada (CUSTOM)
+        htmlAcumulado += `
             <div class="custom-card-item special-custom" onclick="seleccionarDiseño('banner', 'custom')">
                 <i class="fas fa-upload"></i>
                 <span style="font-weight: 700; font-family: var(--font-cyber); letter-spacing: 1px;">SUBIR CUSTOM</span>
@@ -1184,23 +1186,36 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
         modalGrid.classList.add('avatar-grid');
 
-        // Creamos las 11 cards por defecto usando placehold.co
-        for (let i = 1; i <= 11; i++) {
-            modalGrid.innerHTML += `
-                <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'predeterminado_${i}')">
-                    <img src="https://placehold.co/300x300/14141c/2dd4bf?text=AV+${i}" alt="Avatar ${i}">
+        // 1. EL AVATAR DEFAULT (El astronauta que ya tienes puesto)
+        htmlAcumulado += `
+            <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'default')">
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 3.5rem; color: var(--primary);">
+                    <i class="fas fa-user-astronaut"></i>
+                </div>
+            </div>
+        `;
+
+        // 2. LOS 8 AVATARES LOCALES (1_m.png, 1_f.png, etc.)
+        const avataresLocales = ['1_m', '1_f', '2_m', '2_f', '3_m', '3_f', '4_m', '4_f'];
+        avataresLocales.forEach(avatar => {
+            htmlAcumulado += `
+                <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
+                    <img src="img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
-        }
+        });
 
-        // Creamos la última card destacada (CUSTOM)
-        modalGrid.innerHTML += `
-            <div class="custom-card-item special-custom" onclick="seleccionarDiseño('avatar', 'custom')">
+        // 3. EL BOTÓN CUSTOM ALARGADO (Añadimos la clase 'avatar-custom-btn' para el CSS)
+        htmlAcumulado += `
+            <div class="custom-card-item special-custom avatar-custom-btn" onclick="seleccionarDiseño('avatar', 'custom')">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <span style="font-weight: 700; font-family: var(--font-cyber);">CUSTOM</span>
+                <span style="font-weight: 700; font-family: var(--font-cyber);">SUBIR CUSTOM</span>
             </div>
         `;
     }
+
+    // 2. INYECCIÓN ÚNICA: Metemos todo el bloque de HTML de una sola vez
+    modalGrid.innerHTML = htmlAcumulado;
 
     // Mostramos el modal con animación
     modalEdit.classList.add('show');
