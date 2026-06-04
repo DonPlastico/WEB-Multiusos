@@ -29,6 +29,11 @@ const mapaRutas = {
     'verified-account': '/cuenta-verificada'
 };
 
+// Banderas de estado para no repetir llamadas a la API
+let juegosCargados = false;
+let peliculasCargadas = false;
+let seriesCargadas = false;
+
 function cambiarVista(target, guardarEnHistorial = true) {
     // Actualizamos el color del menú
     linksMenu.forEach(link => {
@@ -47,6 +52,18 @@ function cambiarVista(target, guardarEnHistorial = true) {
             vista.classList.remove('active');
         }
     });
+
+    // LAZY LOADING: Cargar la API correspondiente solo la primera vez que se entra a la sección
+    if (target === 'games' && !juegosCargados) {
+        cargarJuegosIGDB();
+        juegosCargados = true;
+    } else if (target === 'movies' && !peliculasCargadas) {
+        cargarTMDB('movie');
+        peliculasCargadas = true;
+    } else if (target === 'series' && !seriesCargadas) {
+        cargarTMDB('tv');
+        seriesCargadas = true;
+    }
 
     // Magia: Cambiar la URL del navegador sin recargar la página
     if (guardarEnHistorial && mapaRutas[target]) {
@@ -361,8 +378,6 @@ function cargarMas() {
 
 window.cargarMas = cargarMas;
 
-cargarJuegosIGDB();
-
 let temporizadorBusqueda; // Guardará el tiempo de espera
 
 // 1. Evento cuando el usuario escribe (Auto-búsqueda a los 2 segundos)
@@ -653,10 +668,6 @@ inputSeries.addEventListener('input', () => {
 });
 btnSeries.addEventListener('click', () => { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); });
 inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); } });
-
-// Llamada inicial
-cargarTMDB('movie');
-cargarTMDB('tv');
 
 // ==========================================================================
 //   SISTEMA DE AUTENTICACIÓN — PÁGINAS DEDICADAS Y CERRAR SESIÓN
