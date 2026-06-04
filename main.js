@@ -239,6 +239,23 @@ loadSavedTheme();
 //   LOGICA DE JUEGOS (IGDB API via Vercel Serverless)
 // ==========================================================================
 
+// EL VIGILANTE DE SCROLL PARA CARGA INFINITA
+const observadorScroll = new IntersectionObserver((entradas) => {
+    entradas.forEach(entrada => {
+        if (entrada.isIntersecting) {
+            const id = entrada.target.id;
+            // Si el botón es visible y no estamos ya cargando, disparamos la carga
+            if (id === 'btn-cargar-mas' && !cargando) {
+                cargarMas();
+            } else if (id === 'btn-cargar-mas-movie' && !cargandoTMDB) {
+                cargarMasTMDB('movie');
+            } else if (id === 'btn-cargar-mas-tv' && !cargandoTMDB) {
+                cargarMasTMDB('tv');
+            }
+        }
+    });
+}, { rootMargin: '300px' }); // Empieza a cargar 300px antes de llegar al fondo para que sea imperceptible
+
 const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
 const inputBuscar = document.getElementById('search-juegos');
@@ -328,13 +345,33 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
     if (resetear) {
         offsetActual = 0;
         busquedaActual = busqueda;
+
+        // Loader inicial con ID para poder cambiarle el texto
         gridJuegos.innerHTML = `
-            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
+            <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">SINTETIZANDO DATOS...</h3>
+                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
             </div>
         `;
+
+        // Secuencia de texto a los 1.2 segundos
+        setTimeout(() => {
+            const loaderText = document.querySelector('#loader-games .loading-text');
+            if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
+        }, 1200);
+
         document.getElementById('btn-cargar-mas')?.remove();
+    } else {
+        // Transformar el botón de "Cargar más" en un loader bonito
+        const btnMas = document.getElementById('btn-cargar-mas');
+        if (btnMas) {
+            btnMas.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600;">CARGANDO MÁS JUEGOS...</span>
+                </div>
+            `;
+        }
     }
 
     try {
@@ -347,26 +384,37 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
 
-        // Inyectar tarjetas instantáneamente, ¡ya tienen el precio y la tienda!
+        // Inyectar tarjetas
         datos.forEach(juego => {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
-        // Al terminar de pintar todo, aplicamos los filtros que estén marcados
         aplicarFiltros();
 
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
-            btnMas.innerHTML = `<button onclick="cargarMas()">Cargar 50 más</button>`;
+            btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
+            btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
             gridJuegos.after(btnMas);
+
+            // Le decimos al vigilante que vigile este nuevo botón
+            observadorScroll.observe(btnMas);
         }
 
         offsetActual += datos.length;
 
     } catch (error) {
         console.error("Error:", error);
-        gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar.</div>';
+        if (resetear) {
+            gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar.</div>';
+        } else {
+            // Si falla la carga infinita, restauramos el botón pero en rojo para que el usuario pueda reintentar manualmente
+            const btnMas = document.getElementById('btn-cargar-mas');
+            if (btnMas) {
+                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--error); color:var(--error); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Reintentar carga</button>`;
+            }
+        }
     }
 
     cargando = false;
@@ -599,13 +647,33 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         if (tipo === 'movie') { pageMovies = 1; searchMoviesActual = busqueda; }
         else { pageSeries = 1; searchSeriesActual = busqueda; }
 
+        // Loader inicial con ID dinámico
         grid.innerHTML = `
-            <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
+            <div id="loader-${tipo}" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">SINTETIZANDO DATOS DE TMDB...</h3>
+                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
             </div>
         `;
+
+        // Secuencia de texto
+        setTimeout(() => {
+            const loaderText = document.querySelector(`#loader-${tipo} .loading-text`);
+            if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
+        }, 1200);
+
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
+    } else {
+        // Transformar el botón en un loader 
+        const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
+        if (btnMas) {
+            const textoTipo = tipo === 'movie' ? 'PELÍCULAS' : 'SERIES';
+            btnMas.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
+                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600;">CARGANDO MÁS ${textoTipo}...</span>
+                </div>
+            `;
+        }
     }
 
     const pageActual = tipo === 'movie' ? pageMovies : pageSeries;
@@ -629,13 +697,24 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
             btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
             grid.after(btnMas);
+
+            // Le decimos al vigilante que vigile este nuevo botón
+            observadorScroll.observe(btnMas);
         }
 
         if (tipo === 'movie') pageMovies++; else pageSeries++;
 
     } catch (error) {
         console.error(error);
-        grid.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar con TMDB.</div>';
+        if (resetear) {
+            grid.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar con TMDB.</div>';
+        } else {
+            // Botón de reintento si falla la carga infinita
+            const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
+            if (btnMas) {
+                btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--error); color:var(--error); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Reintentar carga</button>`;
+            }
+        }
     }
 
     cargandoTMDB = false;
