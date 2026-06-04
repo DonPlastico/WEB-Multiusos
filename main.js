@@ -10,17 +10,27 @@ import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
 // ==========================================================================
-//   NAVEGACIÓN ENTRE VISTAS (CON CACHÉ)
+//   ENRUTAMIENTO SPA (URLs LIMPIAS Y BOTONES ATRÁS/ADELANTE)
 // ==========================================================================
 
 const linksMenu = document.querySelectorAll('.nav-links a');
 const vistas = document.querySelectorAll('.view');
 
-function cambiarVista(target) {
-    // 1. Guardamos la pestaña actual en la memoria del navegador
-    localStorage.setItem('dp_sys_active_view', target);
+// 1. Diccionario de rutas: Relaciona el ID de tu sección con la URL que quieres que se vea
+const mapaRutas = {
+    'home': '/',
+    'games': '/juegos',
+    'movies': '/peliculas',
+    'series': '/series',
+    'admin-panel': '/admin',
+    'login': '/login',
+    'register': '/registro',
+    'waiting-confirmation': '/esperando-confirmacion',
+    'verified-account': '/cuenta-verificada'
+};
 
-    // 2. Actualizamos el color del menú
+function cambiarVista(target, guardarEnHistorial = true) {
+    // Actualizamos el color del menú
     linksMenu.forEach(link => {
         if (link.getAttribute('data-target') === target) {
             link.classList.add('active');
@@ -29,7 +39,7 @@ function cambiarVista(target) {
         }
     });
 
-    // 3. Mostramos la vista correcta y ocultamos las demás
+    // Mostramos la vista correcta y ocultamos las demás
     vistas.forEach(vista => {
         if (vista.id === target) {
             vista.classList.add('active');
@@ -37,30 +47,60 @@ function cambiarVista(target) {
             vista.classList.remove('active');
         }
     });
+
+    // Magia: Cambiar la URL del navegador sin recargar la página
+    if (guardarEnHistorial && mapaRutas[target]) {
+        window.history.pushState({ vista: target }, '', mapaRutas[target]);
+    }
 }
 
-// Evento al hacer clic en los enlaces
+// Evento al hacer clic en los enlaces del menú
 linksMenu.forEach(link => {
     link.addEventListener('click', (evento) => {
         evento.preventDefault();
         const target = link.getAttribute('data-target');
-        cambiarVista(target);
+        cambiarVista(target, true);
     });
 });
 
-// Navegación especial para el botón oculto de Administrador
+// Navegación especial para el botón de Administrador
 const btnAdminTop = document.getElementById('btn-admin');
 if (btnAdminTop) {
     btnAdminTop.addEventListener('click', () => {
-        cambiarVista('admin-panel');
-        // Quitamos la clase 'active' de los enlaces principales para que no parezca que estás en Juegos o Pelis
+        cambiarVista('admin-panel', true);
         linksMenu.forEach(l => l.classList.remove('active'));
     });
 }
 
-// Al recargar (F5), leemos qué vista estaba guardada. Si es la primera vez, cargamos 'home'
-const vistaGuardada = localStorage.getItem('dp_sys_active_view') || 'home';
-cambiarVista(vistaGuardada);
+// Magia: Detectar cuando el usuario usa los botones Atrás / Adelante del navegador
+window.addEventListener('popstate', (evento) => {
+    if (evento.state && evento.state.vista) {
+        // Volvemos a la vista anterior SIN crear una nueva entrada en el historial (false)
+        cambiarVista(evento.state.vista, false);
+    } else {
+        cambiarVista('home', false);
+    }
+});
+
+// Arrancador Inicial: Cuando el usuario entra a la web escribiendo una URL directa (ej: /juegos)
+function arrancarEnrutador() {
+    const rutaActual = window.location.pathname;
+    let vistaInicial = 'home'; // Por defecto
+
+    // Buscamos a qué vista corresponde la URL actual
+    for (const [idVista, url] of Object.entries(mapaRutas)) {
+        if (url === rutaActual) {
+            vistaInicial = idVista;
+            break;
+        }
+    }
+
+    // Mostramos esa vista sin guardar historial extra
+    cambiarVista(vistaInicial, false);
+}
+
+// Ejecutamos el arrancador al cargar la web
+arrancarEnrutador();
 
 // ==========================================================================
 //   SISTEMA DE TEMAS (CLARO / OSCURO / SISTEMA)
