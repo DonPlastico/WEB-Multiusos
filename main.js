@@ -1195,12 +1195,12 @@ function openCustomizationModal(type) {
             </div>
         `;
 
-        // 2. LOS 8 AVATARES LOCALES (1_m.png, 1_f.png, etc.)
+        // 2. LOS 8 AVATARES LOCALES (Directos desde tu GitHub para evitar bloqueos)
         const avataresLocales = ['1_m', '1_f', '2_m', '2_f', '3_m', '3_f', '4_m', '4_f'];
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="/img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
