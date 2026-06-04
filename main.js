@@ -511,9 +511,6 @@ function restaurarFiltrosDOM() {
                 platInputs.forEach(cb => {
                     if (state.games.platforms.includes(cb.value)) cb.checked = true;
                 });
-                // Si marcamos alguna plataforma, desmarcamos el botón "TODAS"
-                const platTodas = document.getElementById('plat-todas');
-                if (platTodas) platTodas.checked = false;
             }
 
             if (state.games.precioMin) document.getElementById('precio-min').value = state.games.precioMin;
@@ -598,10 +595,8 @@ if (buscadorGeneros) {
 //   FILTROS DE TIENDAS Y PLATAFORMAS
 // ==========================================================================
 
-const tiendasTodas = document.getElementById('tienda-todas');
 const tiendasItems = document.querySelectorAll('.tienda-item');
-const platTodas = document.getElementById('plat-todas');
-const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
+const platItems = document.querySelectorAll('.plat-item input');
 
 function aplicarFiltros() {
     // 1. Recolectar valores de las plataformas
@@ -620,43 +615,24 @@ function aplicarFiltros() {
     // 2. Depuración para ver qué está pasando antes de enviar
     console.log("Plataformas:", platSeleccionadas, "| Precio:", precioMin, "-", precioMax);
 
-    // 3. Lanzar carga
+    // 3. Lanzar carga (Si está vacío, no manda platform y el server carga todo)
     if (platSeleccionadas) {
         cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas, precioMin, precioMax });
     } else {
-        // Si no hay nada seleccionado, recargamos normal
         cargarJuegosIGDB(busquedaActual, true, { precioMin, precioMax });
     }
 }
 
-// eventos de tiendas
-if (tiendasTodas) {
-    tiendasTodas.addEventListener('change', () => {
-        if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
-        aplicarFiltros();
-    });
-}
-
+// Eventos de tiendas (limpios, sin el "TODAS")
 tiendasItems.forEach(cb => {
     cb.addEventListener('change', () => {
-        if (tiendasTodas) {
-            if (cb.checked) tiendasTodas.checked = false;
-            if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
-        }
         aplicarFiltros();
     });
 });
 
-// eventos de plataformas
-platTodas.addEventListener('change', () => {
-    if (platTodas.checked) platItems.forEach(cb => cb.checked = false);
-    aplicarFiltros();
-});
-
+// Eventos de plataformas (limpios, sin el "TODAS")
 platItems.forEach(cb => {
     cb.addEventListener('change', () => {
-        if (cb.checked) platTodas.checked = false;
-        if ([...platItems].every(c => !c.checked)) platTodas.checked = true;
         aplicarFiltros();
     });
 });
@@ -672,7 +648,7 @@ document.getElementById('precio-max')?.addEventListener('input', () => {
     tempPrecio = setTimeout(() => aplicarFiltros(), 600);
 });
 
-// boton para ver todas las plataformas
+// boton para ver todas las plataformas (¡RESTURADO!)
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
@@ -1560,12 +1536,6 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     // Limpiamos checks
     document.querySelectorAll('.plat-item input').forEach(cb => cb.checked = false);
     document.querySelectorAll('.tienda-item').forEach(cb => cb.checked = false);
-
-    // Devolvemos el check a "TODAS"
-    const platTodas = document.getElementById('plat-todas');
-    if (platTodas) platTodas.checked = true;
-    const tiendaTodas = document.getElementById('tienda-todas');
-    if (tiendaTodas) tiendaTodas.checked = true;
 
     // Limpiamos precios
     const pMin = document.getElementById('precio-min');
