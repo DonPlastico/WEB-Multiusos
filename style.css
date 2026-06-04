@@ -143,6 +143,9 @@ body {
     background-clip: text;
     color: transparent;
     letter-spacing: 2px;
+    cursor: pointer;
+    /* Le pone el cursor de la mano */
+    transition: transform 0.3s ease, filter 0.3s ease;
 }
 
 .logo span {
@@ -150,6 +153,12 @@ body {
     -webkit-background-clip: unset;
     background-clip: unset;
     color: var(--text-muted);
+}
+
+/* Efecto al pasar el ratón para que se sepa que es un botón */
+.logo:hover {
+    transform: scale(1.05);
+    filter: brightness(1.2);
 }
 
 .nav-links {
@@ -1701,14 +1710,11 @@ span.flatpickr-weekday {
    ESTADÍSTICAS DEL PERFIL (Siguiendo / Seguidores)
    ========================================================================== */
 .profile-stats-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 7.5px;
-    /* La separación exacta que querías del banner */
-    margin-bottom: 50px;
-    /* Añadimos el margen aquí para que el texto de abajo respire */
-    position: relative;
     z-index: 20;
+    justify-content: flex-end;
+    margin: 7.5px 0;
+    display: flex;
+    position: relative;
 }
 
 .profile-stats {
@@ -1763,11 +1769,6 @@ span.flatpickr-weekday {
 /* ==========================================================================
    ESTADÍSTICAS DETALLADAS (Cine y Series)
    ========================================================================== */
-.profile-detailed-stats {
-    margin-top: 40px;
-    margin-bottom: 60px;
-}
-
 .stats-header {
     display: flex;
     justify-content: space-between;

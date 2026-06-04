@@ -100,6 +100,16 @@ linksMenu.forEach(link => {
     });
 });
 
+// Logo principal aho0ra es el botón de HOME
+const logoHome = document.getElementById('logo-home');
+if (logoHome) {
+    logoHome.addEventListener('click', () => {
+        cambiarVista('home', true);
+        // Quitamos la clase 'active' de Juegos/Pelis/Series para que se apaguen
+        linksMenu.forEach(l => l.classList.remove('active'));
+    });
+}
+
 // Navegación especial para el botón de Administrador
 const btnAdminTop = document.getElementById('btn-admin');
 if (btnAdminTop) {
