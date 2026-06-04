@@ -1787,13 +1787,13 @@ span.flatpickr-weekday {
 
 /* Contenedor general de las tarjetas */
 .stats-cards-wrapper {
-    display: flex;
-    align-items: stretch;
-    gap: 15px;
     background: var(--bg-main);
-    padding: 15px;
-    border-radius: 12px;
     border: 1px solid var(--border-color);
+    border-radius: 12px;
+    align-items: stretch;
+    gap: 7.5px;
+    padding: 10px;
+    display: flex;
 }
 
 .stats-card {
@@ -1869,10 +1869,10 @@ span.flatpickr-weekday {
 
 /* divisor visual gigante entre Series y Peliculas */
 .stats-main-divider {
-    width: 2px;
     background: var(--border-color);
-    margin: 0 15px;
     border-radius: 2px;
+    width: 2px;
+    margin: 0 30px;
 }
 
 
@@ -1938,9 +1938,8 @@ span.flatpickr-weekday {
 
 
 /* ==========================================================================
-   RESPONSIVE
+   RESPONSIVE (MÓVILES Y TABLETS)
    ========================================================================== */
-
 
 /* ===== MODO SISTEMA (detecta navegador) ===== */
 @media (prefers-color-scheme: dark) {
@@ -2019,7 +2018,13 @@ span.flatpickr-weekday {
     }
 }
 
+/* ===== TABLETS Y PANTALLAS PEQUEÑAS (Max 1100px) ===== */
 @media (max-width: 1100px) {
+    .cyber-container {
+        padding: 40px 60px;
+        /* Reducimos el padding gigante lateral */
+    }
+
     .games-layout {
         grid-template-columns: 1fr;
     }
@@ -2050,6 +2055,7 @@ span.flatpickr-weekday {
     }
 }
 
+/* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
 @media (max-width: 768px) {
     .cyber-container {
         padding: 20px;
@@ -2071,71 +2077,135 @@ span.flatpickr-weekday {
         font-size: 1.2rem;
     }
 
+    /* Menú superior */
     .nav-links {
-        gap: 20px;
-        padding: 8px 16px;
+        gap: 15px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        /* Deja que bajen de línea si no caben */
     }
 
     .nav-links a {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .nav-right {
+        gap: 12px;
+    }
+
+    /* PERFIL RESPONSIVE */
+    .profile-banner {
+        height: 220px;
+    }
+
+    /* Portada más baja en móvil */
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 2.5rem;
+        border-width: 4px;
+    }
+
+    .profile-header-info {
+        bottom: -35px;
+        left: 20px;
+        gap: 15px;
+    }
+
+    .profile-username {
+        font-size: 1.5rem;
+    }
+
+    /* Modales de personalización a menos columnas */
+    .modal-grid.banner-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .modal-grid.avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Estadísticas Detalladas: Pasamos el grid a columna única */
+    .stats-cards-wrapper {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stats-main-divider {
+        width: 100%;
+        height: 2px;
+        margin: 5px 0;
     }
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes glitch {
-
-    0%,
-    100% {
-        transform: skew(0deg, 0deg);
-    }
-
-    95% {
-        transform: skew(0deg, 0deg);
-    }
-
-    96% {
-        transform: skew(2deg, 1deg);
-        opacity: 0.9;
-    }
-
-    97% {
-        transform: skew(-1deg, -0.5deg);
-    }
-
-    98% {
-        transform: skew(0deg, 0deg);
-    }
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
+/* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
 @media (max-width: 600px) {
+
+    /* Auth */
     .fields-row {
         grid-template-columns: 1fr;
     }
 
     .auth-card {
         padding: 28px 20px;
+    }
+
+    /* Stats debajo de la portada */
+    .profile-stats-wrapper {
+        margin-top: 50px;
+        /* CRUCIAL: Lo bajamos para que el avatar no pise a las estadísticas */
+        flex-direction: column-reverse;
+        /* El botón de añadir amigo pasa abajo o se alinea */
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .stat-box {
+        padding: 0 10px;
+    }
+
+    /* Apretamos los números para que quepan */
+    .stat-num {
+        font-size: 1rem;
+    }
+
+    .stat-label {
+        font-size: 0.65rem;
+    }
+
+    /* Modales a 1 y 2 columnas para no verse microscópicos */
+    .modal-content {
+        width: 95%;
+        padding: 10px;
+    }
+
+    .modal-grid.banner-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Banners ocupan todo el ancho */
+    .modal-grid.avatar-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Avatares de 2 en 2 */
+
+    /* Animaciones sutiles para móvil */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 }
