@@ -423,11 +423,25 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
         // inyecto las tarjetas
         const precioMin = filtros.precioMin ?? 0;
         const precioMax = filtros.precioMax ?? 9999;
+        const tiendasFiltro = filtros.stores || [];
 
         const datosFiltrados = datos.filter(juego => {
+            // A) Filtro de Precio
             const precio = juego.itad?.precio;
-            if (precio === null || precio === undefined) return true; // sin precio siempre pasa
-            return precio >= precioMin && precio <= precioMax;
+            let pasaPrecio = true;
+            if (precio !== null && precio !== undefined) {
+                pasaPrecio = precio >= precioMin && precio <= precioMax;
+            }
+
+            // B) Filtro de Tiendas
+            let pasaTienda = true;
+            if (tiendasFiltro.length > 0) {
+                const storesDelJuego = juego.itad?.stores || '';
+                // Comprobamos si el juego tiene alguna de las tiendas marcadas
+                pasaTienda = tiendasFiltro.some(tienda => storesDelJuego.includes(tienda));
+            }
+
+            return pasaPrecio && pasaTienda;
         });
 
         datosFiltrados.forEach(juego => {
@@ -481,6 +495,10 @@ function guardarFiltros() {
         .map(cb => cb.value)
         .filter(val => val && val !== 'on');
 
+    // NUEVO: Guardar tiendas
+    const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
+        .map(cb => cb.value);
+
     const precioMin = document.getElementById('precio-min')?.value || '';
     const precioMax = document.getElementById('precio-max')?.value || '';
 
@@ -488,12 +506,11 @@ function guardarFiltros() {
     const adultSeries = document.getElementById('adult-filter-series')?.checked || false;
 
     const filtrosState = {
-        games: { platforms: platSeleccionadas, precioMin, precioMax },
+        games: { platforms: platSeleccionadas, stores: tiendasSeleccionadas, precioMin, precioMax },
         movies: { adult: adultMovie },
         series: { adult: adultSeries }
     };
 
-    // Guardamos todo el paquete en la memoria del navegador
     localStorage.setItem('dp_sys_filters_v1', JSON.stringify(filtrosState));
 }
 
@@ -506,10 +523,19 @@ function restaurarFiltrosDOM() {
 
         // Restaurar Juegos
         if (state.games) {
+            // Restaurar Plataformas
             if (state.games.platforms && state.games.platforms.length > 0) {
                 const platInputs = document.querySelectorAll('.plat-item input');
                 platInputs.forEach(cb => {
                     if (state.games.platforms.includes(cb.value)) cb.checked = true;
+                });
+            }
+
+            // NUEVO: Restaurar Tiendas
+            if (state.games.stores && state.games.stores.length > 0) {
+                const tiendaInputs = document.querySelectorAll('.tienda-item');
+                tiendaInputs.forEach(cb => {
+                    if (state.games.stores.includes(cb.value)) cb.checked = true;
                 });
             }
 
@@ -605,22 +631,26 @@ function aplicarFiltros() {
         .filter(val => val && val !== 'on')
         .join(',');
 
-    // 1.5 Recolectar valores de precio
+    // 2. Recolectar valores de Tiendas
+    const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
+        .map(cb => cb.value.toLowerCase());
+
+    // 3. Recolectar valores de precio
     const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
     const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
 
     // === GUARDAR ESTADO EN LA MEMORIA ===
     guardarFiltros();
 
-    // 2. Depuración para ver qué está pasando antes de enviar
-    console.log("Plataformas:", platSeleccionadas, "| Precio:", precioMin, "-", precioMax);
+    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Precio:", precioMin, "-", precioMax);
 
-    // 3. Lanzar carga (Si está vacío, no manda platform y el server carga todo)
-    if (platSeleccionadas) {
-        cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas, precioMin, precioMax });
-    } else {
-        cargarJuegosIGDB(busquedaActual, true, { precioMin, precioMax });
-    }
+    // 4. Lanzar carga pasando todos los filtros
+    cargarJuegosIGDB(busquedaActual, true, {
+        platforms: platSeleccionadas,
+        stores: tiendasSeleccionadas,
+        precioMin,
+        precioMax
+    });
 }
 
 // Eventos de tiendas (limpios, sin el "TODAS")
