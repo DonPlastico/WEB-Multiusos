@@ -1432,7 +1432,89 @@ span.flatpickr-weekday {
     /* Efecto de flotar un poquito más al pasar el ratón */
 }
 
+/* ==========================================================================
+   VISTA PERFIL DE USUARIO
+   ========================================================================== */
+.profile-layout {
+    max-width: 1000px;
+    margin: 0 auto;
+}
 
+.profile-banner {
+    position: relative;
+    height: 220px;
+    /* Ocupa un buen espacio visual en la parte superior */
+    width: 100%;
+    background: var(--bg-elevated);
+    /* Color sólido de fondo de la portada */
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 60px;
+    /* Margen vital para que el avatar que sobresale no pise lo de abajo */
+}
+
+.profile-header-info {
+    position: absolute;
+    bottom: -45px;
+    /* Magia: Hacemos que sobresalga por abajo */
+    left: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--bg-card);
+    border: 5px solid var(--bg-main);
+    /* Borde grueso del color del fondo de la web para separarlo de la portada */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5rem;
+    color: var(--primary);
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
+}
+
+.profile-text {
+    margin-bottom: 12px;
+    /* Ajuste para que el texto quede alineado con el centro del avatar */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.profile-username {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.profile-edit-btn {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-secondary);
+    padding: 4px 18px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+}
+
+.profile-edit-btn:hover {
+    border-color: var(--neon-white);
+    color: var(--neon-white);
+    background: rgba(255, 255, 255, 0.05);
+}
 
 
 

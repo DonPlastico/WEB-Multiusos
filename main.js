@@ -22,6 +22,7 @@ const mapaRutas = {
     'games': '/juegos',
     'movies': '/peliculas',
     'series': '/series',
+    'profile': '/perfil',
     'admin-panel': '/admin',
     'login': '/login',
     'register': '/registro',
@@ -421,7 +422,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
             btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
             gridJuegos.after(btnMas);
 
-            // Le decimos al vigilante que vigile este nuevo botón
+            // Le decimos al vigilante que vigile este botón
             observadorScroll.observe(btnMas);
         }
 
@@ -725,7 +726,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
             grid.after(btnMas);
 
-            // Le decimos al vigilante que vigile este nuevo botón
+            // Le decimos al vigilante que vigile este botón
             observadorScroll.observe(btnMas);
         }
 
@@ -814,6 +815,13 @@ userContainer.className = 'theme-dropdown';
 btnPerfil.parentNode.insertBefore(userContainer, btnPerfil);
 userContainer.appendChild(btnPerfil);
 userContainer.appendChild(userMenu);
+
+// Escuchador para ir al perfil al hacer clic en la cabecera del menú
+document.getElementById('btn-ver-perfil')?.addEventListener('click', () => {
+    cambiarVista('profile');
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+});
 
 let userMenuOpen = false;
 
@@ -1044,12 +1052,16 @@ async function verificarSesion() {
     if (session) {
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // MAGIA NUEVA: Leemos el nombre directamente de los metadatos internos de tu sesión
+        // Leemos el nombre directamente de los metadatos internos de tu sesión
         const usernameDisplay = document.getElementById('dropdown-username');
         if (usernameDisplay) {
             // Saca el usuario con el que te registraste. Si algo fallase extremo, usa el correo.
             const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombreReal;
+            
+            // Lo inyectamos también en la vista de Perfil
+            const mainProfileUsername = document.getElementById('main-profile-username');
+            if (mainProfileUsername) mainProfileUsername.textContent = nombreReal;
         }
 
         const { data: datosRol } = await supabase
@@ -1076,10 +1088,9 @@ verificarSesion();
 // ==========================================================================
 // Cuando Supabase redirecciona desde el correo, añade "type=signup" en la URL
 if (window.location.hash.includes('type=signup')) {
-    // 1. Mostramos tu nueva miniweb
     cambiarVista('verified-account');
 
-    // 2. Limpiamos la URL para que no quede un churrete largo y feo arriba
+    // Limpiamos la URL para que no quede un churrete largo y feo arriba
     window.history.replaceState(null, null, window.location.pathname);
 }
 
