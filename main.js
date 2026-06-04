@@ -551,14 +551,19 @@ function aplicarFiltros() {
 }
 
 // eventos de tiendas
-tiendasTodas.addEventListener('change', () => {
-    if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
-    aplicarFiltros();
-});
+if (tiendasTodas) {
+    tiendasTodas.addEventListener('change', () => {
+        if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
+        aplicarFiltros();
+    });
+}
+
 tiendasItems.forEach(cb => {
     cb.addEventListener('change', () => {
-        if (cb.checked) tiendasTodas.checked = false;
-        if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
+        if (tiendasTodas) {
+            if (cb.checked) tiendasTodas.checked = false;
+            if ([...tiendasItems].every(c => !c.checked)) tiendasTodas.checked = true;
+        }
         aplicarFiltros();
     });
 });
@@ -568,6 +573,7 @@ platTodas.addEventListener('change', () => {
     if (platTodas.checked) platItems.forEach(cb => cb.checked = false);
     aplicarFiltros();
 });
+
 platItems.forEach(cb => {
     cb.addEventListener('change', () => {
         if (cb.checked) platTodas.checked = false;
