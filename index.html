@@ -335,13 +335,54 @@
             <p class="subtitle" style="margin-bottom: 10px;">Archivos visuales desencriptados. Localiza tus proyecciones
                 y su punto de emisión en el ciberespacio.</p>
             <div class="games-layout">
-                <div class="games-content" style="grid-column: 1 / -1;">
+
+                <div class="games-content">
                     <div class="search-box glass-panel">
                         <input type="text" id="search-movies" placeholder="Buscar películas...">
                         <button id="btn-buscar-movies"><i class="fas fa-search"></i></button>
+                        <button class="btn-mobile-filters" id="btn-filters-movies-mobile" aria-label="Abrir filtros">
+                            <i class="fas fa-sliders-h"></i>
+                        </button>
                     </div>
                     <div id="movies-grid" class="cyber-grid"></div>
                 </div>
+
+                <div id="overlay-filters-movies" class="filters-overlay"></div>
+
+                <aside id="sidebar-filters-movies" class="filter-sidebar glass-panel">
+                    <div class="filter-drawer-close-row">
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS CINE</span>
+                        <button id="btn-close-movies-mobile" aria-label="Cerrar filtros">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="filter-main-header">
+                        <h2>Filtros</h2>
+                        <button class="btn-reset-tmdb" data-target="movie">Limpiar</button>
+                    </div>
+
+                    <div class="filters-scroll-area">
+                        <div class="accordion-item nsfw-filter-container active"
+                            style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div class="accordion-header">
+                                <span style="color: var(--error);"><i class="fas fa-exclamation-triangle chevron-icon"
+                                        style="color: var(--error);"></i> CONTENIDO NSFW</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check" title="Activa el contenido para adultos">
+                                    <input type="checkbox" id="adult-filter-movie" class="adult-checkbox">
+                                    <span class="box" style="border-color: var(--error);"></span>
+                                    <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
+                                        +18</span>
+                                </label>
+                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
+                                    desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+
             </div>
         </section>
 
@@ -350,13 +391,54 @@
             <p class="subtitle" style="margin-bottom: 10px;">Transmisiones interceptadas. Monitorea el estado de cada
                 temporada y no pierdas tu progreso.</p>
             <div class="games-layout">
-                <div class="games-content" style="grid-column: 1 / -1;">
+
+                <div class="games-content">
                     <div class="search-box glass-panel">
                         <input type="text" id="search-series" placeholder="Buscar series...">
                         <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
+                        <button class="btn-mobile-filters" id="btn-filters-series-mobile" aria-label="Abrir filtros">
+                            <i class="fas fa-sliders-h"></i>
+                        </button>
                     </div>
                     <div id="series-grid" class="cyber-grid"></div>
                 </div>
+
+                <div id="overlay-filters-series" class="filters-overlay"></div>
+
+                <aside id="sidebar-filters-series" class="filter-sidebar glass-panel">
+                    <div class="filter-drawer-close-row">
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS SERIES</span>
+                        <button id="btn-close-series-mobile" aria-label="Cerrar filtros">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="filter-main-header">
+                        <h2>Filtros</h2>
+                        <button class="btn-reset-tmdb" data-target="tv">Limpiar</button>
+                    </div>
+
+                    <div class="filters-scroll-area">
+                        <div class="accordion-item nsfw-filter-container active"
+                            style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div class="accordion-header">
+                                <span style="color: var(--error);"><i class="fas fa-exclamation-triangle chevron-icon"
+                                        style="color: var(--error);"></i> CONTENIDO NSFW</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check" title="Activa el contenido para adultos">
+                                    <input type="checkbox" id="adult-filter-series" class="adult-checkbox">
+                                    <span class="box" style="border-color: var(--error);"></span>
+                                    <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
+                                        +18</span>
+                                </label>
+                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
+                                    desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </aside>
+
             </div>
         </section>
 

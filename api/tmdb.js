@@ -1,9 +1,12 @@
 export default async function handler(req, res) {
     const TMDB_TOKEN = process.env.TMDB_TOKEN;
-    // Por defecto busca películas, pero si le pasamos ?tipo=tv, buscará series
+
     const tipo = req.query.tipo || 'movie';
     const busqueda = req.query.query || '';
     const page = parseInt(req.query.page) || 1;
+
+    // Capturamos si el usuario tiene activado el filtro +18 (por defecto false)
+    const includeAdult = req.query.adult === 'true' ? 'true' : 'false';
 
     const baseUrl = 'https://api.themoviedb.org/3';
     const headers = {
@@ -12,9 +15,10 @@ export default async function handler(req, res) {
     };
 
     try {
-        // 1. Obtener la lista base (Tendencias si no hay búsqueda, o resultados de búsqueda)
+        // 1. Obtener la lista base
+        // Añadimos &include_adult=${includeAdult} a la URL de búsqueda
         const urlLista = busqueda
-            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}`
+            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`
             : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}`;
 
         const listRes = await fetch(urlLista, { headers });

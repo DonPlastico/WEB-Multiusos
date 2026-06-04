@@ -302,7 +302,7 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    // NUEVA LÓGICA: Obtener todas las plataformas únicas
+    // Obtener todas las plataformas únicas
     let htmlPlataformas = '';
     if (juego.platforms && juego.platforms.length > 0) {
         // Obtenemos los nombres únicos para no repetir (ej: si tiene PC y Windows, que salga una vez)
@@ -722,8 +722,13 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     const pageActual = tipo === 'movie' ? pageMovies : pageSeries;
     const searchActual = tipo === 'movie' ? searchMoviesActual : searchSeriesActual;
 
+    // === LEER ESTADO DEL FILTRO +18 ===
+    const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
+    const isAdult = checkboxAdulto && checkboxAdulto.checked ? 'true' : 'false';
+
     try {
-        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}`;
+        // Le pasamos el &adult=true o false al servidor
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
@@ -982,7 +987,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         msgBox.textContent = '❌ ' + error.message;
     } else {
         // guardo el usuario en la bd
-        await supabase.from('usuarios').insert([{ username: username, email: email }]);
+        await supabase.from('usuarios').insert([{ username: username, email: email, birthdate: birthdate }]);
 
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '✅ ¡Cuenta creada! Revisa tu correo.';
@@ -1059,6 +1064,18 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     btnSubmit.disabled = false;
 });
 
+// === Función matemática para calcular la edad exacta ===
+function calcularEdad(fechaNacimiento) {
+    const hoy = new Date();
+    const cumple = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - cumple.getFullYear();
+    const m = hoy.getMonth() - cumple.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+        edad--;
+    }
+    return edad;
+}
+
 // verifico si tengo sesion activa
 async function verificarSesion() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -1071,17 +1088,34 @@ async function verificarSesion() {
         // cargo el avatar guardado
         cargarDisenoPerfil(session.user.email);
 
-        // leo el username de la sesion
+        // leo el username y la fecha de nacimiento de la sesion
         const usernameDisplay = document.getElementById('dropdown-username');
+        const birthdate = session.user.user_metadata?.birthdate; // <--- Sacamos la fecha del registro
+
         if (usernameDisplay) {
-            // saco el nombre o el email
             const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombreReal;
 
-            // lo pongo en el perfil tambien
             const mainProfileUsername = document.getElementById('main-profile-username');
             if (mainProfileUsername) mainProfileUsername.textContent = nombreReal;
         }
+
+        // === LOGICA +18 ===
+        let esAdulto = false;
+        if (birthdate) {
+            const edad = calcularEdad(birthdate);
+            esAdulto = edad >= 18;
+        }
+
+        // Mostramos u ocultamos el panel secreto
+        document.querySelectorAll('.nsfw-filter-container').forEach(el => {
+            el.style.display = esAdulto ? 'block' : 'none';
+            // Si por algún motivo no es adulto, forzamos a que el checkbox esté apagado
+            if (!esAdulto) {
+                const cb = el.querySelector('.adult-checkbox');
+                if (cb) cb.checked = false;
+            }
+        });
 
         const { data: datosRol } = await supabase
             .from('roles')
@@ -1097,6 +1131,13 @@ async function verificarSesion() {
     } else {
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
         if (btnAdmin) btnAdmin.style.display = 'none';
+
+        // === Si no hay sesión (usuario temporal), ocultar y apagar +18 ===
+        document.querySelectorAll('.nsfw-filter-container').forEach(el => {
+            el.style.display = 'none';
+            const cb = el.querySelector('.adult-checkbox');
+            if (cb) cb.checked = false;
+        });
     }
 }
 
@@ -1424,3 +1465,62 @@ document.getElementById('btn-add-friend')?.addEventListener('click', () => {
     console.log('📡 Abriendo panel de busqueda de amigos...');
     // aqui luego hago un modal o mando una solicitud, ya vere
 });
+
+// ============================================
+// LISTENERS PARA FILTROS +18
+// ============================================
+document.getElementById('adult-filter-movie')?.addEventListener('change', () => {
+    // Si cambia el filtro, reseteamos y buscamos de nuevo
+    cargarTMDB('movie', searchMoviesActual, true);
+});
+
+document.getElementById('adult-filter-series')?.addEventListener('change', () => {
+    cargarTMDB('tv', searchSeriesActual, true);
+});
+
+// ==========================================================================
+//   DRAWER DE FILTROS MÓVIL (SISTEMA DINÁMICO PARA LAS 3 SECCIONES)
+// ==========================================================================
+function configurarDrawer(btnAbrir, btnCerrar, overlay, sidebar) {
+    if (!btnAbrir || !sidebar) return;
+
+    const abrir = () => {
+        sidebar.classList.add('drawer-open');
+        if (overlay) overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+
+    const cerrar = () => {
+        sidebar.classList.remove('drawer-open');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    btnAbrir.addEventListener('click', abrir);
+    btnCerrar?.addEventListener('click', cerrar);
+    overlay?.addEventListener('click', cerrar);
+}
+
+// 1. Juegos
+configurarDrawer(
+    document.getElementById('btn-mobile-filters'),
+    document.getElementById('btn-close-filters-drawer'),
+    document.getElementById('filters-overlay'),
+    document.querySelector('#games .filter-sidebar')
+);
+
+// 2. Películas
+configurarDrawer(
+    document.getElementById('btn-filters-movies-mobile'),
+    document.getElementById('btn-close-movies-mobile'),
+    document.getElementById('overlay-filters-movies'),
+    document.getElementById('sidebar-filters-movies')
+);
+
+// 3. Series
+configurarDrawer(
+    document.getElementById('btn-filters-series-mobile'),
+    document.getElementById('btn-close-series-mobile'),
+    document.getElementById('overlay-filters-series'),
+    document.getElementById('sidebar-filters-series')
+);
