@@ -1440,7 +1440,7 @@ span.flatpickr-weekday {
    VISTA PERFIL DE USUARIO
    ========================================================================== */
 .profile-layout {
-    max-width: 1200px;
+    max-width: 1600px;
     width: 100%;
     margin: 0 auto;
 }
@@ -1504,6 +1504,11 @@ span.flatpickr-weekday {
 
 .profile-banner:hover .edit-overlay {
     opacity: 1;
+}
+
+/* Si el avatar está siendo "hovereado", oculto el overlay del banner */
+.profile-banner:has(.profile-avatar:hover) .edit-overlay {
+    opacity: 0;
 }
 
 .profile-avatar {
@@ -1692,7 +1697,65 @@ span.flatpickr-weekday {
     font-size: 1.5rem;
 }
 
+/* ==========================================================================
+   ESTADÍSTICAS DEL PERFIL (Siguiendo / Seguidores)
+   ========================================================================== */
+.profile-stats-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    /* Lo pega a la derecha del todo */
+    margin-top: 7.5px;
+    /* Tu separación exacta */
+}
 
+.profile-stats {
+    display: flex;
+    align-items: center;
+    background: var(--bg-main);
+    /* Fondo oscuro como en tu foto */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 35px;
+    /* Espaciado entre las palabras */
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Pequeño efecto al pasar el ratón por los números */
+.stat-box:hover .stat-num {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.stat-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    transition: all 0.2s ease;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: sans-serif;
+    /* Para que quede más neutro como en tu imagen */
+}
+
+.stat-divider {
+    width: 1px;
+    height: 30px;
+    background: var(--border-color);
+    /* La rayita que separa las cajas */
+}
 
 
 
