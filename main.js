@@ -1050,7 +1050,8 @@ async function verificarSesion() {
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
-        btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+        // Ejecutamos la función pintora que se encarga de poner el avatar correcto
+        cargarDisenoPerfil(session.user.email);
 
         // Leemos el nombre directamente de los metadatos internos de tu sesión
         const usernameDisplay = document.getElementById('dropdown-username');
@@ -1165,7 +1166,16 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // Acumulamos las 5 cards directas desde la carpeta Banners de tu GitHub
+        // 1. EL BANNER DEFAULT (Vacío / Color sólido)
+        htmlAcumulado += `
+            <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'default')">
+                <div style="width:100%; height:100%; background: var(--bg-elevated); display:flex; align-items:center; justify-content:center; color: var(--text-muted); font-family: var(--font-cyber);">
+                    <i class="fas fa-ban" style="margin-right: 8px;"></i> SIN PORTADA
+                </div>
+            </div>
+        `;
+
+        // 2. Acumulamos las 5 cards directas desde la carpeta Banners de tu GitHub
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
@@ -1174,14 +1184,13 @@ function openCustomizationModal(type) {
             `;
         }
 
-        // Acumulamos la última card destacada (CUSTOM)
+        // 3. Acumulamos la última card destacada (CUSTOM)
         htmlAcumulado += `
             <div class="custom-card-item special-custom" onclick="seleccionarDiseño('banner', 'custom')">
                 <i class="fas fa-upload"></i>
                 <span style="font-weight: 700; font-family: var(--font-cyber); letter-spacing: 1px;">SUBIR CUSTOM</span>
             </div>
         `;
-
     } else if (type === 'avatar') {
         modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
         modalGrid.classList.add('avatar-grid');
@@ -1222,14 +1231,91 @@ function openCustomizationModal(type) {
 }
 
 // ============================================
-// LÓGICA DE LAS CARDS (Función vacía lista para el futuro)
+// LÓGICA DE LAS CARDS (GUARDADO EN BASE DE DATOS)
 // ============================================
-window.seleccionarDiseño = function (tipo, idCard) {
-    // Aquí es donde en el futuro le mandaremos la info a Supabase
-    console.log(`📡 Solicitando cambio de: [${tipo.toUpperCase()}] -> Diseño elegido: [${idCard}]`);
-
-    // De momento, solo cerramos el modal al hacer clic para dar el "efecto" de que ha funcionado
+window.seleccionarDiseño = async function (tipo, idCard) {
+    // 1. Cerramos el modal al instante para que parezca instantáneo
     modalEdit.classList.remove('show');
+
+    // 2. Comprobamos quién es el usuario
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const email = session.user.email;
+    const datoActualizar = {};
+
+    if (tipo === 'banner') datoActualizar.banner = idCard;
+    if (tipo === 'avatar') datoActualizar.avatar = idCard;
+
+    // 3. Lo guardamos en la tabla 'usuarios'
+    const { error } = await supabase
+        .from('usuarios')
+        .update(datoActualizar)
+        .eq('email', email);
+
+    if (!error) {
+        // 4. Si ha ido bien, recargamos el diseño visualmente de inmediato
+        cargarDisenoPerfil(email);
+    } else {
+        console.error("Error al guardar diseño:", error);
+    }
+}
+
+// ============================================
+// FUNCIÓN PINTORA: LEE DE LA BD Y DIBUJA EL PERFIL
+// ============================================
+async function cargarDisenoPerfil(email) {
+    const { data: userData } = await supabase
+        .from('usuarios')
+        .select('avatar, banner')
+        .eq('email', email)
+        .maybeSingle();
+
+    if (userData) {
+        const avatarId = userData.avatar || 'default';
+        const bannerId = userData.banner || 'default'; // Cambiado el fallback a 'default' en vez de '1'
+
+        // --- PINTAR BANNER EN EL PERFIL GIGANTE ---
+        const bannerEl = document.querySelector('.profile-banner');
+        if (bannerEl) {
+            if (bannerId === 'default' || bannerId === 'custom') {
+                // Si es por defecto, quitamos la imagen y dejamos el color sólido
+                bannerEl.style.backgroundImage = 'none';
+            } else {
+                // Si tiene un número, ponemos la imagen de GitHub
+                bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
+                bannerEl.style.backgroundSize = 'cover';
+                bannerEl.style.backgroundPosition = 'center';
+            }
+        }
+
+        // --- PINTAR AVATAR (Arriba en el Menú y Abajo en el Perfil) ---
+        let avatarHtml = '';
+        // Si es default o custom (que aún no funciona), ponemos el astronauta
+        if (avatarId === 'default' || avatarId === 'custom') {
+            avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+        } else {
+            // Si es uno de tus agentes (1_m, 2_f...), metemos la imagen de GitHub
+            avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        }
+
+        // A. Cambiamos el icono del botón de arriba a la derecha
+        const navAvatarEl = document.getElementById('user-profile');
+        if (navAvatarEl) {
+            navAvatarEl.innerHTML = avatarHtml;
+        }
+
+        // B. Cambiamos el icono gigante del perfil
+        const perfilAvatarEl = document.querySelector('.profile-avatar');
+        if (perfilAvatarEl) {
+            // Guardamos la capa oscura de "editar" para no destruirla al meter la imagen nueva
+            const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
+            perfilAvatarEl.innerHTML = '';
+            if (overlay) perfilAvatarEl.appendChild(overlay);
+
+            perfilAvatarEl.insertAdjacentHTML('beforeend', avatarHtml);
+        }
+    }
 }
 
 // ============================================
