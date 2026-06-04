@@ -1165,11 +1165,11 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // Acumulamos las 5 cards sin tocar el DOM
+        // Acumulamos las 5 cards directas desde la carpeta Banners de tu GitHub
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
-                <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'predeterminado_${i}')">
-                    <img src="https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}" loading="lazy">
+                <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.png" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
                 </div>
             `;
         }

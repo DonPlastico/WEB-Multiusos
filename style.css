@@ -1617,8 +1617,7 @@ span.flatpickr-weekday {
 }
 
 .modal-grid.avatar-grid {
-    grid-template-columns: repeat(4, 1fr);
-    /* 3 filas de 4 para sumar 12 */
+    grid-template-columns: repeat(5, 1fr);
 }
 
 /* Tarjetas base */
