@@ -1480,7 +1480,7 @@ span.flatpickr-weekday {
     border: 1px solid var(--border-color);
     border-radius: 20px;
     box-shadow: var(--shadow-md);
-    margin-bottom: 60px;
+    margin-bottom: 0;
     cursor: pointer;
 }
 
@@ -1703,9 +1703,12 @@ span.flatpickr-weekday {
 .profile-stats-wrapper {
     display: flex;
     justify-content: flex-end;
-    /* Lo pega a la derecha del todo */
     margin-top: 7.5px;
-    /* Tu separación exacta */
+    /* La separación exacta que querías del banner */
+    margin-bottom: 50px;
+    /* Añadimos el margen aquí para que el texto de abajo respire */
+    position: relative;
+    z-index: 20;
 }
 
 .profile-stats {
