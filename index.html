@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DP-SYS | Nexus</title>
-    <!-- pillo la fuente tecknica y los iconos del fontawesome pa los botoncicos -->
+    <!-- pillo la fuente tecnica y los iconos del fontawesome pa los botonazos -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
@@ -17,59 +17,56 @@
 </head>
 
 <body>
-    <!-- este div sigue aki pa ponerle las rallas de tele vieja a to la web -->
+    <!-- este div q deja las rayitas retro en la web -->
     <div class="scanlines"></div>
 
-    <!-- barra navegacion to wapa en 3 cachos -->
+    <!-- barra de navegacion en 3 partes -->
     <nav class="cyber-nav">
-        <!-- izq: logo -->
+        <!-- el logo a la izquierda -->
         <div class="logo" id="logo-home" title="Ir al Inicio">DP<span>-SYS</span></div>
 
-        <!-- centro: los enlaces -->
+        <!-- los enlaces del menu en el centro -->
         <ul class="nav-links">
             <li><a href="#" data-target="games">JUEGOS</a></li>
             <li><a href="#" data-target="movies">PELICULAS</a></li>
             <li><a href="#" data-target="series">SERIES</a></li>
         </ul>
 
-        <!-- derecha: los iconos que me as pedio -->
+        <!-- botones a la derecha -->
         <div class="nav-right">
-            <!-- boton pal color d la web. por defecto le dejo el del pc -->
+            <!-- boton pa cambiar el tema -->
             <button class="icon-btn" id="theme-toggle" title="Tema del sistema">
                 <i class="fas fa-desktop"></i>
             </button>
 
-            <!-- la banderita del idioma -->
+            <!-- la bandera pa cambiar idioma -->
             <button class="icon-btn" id="lang-toggle" title="Idioma">
                 <img src="https://flagcdn.com/24x18/es.png" alt="ES">
             </button>
 
-            <!-- boton pal admin panel. por defecto lo dejo oculto, y ya se mostrara si el usuario es admin -->
+            <!-- boton del admin q esta oculto -->
             <button class="icon-btn" id="btn-admin" title="Panel de Control"
                 style="display: none; color: var(--primary);">
                 <i class="fas fa-user-shield"></i>
             </button>
 
-            <!-- icono pal perfil del nota -->
+            <!-- el perfil del usuario -->
             <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
                 <i class="fas fa-user-circle"></i>
             </button>
         </div>
     </nav>
 
-    <!-- contenedor principal con las vistas -->
+    <!-- el contenedor principal pa todas las vistas -->
     <main class="cyber-container">
 
-        <!-- VISTA: HOME (Aki va lo tocho) -->
+        <!-- vista de inicio -->
         <section id="home" class="view active">
-
-            <!-- el hero o cabezera de la pag -->
             <div class="hero-section glass-panel">
                 <h1 class="glitch-text">Te damos la bienvenida.</h1>
                 <p class="subtitle-hero">Millones de películas, series y gente por descubrir. Explora ya.</p>
             </div>
 
-            <!-- aki preparo to los huecos dnd escupire la api lueo -->
             <div class="trends-container">
                 <h2 class="section-title">Tendencias en Juegos</h2>
                 <div class="horizontal-scroll glass-panel" id="trend-games">Aki iran las tarjetitas...</div>
@@ -97,15 +94,15 @@
 
         </section>
 
-        <!-- VISTA: JUEGOS -->
+        <!-- vista de juegos -->
         <section id="games" class="view">
-            <!-- e kitao el h1 gigante d DATA_JUEGOS y e dejao solo el texto pekeño -->
+            <!-- quité el h1 gigante y deje solo el textito -->
             <p class="subtitle" style="margin-bottom: 10px;">Conexión directa al hub de simulaciones. Explora el
                 catálogo y domina la red.</p>
 
             <div class="games-layout">
 
-                <!-- ZONA IZQUIERDA: EL CONTENIDO -->
+                <!-- zona izquierda con los juegos -->
                 <div class="games-content">
                     <div class="search-box glass-panel">
                         <input type="text" id="search-juegos" placeholder="Buscar en la base de datos...">
@@ -118,7 +115,7 @@
                     </div>
                 </div>
 
-                <!-- ZONA DERECHA: LOS FILTROS TO WAPOS -->
+                <!-- zona derecha con los filtros -->
                 <aside class="filter-sidebar glass-panel">
                     <div class="filter-main-header">
                         <h2>Filtros</h2>
@@ -127,7 +124,7 @@
 
                     <div class="filters-scroll-area">
 
-                        <!-- TIENDAS / LAUNCHERS (NUEVO) -->
+                        <!-- filtro de tiendas -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
@@ -152,8 +149,7 @@
                             </div>
                         </div>
 
-                        <!-- PLATAFORMAS -->
-                        <!-- e kitao el "active" d todas las class="accordion-item" pa k salgan cerraos -->
+                        <!-- filtro de plataformas -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
@@ -168,7 +164,7 @@
                                 <label class="custom-check plat-item"><input type="checkbox"><span class="box"></span>
                                     PlayStation 5</label>
 
-                                <!-- plataformas ocultas por defecto -->
+                                <!-- aqui van las plataformas escondidas -->
                                 <div id="plat-extra" style="display:none;">
                                     <label class="custom-check plat-item"><input type="checkbox"><span
                                             class="box"></span> Switch</label>
@@ -198,7 +194,7 @@
                             </div>
                         </div>
 
-                        <!-- PRECIOS -->
+                        <!-- filtro de precios -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PRECIO</span>
@@ -227,7 +223,7 @@
                             </div>
                         </div>
 
-                        <!-- TOP GENEROS -->
+                        <!-- filtro de generos -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TOP GÉNEROS</span>
@@ -264,7 +260,7 @@
                             </div>
                         </div>
 
-                        <!-- FECHAS -->
+                        <!-- filtro de fechas de salida -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE SALIDA</span>
@@ -279,7 +275,7 @@
                             </div>
                         </div>
 
-                        <!-- JUGADORES -->
+                        <!-- filtro de jugadores -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> JUGADORES</span>
@@ -308,7 +304,7 @@
             </div>
         </section>
 
-        <!-- VISTA: PELICULAS -->
+        <!-- vista de peliculas -->
         <section id="movies" class="view">
             <p class="subtitle" style="margin-bottom: 10px;">Archivos visuales desencriptados. Localiza tus proyecciones
                 y su punto de emisión en el ciberespacio.</p>
@@ -323,7 +319,7 @@
             </div>
         </section>
 
-        <!-- VISTA: SERIES -->
+        <!-- vista de series -->
         <section id="series" class="view">
             <p class="subtitle" style="margin-bottom: 10px;">Transmisiones interceptadas. Monitorea el estado de cada
                 temporada y no pierdas tu progreso.</p>
@@ -338,7 +334,7 @@
             </div>
         </section>
 
-        <!-- VISTA: PANEL DE CONTROL (SOLO ADMIN) -->
+        <!-- panel de control pa los admin -->
         <section id="admin-panel" class="view">
             <div class="hero-section glass-panel">
                 <h1 class="glitch-text" style="color: var(--primary);">NEXUS_CORE // ADMIN</h1>
@@ -381,7 +377,7 @@
             </div>
         </section>
 
-        <!-- VISTA: LOGIN -->
+        <!-- vista pa loguearse -->
         <section id="login" class="view auth-page">
             <div class="auth-page-inner">
                 <div class="auth-brand">
@@ -424,7 +420,7 @@
             </div>
         </section>
 
-        <!-- VISTA: REGISTRO -->
+        <!-- vista pa registrarse -->
         <section id="register" class="view auth-page">
             <div class="auth-page-inner">
                 <div class="auth-brand">
@@ -511,7 +507,7 @@
             </div>
         </section>
 
-        <!-- VISTA: ESPERANDO CONFIRMACION DE CORREO -->
+        <!-- esperando a que confirme el correo -->
         <section id="waiting-confirmation" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -530,7 +526,7 @@
             </div>
         </section>
 
-        <!-- VISTA: CUENTA VERIFICADA -->
+        <!-- la cuenta ya esta verificada -->
         <section id="verified-account" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -550,7 +546,7 @@
             </div>
         </section>
 
-        <!-- VISTA: PERFIL DE USUARIO -->
+        <!-- el perfil del usuario -->
         <section id="profile" class="view">
             <div class="profile-layout">
                 <div class="profile-banner glass-panel" id="banner-edit-trigger">
@@ -570,24 +566,31 @@
                     </div>
                 </div>
                 <div class="profile-stats-wrapper">
+                    <!-- boton pa agregar amigos -->
+                    <button class="icon-btn add-friend-btn" id="btn-add-friend" title="Añadir nuevo amigo">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+
+                    <!-- estadisticas sociales -->
                     <div class="profile-stats">
                         <div class="stat-box">
                             <span class="stat-num">0</span>
-                            <span class="stat-label">siguiendo</span>
+                            <span class="stat-label">Siguiendo</span>
                         </div>
                         <div class="stat-divider"></div>
                         <div class="stat-box">
                             <span class="stat-num">0</span>
-                            <span class="stat-label">seguidores</span>
+                            <span class="stat-label">Seguidores</span>
                         </div>
                         <div class="stat-divider"></div>
                         <div class="stat-box">
                             <span class="stat-num">0</span>
-                            <span class="stat-label">comentarios</span>
+                            <span class="stat-label">Mensajes</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- estadisticas principales -->
                 <div class="profile-detailed-stats">
                     <div class="stats-header">
                         <h2>Estadísticas</h2>
@@ -631,13 +634,14 @@
                     </div>
                 </div>
 
+                <!-- esto lo dejo pa luego q lo construya -->
                 <div style="margin-top: 80px; text-align: center; color: var(--text-muted);">
-                    <p><i class="fas fa-tools"></i> Módulos de datos en construcción...</p>
+                    <p><i class="fas fa-tools"></i> Modulos de datos en construccion...</p>
                 </div>
             </div>
         </section>
 
-        <!-- MODAL DE EDICIÓN (REUTILIZABLE PARA AVATAR Y BANNER) -->
+        <!-- modal pa editar avatar o banner -->
         <div id="edit-modal" class="cyber-modal">
             <div class="modal-content glass-panel">
                 <div class="modal-header">
@@ -650,7 +654,7 @@
             </div>
         </div>
 
-        <!-- BOTÓN DE VOLVER ARRIBA -->
+        <!-- boton pa volver al tope -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
         </button>

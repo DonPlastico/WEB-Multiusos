@@ -1,22 +1,22 @@
-// Importamos el cliente de Supabase para futuras funcionalidades (registro, login, etc.)
+// traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
-// // Importamos Vercel Analytics para tener datos de uso y mejorar el proyecto con el tiempo
+// traigo analytics de vercel para saber como la usan
 import { inject } from '@vercel/analytics';
 inject();
 
-// // Importamos Vercel Speed Insights para monitorear el rendimiento y optimizar la experiencia
+// speed insights pa ver si algo va lento
 import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
 // ==========================================================================
-//   ENRUTAMIENTO SPA (URLs LIMPIAS Y BOTONES ATRÁS/ADELANTE)
+//   RUTAS Y NAVEGACION (URLs LIMPIAS Y BOTONES ATRAS/ADELANTE)
 // ==========================================================================
 
 const linksMenu = document.querySelectorAll('.nav-links a');
 const vistas = document.querySelectorAll('.view');
 
-// 1. Diccionario de rutas: Relaciona el ID de tu sección con la URL que quieres que se vea
+// mapeo de rutas, cada id apunta a su url
 const mapaRutas = {
     'home': '/',
     'games': '/juegos',
@@ -30,20 +30,20 @@ const mapaRutas = {
     'verified-account': '/cuenta-verificada'
 };
 
-// Banderas de estado para no repetir llamadas a la API
+// banderas para no cargar 2 veces lo mismo de la api
 let juegosCargados = false;
 let peliculasCargadas = false;
 let seriesCargadas = false;
 
-// Memoria de Scroll: Guardará a qué altura se quedó cada página
+// guardo donde estaba scrolleado en cada pagina
 const memoriaScroll = {};
-let vistaActualGlobal = 'home'; // Para saber de dónde nos vamos
+let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
 function cambiarVista(target, guardarEnHistorial = true) {
-    // 1. Antes de irnos de la pestaña actual, guardamos a qué altura estábamos
+    // antes de cambiar, guardo donde estaba
     memoriaScroll[vistaActualGlobal] = window.scrollY;
 
-    // Actualizamos el color del menú
+    // cambio el color del menu
     linksMenu.forEach(link => {
         if (link.getAttribute('data-target') === target) {
             link.classList.add('active');
@@ -52,7 +52,7 @@ function cambiarVista(target, guardarEnHistorial = true) {
         }
     });
 
-    // Mostramos la vista correcta y ocultamos las demás
+    // muestro la vista que toca
     vistas.forEach(vista => {
         if (vista.id === target) {
             vista.classList.add('active');
@@ -61,19 +61,19 @@ function cambiarVista(target, guardarEnHistorial = true) {
         }
     });
 
-    // 2. Restauramos el scroll de la vista a la que acabamos de entrar
-    // Le damos un mini-retraso (10ms) para que al navegador le dé tiempo a pintar el HTML primero
+    // vuelvo a la posicion de scroll que tenia
+    // espero 10ms para que el navegador pinte primero
     setTimeout(() => {
         window.scrollTo({
-            top: memoriaScroll[target] || 0, // Si nunca había entrado, top será 0
-            behavior: 'instant' // Instantáneo para que no se note un salto raro
+            top: memoriaScroll[target] || 0, // si no habia entrado scroll en 0
+            behavior: 'instant' // sin animacion
         });
     }, 10);
 
-    // Actualizamos nuestra variable de control
+    // actualizo cual es la vista actual
     vistaActualGlobal = target;
 
-    // LAZY LOADING: Cargar la API correspondiente solo la primera vez que se entra a la sección
+    // lazy loading, cargo la api solo la primera vez que entro
     if (target === 'games' && !juegosCargados) {
         cargarJuegosIGDB();
         juegosCargados = true;
@@ -85,13 +85,13 @@ function cambiarVista(target, guardarEnHistorial = true) {
         seriesCargadas = true;
     }
 
-    // Cambiar la URL del navegador sin recargar la página
+    // cambio la url sin recargar
     if (guardarEnHistorial && mapaRutas[target]) {
         window.history.pushState({ vista: target }, '', mapaRutas[target]);
     }
 }
 
-// Evento al hacer clic en los enlaces del menú
+// cuando hago click en el menu
 linksMenu.forEach(link => {
     link.addEventListener('click', (evento) => {
         evento.preventDefault();
@@ -100,17 +100,17 @@ linksMenu.forEach(link => {
     });
 });
 
-// Logo principal aho0ra es el botón de HOME
+// ahora el logo es el boton de HOME
 const logoHome = document.getElementById('logo-home');
 if (logoHome) {
     logoHome.addEventListener('click', () => {
         cambiarVista('home', true);
-        // Quitamos la clase 'active' de Juegos/Pelis/Series para que se apaguen
+        // quito el active del menu
         linksMenu.forEach(l => l.classList.remove('active'));
     });
 }
 
-// Navegación especial para el botón de Administrador
+// boton especial para admin
 const btnAdminTop = document.getElementById('btn-admin');
 if (btnAdminTop) {
     btnAdminTop.addEventListener('click', () => {
@@ -119,22 +119,22 @@ if (btnAdminTop) {
     });
 }
 
-// Detectar cuando el usuario usa los botones Atrás / Adelante del navegador
+// detecto cuando usan los botones atras/adelante
 window.addEventListener('popstate', (evento) => {
     if (evento.state && evento.state.vista) {
-        // Volvemos a la vista anterior SIN crear una nueva entrada en el historial (false)
+        // vuelvo a la vista anterior sin guardar
         cambiarVista(evento.state.vista, false);
     } else {
         cambiarVista('home', false);
     }
 });
 
-// Arrancador Inicial: Cuando el usuario entra a la web escribiendo una URL directa (ej: /juegos)
+// cuando entran directamente a una url tipo /juegos
 function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
-    let vistaInicial = 'home'; // Por defecto
+    let vistaInicial = 'home'; // default
 
-    // Buscamos a qué vista corresponde la URL actual
+    // busco que vista corresponde a la url
     for (const [idVista, url] of Object.entries(mapaRutas)) {
         if (url === rutaActual) {
             vistaInicial = idVista;
@@ -142,21 +142,21 @@ function arrancarEnrutador() {
         }
     }
 
-    // Mostramos esa vista sin guardar historial extra
+    // muestro esa vista
     cambiarVista(vistaInicial, false);
 }
 
-// Ejecutamos el arrancador al cargar la web
+// ejecuto el router al cargar
 arrancarEnrutador();
 
 // ==========================================================================
-//   SISTEMA DE TEMAS (CLARO / OSCURO / SISTEMA)
+//   TEMAS CLARO OSCURO Y ESO
 // ==========================================================================
 
 const themeBtn = document.getElementById('theme-toggle');
 const themeIcon = themeBtn.querySelector('i');
 
-// Crear el menú desplegable
+// creo el menu de temas
 const themeMenu = document.createElement('div');
 themeMenu.className = 'theme-menu';
 themeMenu.innerHTML = `
@@ -174,22 +174,22 @@ themeMenu.innerHTML = `
     </button>
 `;
 
-// Añadir el menú al botón
+// agrgo el menu al boton
 const themeContainer = document.createElement('div');
 themeContainer.className = 'theme-dropdown';
 themeBtn.parentNode.insertBefore(themeContainer, themeBtn);
 themeContainer.appendChild(themeBtn);
 themeContainer.appendChild(themeMenu);
 
-// Función para cambiar el tema
+// funcion pa cambiar el tema
 function setTheme(theme) {
-    // Guardar en localStorage
+    // guardo en localStorage
     localStorage.setItem('dp_sys_theme', theme);
 
-    // Aplicar el atributo data-theme al root
+    // aplico el atributo al root
     document.documentElement.setAttribute('data-theme', theme);
 
-    // Actualizar el icono del botón principal según el tema actual
+    // actualizo el icono segun el tema
     if (theme === 'system') {
         themeIcon.className = 'fas fa-desktop';
     } else if (theme === 'light') {
@@ -198,7 +198,7 @@ function setTheme(theme) {
         themeIcon.className = 'fas fa-moon';
     }
 
-    // Actualizar clase active en las opciones del menú
+    // actualizo el active en el menu
     document.querySelectorAll('.theme-option').forEach(opt => {
         if (opt.getAttribute('data-theme') === theme) {
             opt.classList.add('active');
@@ -207,12 +207,12 @@ function setTheme(theme) {
         }
     });
 
-    // Detectar si el sistema prefiere oscuro (para mostrar en consola)
+    // detecto si el sistema prefiere oscuro
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    console.log(`Tema cambiado a: ${theme} | Sistema prefiere: ${isDarkMode ? 'oscuro' : 'claro'}`);
+    console.log(`tema cambiado a: ${theme} | sistema prefiere: ${isDarkMode ? 'oscuro' : 'claro'}`);
 }
 
-// Cargar tema guardado o default (sistema)
+// cargo el tema guardado o el default
 function loadSavedTheme() {
     const savedTheme = localStorage.getItem('dp_sys_theme');
 
@@ -223,7 +223,7 @@ function loadSavedTheme() {
     }
 }
 
-// Toggle del menú desplegable
+// controlo si el menu esta abierto
 let menuOpen = false;
 themeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -243,7 +243,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Manejar clic en las opciones del tema
+// cuando hago click en una opcion de tema
 document.querySelectorAll('.theme-option').forEach(option => {
     option.addEventListener('click', (e) => {
         const theme = option.getAttribute('data-theme');
@@ -253,28 +253,28 @@ document.querySelectorAll('.theme-option').forEach(option => {
     });
 });
 
-// Detectar cambios en la preferencia del sistema (si está en modo sistema)
+// detecto si cambia el modo oscuro del sistema
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const currentTheme = localStorage.getItem('dp_sys_theme');
     if (currentTheme === 'system') {
-        // Forzar actualización del tema sistema
+        // fuerzo actualizar el tema
         setTheme('system');
     }
 });
 
-// Cargar tema al iniciar
+// cargo el tema al iniciar
 loadSavedTheme();
 
 // ==========================================================================
-//   LOGICA DE JUEGOS (IGDB API via Vercel Serverless)
+//   LOGICA DE JUEGOS Y IGDB API
 // ==========================================================================
 
-// EL VIGILANTE DE SCROLL PARA CARGA INFINITA
+// vigilo el scroll para cargar mas cosas
 const observadorScroll = new IntersectionObserver((entradas) => {
     entradas.forEach(entrada => {
         if (entrada.isIntersecting) {
             const id = entrada.target.id;
-            // Si el botón es visible y no estamos ya cargando, disparamos la carga
+            // si veo el boton y no esta cargando, cargo mas
             if (id === 'btn-cargar-mas' && !cargando) {
                 cargarMas();
             } else if (id === 'btn-cargar-mas-movie' && !cargandoTMDB) {
@@ -284,7 +284,7 @@ const observadorScroll = new IntersectionObserver((entradas) => {
             }
         }
     });
-}, { rootMargin: '300px' }); // Empieza a cargar 300px antes de llegar al fondo para que sea imperceptible
+}, { rootMargin: '300px' }); // cargo antes para que no se vea
 
 const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
@@ -305,8 +305,8 @@ function crearTarjeta(juego) {
         })
         : 'TBA';
 
-    // 1. SOLUCIÓN A LA ILUSIÓN ÓPTICA DE LAS ETIQUETAS
-    // Priorizamos de forma inteligente qué logo mostrar en la tarjeta
+    // elijo que plataforma mostrar en la tarjeta
+    // intento priorizar bien
     let platPrincipal = 'PC';
     const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
     const hasPC = pNamesLower.some(n => n.includes('pc') || n.includes('windows'));
@@ -329,20 +329,20 @@ function crearTarjeta(juego) {
         ? `<span class="plat-count">+${juego.platforms.length - 1}</span>`
         : '';
 
-    // Guardamos los datos ocultos para que el filtro unificado los lea perfectamente
+    // guardo datos ocultos para el filtro
     const storesData = juego.itad ? juego.itad.stores : 'none';
     const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
-    // 2. SOLUCIÓN AL TEXTO CONFUSO DE "NO DISPONIBLE"
+    // muestro el precio o si no esta disponible
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
-        // Encontró oferta en ITAD (Es de PC)
+        // encontro oferta en itad (es de pc)
         htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong>${juego.itad.voucher ? ' <span class="voucher-tag">🏷️ Cupón</span>' : ''}</span>`;
     } else if (!hasPC) {
-        // No está en PC, así que es imposible que ITAD tenga su precio
+        // no es de pc, asi que itad no tiene precio
         htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> Edición Consola</span>`;
     } else {
-        // Está en PC pero no hay ofertas ahora mismo
+        // esta en pc pero sin ofertas ahora
         htmlPrecio = `<span class="price-na">Sin ofertas actuales</span>`;
     }
 
@@ -376,7 +376,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         offsetActual = 0;
         busquedaActual = busqueda;
 
-        // Loader inicial con ID para poder cambiarle el texto
+        // muestro el loader
         gridJuegos.innerHTML = `
             <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
@@ -384,7 +384,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
             </div>
         `;
 
-        // Secuencia de texto a los 1.2 segundos
+        // cambio el texto del loader
         setTimeout(() => {
             const loaderText = document.querySelector('#loader-games .loading-text');
             if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
@@ -392,7 +392,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
 
         document.getElementById('btn-cargar-mas')?.remove();
     } else {
-        // Transformar el botón de "Cargar más" en un loader, pero dejando un botón de seguridad debajo
+        // transformo el boton en un loader
         const btnMas = document.getElementById('btn-cargar-mas');
         if (btnMas) {
             btnMas.innerHTML = `
@@ -418,7 +418,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
 
-        // Inyectar tarjetas
+        // inyecto las tarjetas
         datos.forEach(juego => {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
@@ -443,7 +443,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
         if (resetear) {
             gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar.</div>';
         } else {
-            // Si falla la carga infinita, restauramos el botón pero en rojo para que el usuario pueda reintentar manualmente
+            // si falla muestro el boton para reintentar
             const btnMas = document.getElementById('btn-cargar-mas');
             if (btnMas) {
                 btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--error); color:var(--error); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Reintentar carga</button>`;
@@ -460,23 +460,23 @@ function cargarMas() {
 
 window.cargarMas = cargarMas;
 
-let temporizadorBusqueda; // Guardará el tiempo de espera
+let temporizadorBusqueda; // para la busqueda
 
-// 1. Evento cuando el usuario escribe (Auto-búsqueda a los 2 segundos)
+// cuando el usuario escribe busco automaticamente
 inputBuscar.addEventListener('input', () => {
-    clearTimeout(temporizadorBusqueda); // Si sigue escribiendo, reiniciamos el reloj
+    clearTimeout(temporizadorBusqueda); // si sigue escribiendo borro el anterior
     temporizadorBusqueda = setTimeout(() => {
         cargarJuegosIGDB(inputBuscar.value.trim());
-    }, 500); // 500 ms = 0.5 segundos
+    }, 500); // espero 0.5 segs
 });
 
-// 2. Click en la lupa (por si el usuario es impaciente y no quiere esperar)
+// click en la lupa directa
 btnBuscar.addEventListener('click', () => {
     clearTimeout(temporizadorBusqueda);
     cargarJuegosIGDB(inputBuscar.value.trim());
 });
 
-// 3. Pulsar Enter (por la misma razón)
+// pulsar enter tambien funciona
 inputBuscar.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         clearTimeout(temporizadorBusqueda);
@@ -485,7 +485,7 @@ inputBuscar.addEventListener('keypress', (e) => {
 });
 
 // ==========================================================================
-//   LOGICA DEL PANEL DE FILTROS DE JUEGOS
+//   FILTROS DE JUEGOS
 // ==========================================================================
 
 const buscadorGeneros = document.getElementById('search-genre');
@@ -501,10 +501,10 @@ if (buscadorGeneros) {
             const esOculto = item.classList.contains('hidden-genre');
 
             if (txt === '') {
-                // al borrar: los hidden-genre solo se muestran si están marcados
+                // al borrar muestro solo los marcados
                 item.style.display = (esOculto && !checkbox.checked) ? 'none' : '';
             } else {
-                // con texto: muestra si coincide, oculta si no
+                // con texto muestro lo que coincida
                 item.style.display = nombreGenero.includes(txt) ? '' : 'none';
             }
         });
@@ -512,7 +512,7 @@ if (buscadorGeneros) {
 }
 
 // ==========================================================================
-//   LOGICA DE FILTROS UNIFICADA (TIENDAS + PLATAFORMAS)
+//   FILTROS DE TIENDAS Y PLATAFORMAS
 // ==========================================================================
 
 const tiendasTodas = document.getElementById('tienda-todas');
@@ -521,13 +521,13 @@ const platTodas = document.getElementById('plat-todas');
 const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
 
 function aplicarFiltros() {
-    // 1. Sacamos qué tiendas están marcadas
+    // saco que tiendas estan marcadas
     const tiendasSeleccionadas = Array.from(tiendasItems)
         .filter(cb => cb.checked)
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
     const filtroTodasTiendas = tiendasTodas.checked;
 
-    // 2. Sacamos qué plataformas están marcadas
+    // saco que plataformas estan marcadas
     const platSeleccionadas = Array.from(platItems)
         .filter(cb => cb.checked)
         .map(cb => cb.parentElement.textContent.trim().toLowerCase());
@@ -535,12 +535,12 @@ function aplicarFiltros() {
 
     let cartasVisibles = 0;
 
-    // 3. Revisamos tarjeta por tarjeta
+    // reviso tarjeta por tarjeta
     document.querySelectorAll('.game-card').forEach(card => {
         const storesStr = card.getAttribute('data-stores') || '';
         const platStr = card.getAttribute('data-platforms') || '';
 
-        // ¿Pasa el filtro de la tienda?
+        // pasa el filtro de tienda?
         let pasaTienda = false;
         if (filtroTodasTiendas) {
             pasaTienda = true;
@@ -548,7 +548,7 @@ function aplicarFiltros() {
             pasaTienda = tiendasSeleccionadas.some(t => storesStr.includes(t));
         }
 
-        // ¿Pasa el filtro de la plataforma?
+        // pasa el filtro de plataforma?
         let pasaPlat = false;
         if (filtroTodasPlat) {
             pasaPlat = true;
@@ -556,7 +556,7 @@ function aplicarFiltros() {
             pasaPlat = platSeleccionadas.some(p => platStr.includes(p));
         }
 
-        // Mostrar solo si pasa AMBOS filtros
+        // muestro si pasa los dos filtros
         if (pasaTienda && pasaPlat) {
             card.style.display = 'flex';
             cartasVisibles++;
@@ -565,7 +565,7 @@ function aplicarFiltros() {
         }
     });
 
-    // 4. Auto-recarga inteligente (Lazy loading)
+    // cargo mas si faltan resultados
     const btnMas = document.getElementById('btn-cargar-mas');
     if ((!filtroTodasTiendas || !filtroTodasPlat) && cartasVisibles < 20 && !cargando && btnMas) {
         btnMas.querySelector('button').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Auto-buscando...';
@@ -573,7 +573,7 @@ function aplicarFiltros() {
     }
 }
 
-// ----- EVENTOS TIENDAS -----
+// eventos de tiendas
 tiendasTodas.addEventListener('change', () => {
     if (tiendasTodas.checked) tiendasItems.forEach(cb => cb.checked = false);
     aplicarFiltros();
@@ -586,7 +586,7 @@ tiendasItems.forEach(cb => {
     });
 });
 
-// ----- EVENTOS PLATAFORMAS -----
+// eventos de plataformas
 platTodas.addEventListener('change', () => {
     if (platTodas.checked) platItems.forEach(cb => cb.checked = false);
     aplicarFiltros();
@@ -599,7 +599,7 @@ platItems.forEach(cb => {
     });
 });
 
-// VER TODO plataformas
+// boton para ver todas las plataformas
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
@@ -611,7 +611,7 @@ btnVerPlats.addEventListener('click', () => {
 });
 
 // ==========================================================================
-//   LOGICA DE LOS ACORDEONES
+//   ACORDEONES
 // ==========================================================================
 
 const accordions = document.querySelectorAll('.accordion-header');
@@ -624,7 +624,7 @@ accordions.forEach(header => {
 });
 
 // ==========================================================================
-//   LOGICA DE PELICULAS Y SERIES (TMDB API)
+//   PELICULAS Y SERIES CON TMDB API
 // ==========================================================================
 
 let pageMovies = 1;
@@ -635,9 +635,9 @@ let cargandoTMDB = false;
 
 function crearTarjetaTMDB(media, tipo) {
     const isMovie = tipo === 'movie';
-    const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA'; // Solo el año
+    const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA'; // solo el año
 
-    // Configurar la info extra dependiente de si es peli o serie
+    // info extra segun si es peli o serie
     let extraInfo = '';
     if (isMovie) {
         extraInfo = media.duracion ? `<span class="plat-count">${media.duracion} min</span>` : '';
@@ -681,7 +681,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         if (tipo === 'movie') { pageMovies = 1; searchMoviesActual = busqueda; }
         else { pageSeries = 1; searchSeriesActual = busqueda; }
 
-        // Loader inicial con ID dinámico
+        // muestro el loader
         grid.innerHTML = `
             <div id="loader-${tipo}" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
@@ -689,7 +689,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             </div>
         `;
 
-        // Secuencia de texto
+        // cambio el texto
         setTimeout(() => {
             const loaderText = document.querySelector(`#loader-${tipo} .loading-text`);
             if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
@@ -697,7 +697,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
 
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
     } else {
-        // Transformar el botón en un loader, manteniendo un botón de seguridad debajo
+        // transformo el boton en loader
         const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
         if (btnMas) {
             const textoTipo = tipo === 'movie' ? 'PELÍCULAS' : 'SERIES';
@@ -747,7 +747,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         if (resetear) {
             grid.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar con TMDB.</div>';
         } else {
-            // Botón de reintento si falla la carga infinita
+            // boton de reintento si falla
             const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
             if (btnMas) {
                 btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--error); color:var(--error); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;"><i class="fas fa-redo"></i> Reintentar carga</button>`;
@@ -762,7 +762,7 @@ window.cargarMasTMDB = function (tipo) {
     cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, false);
 };
 
-// ----- LISTENERS PELICULAS -----
+// listeners para pelis
 const inputMovies = document.getElementById('search-movies');
 const btnMovies = document.getElementById('btn-buscar-movies');
 let tempMovies;
@@ -774,7 +774,7 @@ inputMovies.addEventListener('input', () => {
 btnMovies.addEventListener('click', () => { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); });
 inputMovies.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); } });
 
-// ----- LISTENERS SERIES -----
+// listeners para series
 const inputSeries = document.getElementById('search-series');
 const btnSeries = document.getElementById('btn-buscar-series');
 let tempSeries;
@@ -787,12 +787,12 @@ btnSeries.addEventListener('click', () => { clearTimeout(tempSeries); cargarTMDB
 inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); } });
 
 // ==========================================================================
-//   SISTEMA DE AUTENTICACIÓN — PÁGINAS DEDICADAS Y CERRAR SESIÓN
+//   AUTENTICACION Y SESION
 // ==========================================================================
 
 const btnPerfil = document.getElementById('user-profile');
 
-// 1. Crear el menú desplegable avanzado para el usuario
+// creo el menu para el usuario
 const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
@@ -819,14 +819,14 @@ userMenu.innerHTML = `
     </button>
 `;
 
-// Envolvemos el botón del perfil para que funcione el desplegable
+// envolevo el boton del perfil para que funcione el menu
 const userContainer = document.createElement('div');
 userContainer.className = 'theme-dropdown';
 btnPerfil.parentNode.insertBefore(userContainer, btnPerfil);
 userContainer.appendChild(btnPerfil);
 userContainer.appendChild(userMenu);
 
-// Escuchador para ir al perfil al hacer clic en la cabecera del menú
+// click en la cabecera del menu va al perfil
 document.getElementById('btn-ver-perfil')?.addEventListener('click', () => {
     cambiarVista('profile');
     userMenu.classList.remove('show');
@@ -840,20 +840,20 @@ btnPerfil.addEventListener('click', (e) => {
     e.stopPropagation();
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            // Si estás logueado, abrimos el menú
+            // si estas logueado abro el menu
             userMenuOpen = !userMenuOpen;
             if (userMenuOpen) userMenu.classList.add('show');
             else userMenu.classList.remove('show');
         } else {
-            // Si NO estás logueado, te lleva al login
+            // si no estoy logueado voy a login
             cambiarVista('login');
-            // Quitamos el subrayado activo de la barra superior
+            // quito el active del menu
             linksMenu.forEach(l => l.classList.remove('active'));
         }
     });
 });
 
-// Cerrar menú al hacer clic fuera
+// cierro el menu si hago click afuera
 document.addEventListener('click', (e) => {
     if (!userContainer.contains(e.target) && userMenu) {
         userMenu.classList.remove('show');
@@ -861,33 +861,33 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// 3. Lógica para CERRAR SESIÓN
+// logica de cerrar sesion
 document.getElementById('btn-logout').addEventListener('click', async () => {
-    // Le decimos a la caja fuerte que destruya el carnet de identidad
+    // cierro la sesion
     await supabase.auth.signOut();
 
-    // Ocultamos el menú
+    // cierro el menu
     userMenu.classList.remove('show');
     userMenuOpen = false;
 
-    // Volvemos a la pantalla de inicio y actualizamos la interfaz (vuelve a ser el icono gris)
+    // vuelvo a home
     cambiarVista('home');
     verificarSesion();
 });
 
-// Botón "Crear cuenta nueva" en la página de login → va a register
+// boton para ir a registro
 document.getElementById('btn-go-register')?.addEventListener('click', () => {
     cambiarVista('register');
     linksMenu.forEach(l => l.classList.remove('active'));
 });
 
-// Botón "Iniciar sesión" en la página de register → vuelve a login
+// boton para volver a login
 document.getElementById('btn-go-login')?.addEventListener('click', () => {
     cambiarVista('login');
     linksMenu.forEach(l => l.classList.remove('active'));
 });
 
-// Historial del navegador para el botón ATRÁS
+// historial del navegador
 function navegarA(vista) {
     history.pushState({ vista }, '', `#${vista}`);
     cambiarVista(vista);
@@ -902,7 +902,7 @@ window.addEventListener('popstate', (e) => {
     cambiarVista(vista);
 });
 
-// Mostrar/Ocultar contraseña (universal)
+// mostro/oculto la contraseña
 document.querySelectorAll('.toggle-password-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const input = btn.previousElementSibling;
@@ -918,7 +918,7 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
 });
 
 // ==========================================================================
-//   INICIALIZACIÓN DE FLATPICKR (Selector de Fecha Personalizado)
+//   FLATPICKR PARA FECHAS
 // ==========================================================================
 if (document.getElementById('register-birthdate')) {
     flatpickr("#register-birthdate", {
@@ -931,9 +931,9 @@ if (document.getElementById('register-birthdate')) {
     });
 }
 
-// -------------------------------------------
-// FLUJO DE REGISTRO
-// -------------------------------------------
+// --------
+// REGISTRO
+// --------
 document.getElementById('form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msgBox = document.getElementById('register-message');
@@ -946,7 +946,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     const passConf = document.getElementById('register-password-confirm').value.trim();
     const birthdate = document.getElementById('register-birthdate').value;
 
-    // Validaciones cliente
+    // valido en el cliente
     if (email !== emailConf) {
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ Los correos no coinciden.';
@@ -976,16 +976,16 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ ' + error.message;
     } else {
-        // 1. Guardamos la relación usuario-correo en nuestro "traductor" (la tabla usuarios)
+        // guardo el usuario en la bd
         await supabase.from('usuarios').insert([{ username: username, email: email }]);
 
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '✅ ¡Cuenta creada! Revisa tu correo.';
 
-        // En lugar de hacer auto-login, mandamos a la pantalla de aviso de correo
+        // mando a la pantalla de esperando confirmacion
         setTimeout(() => {
             cambiarVista('waiting-confirmation');
-            // Reseteamos el formulario por si acaso
+            // reseteo el formulario
             document.getElementById('form-register').reset();
         }, 1500);
     }
@@ -994,9 +994,9 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     btnSubmit.disabled = false;
 });
 
-// -------------------------------------------
-// FLUJO DE INICIO DE SESIÓN
-// -------------------------------------------
+// --------
+// LOGIN
+// --------
 document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msgBox = document.getElementById('login-message');
@@ -1010,9 +1010,9 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
 
     let emailToUse = identifier;
 
-    // Si NO tiene una arroba (@), asumimos que es un nombre de usuario
+    // si no tiene @ es un usuario
     if (!identifier.includes('@')) {
-        // Le preguntamos a nuestra tabla 'usuarios' cuál es el correo de este usuario
+        // pregunto cual es el correo del usuario
         const { data: userData } = await supabase
             .from('usuarios')
             .select('email')
@@ -1030,7 +1030,7 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
         }
     }
 
-    // Ahora intentamos iniciar sesión con el correo real
+    // intento loguearme con el correo
     const { data, error } = await supabase.auth.signInWithPassword({ email: emailToUse, password });
 
     if (error) {
@@ -1054,26 +1054,26 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     btnSubmit.disabled = false;
 });
 
-// VERIFICAR SESIÓN ACTIVA Y ROLES
+// verifico si tengo sesion activa
 async function verificarSesion() {
     const { data: { session } } = await supabase.auth.getSession();
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
-        // 1. Ponemos el astronauta como SALVAVIDAS temporal para que el botón nunca desaparezca
+        // pongo el astronauta temporalmente
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // 2. Ejecutamos la función pintora (que lo sobrescribirá si tienes un avatar guardado)
+        // cargo el avatar guardado
         cargarDisenoPerfil(session.user.email);
 
-        // Leemos el nombre directamente de los metadatos internos de tu sesión
+        // leo el username de la sesion
         const usernameDisplay = document.getElementById('dropdown-username');
         if (usernameDisplay) {
-            // Saca el usuario con el que te registraste. Si algo fallase extremo, usa el correo.
+            // saco el nombre o el email
             const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombreReal;
 
-            // Lo inyectamos también en la vista de Perfil
+            // lo pongo en el perfil tambien
             const mainProfileUsername = document.getElementById('main-profile-username');
             if (mainProfileUsername) mainProfileUsername.textContent = nombreReal;
         }
@@ -1098,48 +1098,48 @@ async function verificarSesion() {
 verificarSesion();
 
 // ==========================================================================
-//   DETECTOR DE CONFIRMACIÓN DE CORREO
+//   CONFIRMACION DE CORREO
 // ==========================================================================
-// Cuando Supabase redirecciona desde el correo, añade "type=signup" en la URL
+// cuando supabase me redirecciona desde el correo
 if (window.location.hash.includes('type=signup')) {
     cambiarVista('verified-account');
 
-    // Limpiamos la URL para que no quede un churrete largo y feo arriba
+    // limpio la url
     window.history.replaceState(null, null, window.location.pathname);
 }
 
-// Botón de la pantalla de verificado para ir al login
+// boton para ir a login
 document.getElementById('btn-go-login-verified')?.addEventListener('click', () => {
     cambiarVista('login');
 });
 
 // ==========================================================================
-//   DETECTOR DE CONFIRMACIÓN DE CORREO Y AUTO-LOGIN
+//   CONFIRMACION AUTOMATICA
 // ==========================================================================
-// Cuando Supabase redirecciona desde el correo, trae el token mágico en la URL
+// supabase trae el token en la url
 if (window.location.hash.includes('type=signup') || window.location.hash.includes('access_token')) {
-    // 1. Mostramos tu pantalla de éxito
+    // muestro la pantalla de exito
     cambiarVista('verified-account');
 
-    // 2. Le damos 1 segundo a Supabase para que procese el token en la sombra y te loguee
+    // espero a que supabase procese
     setTimeout(() => {
         window.history.replaceState(null, null, window.location.pathname); // Limpiar URL fea
         verificarSesion(); // Actualiza el icono para que salga el casco de astronauta
     }, 1000);
 }
 
-// 3. Ahora el botón sí tiene el ID correcto y te manda directo al HOME (ya estarás logueado)
+// boton para ir a home
 document.getElementById('btn-go-home-verified')?.addEventListener('click', () => {
     cambiarVista('home');
 });
 
 // ==========================================================================
-//   BOTÓN VOLVER ARRIBA Y DETECCIÓN DE SCROLL
+//   SCROLL TOP
 // ==========================================================================
 const btnScrollTop = document.getElementById('btn-scroll-top');
 
 if (btnScrollTop) {
-    // Cuando el usuario hace scroll, comprobamos si bajamos más de 500 píxeles
+    // detecto cuando scrollean
     window.addEventListener('scroll', () => {
         if (window.scrollY > 500) {
             btnScrollTop.classList.add('visible');
@@ -1148,7 +1148,7 @@ if (btnScrollTop) {
         }
     });
 
-    // Al hacer clic, subimos suavemente hasta el pixel 0
+    // subo al tope
     btnScrollTop.addEventListener('click', () => {
         window.scrollTo({
             top: 0,
@@ -1158,7 +1158,7 @@ if (btnScrollTop) {
 }
 
 // ==========================================================================
-//   MODALES DE PERSONALIZACIÓN DE PERFIL (PORTADA Y AVATAR)
+//   MODALES PERFIL BANNER Y AVATAR
 // ==========================================================================
 const modalEdit = document.getElementById('edit-modal');
 const modalClose = document.getElementById('close-modal');
@@ -1169,17 +1169,17 @@ const triggerBanner = document.getElementById('banner-edit-trigger');
 const triggerAvatar = document.getElementById('avatar-edit-trigger');
 
 function openCustomizationModal(type) {
-    // 1. Limpiamos las clases antiguas
+    // limpio las clases
     modalGrid.className = 'modal-grid';
 
-    // Creamos una variable de texto vacía para acumular el HTML
+    // acumulo el html
     let htmlAcumulado = '';
 
     if (type === 'banner') {
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // 1. EL BANNER DEFAULT (Vacío / Color sólido)
+        // opcion sin banner
         htmlAcumulado += `
             <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'default')">
                 <div style="width:100%; height:100%; background: var(--bg-elevated); display:flex; align-items:center; justify-content:center; color: var(--text-muted); font-family: var(--font-cyber);">
@@ -1188,7 +1188,7 @@ function openCustomizationModal(type) {
             </div>
         `;
 
-        // 2. Acumulamos las 5 cards directas desde la carpeta Banners de tu GitHub
+        // agrego los 5 banners
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
@@ -1197,7 +1197,7 @@ function openCustomizationModal(type) {
             `;
         }
 
-        // 3. Acumulamos la última card destacada (CUSTOM)
+        // agrego opcion de custom
         htmlAcumulado += `
             <div class="custom-card-item special-custom" onclick="seleccionarDiseño('banner', 'custom')">
                 <i class="fas fa-upload"></i>
@@ -1208,7 +1208,7 @@ function openCustomizationModal(type) {
         modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
         modalGrid.classList.add('avatar-grid');
 
-        // 1. EL AVATAR DEFAULT (El astronauta que ya tienes puesto)
+        // avatar por defecto
         htmlAcumulado += `
             <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'default')">
                 <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 3.5rem; color: var(--primary);">
@@ -1217,7 +1217,7 @@ function openCustomizationModal(type) {
             </div>
         `;
 
-        // 2. LOS 8 AVATARES LOCALES (Directos desde tu GitHub para evitar bloqueos)
+        // los avatares locales
         const avataresLocales = ['1_m', '1_f', '2_m', '2_f', '3_m', '3_f', '4_m', '4_f'];
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
@@ -1227,7 +1227,7 @@ function openCustomizationModal(type) {
             `;
         });
 
-        // 3. EL BOTÓN CUSTOM ALARGADO (Añadimos la clase 'avatar-custom-btn' para el CSS)
+        // opcion de custom
         htmlAcumulado += `
             <div class="custom-card-item special-custom avatar-custom-btn" onclick="seleccionarDiseño('avatar', 'custom')">
                 <i class="fas fa-cloud-upload-alt"></i>
@@ -1235,7 +1235,7 @@ function openCustomizationModal(type) {
             </div>
         `;
     } else if (type === 'stats') {
-        // ESTADÍSTICAS GLOBALES (Solo de ejemplo, sin funcionalidad real)
+        // solo un placeholder de estadisticas
         modalTitle.innerHTML = '<i class="fas fa-chart-bar"></i> ESTADÍSTICAS GLOBALES';
         modalGrid.className = 'modal-grid'; // Aseguramos que no tenga formato de banner o avatar
 
@@ -1248,21 +1248,21 @@ function openCustomizationModal(type) {
         `;
     }
 
-    // 2. INYECCIÓN ÚNICA: Metemos todo el bloque de HTML de una sola vez
+    // inyecto todo el html
     modalGrid.innerHTML = htmlAcumulado;
 
-    // Mostramos el modal con animación
+    // muestro el modal
     modalEdit.classList.add('show');
 }
 
 // ============================================
-// LÓGICA DE LAS CARDS (GUARDADO EN BASE DE DATOS)
+// GUARDAR DISEÑO EN BD
 // ============================================
 window.seleccionarDiseño = async function (tipo, idCard) {
-    // 1. Cerramos el modal al instante para que parezca instantáneo
+    // cierro el modal al toque
     modalEdit.classList.remove('show');
 
-    // 2. Comprobamos quién es el usuario
+    // pregunto quien es
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
@@ -1272,14 +1272,14 @@ window.seleccionarDiseño = async function (tipo, idCard) {
     if (tipo === 'banner') datoActualizar.banner = idCard;
     if (tipo === 'avatar') datoActualizar.avatar = idCard;
 
-    // 3. Lo guardamos en la tabla 'usuarios'
+    // guardo en la bd
     const { error } = await supabase
         .from('usuarios')
         .update(datoActualizar)
         .eq('email', email);
 
     if (!error) {
-        // 4. Si ha ido bien, recargamos el diseño visualmente de inmediato
+        // si va bien recargo el diseño
         cargarDisenoPerfil(email);
     } else {
         console.error("Error al guardar diseño:", error);
@@ -1287,14 +1287,14 @@ window.seleccionarDiseño = async function (tipo, idCard) {
 }
 
 // ============================================
-// FUNCIÓN PINTORA: LEE DE LA BD Y DIBUJA EL PERFIL
+// CARGAR DISEÑO DE LA BD
 // ============================================
 async function cargarDisenoPerfil(email) {
-    // 1. Valores por defecto (Salvavidas)
+    // defaults
     let avatarId = 'default';
     let bannerId = 'default';
 
-    // 2. Preguntamos a la base de datos
+    // pregunto a la bd
     try {
         const { data: userData } = await supabase
             .from('usuarios')
@@ -1310,40 +1310,40 @@ async function cargarDisenoPerfil(email) {
         console.error("Fallo al leer BD, usando diseño por defecto.");
     }
 
-    // 3. --- PINTAR BANNER EN EL PERFIL GIGANTE ---
+    // pinto el banner
     const bannerEl = document.querySelector('.profile-banner');
     if (bannerEl) {
         if (bannerId === 'default' || bannerId === 'custom') {
-            // Si es por defecto, quitamos la imagen y dejamos el color sólido
+            // si es default sin imagen
             bannerEl.style.backgroundImage = 'none';
         } else {
-            // Si tiene un número, ponemos la imagen de GitHub
+            // si tiene numero pongo la imagen
             bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
         }
     }
 
-    // 4. --- PINTAR AVATAR (Arriba en el Menú y Abajo en el Perfil) ---
+    // pinto el avatar
     let avatarHtml = '';
-    // Si es default o custom (que aún no funciona), ponemos el astronauta
+    // si es default el astronauta
     if (avatarId === 'default' || avatarId === 'custom') {
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
     } else {
-        // Si es uno de tus agentes (1_m, 2_f...), metemos la imagen de GitHub
+        // si es uno de los avatares pongo la imagen
         avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
-    // A. Cambiamos el icono del botón de arriba a la derecha
+    // cambio el icono del boton
     const navAvatarEl = document.getElementById('user-profile');
     if (navAvatarEl) {
         navAvatarEl.innerHTML = avatarHtml;
     }
 
-    // B. Cambiamos el icono gigante del perfil
+    // cambio el avatar gigante
     const perfilAvatarEl = document.querySelector('.profile-avatar');
     if (perfilAvatarEl) {
-        // Guardamos la capa oscura de "editar" para no destruirla al meter la imagen nueva
+        // guardo el overlay de editar
         const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
         perfilAvatarEl.innerHTML = '';
         if (overlay) perfilAvatarEl.appendChild(overlay);
@@ -1353,33 +1353,39 @@ async function cargarDisenoPerfil(email) {
 }
 
 // ============================================
-// LISTENERS (Clickers)
+// LISTENERS
 // ============================================
 
-// Al pulsar la portada
+// click en el banner
 triggerBanner?.addEventListener('click', () => {
     openCustomizationModal('banner');
 });
 
-// Al pulsar el avatar (Importante: detiene el clic para que no active también el banner de detrás)
+// click en el avatar
 triggerAvatar?.addEventListener('click', (evento) => {
     evento.stopPropagation();
     openCustomizationModal('avatar');
 });
 
-// Cerrar Modal con la X
+// cierro con la x
 modalClose?.addEventListener('click', () => {
     modalEdit.classList.remove('show');
 });
 
-// Cerrar Modal pulsando fuera (en lo negro)
+// cierro click afuera
 modalEdit?.addEventListener('click', (evento) => {
     if (evento.target === modalEdit) {
         modalEdit.classList.remove('show');
     }
 });
 
-// Al pulsar la flecha de estadísticas
+// click en estadisticas
 document.getElementById('btn-open-stats-modal')?.addEventListener('click', () => {
     openCustomizationModal('stats');
+});
+
+// boton de agregar amigo
+document.getElementById('btn-add-friend')?.addEventListener('click', () => {
+    console.log('📡 Abriendo panel de busqueda de amigos...');
+    // aqui luego hago un modal o mando una solicitud, ya vere
 });

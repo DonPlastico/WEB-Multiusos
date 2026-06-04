@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RESET Y VARIABLES GLOBALES - PALETA PREMIUM
+   RESET Y VARIABLES - PALETA PREMIUM QUE ME GUSTO
    ========================================================================== */
 
 * {
@@ -9,7 +9,7 @@
 }
 
 :root {
-    /* ===== MODO OSCURO PREMIUM (default) ===== */
+    /* modo oscuro (es mi favorito) */
     --bg-main: #0a0a0f;
     --bg-secondary: #050508;
     --bg-card: #14141c;
@@ -59,7 +59,7 @@
     --neon-glow: 0 0 12px rgba(99, 102, 241, 0.4), 0 0 8px rgba(45, 212, 191, 0.2);
 }
 
-/* ===== MODO CLARO PREMIUM (grises + beige + marrones) ===== */
+/* modo claro (marrones y beiges bonitos) */
 :root[data-theme="light"] {
     --bg-main: #f5f0e8;
     --bg-secondary: #e8e0d5;
@@ -117,10 +117,7 @@ body {
     transition: background-color 0.3s ease, color 0.2s ease;
 }
 
-/* ==========================================================================
-   NAVBAR MEJORADA
-   ========================================================================== */
-
+/* navbar q queda bien */
 .cyber-nav {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -144,7 +141,7 @@ body {
     color: transparent;
     letter-spacing: 2px;
     cursor: pointer;
-    /* Le pone el cursor de la mano */
+    /* le pongo el cursor de manita */
     transition: transform 0.3s ease, filter 0.3s ease;
 }
 
@@ -155,7 +152,7 @@ body {
     color: var(--text-muted);
 }
 
-/* Efecto al pasar el ratón para que se sepa que es un botón */
+/* efecto cuando paso el raton para que se vea que es boton */
 .logo:hover {
     transform: scale(1.05);
     filter: brightness(1.2);
@@ -238,7 +235,7 @@ body {
     color: white !important;
 }
 
-/* ===== MENÚ DESPLEGABLE DE TEMAS ===== */
+/* menu desplegable pa los temas */
 .theme-dropdown {
     position: relative;
 }
@@ -302,10 +299,7 @@ body {
     font-size: 1.5rem;
 }
 
-/* ==========================================================================
-   CONTENEDORES Y VISTAS
-   ========================================================================== */
-
+/* contenedores y vistas principales */
 .cyber-container {
     padding: 50px 150px;
     margin: 0 auto;
@@ -320,10 +314,7 @@ body {
     display: block;
 }
 
-/* ==========================================================================
-   HERO Y SECCIONES MEJORADAS
-   ========================================================================== */
-
+/* hero y seccciones bonitas */
 .hero-section {
     padding: 80px 40px;
     margin-bottom: 50px;
@@ -406,10 +397,7 @@ body {
     border-radius: 16px;
 }
 
-/* ==========================================================================
-   SCANLINES (efecto retro mejorado)
-   ========================================================================== */
-
+/* lineas raras retro pero q quedan bien */
 .scanlines {
     position: fixed;
     top: 0;
@@ -425,10 +413,7 @@ body {
     opacity: 0.3;
 }
 
-/* ==========================================================================
-   VISTA JUEGOS - MEJORADA
-   ========================================================================== */
-
+/* vista de juegos mejorada */
 .search-box {
     background: var(--glass-bg);
     border: 1px solid var(--border-color);
@@ -581,10 +566,7 @@ body {
     font-size: 0.7rem;
 }
 
-/* ==========================================================================
-   LAYOUT DE FILTROS MEJORADO
-   ========================================================================== */
-
+/* los filtros estan aqui */
 .games-layout {
     display: grid;
     grid-template-columns: 1fr 340px;
@@ -660,10 +642,7 @@ body {
     border-radius: 4px;
 }
 
-/* ==========================================================================
-   ACORDEONES MEJORADOS
-   ========================================================================== */
-
+/* acordeones q se cierran y abren */
 .accordion-item {
     border-bottom: 1px solid var(--border-color);
 }
@@ -714,10 +693,7 @@ body {
     animation: slideDown 0.3s ease;
 }
 
-/* ==========================================================================
-   CHECKBOXES PERSONALIZADOS MEJORADOS
-   ========================================================================== */
-
+/* checkboxes personalizados */
 .custom-check {
     display: flex;
     align-items: center;
@@ -763,10 +739,7 @@ body {
     color: white;
 }
 
-/* ==========================================================================
-   INPUTS Y PRECIOS MEJORADOS
-   ========================================================================== */
-
+/* inputs y precios bonitos */
 .cyber-input {
     width: 100%;
     background: var(--bg-secondary);
@@ -906,16 +879,15 @@ body {
     display: flex;
 }
 
-/* Cuando login/register están activos, ocultar el nav del menú principal si quieres (opcional, lo dejo comentado)*/
+/* cuando clickeo en login o register */
 body.auth-mode .nav-links {
     opacity: 0.4;
     pointer-events: none;
 }
 
 /* ============================================================
-   AUTH PAGES - LOGIN & REGISTER
+   PAGINAS DE AUTENTICACION - LOGIN Y REGISTRO
    ============================================================ */
-
 .auth-page {
     min-height: calc(100vh - 70px);
     display: flex;
@@ -945,7 +917,7 @@ body.auth-mode .nav-links {
     z-index: 1;
 }
 
-/* Para la vista de registro el card puede ser más ancho */
+/* Para la vista de registro el card puede ser mas ancho */
 #register .auth-page-inner {
     max-width: 700px;
 }
@@ -1012,7 +984,7 @@ body.auth-mode .nav-links {
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Campos */
+/* campos */
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -1074,7 +1046,7 @@ body.auth-mode .nav-links {
     color-scheme: dark;
 }
 
-/* Contraseña dentro de field-wrapper */
+/* contraseña dentro del campo */
 .field-wrapper.password-wrapper .cyber-input {
     padding-right: 44px !important;
 }
@@ -1117,7 +1089,7 @@ body.auth-mode .nav-links {
     text-decoration: none;
 }
 
-/* Efecto shimmer en hover */
+/* efecto de brillo en hover */
 .auth-btn::after {
     content: '';
     position: absolute;
@@ -1137,7 +1109,7 @@ body.auth-mode .nav-links {
     left: 160%;
 }
 
-/* PRIMARY: fondo sólido color primario, texto oscuro */
+/* primary: color primario, texto blanco */
 .auth-btn.primary {
     background: var(--primary);
     color: #fff;
@@ -1155,7 +1127,7 @@ body.auth-mode .nav-links {
     box-shadow: 0 2px 10px rgba(108, 92, 231, 0.4);
 }
 
-/* SECONDARY: borde con primario, fondo transparente */
+/* secondary: borde con primario, fondo transparente */
 .auth-btn.secondary {
     background: transparent;
     color: var(--text-muted);
@@ -1175,13 +1147,13 @@ body.auth-mode .nav-links {
     transform: translateY(0);
 }
 
-/* Icono del botón más pequeño y alineado */
+/* icono del boton mas pequeño */
 .auth-btn i {
     font-size: 0.95em;
     flex-shrink: 0;
 }
 
-/* Botón deshabilitado */
+/* boton deshabilitado */
 .auth-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
@@ -1193,7 +1165,7 @@ body.auth-mode .nav-links {
     display: none;
 }
 
-/* Botones full width */
+/* botones full width */
 .auth-btn.full-width {
     width: 100%;
     justify-content: center;
@@ -1204,7 +1176,7 @@ body.auth-mode .nav-links {
     margin-top: 4px;
 }
 
-/* Mensaje de error/éxito */
+/* mensaje de error o exito */
 .auth-message {
     font-size: 0.88rem;
     text-align: center;
@@ -1213,7 +1185,7 @@ body.auth-mode .nav-links {
     letter-spacing: 0.5px;
 }
 
-/* Divider con texto */
+/* divider con texto */
 .auth-divider {
     display: flex;
     align-items: center;
@@ -1233,7 +1205,7 @@ body.auth-mode .nav-links {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Texto de términos */
+/* texto de terminos */
 .terms-text {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -1260,7 +1232,7 @@ body.auth-mode .nav-links {
    CUSTOM DATE PICKER (FLATPICKR) - ESTILO CYBER/PREMIUM
    ========================================================================== */
 
-/* Fondo general del calendario */
+/* fondo del calendario */
 .flatpickr-calendar {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
@@ -1271,7 +1243,7 @@ body.auth-mode .nav-links {
     padding: 10px !important;
 }
 
-/* Flechitas de cambiar mes */
+/* las flechitas q cambian el mes */
 .flatpickr-calendar.arrowTop:before,
 .flatpickr-calendar.arrowTop:after {
     border-bottom-color: var(--border-color) !important;
@@ -1281,7 +1253,7 @@ body.auth-mode .nav-links {
     border-bottom-color: var(--bg-card) !important;
 }
 
-/* Cabecera (Mes y Año) */
+/* cabecera del calendario */
 .flatpickr-months .flatpickr-month {
     background: transparent !important;
     color: var(--text-main) !important;
@@ -1300,14 +1272,14 @@ body.auth-mode .nav-links {
     font-weight: 700 !important;
 }
 
-/* Días de la semana (L, M, X...) */
+/* los dias de la semana */
 span.flatpickr-weekday {
     color: var(--primary) !important;
     font-weight: 700 !important;
     letter-spacing: 1px;
 }
 
-/* Días numéricos */
+/* los numeros de los dias */
 .flatpickr-day {
     color: var(--text-main) !important;
     border-radius: 8px !important;
@@ -1315,7 +1287,7 @@ span.flatpickr-weekday {
     transition: all 0.2s ease !important;
 }
 
-/* Hover al pasar el ratón */
+/* cuando paso el raton */
 .flatpickr-day:hover,
 .flatpickr-day:focus {
     background: var(--bg-hover) !important;
@@ -1323,7 +1295,7 @@ span.flatpickr-weekday {
     color: var(--neon-white) !important;
 }
 
-/* Día seleccionado */
+/* el dia que seleccione */
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.endRange,
@@ -1349,14 +1321,14 @@ span.flatpickr-weekday {
     font-weight: bold;
 }
 
-/* Días del mes anterior/siguiente (grises) */
+/* dias del mes anterior/siguiente */
 .flatpickr-day.prevMonthDay,
 .flatpickr-day.nextMonthDay {
     color: var(--text-muted) !important;
     opacity: 0.5;
 }
 
-/* Días de hoy */
+/* el dia de hoy */
 .flatpickr-day.today {
     border-color: var(--primary) !important;
 }
@@ -1371,7 +1343,7 @@ span.flatpickr-weekday {
    ========================================================================== */
 .user-menu-panel {
     min-width: 240px;
-    /* Lo hacemos más ancho para que quepa todo el texto */
+    /* lo hacemos mas ancho para que quepa el texto */
 }
 
 .user-dropdown-header {
@@ -1466,7 +1438,7 @@ span.flatpickr-weekday {
 
 .profile-text {
     margin-bottom: 12px;
-    /* Ajuste para que el texto quede alineado con el centro del avatar */
+    /* ajuste pa que el texto quede bien con el avatar */
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -1515,7 +1487,7 @@ span.flatpickr-weekday {
     opacity: 1;
 }
 
-/* Si el avatar está siendo "hovereado", oculto el overlay del banner */
+/* si el avatar esta en hover oculto el overlay del banner */
 .profile-banner:has(.profile-avatar:hover) .edit-overlay {
     opacity: 0;
 }
@@ -1534,7 +1506,7 @@ span.flatpickr-weekday {
     box-shadow: var(--shadow-lg);
     z-index: 10;
     position: relative;
-    /* Para anclar su overlay */
+    /* para anclar su overlay */
     overflow: hidden;
     cursor: pointer;
 }
@@ -1551,7 +1523,7 @@ span.flatpickr-weekday {
     opacity: 0;
     transition: all 0.3s ease;
     z-index: 15;
-    /* Por encima del astronauta */
+    /* por encima del astronauta */
 }
 
 .profile-avatar:hover .edit-overlay-avatar {
@@ -1619,7 +1591,7 @@ span.flatpickr-weekday {
     overflow-y: auto;
 }
 
-/* Sistema de Grid adaptable */
+/* sistema de grid adaptable */
 .modal-grid {
     display: grid;
     gap: 20px;
@@ -1634,7 +1606,7 @@ span.flatpickr-weekday {
     grid-template-columns: repeat(5, 1fr);
 }
 
-/* Tarjetas base */
+/* tarjetas base */
 .custom-card-item {
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
@@ -1651,14 +1623,14 @@ span.flatpickr-weekday {
 
 .banner-grid .custom-card-item {
     aspect-ratio: 21 / 9;
-    /* Proporción panorámica para portadas */
+    /* proporcion panoramica pa portadas */
 }
 
 .avatar-grid .custom-card-item {
     aspect-ratio: 1 / 1;
-    /* Proporción cuadrada perfecta para avatares */
+    /* proporcion cuadrada pa avatares */
     border-radius: 50%;
-    /* Lo hacemos redondito */
+    /* lo hacemos redondito */
 }
 
 .custom-card-item:hover {
@@ -1673,7 +1645,7 @@ span.flatpickr-weekday {
     object-fit: cover;
 }
 
-/* Tarjeta CUSTOM (Resaltada) */
+/* tarjeta CUSTOM destacada */
 .custom-card-item.special-custom {
     border-style: dashed;
     border-color: var(--primary);
@@ -1714,14 +1686,26 @@ span.flatpickr-weekday {
     justify-content: flex-end;
     margin: 7.5px 0;
     display: flex;
+    gap: 7.5px;
+    align-items: stretch;
     position: relative;
+}
+
+/* Modificador especial para este botón en concreto */
+.add-friend-btn {
+    height: auto;
+    /* anulamos sus 42px fijos por defecto para que se estire */
+    width: 50px;
+    /* un poco mas ancho pa que se vea robusto */
+    font-size: 1.2rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .profile-stats {
     display: flex;
     align-items: center;
     background: var(--bg-main);
-    /* Fondo oscuro como en tu foto */
+    /* fondo oscuro como en tu foto */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 8px 0;
@@ -1733,12 +1717,12 @@ span.flatpickr-weekday {
     flex-direction: column;
     align-items: center;
     padding: 0 35px;
-    /* Espaciado entre las palabras */
+    /* espaciado entre las palabras */
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-/* Pequeño efecto al pasar el ratón por los números */
+/* pequeño efecto al pasar el raton */
 .stat-box:hover .stat-num {
     color: var(--primary);
     transform: scale(1.1);
@@ -1756,14 +1740,14 @@ span.flatpickr-weekday {
     font-size: 0.8rem;
     color: var(--text-muted);
     font-family: sans-serif;
-    /* Para que quede más neutro como en tu imagen */
+    /* para que quede mas neutro como en tu imagen */
 }
 
 .stat-divider {
     width: 1px;
     height: 30px;
     background: var(--border-color);
-    /* La rayita que separa las cajas */
+    /* la rayita que separa las cajas */
 }
 
 /* ==========================================================================
@@ -1782,7 +1766,7 @@ span.flatpickr-weekday {
     letter-spacing: 1px;
 }
 
-/* Flecha elegante y redonda */
+/* flecha elegante y redonda */
 .stats-arrow-btn {
     background: transparent;
     border: 1px solid var(--border-color);
@@ -1798,7 +1782,7 @@ span.flatpickr-weekday {
     color: white !important;
     border-color: var(--primary);
     transform: translateX(6px);
-    /* Efecto de deslizarse hacia la derecha */
+    /* efecto de deslizarse hacia la derecha */
 }
 
 /* Contenedor general de las tarjetas */
@@ -1883,7 +1867,7 @@ span.flatpickr-weekday {
     font-weight: 600;
 }
 
-/* Divisor visual gigante entre Series y Películas */
+/* divisor visual gigante entre Series y Peliculas */
 .stats-main-divider {
     width: 2px;
     background: var(--border-color);
