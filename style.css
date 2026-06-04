@@ -2194,7 +2194,47 @@ span.flatpickr-weekday {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    /* Avatares de 2 en 2 */
+    .cyber-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Fuerza siempre 2 columnas */
+        gap: 12px;
+        /* Reducimos el hueco entre tarjetas para aprovechar pantalla */
+    }
+
+    .game-cover {
+        height: 180px;
+        /* Reducimos la altura de la imagen para que no quede estirada */
+    }
+
+    .game-info {
+        padding: 10px;
+        /* Reducimos los márgenes internos */
+    }
+
+    .game-title {
+        font-size: 0.85rem;
+        /* Título un poco más pequeño */
+        margin-bottom: 4px;
+    }
+
+    .game-release-info {
+        font-size: 0.65rem;
+        /* Texto de fecha más pequeño */
+        gap: 4px;
+    }
+
+    .top-platform-tag {
+        font-size: 0.6rem;
+        padding: 3px 6px;
+        /* Etiqueta de plataforma más compacta */
+        top: 8px;
+        left: 8px;
+    }
+
+    .price-badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
 
     /* Animaciones sutiles para móvil */
     @keyframes fadeIn {
