@@ -2085,6 +2085,11 @@ span.flatpickr-weekday {
         right: 0;
     }
 
+    .filter-sidebar .filters-scroll-area {
+        max-height: calc(100dvh - 65px);
+        overflow-y: auto;
+    }
+
     .cyber-nav {
         grid-template-columns: 1fr auto;
         gap: 20px;
@@ -2347,6 +2352,10 @@ span.flatpickr-weekday {
 
     .btn-mobile-filters {
         display: flex;
+    }
+
+    .filter-main-header {
+        display: none;
     }
 }
 
