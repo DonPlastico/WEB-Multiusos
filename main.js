@@ -75,16 +75,8 @@ function cambiarVista(target, guardarEnHistorial = true) {
 
     // lazy loading, cargo la api solo la primera vez que entro
     if (target === 'games' && !juegosCargados) {
-        console.log('📥 Primera carga de juegos detectada');
         cargarJuegosIGDB();
         juegosCargados = true;
-    } else if (target === 'games' && juegosCargados) {
-        // si ya estaban cargados pero el grid está vacío, intenta de nuevo
-        const gridContent = gridJuegos.innerHTML.trim();
-        if (!gridContent || gridContent.includes('Conectando') || gridContent.includes('BUSCANDO')) {
-            console.log('⚠️ Grid vacío, reintentando carga');
-            cargarJuegosIGDB();
-        }
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
@@ -153,9 +145,6 @@ function arrancarEnrutador() {
     // muestro esa vista
     cambiarVista(vistaInicial, false);
 }
-
-// ejecuto el router al cargar
-arrancarEnrutador();
 
 // ==========================================================================
 //   TEMAS CLARO OSCURO Y ESO
@@ -478,6 +467,8 @@ function cargarMas() {
 }
 
 window.cargarMas = cargarMas;
+
+arrancarEnrutador();
 
 let temporizadorBusqueda; // para la busqueda
 
