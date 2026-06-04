@@ -554,14 +554,16 @@
         <!-- VISTA: PERFIL DE USUARIO -->
         <section id="profile" class="view">
             <div class="profile-layout">
-                <div class="profile-banner glass-panel">
+                <div class="profile-banner glass-panel" id="banner-edit-trigger">
+                    <div class="edit-overlay"><i class="fas fa-camera"></i><span> Cambiar Portada</span></div>
+
                     <div class="profile-header-info">
-                        <div class="profile-avatar">
+                        <div class="profile-avatar" id="avatar-edit-trigger">
+                            <div class="edit-overlay-avatar"><i class="fas fa-pen"></i></div>
                             <i class="fas fa-user-astronaut"></i>
                         </div>
                         <div class="profile-text">
                             <h1 id="main-profile-username" class="profile-username">Usuario</h1>
-                            <button class="profile-edit-btn">EDITAR</button>
                         </div>
                     </div>
                 </div>
@@ -572,6 +574,20 @@
             </div>
         </section>
 
+        <!-- MODAL DE EDICIÓN (REUTILIZABLE PARA AVATAR Y BANNER) -->
+        <div id="edit-modal" class="cyber-modal">
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <h2 id="modal-title">Editar</h2>
+                    <button id="close-modal" class="icon-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÓN DE VOLVER ARRIBA -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
         </button>

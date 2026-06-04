@@ -1058,7 +1058,7 @@ async function verificarSesion() {
             // Saca el usuario con el que te registraste. Si algo fallase extremo, usa el correo.
             const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombreReal;
-            
+
             // Lo inyectamos también en la vista de Perfil
             const mainProfileUsername = document.getElementById('main-profile-username');
             if (mainProfileUsername) mainProfileUsername.textContent = nombreReal;
@@ -1142,3 +1142,104 @@ if (btnScrollTop) {
         });
     });
 }
+
+// ==========================================================================
+//   MODALES DE PERSONALIZACIÓN DE PERFIL (PORTADA Y AVATAR)
+// ==========================================================================
+const modalEdit = document.getElementById('edit-modal');
+const modalClose = document.getElementById('close-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalGrid = document.getElementById('modal-grid');
+
+const triggerBanner = document.getElementById('banner-edit-trigger');
+const triggerAvatar = document.getElementById('avatar-edit-trigger');
+
+function openCustomizationModal(type) {
+    // 1. Limpiamos las clases antiguas
+    modalGrid.innerHTML = '';
+    modalGrid.className = 'modal-grid';
+
+    if (type === 'banner') {
+        modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
+        modalGrid.classList.add('banner-grid');
+
+        // Creamos las 5 cards por defecto (imágenes de prueba de placeholder)
+        for (let i = 1; i <= 5; i++) {
+            modalGrid.innerHTML += `
+                <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'predeterminado_${i}')">
+                    <img src="https://via.placeholder.com/600x300/14141c/6366f1?text=BANNER+${i}" alt="Banner ${i}">
+                </div>
+            `;
+        }
+
+        // Creamos la última card destacada (CUSTOM)
+        modalGrid.innerHTML += `
+            <div class="custom-card-item special-custom" onclick="seleccionarDiseño('banner', 'custom')">
+                <i class="fas fa-upload"></i>
+                <span style="font-weight: 700; font-family: var(--font-cyber); letter-spacing: 1px;">SUBIR CUSTOM</span>
+            </div>
+        `;
+
+    } else if (type === 'avatar') {
+        modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
+        modalGrid.classList.add('avatar-grid');
+
+        // Creamos las 11 cards por defecto
+        for (let i = 1; i <= 11; i++) {
+            modalGrid.innerHTML += `
+                <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'predeterminado_${i}')">
+                    <img src="https://via.placeholder.com/300x300/14141c/2dd4bf?text=AV+${i}" alt="Avatar ${i}">
+                </div>
+            `;
+        }
+
+        // Creamos la última card destacada (CUSTOM)
+        modalGrid.innerHTML += `
+            <div class="custom-card-item special-custom" onclick="seleccionarDiseño('avatar', 'custom')">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span style="font-weight: 700; font-family: var(--font-cyber);">CUSTOM</span>
+            </div>
+        `;
+    }
+
+    // Mostramos el modal con animación
+    modalEdit.classList.add('show');
+}
+
+// ============================================
+// LÓGICA DE LAS CARDS (Función vacía lista para el futuro)
+// ============================================
+window.seleccionarDiseño = function (tipo, idCard) {
+    // Aquí es donde en el futuro le mandaremos la info a Supabase
+    console.log(`📡 Solicitando cambio de: [${tipo.toUpperCase()}] -> Diseño elegido: [${idCard}]`);
+
+    // De momento, solo cerramos el modal al hacer clic para dar el "efecto" de que ha funcionado
+    modalEdit.classList.remove('show');
+}
+
+// ============================================
+// LISTENERS (Clickers)
+// ============================================
+
+// Al pulsar la portada
+triggerBanner?.addEventListener('click', () => {
+    openCustomizationModal('banner');
+});
+
+// Al pulsar el avatar (Importante: detiene el clic para que no active también el banner de detrás)
+triggerAvatar?.addEventListener('click', (evento) => {
+    evento.stopPropagation();
+    openCustomizationModal('avatar');
+});
+
+// Cerrar Modal con la X
+modalClose?.addEventListener('click', () => {
+    modalEdit.classList.remove('show');
+});
+
+// Cerrar Modal pulsando fuera (en lo negro)
+modalEdit?.addEventListener('click', (evento) => {
+    if (evento.target === modalEdit) {
+        modalEdit.classList.remove('show');
+    }
+});
