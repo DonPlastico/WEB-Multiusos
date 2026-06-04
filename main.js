@@ -75,7 +75,7 @@ function cambiarVista(target, guardarEnHistorial = true) {
 
     // lazy loading, cargo la api solo la primera vez que entro
     if (target === 'games' && !juegosCargados) {
-        cargarJuegosIGDB();
+        aplicarFiltros();
         juegosCargados = true;
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
@@ -473,6 +473,72 @@ function cargarMas() {
     cargarJuegosIGDB(busquedaActual, false);
 }
 
+// ==========================================================================
+//   PERSISTENCIA DE FILTROS EN LOCALSTORAGE
+// ==========================================================================
+function guardarFiltros() {
+    const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
+        .map(cb => cb.value)
+        .filter(val => val && val !== 'on');
+
+    const precioMin = document.getElementById('precio-min')?.value || '';
+    const precioMax = document.getElementById('precio-max')?.value || '';
+
+    const adultMovie = document.getElementById('adult-filter-movie')?.checked || false;
+    const adultSeries = document.getElementById('adult-filter-series')?.checked || false;
+
+    const filtrosState = {
+        games: { platforms: platSeleccionadas, precioMin, precioMax },
+        movies: { adult: adultMovie },
+        series: { adult: adultSeries }
+    };
+
+    // Guardamos todo el paquete en la memoria del navegador
+    localStorage.setItem('dp_sys_filters_v1', JSON.stringify(filtrosState));
+}
+
+function restaurarFiltrosDOM() {
+    const guardados = localStorage.getItem('dp_sys_filters_v1');
+    if (!guardados) return;
+
+    try {
+        const state = JSON.parse(guardados);
+
+        // Restaurar Juegos
+        if (state.games) {
+            if (state.games.platforms && state.games.platforms.length > 0) {
+                const platInputs = document.querySelectorAll('.plat-item input');
+                platInputs.forEach(cb => {
+                    if (state.games.platforms.includes(cb.value)) cb.checked = true;
+                });
+                // Si marcamos alguna plataforma, desmarcamos el botón "TODAS"
+                const platTodas = document.getElementById('plat-todas');
+                if (platTodas) platTodas.checked = false;
+            }
+
+            if (state.games.precioMin) document.getElementById('precio-min').value = state.games.precioMin;
+            if (state.games.precioMax) document.getElementById('precio-max').value = state.games.precioMax;
+        }
+
+        // Restaurar Películas (+18)
+        if (state.movies && state.movies.adult) {
+            const cbMovie = document.getElementById('adult-filter-movie');
+            if (cbMovie) cbMovie.checked = true;
+        }
+
+        // Restaurar Series (+18)
+        if (state.series && state.series.adult) {
+            const cbSeries = document.getElementById('adult-filter-series');
+            if (cbSeries) cbSeries.checked = true;
+        }
+    } catch (error) {
+        console.error('Error al restaurar filtros:', error);
+    }
+}
+
+// Ejecutamos la restauración del DOM antes de cargar nada
+restaurarFiltrosDOM();
+
 window.cargarMas = cargarMas;
 
 arrancarEnrutador();
@@ -539,15 +605,17 @@ const platItems = document.querySelectorAll('.plat-item input'); // Son los inpu
 
 function aplicarFiltros() {
     // 1. Recolectar valores de las plataformas
-    // Nos aseguramos de que solo pasen los que tienen un value numérico
     const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
-        .map(cb => cb.value) // Esto debería ser el ID (ej: "6")
-        .filter(val => val && val !== 'on') // FILTRO ANTI-ERROR: Si el value es "on", lo ignoramos
+        .map(cb => cb.value)
+        .filter(val => val && val !== 'on')
         .join(',');
 
     // 1.5 Recolectar valores de precio
     const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
     const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
+
+    // === GUARDAR ESTADO EN LA MEMORIA ===
+    guardarFiltros();
 
     // 2. Depuración para ver qué está pasando antes de enviar
     console.log("Plataformas:", platSeleccionadas, "| Precio:", precioMin, "-", precioMax);
@@ -1110,10 +1178,13 @@ async function verificarSesion() {
         // Mostramos u ocultamos el panel secreto
         document.querySelectorAll('.nsfw-filter-container').forEach(el => {
             el.style.display = esAdulto ? 'block' : 'none';
-            // Si por algún motivo no es adulto, forzamos a que el checkbox esté apagado
+            // SEGURIDAD: Si no es adulto, forzamos a que esté apagado en el DOM y en su disco duro
             if (!esAdulto) {
                 const cb = el.querySelector('.adult-checkbox');
-                if (cb) cb.checked = false;
+                if (cb && cb.checked) {
+                    cb.checked = false;
+                    guardarFiltros(); // Sobrescribimos el localStorage para borrar la manipulación
+                }
             }
         });
 
@@ -1133,11 +1204,16 @@ async function verificarSesion() {
         if (btnAdmin) btnAdmin.style.display = 'none';
 
         // === Si no hay sesión (usuario temporal), ocultar y apagar +18 ===
+        let borrado = false;
         document.querySelectorAll('.nsfw-filter-container').forEach(el => {
             el.style.display = 'none';
             const cb = el.querySelector('.adult-checkbox');
-            if (cb) cb.checked = false;
+            if (cb && cb.checked) {
+                cb.checked = false;
+                borrado = true;
+            }
         });
+        if (borrado) guardarFiltros();
     }
 }
 
@@ -1467,15 +1543,55 @@ document.getElementById('btn-add-friend')?.addEventListener('click', () => {
 });
 
 // ============================================
-// LISTENERS PARA FILTROS +18
+// LISTENERS PARA FILTROS +18 Y BOTONES LIMPIAR
 // ============================================
 document.getElementById('adult-filter-movie')?.addEventListener('change', () => {
-    // Si cambia el filtro, reseteamos y buscamos de nuevo
+    guardarFiltros(); // Guardamos el estado
     cargarTMDB('movie', searchMoviesActual, true);
 });
 
 document.getElementById('adult-filter-series')?.addEventListener('change', () => {
+    guardarFiltros(); // Guardamos el estado
     cargarTMDB('tv', searchSeriesActual, true);
+});
+
+// Botón de Limpiar Filtros de JUEGOS
+document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
+    // Limpiamos checks
+    document.querySelectorAll('.plat-item input').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.tienda-item').forEach(cb => cb.checked = false);
+
+    // Devolvemos el check a "TODAS"
+    const platTodas = document.getElementById('plat-todas');
+    if (platTodas) platTodas.checked = true;
+    const tiendaTodas = document.getElementById('tienda-todas');
+    if (tiendaTodas) tiendaTodas.checked = true;
+
+    // Limpiamos precios
+    const pMin = document.getElementById('precio-min');
+    if (pMin) pMin.value = '';
+    const pMax = document.getElementById('precio-max');
+    if (pMax) pMax.value = '';
+
+    aplicarFiltros(); // Al aplicarlos vacíos, se guarda en memoria y recarga el listado limpio
+});
+
+// Botones de Limpiar de SERIES y PELÍCULAS
+document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const target = e.target.getAttribute('data-target');
+        if (target === 'movie') {
+            const cb = document.getElementById('adult-filter-movie');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('movie', searchMoviesActual, true);
+        } else if (target === 'tv') {
+            const cb = document.getElementById('adult-filter-series');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('tv', searchSeriesActual, true);
+        }
+    });
 });
 
 // ==========================================================================
