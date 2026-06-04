@@ -421,11 +421,18 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
         }
 
         // inyecto las tarjetas
-        datos.forEach(juego => {
-            gridJuegos.innerHTML += crearTarjeta(juego);
+        const precioMin = filtros.precioMin ?? 0;
+        const precioMax = filtros.precioMax ?? 9999;
+
+        const datosFiltrados = datos.filter(juego => {
+            const precio = juego.itad?.precio;
+            if (precio === null || precio === undefined) return true; // sin precio siempre pasa
+            return precio >= precioMin && precio <= precioMax;
         });
 
-        aplicarFiltros();
+        datosFiltrados.forEach(juego => {
+            gridJuegos.innerHTML += crearTarjeta(juego);
+        });
 
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
@@ -538,15 +545,19 @@ function aplicarFiltros() {
         .filter(val => val && val !== 'on') // FILTRO ANTI-ERROR: Si el value es "on", lo ignoramos
         .join(',');
 
+    // 1.5 Recolectar valores de precio
+    const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
+    const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
+
     // 2. Depuración para ver qué está pasando antes de enviar
-    console.log("IDs de plataforma enviados:", platSeleccionadas);
+    console.log("Plataformas:", platSeleccionadas, "| Precio:", precioMin, "-", precioMax);
 
     // 3. Lanzar carga
     if (platSeleccionadas) {
-        cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas });
+        cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas, precioMin, precioMax });
     } else {
         // Si no hay nada seleccionado, recargamos normal
-        cargarJuegosIGDB(busquedaActual, true);
+        cargarJuegosIGDB(busquedaActual, true, { precioMin, precioMax });
     }
 }
 
@@ -580,6 +591,17 @@ platItems.forEach(cb => {
         if ([...platItems].every(c => !c.checked)) platTodas.checked = true;
         aplicarFiltros();
     });
+});
+
+// filtro de precio
+let tempPrecio;
+document.getElementById('precio-min')?.addEventListener('input', () => {
+    clearTimeout(tempPrecio);
+    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
+});
+document.getElementById('precio-max')?.addEventListener('input', () => {
+    clearTimeout(tempPrecio);
+    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
 });
 
 // boton para ver todas las plataformas

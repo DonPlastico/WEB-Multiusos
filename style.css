@@ -117,6 +117,13 @@ body {
     transition: background-color 0.3s ease, color 0.2s ease;
 }
 
+input[type=number]::webkit-inner-spin-button,
+input[type=number]::webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
 /* navbar q queda bien */
 .cyber-nav {
     display: grid;
