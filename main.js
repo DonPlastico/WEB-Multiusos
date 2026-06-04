@@ -524,24 +524,23 @@ const tiendasItems = document.querySelectorAll('.tienda-item');
 const platTodas = document.getElementById('plat-todas');
 const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
 
+// Variable global para controlar el temporizador
+let temporizadorFiltros;
+
 function aplicarFiltros() {
-    // 1. Recolectar valores de las plataformas
-    // Nos aseguramos de que solo pasen los que tienen un value numérico
-    const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
-        .map(cb => cb.value) // Esto debería ser el ID (ej: "6")
-        .filter(val => val && val !== 'on') // FILTRO ANTI-ERROR: Si el value es "on", lo ignoramos
-        .join(',');
+    // Cancelamos cualquier petición que estuviera pendiente de lanzarse
+    clearTimeout(temporizadorFiltros);
 
-    // 2. Depuración para ver qué está pasando antes de enviar
-    console.log("IDs de plataforma enviados:", platSeleccionadas);
+    // Esperamos 500ms antes de ejecutar la carga real
+    temporizadorFiltros = setTimeout(() => {
+        const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
+            .map(cb => cb.value)
+            .filter(val => val && val !== 'on')
+            .join(',');
 
-    // 3. Lanzar carga
-    if (platSeleccionadas) {
+        console.log("Aplicando filtros:", platSeleccionadas);
         cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas });
-    } else {
-        // Si no hay nada seleccionado, recargamos normal
-        cargarJuegosIGDB(busquedaActual, true);
-    }
+    }, 500);
 }
 
 // eventos de tiendas
