@@ -1050,7 +1050,10 @@ async function verificarSesion() {
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
-        // Ejecutamos la función pintora que se encarga de poner el avatar correcto
+        // 1. Ponemos el astronauta como SALVAVIDAS temporal para que el botón nunca desaparezca
+        btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+
+        // 2. Ejecutamos la función pintora (que lo sobrescribirá si tienes un avatar guardado)
         cargarDisenoPerfil(session.user.email);
 
         // Leemos el nombre directamente de los metadatos internos de tu sesión
@@ -1265,56 +1268,65 @@ window.seleccionarDiseño = async function (tipo, idCard) {
 // FUNCIÓN PINTORA: LEE DE LA BD Y DIBUJA EL PERFIL
 // ============================================
 async function cargarDisenoPerfil(email) {
-    const { data: userData } = await supabase
-        .from('usuarios')
-        .select('avatar, banner')
-        .eq('email', email)
-        .maybeSingle();
+    // 1. Valores por defecto (Salvavidas)
+    let avatarId = 'default';
+    let bannerId = 'default';
 
-    if (userData) {
-        const avatarId = userData.avatar || 'default';
-        const bannerId = userData.banner || 'default'; // Cambiado el fallback a 'default' en vez de '1'
+    // 2. Preguntamos a la base de datos
+    try {
+        const { data: userData } = await supabase
+            .from('usuarios')
+            .select('avatar, banner')
+            .eq('email', email)
+            .maybeSingle();
 
-        // --- PINTAR BANNER EN EL PERFIL GIGANTE ---
-        const bannerEl = document.querySelector('.profile-banner');
-        if (bannerEl) {
-            if (bannerId === 'default' || bannerId === 'custom') {
-                // Si es por defecto, quitamos la imagen y dejamos el color sólido
-                bannerEl.style.backgroundImage = 'none';
-            } else {
-                // Si tiene un número, ponemos la imagen de GitHub
-                bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
-                bannerEl.style.backgroundSize = 'cover';
-                bannerEl.style.backgroundPosition = 'center';
-            }
+        if (userData) {
+            avatarId = userData.avatar || 'default';
+            bannerId = userData.banner || 'default';
         }
+    } catch (error) {
+        console.error("Fallo al leer BD, usando diseño por defecto.");
+    }
 
-        // --- PINTAR AVATAR (Arriba en el Menú y Abajo en el Perfil) ---
-        let avatarHtml = '';
-        // Si es default o custom (que aún no funciona), ponemos el astronauta
-        if (avatarId === 'default' || avatarId === 'custom') {
-            avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+    // 3. --- PINTAR BANNER EN EL PERFIL GIGANTE ---
+    const bannerEl = document.querySelector('.profile-banner');
+    if (bannerEl) {
+        if (bannerId === 'default' || bannerId === 'custom') {
+            // Si es por defecto, quitamos la imagen y dejamos el color sólido
+            bannerEl.style.backgroundImage = 'none';
         } else {
-            // Si es uno de tus agentes (1_m, 2_f...), metemos la imagen de GitHub
-            avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            // Si tiene un número, ponemos la imagen de GitHub
+            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
+            bannerEl.style.backgroundSize = 'cover';
+            bannerEl.style.backgroundPosition = 'center';
         }
+    }
 
-        // A. Cambiamos el icono del botón de arriba a la derecha
-        const navAvatarEl = document.getElementById('user-profile');
-        if (navAvatarEl) {
-            navAvatarEl.innerHTML = avatarHtml;
-        }
+    // 4. --- PINTAR AVATAR (Arriba en el Menú y Abajo en el Perfil) ---
+    let avatarHtml = '';
+    // Si es default o custom (que aún no funciona), ponemos el astronauta
+    if (avatarId === 'default' || avatarId === 'custom') {
+        avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+    } else {
+        // Si es uno de tus agentes (1_m, 2_f...), metemos la imagen de GitHub
+        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    }
 
-        // B. Cambiamos el icono gigante del perfil
-        const perfilAvatarEl = document.querySelector('.profile-avatar');
-        if (perfilAvatarEl) {
-            // Guardamos la capa oscura de "editar" para no destruirla al meter la imagen nueva
-            const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
-            perfilAvatarEl.innerHTML = '';
-            if (overlay) perfilAvatarEl.appendChild(overlay);
+    // A. Cambiamos el icono del botón de arriba a la derecha
+    const navAvatarEl = document.getElementById('user-profile');
+    if (navAvatarEl) {
+        navAvatarEl.innerHTML = avatarHtml;
+    }
 
-            perfilAvatarEl.insertAdjacentHTML('beforeend', avatarHtml);
-        }
+    // B. Cambiamos el icono gigante del perfil
+    const perfilAvatarEl = document.querySelector('.profile-avatar');
+    if (perfilAvatarEl) {
+        // Guardamos la capa oscura de "editar" para no destruirla al meter la imagen nueva
+        const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
+        perfilAvatarEl.innerHTML = '';
+        if (overlay) perfilAvatarEl.appendChild(overlay);
+
+        perfilAvatarEl.insertAdjacentHTML('beforeend', avatarHtml);
     }
 }
 
