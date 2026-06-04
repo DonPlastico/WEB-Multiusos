@@ -6,15 +6,23 @@ export default async function handler(req, res) {
     const busqueda = req.query.query || '';
     const offset = parseInt(req.query.offset) || 0;
 
+    // NUEVO: Capturamos filtros (esperamos IDs separados por comas, ej: "6,48")
+    const platforms = req.query.platforms || '';
+    const genres = req.query.genres || '';
+
     try {
-        // 1. Conseguir token de Twitch
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // 2. Tu consulta 100% original, SOLO añadiendo la palabra "category" a los fields
+        // Construimos el WHERE dinámicamente
+        let whereClauses = ['total_rating > 80']; // Base
+        if (platforms) whereClauses.push(`platforms = (${platforms})`);
+        if (genres) whereClauses.push(`genres = (${genres})`);
+        const whereQuery = whereClauses.join(' & ');
+
         const bodyQuery = busqueda
             ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; where total_rating > 80; limit 50; offset ${offset};`;
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; where ${whereQuery}; limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',

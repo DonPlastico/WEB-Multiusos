@@ -368,7 +368,7 @@ function crearTarjeta(juego) {
     `;
 }
 
-async function cargarJuegosIGDB(busqueda = '', resetear = true) {
+async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = {}) {
     if (cargando) return;
     cargando = true;
 
@@ -409,7 +409,11 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true) {
     }
 
     try {
-        const url = `/api/igdb?offset=${offsetActual}${busquedaActual ? `&query=${encodeURIComponent(busquedaActual)}` : ''}`;
+        // Construimos la URL incluyendo los nuevos filtros
+        let url = `/api/igdb?offset=${offsetActual}`;
+        if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
+        if (filtros.platforms) url += `&platforms=${filtros.platforms}`;
+
         const respuesta = await fetch(url);
         if (!respuesta.ok) throw new Error('Error en el servidor');
 
@@ -521,56 +525,14 @@ const platTodas = document.getElementById('plat-todas');
 const platItems = document.querySelectorAll('.plat-item input'); // Son los inputs dentro de los label .plat-item
 
 function aplicarFiltros() {
-    // saco que tiendas estan marcadas
-    const tiendasSeleccionadas = Array.from(tiendasItems)
-        .filter(cb => cb.checked)
-        .map(cb => cb.parentElement.textContent.trim().toLowerCase());
-    const filtroTodasTiendas = tiendasTodas.checked;
+    // 1. Recolectar valores (Asegúrate de que tus checkboxes tengan los values correctos: PC=6, PS5=167, etc.)
+    const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
+        .map(cb => cb.value)
+        .join(',');
 
-    // saco que plataformas estan marcadas
-    const platSeleccionadas = Array.from(platItems)
-        .filter(cb => cb.checked)
-        .map(cb => cb.parentElement.textContent.trim().toLowerCase());
-    const filtroTodasPlat = platTodas.checked;
-
-    let cartasVisibles = 0;
-
-    // reviso tarjeta por tarjeta
-    document.querySelectorAll('.game-card').forEach(card => {
-        const storesStr = card.getAttribute('data-stores') || '';
-        const platStr = card.getAttribute('data-platforms') || '';
-
-        // pasa el filtro de tienda?
-        let pasaTienda = false;
-        if (filtroTodasTiendas) {
-            pasaTienda = true;
-        } else if (storesStr !== 'none') {
-            pasaTienda = tiendasSeleccionadas.some(t => storesStr.includes(t));
-        }
-
-        // pasa el filtro de plataforma?
-        let pasaPlat = false;
-        if (filtroTodasPlat) {
-            pasaPlat = true;
-        } else {
-            pasaPlat = platSeleccionadas.some(p => platStr.includes(p));
-        }
-
-        // muestro si pasa los dos filtros
-        if (pasaTienda && pasaPlat) {
-            card.style.display = 'flex';
-            cartasVisibles++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-
-    // cargo mas si faltan resultados
-    const btnMas = document.getElementById('btn-cargar-mas');
-    if ((!filtroTodasTiendas || !filtroTodasPlat) && cartasVisibles < 20 && !cargando && btnMas) {
-        btnMas.querySelector('button').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Auto-buscando...';
-        cargarMas();
-    }
+    // 2. Lanzar carga nueva (resetear = true)
+    // Pasamos el nuevo objeto de filtros
+    cargarJuegosIGDB(busquedaActual, true, { platforms: platSeleccionadas });
 }
 
 // eventos de tiendas
