@@ -406,7 +406,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         let url = `/api/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
-        if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
 
         console.log('📡 Llamada a:', url);
 
@@ -526,10 +525,8 @@ function guardarFiltros() {
     const adultMovie = document.getElementById('adult-filter-movie')?.checked || false;
     const adultSeries = document.getElementById('adult-filter-series')?.checked || false;
 
-    const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked')).map(cb => cb.value);
-
     const filtrosState = {
-        games: { platforms: platSeleccionadas, stores: tiendasSeleccionadas, genres: generosSeleccionados, precioMin, precioMax },
+        games: { platforms: platSeleccionadas, stores: tiendasSeleccionadas, precioMin, precioMax },
         movies: { adult: adultMovie },
         series: { adult: adultSeries }
     };
@@ -554,22 +551,11 @@ function restaurarFiltrosDOM() {
                 });
             }
 
-            // Restaurar Tiendas
+            // NUEVO: Restaurar Tiendas
             if (state.games.stores && state.games.stores.length > 0) {
                 const tiendaInputs = document.querySelectorAll('.tienda-item');
                 tiendaInputs.forEach(cb => {
                     if (state.games.stores.includes(cb.value)) cb.checked = true;
-                });
-            }
-
-            // Restaurar Géneros
-            if (state.games.genres && state.games.genres.length > 0) {
-                const genreInputs = document.querySelectorAll('.genre-item input');
-                genreInputs.forEach(cb => {
-                    if (state.games.genres.includes(cb.value)) {
-                        cb.checked = true;
-                        cb.closest('.genre-item').style.display = ''; // Lo revelamos si estaba oculto
-                    }
                 });
             }
 
@@ -625,8 +611,9 @@ inputBuscar.addEventListener('keypress', (e) => {
 });
 
 // ==========================================================================
-//   BUSCADOR DE GÉNEROS
+//   FILTROS DE JUEGOS
 // ==========================================================================
+
 const buscadorGeneros = document.getElementById('search-genre');
 const itemsGenero = document.querySelectorAll('.genre-item');
 
@@ -635,17 +622,15 @@ if (buscadorGeneros) {
         const txt = e.target.value.toLowerCase().trim();
 
         itemsGenero.forEach(item => {
-            // Buscamos el segundo span (el que tiene el texto, no el del checkbox)
-            const spanTexto = item.querySelectorAll('span')[1];
-            const nombreGenero = spanTexto ? spanTexto.textContent.toLowerCase() : item.textContent.toLowerCase();
+            const nombreGenero = item.querySelector('span').textContent.toLowerCase();
             const checkbox = item.querySelector('input');
             const esOculto = item.classList.contains('hidden-genre');
 
             if (txt === '') {
-                // Si borras la búsqueda, los "hidden" se vuelven a ocultar (SALVO que estén marcados)
+                // al borrar muestro solo los marcados
                 item.style.display = (esOculto && !checkbox.checked) ? 'none' : '';
             } else {
-                // Si hay texto, revelamos todo lo que coincida
+                // con texto muestro lo que coincida
                 item.style.display = nombreGenero.includes(txt) ? '' : 'none';
             }
         });
@@ -670,10 +655,6 @@ function aplicarFiltros() {
     const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
         .map(cb => cb.value.toLowerCase());
 
-    // 2.1 Para el filtro de juegos, guardamos los generos como IDs separados por comas
-    const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
-        .map(cb => cb.value).join(','); // Sacamos los IDs de los géneros marcados
-
     // 3. Recolectar valores de precio
     const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
     const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
@@ -681,13 +662,12 @@ function aplicarFiltros() {
     // === GUARDAR ESTADO EN LA MEMORIA ===
     guardarFiltros();
 
-    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax);
+    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Precio:", precioMin, "-", precioMax);
 
     // 4. Lanzar carga pasando todos los filtros
     cargarJuegosIGDB(busquedaActual, true, {
         platforms: platSeleccionadas,
         stores: tiendasSeleccionadas,
-        genres: generosSeleccionados,
         precioMin,
         precioMax
     });
@@ -705,12 +685,6 @@ platItems.forEach(cb => {
     cb.addEventListener('change', () => {
         aplicarFiltros();
     });
-});
-
-// Eventos de géneros blindados
-const genreItemsInputs = document.querySelectorAll('.genre-item input');
-genreItemsInputs.forEach(cb => {
-    cb.addEventListener('change', triggerFiltrosConRetraso);
 });
 
 // filtro de precio
@@ -743,8 +717,7 @@ const accordions = document.querySelectorAll('.accordion-header');
 
 accordions.forEach(header => {
     header.addEventListener('click', () => {
-        const parentItem = header.closest('.accordion-item');
-        if (!parentItem) return;
+        const parentItem = header.parentElement;
         parentItem.classList.toggle('active');
     });
 });
