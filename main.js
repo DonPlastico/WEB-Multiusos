@@ -292,6 +292,9 @@ let busquedaActual = '';
 let cargando = false;
 let filtrosGlobales = {};
 
+let autoScanTimeout = null;
+let peticionAbort = null;
+
 function crearTarjeta(juego) {
     const portada = juego.cover
         ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
@@ -353,19 +356,20 @@ function crearTarjeta(juego) {
 }
 
 async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
-    if (cargando) return;
-    cargando = true;
-
+    // 1. SISTEMA DE FRENADO DE EMERGENCIA
     if (resetear) {
+        clearTimeout(autoScanTimeout); // Detenemos cualquier escáner fantasma
+        if (peticionAbort) peticionAbort.abort(); // Cortamos la conexión de red anterior
+
+        cargando = false; // Desbloqueamos el sistema
         offsetActual = 0;
         busquedaActual = busqueda;
 
-        // Guardamos los filtros en la variable global para que el scroll los recuerde
         if (filtros !== null) {
             filtrosGlobales = filtros;
         }
 
-        // muestro el loader
+        // Mostrar loader inicial
         gridJuegos.innerHTML = `
             <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
@@ -380,7 +384,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
 
         document.getElementById('btn-cargar-mas')?.remove();
     } else {
-        // transformo el boton en un loader
         const btnMas = document.getElementById('btn-cargar-mas');
         if (btnMas) {
             btnMas.innerHTML = `
@@ -392,14 +395,22 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
     }
 
+    if (cargando) return;
+    cargando = true;
+
+    // 2. CREAMOS UNA NUEVA SEÑAL PARA ESTA PETICIÓN
+    const miAbort = new AbortController();
+    peticionAbort = miAbort;
+
     try {
-        // === USAMOS LA VARIABLE GLOBAL PARA CONSTRUIR LA URL ===
         let url = `/api/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
 
         console.log('📡 Llamada a:', url);
-        const respuesta = await fetch(url);
+
+        // Le pasamos la señal a la llamada de red
+        const respuesta = await fetch(url, { signal: miAbort.signal });
         if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
 
         const datos = await respuesta.json();
@@ -411,28 +422,40 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             if (resetear) {
                 gridJuegos.innerHTML = '<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">Sin resultados. Intenta otra busqueda.</div>';
             }
-            cargando = false;
+            if (peticionAbort === miAbort) cargando = false;
             return;
         }
 
-        // === USAMOS LA VARIABLE GLOBAL PARA FILTRAR EN LOCAL ===
         const precioMin = filtrosGlobales.precioMin ?? 0;
         const precioMax = filtrosGlobales.precioMax ?? 9999;
         const tiendasFiltro = filtrosGlobales.stores || [];
 
         const datosFiltrados = datos.filter(juego => {
-            // A) Filtro de Precio
             const precio = juego.itad?.precio;
             let pasaPrecio = true;
             if (precio !== null && precio !== undefined) {
                 pasaPrecio = precio >= precioMin && precio <= precioMax;
             }
 
-            // B) Filtro de Tiendas
+            // B) Filtro de Tiendas (Blindado y exacto)
             let pasaTienda = true;
             if (tiendasFiltro.length > 0) {
                 const storesDelJuego = juego.itad?.stores || '';
-                pasaTienda = tiendasFiltro.some(tienda => storesDelJuego.includes(tienda));
+                // Rompemos el string en un array real para evitar cruces de palabras
+                const arrayTiendas = storesDelJuego.split(',');
+
+                pasaTienda = tiendasFiltro.some(filtro => {
+                    return arrayTiendas.some(tiendaReal => {
+                        if (filtro === 'ea') {
+                            // Para EA, exigimos que ITAD diga exactamente su nombre oficial.
+                            // Así evitamos que la letra "ea" se cruce con "st-ea-m"
+                            return tiendaReal === 'ea app' || tiendaReal === 'origin' || tiendaReal === 'ea store';
+                        }
+                        
+                        // basta con que incluya la palabra base
+                        return tiendaReal.includes(filtro);
+                    });
+                });
             }
 
             return pasaPrecio && pasaTienda;
@@ -442,18 +465,13 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
-        // =========================================================
-        // EL AUTO-SCANNER SEGURO (Evita el Error 500)
-        // =========================================================
-
+        // 3. AUTO-ESCANEO (SOLO SI NO NOS HAN CANCELADO)
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
             if (datosFiltrados.length === 0) {
-                // La API devolvió 50 juegos, pero NINGUNO pasó los filtros.
-                // Hacemos AUTO-SCROLL pero con una pausa para no reventar el servidor.
                 btnMas.innerHTML = `
                     <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
                         <i class="fas fa-radar fa-spin"></i> Escaneando capas profundas... (Saltando sector irrelevante)
@@ -461,36 +479,43 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 `;
                 gridJuegos.after(btnMas);
 
-                // Esperamos 800ms y lanzamos la siguiente tanda automáticamente
-                setTimeout(() => {
-                    cargando = false; // Desbloqueamos
-                    cargarMas();
+                // Programamos el siguiente escáner
+                autoScanTimeout = setTimeout(() => {
+                    if (peticionAbort === miAbort) {
+                        cargando = false;
+                        cargarMas();
+                    }
                 }, 800);
 
             } else {
-                // Comportamiento normal (sí encontró juegos, rearmamos el vigilante)
                 btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
                 gridJuegos.after(btnMas);
                 observadorScroll.observe(btnMas);
             }
         } else if (datos.length < 50 && datosFiltrados.length === 0) {
-            // Llegamos al final absoluto de la base de datos de IGDB y no hay más
             const btnMas = document.createElement('div');
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; color: var(--text-muted);";
             btnMas.innerHTML = '<i class="fas fa-exclamation-circle"></i> No se encontraron más resultados en toda la red.';
             gridJuegos.after(btnMas);
         }
 
-        offsetActual += datos.length;
+        // Liberamos solo si somos la petición actual
+        if (peticionAbort === miAbort) {
+            offsetActual += datos.length;
+            cargando = false;
+        }
 
     } catch (error) {
-        console.error("❌ Error cargando juegos:", error);
-        if (resetear) {
-            gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">Fallo al conectar con la API.</div>';
+        if (error.name === 'AbortError') {
+            console.log('🛑 Búsqueda cancelada e interceptada. Iniciando nueva orden.');
+        } else {
+            console.error("❌ Error cargando juegos:", error);
+            if (resetear) {
+                gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">Fallo al conectar con la API.</div>';
+            }
+            if (peticionAbort === miAbort) cargando = false;
         }
     }
-
-    cargando = false;
 }
 
 function cargarMas() {
