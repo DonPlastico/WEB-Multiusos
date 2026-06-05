@@ -437,7 +437,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 pasaPrecio = precio >= precioMin && precio <= precioMax;
             }
 
-            // B) Filtro de Tiendas (Blindado y exacto)
+            // Filtro de Tiendas (Blindado y exacto)
             let pasaTienda = true;
             if (tiendasFiltro.length > 0) {
                 const storesDelJuego = juego.itad?.stores || '';
@@ -451,7 +451,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                             // Así evitamos que la letra "ea" se cruce con "st-ea-m"
                             return tiendaReal === 'ea app' || tiendaReal === 'origin' || tiendaReal === 'ea store';
                         }
-                        
+
                         // basta con que incluya la palabra base
                         return tiendaReal.includes(filtro);
                     });
@@ -688,32 +688,36 @@ function aplicarFiltros() {
     });
 }
 
-// Eventos de tiendas (limpios, sin el "TODAS")
+// ==========================================================================
+// ESCUDO ANTI-SPAM (DEBOUNCER)
+// ==========================================================================
+let temporizadorFiltros;
+
+function triggerFiltrosConRetraso() {
+    clearTimeout(temporizadorFiltros); // Si hay un clic nuevo rápido, cancela la cuenta atrás anterior
+
+    // Esperamos 500ms (medio segundo) después del último clic para disparar la red
+    temporizadorFiltros = setTimeout(() => {
+        aplicarFiltros();
+    }, 500);
+}
+
+// Eventos de tiendas blindados
 tiendasItems.forEach(cb => {
-    cb.addEventListener('change', () => {
-        aplicarFiltros();
-    });
+    cb.addEventListener('change', triggerFiltrosConRetraso);
 });
 
-// Eventos de plataformas (limpios, sin el "TODAS")
+// Eventos de plataformas blindados
 platItems.forEach(cb => {
-    cb.addEventListener('change', () => {
-        aplicarFiltros();
-    });
+    cb.addEventListener('change', triggerFiltrosConRetraso);
 });
 
-// filtro de precio
-let tempPrecio;
-document.getElementById('precio-min')?.addEventListener('input', () => {
-    clearTimeout(tempPrecio);
-    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
-});
-document.getElementById('precio-max')?.addEventListener('input', () => {
-    clearTimeout(tempPrecio);
-    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
-});
+// Eventos de precio blindados
+document.getElementById('precio-min')?.addEventListener('input', triggerFiltrosConRetraso);
+document.getElementById('precio-max')?.addEventListener('input', triggerFiltrosConRetraso);
 
-// boton para ver todas las plataformas (¡RESTURADO!)
+
+// boton para ver todas las plataformas
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
