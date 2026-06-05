@@ -472,7 +472,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
             if (datosFiltrados.length === 0) {
-                gridJuegos.after(btnMas);
 
                 // Programamos el siguiente escáner
                 autoScanTimeout = setTimeout(() => {
