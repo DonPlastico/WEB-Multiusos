@@ -437,25 +437,10 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 pasaPrecio = precio >= precioMin && precio <= precioMax;
             }
 
-            // Filtro de Tiendas (Blindado y exacto)
             let pasaTienda = true;
             if (tiendasFiltro.length > 0) {
                 const storesDelJuego = juego.itad?.stores || '';
-                // Rompemos el string en un array real para evitar cruces de palabras
-                const arrayTiendas = storesDelJuego.split(',');
-
-                pasaTienda = tiendasFiltro.some(filtro => {
-                    return arrayTiendas.some(tiendaReal => {
-                        if (filtro === 'ea') {
-                            // Para EA, exigimos que ITAD diga exactamente su nombre oficial.
-                            // Así evitamos que la letra "ea" se cruce con "st-ea-m"
-                            return tiendaReal === 'ea app' || tiendaReal === 'origin' || tiendaReal === 'ea store';
-                        }
-
-                        // basta con que incluya la palabra base
-                        return tiendaReal.includes(filtro);
-                    });
-                });
+                pasaTienda = tiendasFiltro.some(tienda => storesDelJuego.includes(tienda));
             }
 
             return pasaPrecio && pasaTienda;
@@ -472,6 +457,12 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
             if (datosFiltrados.length === 0) {
+                btnMas.innerHTML = `
+                    <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
+                        <i class="fas fa-radar fa-spin"></i> Escaneando capas profundas... (Saltando sector irrelevante)
+                    </div>
+                `;
+                gridJuegos.after(btnMas);
 
                 // Programamos el siguiente escáner
                 autoScanTimeout = setTimeout(() => {
