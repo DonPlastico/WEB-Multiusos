@@ -442,14 +442,43 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
-        // Solo ponemos botón de cargar más si IGDB nos dio los 50 completos
+        // =========================================================
+        // EL AUTO-SCANNER SEGURO (Evita el Error 500)
+        // =========================================================
+
         if (datos.length === 50) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
-            btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
+
+            if (datosFiltrados.length === 0) {
+                // La API devolvió 50 juegos, pero NINGUNO pasó los filtros.
+                // Hacemos AUTO-SCROLL pero con una pausa para no reventar el servidor.
+                btnMas.innerHTML = `
+                    <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
+                        <i class="fas fa-radar fa-spin"></i> Escaneando capas profundas... (Saltando sector irrelevante)
+                    </div>
+                `;
+                gridJuegos.after(btnMas);
+
+                // Esperamos 800ms y lanzamos la siguiente tanda automáticamente
+                setTimeout(() => {
+                    cargando = false; // Desbloqueamos
+                    cargarMas();
+                }, 800);
+
+            } else {
+                // Comportamiento normal (sí encontró juegos, rearmamos el vigilante)
+                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
+                gridJuegos.after(btnMas);
+                observadorScroll.observe(btnMas);
+            }
+        } else if (datos.length < 50 && datosFiltrados.length === 0) {
+            // Llegamos al final absoluto de la base de datos de IGDB y no hay más
+            const btnMas = document.createElement('div');
+            btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; color: var(--text-muted);";
+            btnMas.innerHTML = '<i class="fas fa-exclamation-circle"></i> No se encontraron más resultados en toda la red.';
             gridJuegos.after(btnMas);
-            observadorScroll.observe(btnMas);
         }
 
         offsetActual += datos.length;
@@ -465,7 +494,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
 }
 
 function cargarMas() {
-    // Ya no hace falta pasar filtros, la función usará filtrosGlobales
     cargarJuegosIGDB(busquedaActual, false);
 }
 
