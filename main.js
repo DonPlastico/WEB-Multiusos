@@ -681,7 +681,7 @@ function aplicarFiltros() {
     // === GUARDAR ESTADO EN LA MEMORIA ===
     guardarFiltros();
 
-    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Precio:", precioMin, "-", precioMax);
+    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax);
 
     // 4. Lanzar carga pasando todos los filtros
     cargarJuegosIGDB(busquedaActual, true, {
@@ -743,7 +743,8 @@ const accordions = document.querySelectorAll('.accordion-header');
 
 accordions.forEach(header => {
     header.addEventListener('click', () => {
-        const parentItem = header.parentElement;
+        const parentItem = header.closest('.accordion-item');
+        if (!parentItem) return;
         parentItem.classList.toggle('active');
     });
 });
