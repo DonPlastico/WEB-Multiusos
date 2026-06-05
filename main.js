@@ -472,11 +472,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
             if (datosFiltrados.length === 0) {
-                btnMas.innerHTML = `
-                    <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
-                        <i class="fas fa-radar fa-spin"></i> Escaneando capas profundas... (Saltando sector irrelevante)
-                    </div>
-                `;
                 gridJuegos.after(btnMas);
 
                 // Programamos el siguiente escáner
@@ -688,36 +683,32 @@ function aplicarFiltros() {
     });
 }
 
-// ==========================================================================
-// ESCUDO ANTI-SPAM (DEBOUNCER)
-// ==========================================================================
-let temporizadorFiltros;
-
-function triggerFiltrosConRetraso() {
-    clearTimeout(temporizadorFiltros); // Si hay un clic nuevo rápido, cancela la cuenta atrás anterior
-
-    // Esperamos 500ms (medio segundo) después del último clic para disparar la red
-    temporizadorFiltros = setTimeout(() => {
-        aplicarFiltros();
-    }, 500);
-}
-
-// Eventos de tiendas blindados
+// Eventos de tiendas (limpios, sin el "TODAS")
 tiendasItems.forEach(cb => {
-    cb.addEventListener('change', triggerFiltrosConRetraso);
+    cb.addEventListener('change', () => {
+        aplicarFiltros();
+    });
 });
 
-// Eventos de plataformas blindados
+// Eventos de plataformas (limpios, sin el "TODAS")
 platItems.forEach(cb => {
-    cb.addEventListener('change', triggerFiltrosConRetraso);
+    cb.addEventListener('change', () => {
+        aplicarFiltros();
+    });
 });
 
-// Eventos de precio blindados
-document.getElementById('precio-min')?.addEventListener('input', triggerFiltrosConRetraso);
-document.getElementById('precio-max')?.addEventListener('input', triggerFiltrosConRetraso);
+// filtro de precio
+let tempPrecio;
+document.getElementById('precio-min')?.addEventListener('input', () => {
+    clearTimeout(tempPrecio);
+    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
+});
+document.getElementById('precio-max')?.addEventListener('input', () => {
+    clearTimeout(tempPrecio);
+    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
+});
 
-
-// boton para ver todas las plataformas
+// boton para ver todas las plataformas (¡RESTURADO!)
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
