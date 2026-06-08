@@ -1899,22 +1899,21 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
         // LLAMADA A HLTB
-        fetch(`https://howlongtobeat.online/api/search?q=${encodeURIComponent(titulo)}`)
+        // LLAMADA A TU PROPIA API DE HLTB (que usa RAWG internamente)
+        fetch(`/api/hltb?title=${encodeURIComponent(titulo)}`)
             .then(res => res.json())
             .then(data => {
-                // La mayoría de estas APIs devuelven un array. Cogemos el primero.
-                const game = data[0];
-                if (!game) return;
+                if (!data || data.error) return;
 
-                // Pintamos los datos
-                document.getElementById('hltb-main').textContent = game.main_story ? `${game.main_story} h` : '--';
-                document.getElementById('hltb-extra').textContent = game.main_extra ? `${game.main_extra} h` : '--';
-                document.getElementById('hltb-comp').textContent = game.completionist ? `${game.completionist} h` : '--';
+                // Pintamos los datos que devuelve tu API (RAWG)
+                document.getElementById('hltb-main').textContent = data.main;
+                document.getElementById('hltb-extra').textContent = data.mainExtra;
+                document.getElementById('hltb-comp').textContent = data.completionist;
 
-                // Lógica de barritas (asegurando números)
-                const vMain = parseFloat(game.main_story) || 0;
-                const vExtra = parseFloat(game.main_extra) || 0;
-                const vComp = parseFloat(game.completionist) || 0;
+                // Lógica de barritas
+                const vMain = parseFloat(data.barMain) || 0;
+                const vExtra = parseFloat(data.barExtra) || 0;
+                const vComp = parseFloat(data.barComp) || 0;
                 const max = Math.max(vMain, vExtra, vComp);
 
                 if (max > 0) {
