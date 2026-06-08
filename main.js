@@ -1898,8 +1898,8 @@ async function llamarDetallesJuego(idJuego, titulo) {
             containerLinks.textContent = 'N/A';
         }
 
-        // LLAMADA A HLTB
-        fetch(`/api/hltb?title=${encodeURIComponent(titulo)}`)
+        // LLAMADA A duracion
+        fetch(`/api/duracion?title=${encodeURIComponent(titulo)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.error) return;

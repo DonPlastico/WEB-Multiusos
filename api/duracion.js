@@ -4,7 +4,7 @@ export default async function handler(req, res) {
 
     try {
         // Esta URL es pública y no requiere API Key para búsquedas simples
-        const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(title)}&search_precise=true`);
+        const response = await fetch(`https://backloggd.com/search/games?query=${encodeURIComponent(title)}`);
         const data = await response.json();
 
         if (!data.results || data.results.length === 0) {
