@@ -759,6 +759,12 @@ genreItemsInputs.forEach(cb => {
     cb.addEventListener('change', aplicarFiltros);
 });
 
+// Agregar listeners para los modos de juego (JUGADORES)
+const modeItems = document.querySelectorAll('.mode-item');
+modeItems.forEach(cb => {
+    cb.addEventListener('change', aplicarFiltros);
+});
+
 document.getElementById('precio-min')?.addEventListener('input', aplicarFiltros);
 document.getElementById('precio-max')?.addEventListener('input', aplicarFiltros);
 document.getElementById('date-min')?.addEventListener('change', aplicarFiltros);
