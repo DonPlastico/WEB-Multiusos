@@ -41,8 +41,8 @@ export default async function handler(req, res) {
 
         // 2. CONSTRUIMOS LA QUERY FINAL
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category, game_modes.name; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category, game_modes.name; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -58,9 +58,22 @@ export default async function handler(req, res) {
         const dataRaw = await igdbRes.json();
 
         // 3. EL FILTRO SEGURO DE CATEGORÍAS LOCAL
-        const juegosIGDB = dataRaw.filter(j =>
-            j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10
-        );
+        const juegosIGDB = dataRaw.filter(j => {
+            // Primero, filtro de categoría que ya tenías
+            const categoriaCorrecta = j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10;
+
+            // Segundo, filtro de modos (si el usuario eligió alguno)
+            let modoCorrecto = true;
+            if (modes && j.game_modes) {
+                const modoSeleccionadoArray = modes.split(',');
+                // Comprobamos si el juego tiene AL MENOS uno de los modos seleccionados
+                modoCorrecto = j.game_modes.some(m => modoSeleccionadoArray.includes(m.id.toString()));
+            } else if (modes) {
+                modoCorrecto = false; // Si elegiste modo pero el juego no tiene info de modos
+            }
+
+            return categoriaCorrecta && modoCorrecto;
+        });
 
         if (juegosIGDB.length === 0) return res.status(200).json([]);
 
