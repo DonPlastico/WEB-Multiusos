@@ -9,9 +9,10 @@ export default async function handler(req, res) {
     const platforms = req.query.platforms || '';
     const genres = req.query.genres || '';
 
-    // === NUEVO: CAPTURAR FECHAS ===
     const dateMin = req.query.dateMin || '';
     const dateMax = req.query.dateMax || '';
+
+    const modes = req.query.modes || '';
 
     try {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
@@ -21,8 +22,9 @@ export default async function handler(req, res) {
         let whereClauses = [];
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
+        if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        // === NUEVO: TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
+        // ===  TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
         if (dateMin) {
             const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);

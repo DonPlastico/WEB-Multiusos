@@ -413,6 +413,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
         if (filtrosGlobales.dateMin) url += `&dateMin=${filtrosGlobales.dateMin}`;
         if (filtrosGlobales.dateMax) url += `&dateMax=${filtrosGlobales.dateMax}`;
+        if (filtrosGlobales.modes) url += `&modes=${filtrosGlobales.modes}`;
 
         console.log('📡 Llamada a:', url);
 
@@ -525,8 +526,11 @@ function guardarFiltros() {
     const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
         .map(cb => cb.value);
 
-    // Guardar filtros
     const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
+        .map(cb => cb.value);
+
+    // === NUEVO: GUARDAR MODOS DE JUEGO (JUGADORES) ===
+    const modosSeleccionados = Array.from(document.querySelectorAll('.mode-item:checked'))
         .map(cb => cb.value);
 
     const precioMin = document.getElementById('precio-min')?.value || '';
@@ -543,6 +547,7 @@ function guardarFiltros() {
             platforms: platSeleccionadas,
             stores: tiendasSeleccionadas,
             genres: generosSeleccionados,
+            modes: modosSeleccionados, // <--- Guardamos los modos
             precioMin,
             precioMax,
             dateMin,
@@ -562,7 +567,6 @@ function restaurarFiltrosDOM() {
     try {
         const state = JSON.parse(guardados);
 
-        // Restaurar Juegos
         if (state.games) {
             // Restaurar Plataformas
             if (state.games.platforms && state.games.platforms.length > 0) {
@@ -580,19 +584,36 @@ function restaurarFiltrosDOM() {
                 });
             }
 
+            // Restaurar Géneros
+            if (state.games.genres && state.games.genres.length > 0) {
+                const genreInputs = document.querySelectorAll('.genre-item input');
+                genreInputs.forEach(cb => {
+                    if (state.games.genres.includes(cb.value)) {
+                        cb.checked = true;
+                        cb.closest('.genre-item').style.display = '';
+                    }
+                });
+            }
+
+            // === NUEVO: RESTAURAR MODOS DE JUEGO ===
+            if (state.games.modes && state.games.modes.length > 0) {
+                const modeInputs = document.querySelectorAll('.mode-item');
+                modeInputs.forEach(cb => {
+                    if (state.games.modes.includes(cb.value)) cb.checked = true;
+                });
+            }
+
             if (state.games.precioMin) document.getElementById('precio-min').value = state.games.precioMin;
             if (state.games.precioMax) document.getElementById('precio-max').value = state.games.precioMax;
             if (state.games.dateMin) document.getElementById('date-min').value = state.games.dateMin;
             if (state.games.dateMax) document.getElementById('date-max').value = state.games.dateMax;
         }
 
-        // Restaurar Películas (+18)
+        // ... resto de lógica de pelis/series igual ...
         if (state.movies && state.movies.adult) {
             const cbMovie = document.getElementById('adult-filter-movie');
             if (cbMovie) cbMovie.checked = true;
         }
-
-        // Restaurar Series (+18)
         if (state.series && state.series.adult) {
             const cbSeries = document.getElementById('adult-filter-series');
             if (cbSeries) cbSeries.checked = true;
@@ -690,13 +711,19 @@ function aplicarFiltros() {
 
         // 3. Recolectar valores de Géneros
         const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
-            .map(cb => cb.value).join(',');
+            .map(cb => cb.value)
+            .join(',');
 
-        // 4. Recolectar valores de precio
+        // 4. Recolectar valores de Géneros (ahora con el nuevo sistema de tags en el HTML)
+        const modosSeleccionados = Array.from(document.querySelectorAll('.mode-item:checked'))
+            .map(cb => cb.value)
+            .join(',');
+
+        // 5. Recolectar valores de precio
         const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
         const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
 
-        // 5. RECOLECTAR FECHAS
+        // 6. RECOLECTAR FECHAS
         const dateMin = document.getElementById('date-min')?.value || '';
         const dateMax = document.getElementById('date-max')?.value || '';
 
@@ -710,6 +737,7 @@ function aplicarFiltros() {
             platforms: platSeleccionadas,
             stores: tiendasSeleccionadas,
             genres: generosSeleccionados,
+            modes: modosSeleccionados,
             precioMin,
             precioMax,
             dateMin,
@@ -1631,6 +1659,9 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
             cb.closest('.genre-item').style.display = 'none';
         }
     });
+
+    // Dentro del evento 'click' de btn-reset-filters
+    document.querySelectorAll('.mode-item').forEach(cb => cb.checked = false);
 
     // Limpiamos la barra de buscar géneros
     const searchGenre = document.getElementById('search-genre');
