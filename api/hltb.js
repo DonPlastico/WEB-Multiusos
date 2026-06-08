@@ -3,17 +3,25 @@ export default async function handler(req, res) {
     if (!title) return res.status(400).json({ error: 'Falta el título' });
 
     try {
-        // Import dinámico en runtime porque el proyecto usa ESM
-        const HLTB = await import('howlongtobeat');
-        const hltbService = new HLTB.HowLongToBeatService();
+        // HLTB usa un formulario POST para buscar
+        const response = await fetch('https://howlongtobeat.com/api/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0'
+            },
+            body: JSON.stringify({
+                searchTerms: title.split(' '),
+                searchPage: 1,
+                size: 2,
+                searchOptions: { games: { userId: 0, platform: "", sortCategory: "relevance", rangeCategory: "main", rangeTime: { min: 0, max: 0 }, gameplayFilter: "main", timeCategory: "main", timeType: "main", modifier: "any" } }
+            })
+        });
 
-        const results = await hltbService.search(title);
+        const data = await response.json();
+        if (!data.data || data.data.length === 0) return res.status(404).json({ error: 'No encontrado' });
 
-        if (!results || results.length === 0) {
-            return res.status(404).json({ error: 'No encontrado' });
-        }
-
-        const game = results[0];
+        const game = data.data[0];
 
         res.status(200).json({
             main: game.gameplayMain ? `${game.gameplayMain} h` : '--',
@@ -24,7 +32,6 @@ export default async function handler(req, res) {
             barComp: game.gameplayCompletionist || 0
         });
     } catch (error) {
-        console.error("Error en HLTB:", error);
         res.status(500).json({ error: 'Error al consultar HowLongToBeat' });
     }
 }
