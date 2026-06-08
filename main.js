@@ -1899,27 +1899,31 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
         // LLAMADA A HLTB
-        fetch(`/api/hltb?title=${encodeURIComponent(titulo)}`)
+        fetch(`https://howlongtobeat.online/api/search?q=${encodeURIComponent(titulo)}`)
             .then(res => res.json())
             .then(data => {
-                // ... dentro del .then(data => { ...
-                const barMain = document.querySelector('.bar-main');
-                const barExtra = document.querySelector('.bar-extra');
-                const barComp = document.querySelector('.bar-comp');
+                // La mayoría de estas APIs devuelven un array. Cogemos el primero.
+                const game = data[0];
+                if (!game) return;
 
-                const max = Math.max(parseFloat(data.barMain) || 0, parseFloat(data.barExtra) || 0, parseFloat(data.barComp) || 0);
+                // Pintamos los datos
+                document.getElementById('hltb-main').textContent = game.main_story ? `${game.main_story} h` : '--';
+                document.getElementById('hltb-extra').textContent = game.main_extra ? `${game.main_extra} h` : '--';
+                document.getElementById('hltb-comp').textContent = game.completionist ? `${game.completionist} h` : '--';
+
+                // Lógica de barritas (asegurando números)
+                const vMain = parseFloat(game.main_story) || 0;
+                const vExtra = parseFloat(game.main_extra) || 0;
+                const vComp = parseFloat(game.completionist) || 0;
+                const max = Math.max(vMain, vExtra, vComp);
 
                 if (max > 0) {
-                    barMain.style.width = `${(parseFloat(data.barMain) / max) * 100}%`;
-                    barExtra.style.width = `${(parseFloat(data.barExtra) / max) * 100}%`;
-                    barComp.style.width = `${(parseFloat(data.barComp) / max) * 100}%`;
-                } else {
-                    barMain.style.width = '0%';
-                    barExtra.style.width = '0%';
-                    barComp.style.width = '0%';
+                    document.querySelector('.bar-main').style.width = `${(vMain / max) * 100}%`;
+                    document.querySelector('.bar-extra').style.width = `${(vExtra / max) * 100}%`;
+                    document.querySelector('.bar-comp').style.width = `${(vComp / max) * 100}%`;
                 }
             })
-            .catch(err => console.log("HLTB no disponible para este título"));
+            .catch(err => console.log("HLTB no disponible"));
 
     } catch (error) {
         console.error("Error:", error);
