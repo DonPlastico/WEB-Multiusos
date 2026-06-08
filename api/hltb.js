@@ -3,8 +3,8 @@ export default async function handler(req, res) {
     if (!title) return res.status(400).json({ error: 'Falta el título' });
 
     try {
-        // Usamos require dentro del handler para asegurar que se carga en el runtime
-        const HLTB = require('howlongtobeat');
+        // Import dinámico en runtime porque el proyecto usa ESM
+        const HLTB = await import('howlongtobeat');
         const hltbService = new HLTB.HowLongToBeatService();
 
         const results = await hltbService.search(title);
