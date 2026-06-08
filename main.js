@@ -296,9 +296,11 @@ let autoScanTimeout = null;
 let peticionAbort = null;
 
 function crearTarjeta(juego) {
-    const portada = juego.cover
+    // 1. Lógica de la imagen
+    const tienePortada = juego.cover && juego.cover.url;
+    const portada = tienePortada
         ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
-        : 'https://via.placeholder.com/264x374?text=SIN+PORTADA';
+        : '';
 
     const fechaFormateada = juego.first_release_date
         ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
@@ -309,10 +311,7 @@ function crearTarjeta(juego) {
     // Obtener todas las plataformas únicas
     let htmlPlataformas = '';
     if (juego.platforms && juego.platforms.length > 0) {
-        // Obtenemos los nombres únicos para no repetir (ej: si tiene PC y Windows, que salga una vez)
         const nombresPlat = [...new Set(juego.platforms.map(p => p.name))];
-
-        // Creamos una etiqueta por cada plataforma
         htmlPlataformas = nombresPlat.map(name => `
             <span class="plat-tag">${name.split(' ')[0]}</span>
         `).join('');
@@ -334,13 +333,18 @@ function crearTarjeta(juego) {
         htmlPrecio = `<span class="price-na">Sin ofertas actuales</span>`;
     }
 
+    // 2. Lógica del contenedor de imagen
+    const imgHtml = tienePortada
+        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" onerror="this.parentElement.innerHTML='<div class=\'no-cover\'><i class=\'fas fa-gamepad\'></i></div>'">`
+        : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
+
     return `
         <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
                 <div class="platforms-container" style="position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-wrap:wrap; gap:4px;">
                     ${htmlPlataformas}
                 </div>
-                <img src="${portada}" alt="${juego.name}" class="game-cover">
+                ${imgHtml}
             </div>
             <div class="game-info">
                 <h3 class="game-title">${juego.name}</h3>

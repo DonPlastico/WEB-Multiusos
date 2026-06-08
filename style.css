@@ -488,9 +488,34 @@ input[type=number]::-webkit-outer-spin-button {
     box-shadow: var(--shadow-lg);
 }
 
+/* Estilos para cuando no hay portada */
 .game-cover-container {
     position: relative;
+    width: 100%;
+    height: 250px;
+    /* Igual que tu .game-cover original */
     overflow: hidden;
+    background: var(--bg-card);
+    /* O el color de fondo de tus cards */
+}
+
+.no-cover {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 3rem;
+}
+
+.game-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
 }
 
 .top-platform-tag {
