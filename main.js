@@ -547,7 +547,7 @@ function guardarFiltros() {
             platforms: platSeleccionadas,
             stores: tiendasSeleccionadas,
             genres: generosSeleccionados,
-            modes: modosSeleccionados, // <--- Guardamos los modos
+            modes: modosSeleccionados,
             precioMin,
             precioMax,
             dateMin,
@@ -557,11 +557,11 @@ function guardarFiltros() {
         series: { adult: adultSeries }
     };
 
-    localStorage.setItem('dp_sys_filters_v1', JSON.stringify(filtrosState));
+    localStorage.setItem('dp_sys_filters_v2', JSON.stringify(filtrosState));
 }
 
 function restaurarFiltrosDOM() {
-    const guardados = localStorage.getItem('dp_sys_filters_v1');
+    const guardados = localStorage.getItem('dp_sys_filters_v2');
     if (!guardados) return;
 
     try {
@@ -1655,9 +1655,11 @@ document.getElementById('adult-filter-series')?.addEventListener('change', () =>
 
 // Botón de Limpiar Filtros de JUEGOS
 document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
-    // Limpiamos checks
+    // 1. Limpiamos todos los checkboxes
     document.querySelectorAll('.plat-item input').forEach(cb => cb.checked = false);
     document.querySelectorAll('.tienda-item').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.mode-item').forEach(cb => cb.checked = false);
+
     document.querySelectorAll('.genre-item input').forEach(cb => {
         cb.checked = false;
         // Si el género era oculto, lo volvemos a esconder al limpiar
@@ -1666,20 +1668,30 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
         }
     });
 
-    // Dentro del evento 'click' de btn-reset-filters
-    document.querySelectorAll('.mode-item').forEach(cb => cb.checked = false);
-
-    // Limpiamos la barra de buscar géneros
+    // 2. Limpiamos las barras de búsqueda (géneros y juegos general)
     const searchGenre = document.getElementById('search-genre');
     if (searchGenre) searchGenre.value = '';
 
-    // Limpiamos precios
+    const searchJuegos = document.getElementById('search-juegos');
+    if (searchJuegos) {
+        searchJuegos.value = '';
+        busquedaActual = ''; // Reseteamos la memoria de búsqueda
+    }
+
+    // 3. Limpiamos precios
     const pMin = document.getElementById('precio-min');
     if (pMin) pMin.value = '';
     const pMax = document.getElementById('precio-max');
     if (pMax) pMax.value = '';
 
-    aplicarFiltros(); // Al aplicarlos vacíos, se guarda en memoria y recarga limpio
+    // 4. Limpiamos fechas
+    const dMin = document.getElementById('date-min');
+    if (dMin) dMin.value = '';
+    const dMax = document.getElementById('date-max');
+    if (dMax) dMax.value = '';
+
+    // 5. Aplicamos y guardamos el estado limpio
+    aplicarFiltros();
 });
 
 // Botones de Limpiar de SERIES y PELÍCULAS
