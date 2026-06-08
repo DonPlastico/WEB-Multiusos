@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         let whereClauses = [];
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
-        if (modes) whereClauses.push(`game_modes = (${modes})`);
+        if (modes) whereClauses.push(`game_modes = [${modes}]`);
 
         // ===  TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
         if (dateMin) {
