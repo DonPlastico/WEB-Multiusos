@@ -611,9 +611,8 @@ inputBuscar.addEventListener('keypress', (e) => {
 });
 
 // ==========================================================================
-//   FILTROS DE JUEGOS
+//   BUSCADOR DE GÉNEROS
 // ==========================================================================
-
 const buscadorGeneros = document.getElementById('search-genre');
 const itemsGenero = document.querySelectorAll('.genre-item');
 
@@ -622,15 +621,17 @@ if (buscadorGeneros) {
         const txt = e.target.value.toLowerCase().trim();
 
         itemsGenero.forEach(item => {
-            const nombreGenero = item.querySelector('span').textContent.toLowerCase();
+            // Buscamos el segundo span (el que tiene el texto, no el del checkbox)
+            const spanTexto = item.querySelectorAll('span')[1];
+            const nombreGenero = spanTexto ? spanTexto.textContent.toLowerCase() : item.textContent.toLowerCase();
             const checkbox = item.querySelector('input');
             const esOculto = item.classList.contains('hidden-genre');
 
             if (txt === '') {
-                // al borrar muestro solo los marcados
+                // Si borras la búsqueda, los "hidden" se vuelven a ocultar (SALVO que estén marcados)
                 item.style.display = (esOculto && !checkbox.checked) ? 'none' : '';
             } else {
-                // con texto muestro lo que coincida
+                // Si hay texto, revelamos todo lo que coincida
                 item.style.display = nombreGenero.includes(txt) ? '' : 'none';
             }
         });
@@ -638,67 +639,73 @@ if (buscadorGeneros) {
 }
 
 // ==========================================================================
-//   FILTROS DE TIENDAS Y PLATAFORMAS
+//   FILTROS DE TIENDAS, PLATAFORMAS Y GÉNEROS
 // ==========================================================================
 
 const tiendasItems = document.querySelectorAll('.tienda-item');
 const platItems = document.querySelectorAll('.plat-item input');
+const genreItemsInputs = document.querySelectorAll('.genre-item input');
+
+// Temporizador global para el escudo anti-spam
+let temporizadorFiltrosPrincipal;
 
 function aplicarFiltros() {
-    // 1. Recolectar valores de las plataformas
-    const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
-        .map(cb => cb.value)
-        .filter(val => val && val !== 'on')
-        .join(',');
+    clearTimeout(temporizadorFiltrosPrincipal);
 
-    // 2. Recolectar valores de Tiendas
-    const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
-        .map(cb => cb.value.toLowerCase());
+    // Esperamos 500ms (medio segundo) antes de lanzar la petición. 
+    // Así evitamos el Error 500 si haces muchos clics seguidos.
+    temporizadorFiltrosPrincipal = setTimeout(() => {
+        // 1. Recolectar valores de las plataformas
+        const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
+            .map(cb => cb.value)
+            .filter(val => val && val !== 'on')
+            .join(',');
 
-    // 3. Recolectar valores de precio
-    const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
-    const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
+        // 2. Recolectar valores de Tiendas
+        const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
+            .map(cb => cb.value.toLowerCase());
 
-    // === GUARDAR ESTADO EN LA MEMORIA ===
-    guardarFiltros();
+        // 3. Recolectar valores de Géneros
+        const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
+            .map(cb => cb.value).join(',');
 
-    console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Precio:", precioMin, "-", precioMax);
+        // 4. Recolectar valores de precio
+        const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
+        const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
 
-    // 4. Lanzar carga pasando todos los filtros
-    cargarJuegosIGDB(busquedaActual, true, {
-        platforms: platSeleccionadas,
-        stores: tiendasSeleccionadas,
-        precioMin,
-        precioMax
-    });
+        // === GUARDAR ESTADO EN LA MEMORIA ===
+        guardarFiltros();
+
+        console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax);
+
+        // Lanzar carga pasando todos los filtros
+        cargarJuegosIGDB(busquedaActual, true, {
+            platforms: platSeleccionadas,
+            stores: tiendasSeleccionadas,
+            genres: generosSeleccionados,
+            precioMin,
+            precioMax
+        });
+    }, 500);
 }
 
-// Eventos de tiendas (limpios, sin el "TODAS")
+// Listeners: Ahora todos apuntan directamente a aplicarFiltros (que ya tiene el retraso incorporado)
 tiendasItems.forEach(cb => {
-    cb.addEventListener('change', () => {
-        aplicarFiltros();
-    });
+    cb.addEventListener('change', aplicarFiltros);
 });
 
-// Eventos de plataformas (limpios, sin el "TODAS")
 platItems.forEach(cb => {
-    cb.addEventListener('change', () => {
-        aplicarFiltros();
-    });
+    cb.addEventListener('change', aplicarFiltros);
 });
 
-// filtro de precio
-let tempPrecio;
-document.getElementById('precio-min')?.addEventListener('input', () => {
-    clearTimeout(tempPrecio);
-    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
-});
-document.getElementById('precio-max')?.addEventListener('input', () => {
-    clearTimeout(tempPrecio);
-    tempPrecio = setTimeout(() => aplicarFiltros(), 600);
+genreItemsInputs.forEach(cb => {
+    cb.addEventListener('change', aplicarFiltros);
 });
 
-// boton para ver todas las plataformas (¡RESTURADO!)
+document.getElementById('precio-min')?.addEventListener('input', aplicarFiltros);
+document.getElementById('precio-max')?.addEventListener('input', aplicarFiltros);
+
+// boton para ver todas las plataformas
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
@@ -1586,6 +1593,17 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     // Limpiamos checks
     document.querySelectorAll('.plat-item input').forEach(cb => cb.checked = false);
     document.querySelectorAll('.tienda-item').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.genre-item input').forEach(cb => {
+        cb.checked = false;
+        // Si el género era oculto, lo volvemos a esconder al limpiar
+        if (cb.closest('.hidden-genre')) {
+            cb.closest('.genre-item').style.display = 'none';
+        }
+    });
+
+    // Limpiamos la barra de buscar géneros
+    const searchGenre = document.getElementById('search-genre');
+    if (searchGenre) searchGenre.value = '';
 
     // Limpiamos precios
     const pMin = document.getElementById('precio-min');
@@ -1593,7 +1611,7 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     const pMax = document.getElementById('precio-max');
     if (pMax) pMax.value = '';
 
-    aplicarFiltros(); // Al aplicarlos vacíos, se guarda en memoria y recarga el listado limpio
+    aplicarFiltros(); // Al aplicarlos vacíos, se guarda en memoria y recarga limpio
 });
 
 // Botones de Limpiar de SERIES y PELÍCULAS
