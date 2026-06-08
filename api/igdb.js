@@ -49,7 +49,8 @@ export default async function handler(req, res) {
             headers: {
                 'Accept': 'application/json',
                 'Client-ID': TWITCH_CLIENT_ID,
-                'Authorization': `Bearer ${access_token}`
+                'Authorization': `Bearer ${access_token}`,
+                'Language': '169' // <--- ESTO FUERZA EL ESPAÑOL
             },
             body: bodyQuery
         });
