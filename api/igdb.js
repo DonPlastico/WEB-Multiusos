@@ -6,9 +6,12 @@ export default async function handler(req, res) {
     const busqueda = req.query.query || '';
     const offset = parseInt(req.query.offset) || 0;
 
-    // Capturamos filtros
     const platforms = req.query.platforms || '';
     const genres = req.query.genres || '';
+
+    // === NUEVO: CAPTURAR FECHAS ===
+    const dateMin = req.query.dateMin || '';
+    const dateMax = req.query.dateMax || '';
 
     try {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
@@ -19,13 +22,22 @@ export default async function handler(req, res) {
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
 
-        // Solo exigimos juegos de sobresaliente (>80) si estamos en la vista general (sin buscar texto)
-        if (!busqueda) whereClauses.push('total_rating > 80');
+        // === NUEVO: TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
+        if (dateMin) {
+            const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
+            whereClauses.push(`first_release_date >= ${minTimestamp}`);
+        }
+        if (dateMax) {
+            const maxTimestamp = Math.floor(new Date(dateMax).getTime() / 1000);
+            whereClauses.push(`first_release_date <= ${maxTimestamp}`);
+        }
 
-        // Ensamblamos la cláusula final si hay filtros
+        // Solo exigimos juegos de sobresaliente (>80) si estamos en la vista general y sin filtros
+        if (!busqueda && whereClauses.length === 0) whereClauses.push('total_rating > 80');
+
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
-        // 2. CONSTRUIMOS LA QUERY FINAL (Compatible con Búsqueda + Filtros)
+        // 2. CONSTRUIMOS LA QUERY FINAL
         const bodyQuery = busqueda
             ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
             : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;

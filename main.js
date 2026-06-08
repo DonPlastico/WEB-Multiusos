@@ -406,9 +406,9 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         let url = `/api/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
-        
-        // === LA LÍNEA QUE FALTABA ===
         if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
+        if (filtrosGlobales.dateMin) url += `&dateMin=${filtrosGlobales.dateMin}`;
+        if (filtrosGlobales.dateMax) url += `&dateMax=${filtrosGlobales.dateMax}`;
 
         console.log('📡 Llamada a:', url);
 
@@ -518,18 +518,32 @@ function guardarFiltros() {
         .map(cb => cb.value)
         .filter(val => val && val !== 'on');
 
-    // NUEVO: Guardar tiendas
     const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
+        .map(cb => cb.value);
+
+    // Guardar filtros
+    const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
         .map(cb => cb.value);
 
     const precioMin = document.getElementById('precio-min')?.value || '';
     const precioMax = document.getElementById('precio-max')?.value || '';
 
+    const dateMin = document.getElementById('date-min')?.value || '';
+    const dateMax = document.getElementById('date-max')?.value || '';
+
     const adultMovie = document.getElementById('adult-filter-movie')?.checked || false;
     const adultSeries = document.getElementById('adult-filter-series')?.checked || false;
 
     const filtrosState = {
-        games: { platforms: platSeleccionadas, stores: tiendasSeleccionadas, precioMin, precioMax },
+        games: {
+            platforms: platSeleccionadas,
+            stores: tiendasSeleccionadas,
+            genres: generosSeleccionados,
+            precioMin,
+            precioMax,
+            dateMin,
+            dateMax
+        },
         movies: { adult: adultMovie },
         series: { adult: adultSeries }
     };
@@ -554,7 +568,7 @@ function restaurarFiltrosDOM() {
                 });
             }
 
-            // NUEVO: Restaurar Tiendas
+            // Restaurar Tiendas
             if (state.games.stores && state.games.stores.length > 0) {
                 const tiendaInputs = document.querySelectorAll('.tienda-item');
                 tiendaInputs.forEach(cb => {
@@ -564,6 +578,8 @@ function restaurarFiltrosDOM() {
 
             if (state.games.precioMin) document.getElementById('precio-min').value = state.games.precioMin;
             if (state.games.precioMax) document.getElementById('precio-max').value = state.games.precioMax;
+            if (state.games.dateMin) document.getElementById('date-min').value = state.games.dateMin;
+            if (state.games.dateMax) document.getElementById('date-max').value = state.games.dateMax;
         }
 
         // Restaurar Películas (+18)
@@ -676,10 +692,14 @@ function aplicarFiltros() {
         const precioMin = parseFloat(document.getElementById('precio-min')?.value) || 0;
         const precioMax = parseFloat(document.getElementById('precio-max')?.value) || 9999;
 
-        // === GUARDAR ESTADO EN LA MEMORIA ===
+        // 5. RECOLECTAR FECHAS
+        const dateMin = document.getElementById('date-min')?.value || '';
+        const dateMax = document.getElementById('date-max')?.value || '';
+
+        // GUARDAR ESTADO EN LA MEMORIA
         guardarFiltros();
 
-        console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax);
+        console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax, "| Fechas:", dateMin, "-", dateMax);
 
         // Lanzar carga pasando todos los filtros
         cargarJuegosIGDB(busquedaActual, true, {
@@ -687,7 +707,9 @@ function aplicarFiltros() {
             stores: tiendasSeleccionadas,
             genres: generosSeleccionados,
             precioMin,
-            precioMax
+            precioMax,
+            dateMin,
+            dateMax
         });
     }, 500);
 }
@@ -707,6 +729,8 @@ genreItemsInputs.forEach(cb => {
 
 document.getElementById('precio-min')?.addEventListener('input', aplicarFiltros);
 document.getElementById('precio-max')?.addEventListener('input', aplicarFiltros);
+document.getElementById('date-min')?.addEventListener('change', aplicarFiltros);
+document.getElementById('date-max')?.addEventListener('change', aplicarFiltros);
 
 // boton para ver todas las plataformas
 const btnVerPlats = document.getElementById('btn-ver-plats');
