@@ -406,6 +406,9 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         let url = `/api/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
+        
+        // === LA LÍNEA QUE FALTABA ===
+        if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
 
         console.log('📡 Llamada a:', url);
 

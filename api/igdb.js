@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const busqueda = req.query.query || '';
     const offset = parseInt(req.query.offset) || 0;
 
-    // NUEVO: Capturamos filtros (esperamos IDs separados por comas, ej: "6,48")
+    // Capturamos filtros
     const platforms = req.query.platforms || '';
     const genres = req.query.genres || '';
 
@@ -14,15 +14,21 @@ export default async function handler(req, res) {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // Construimos el WHERE dinámicamente
-        let whereClauses = ['total_rating > 80']; // Base
+        // 1. CONSTRUIMOS EL FILTRO INTELIGENTE
+        let whereClauses = [];
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
-        const whereQuery = whereClauses.join(' & ');
 
+        // Solo exigimos juegos de sobresaliente (>80) si estamos en la vista general (sin buscar texto)
+        if (!busqueda) whereClauses.push('total_rating > 80');
+
+        // Ensamblamos la cláusula final si hay filtros
+        const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
+
+        // 2. CONSTRUIMOS LA QUERY FINAL (Compatible con Búsqueda + Filtros)
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; where ${whereQuery}; limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -37,8 +43,7 @@ export default async function handler(req, res) {
         if (!igdbRes.ok) throw new Error('Error IGDB');
         const dataRaw = await igdbRes.json();
 
-        // 3. EL FILTRO SEGURO: Solo dejamos pasar juegos base (0), remakes (8), remasters (9), o ediciones expandidas (10)
-        // Si por algún motivo IGDB no nos manda la categoría, lo dejamos pasar (undefined) para que nunca se quede en blanco.
+        // 3. EL FILTRO SEGURO DE CATEGORÍAS LOCAL
         const juegosIGDB = dataRaw.filter(j =>
             j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10
         );
@@ -60,7 +65,7 @@ export default async function handler(req, res) {
         const resultadosITAD = (await Promise.all(promesasITAD)).filter(r => r !== null);
         const itadIds = resultadosITAD.map(r => r.itadId);
 
-        // 5. Precios de ITAD
+        // 5. Precios de ITAD (Llamada Masiva Rápida)
         let mapaPrecios = {};
         if (itadIds.length > 0) {
             const preciosRes = await fetch(`https://api.isthereanydeal.com/games/prices/v3?country=ES&key=${ITAD_API_KEY}`, {
@@ -72,7 +77,7 @@ export default async function handler(req, res) {
             preciosData.forEach(item => { mapaPrecios[item.id] = item.deals; });
         }
 
-        // 6. Fusión
+        // 6. Fusión Final
         const jsonFinal = juegosIGDB.map(juego => {
             const matchITAD = resultadosITAD.find(r => r.igdbId === juego.id);
             let infoPrecio = { precio: null, stores: 'none' };
