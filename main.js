@@ -1867,7 +1867,8 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
         // 2. Descripción (el summary de IGDB ya suele venir en el idioma que configuramos)
-        document.getElementById('detail-description').textContent = juego.summary || 'Sin descripción disponible en la base de datos.';
+        const descripcion = juego.summary || "No hay una descripción disponible en español para este juego en la base de datos.";
+        document.getElementById('detail-description').textContent = descripcion;
 
         // 3. Desarrollador y Editor (filtramos los involved_companies)
         const empresas = juego.involved_companies || [];
