@@ -1827,7 +1827,7 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     document.body.style.overflow = 'hidden'; // Bloquea el scroll del fondo
 
     // 6. AQUÍ LLAMAREMOS A LA API PRÓXIMAMENTE PARA RELLENAR LO QUE FALTA
-    // llamarDetallesJuego(idJuego, titulo); 
+    llamarDetallesJuego(idJuego, titulo);
 });
 
 // Función para cerrar el modal y restaurar todo
@@ -1851,3 +1851,33 @@ modalJuego?.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') cerrarModalJuego();
 });
+
+async function llamarDetallesJuego(idJuego, titulo) {
+    // 1. Buscamos el juego específico en nuestra API (que ya trae los nuevos campos)
+    const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}`);
+    const datos = await respuesta.json();
+    const juego = datos.find(j => j.id.toString() === idJuego.toString());
+
+    if (!juego) return;
+
+    // 2. Rellenar Descripción
+    document.getElementById('detail-description').textContent = juego.summary || 'No hay descripción disponible.';
+
+    // 3. Rellenar Desarrollador y Editor
+    const devs = juego.involved_companies?.filter(c => c.developer) || [];
+    const pubs = juego.involved_companies?.filter(c => c.publisher) || [];
+    document.getElementById('detail-dev').textContent = devs.length > 0 ? devs[0].company.name : 'Desconocido';
+    document.getElementById('detail-pub').textContent = pubs.length > 0 ? pubs[0].company.name : 'Desconocido';
+
+    // 4. Rellenar Géneros y Modos
+    document.getElementById('detail-genres').textContent = juego.genres ? juego.genres.map(g => g.name).join(', ') : 'N/A';
+    document.getElementById('detail-modes').textContent = juego.game_modes ? juego.game_modes.map(m => m.name).join(', ') : 'N/A';
+
+    // 5. Enlaces (Ejemplo: link a PCGamingWiki)
+    if (juego.websites) {
+        const wiki = juego.websites.find(w => w.url.includes('pcgamingwiki'));
+        document.getElementById('detail-links').innerHTML = wiki
+            ? `<a href="${wiki.url}" target="_blank" style="color:var(--primary);">PCGamingWiki</a>`
+            : 'N/A';
+    }
+}

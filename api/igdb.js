@@ -41,8 +41,8 @@ export default async function handler(req, res) {
 
         // 2. CONSTRUIMOS LA QUERY FINAL
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category, game_modes.name; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category, game_modes.name; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
