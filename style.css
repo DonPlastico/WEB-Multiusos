@@ -2034,9 +2034,8 @@ span.flatpickr-weekday {
     padding: 0 40px 40px 40px;
     overflow-y: auto;
     flex-grow: 1;
-    /* Scrollbar perzonalizado para el modal */
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary) var(--bg-main);
+    margin-top: 0;
+    /* Aseguramos que empiece limpio */
 }
 
 .game-detail-body::-webkit-scrollbar {
@@ -2057,12 +2056,16 @@ span.flatpickr-weekday {
     display: grid;
     grid-template-columns: 260px 1fr 1.5fr;
     gap: 30px;
-    margin-top: -80px;
-    /* Sube la carátula para que muerda el degradado del fondo */
+    margin-top: -60px;
+    /* Reducimos un poco el salto para que sea más estable */
     position: relative;
     z-index: 10;
     margin-bottom: 30px;
-    align-items: stretch;
+}
+
+.detail-hltb-col,
+.detail-desc-col {
+    min-height: 300px;
 }
 
 .detail-cover-col {
