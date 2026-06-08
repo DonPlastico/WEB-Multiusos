@@ -1898,7 +1898,24 @@ async function llamarDetallesJuego(idJuego, titulo) {
             containerLinks.textContent = 'N/A';
         }
 
+        // LLAMADA A HLTB
+        fetch(`/api/hltb?title=${encodeURIComponent(titulo)}`)
+            .then(res => res.json())
+            .then(data => {
+                // Rellenar textos
+                document.getElementById('hltb-main').textContent = data.main;
+                document.getElementById('hltb-extra').textContent = data.mainExtra;
+                document.getElementById('hltb-comp').textContent = data.completionist;
+
+                // Calcular porcentajes para la barra (basado en el valor más alto)
+                const max = Math.max(data.barMain, data.barExtra, data.barComp);
+                document.querySelector('.bar-main').style.width = `${(data.barMain / max) * 100}%`;
+                document.querySelector('.bar-extra').style.width = `${(data.barExtra / max) * 100}%`;
+                document.querySelector('.bar-comp').style.width = `${(data.barComp / max) * 100}%`;
+            })
+            .catch(err => console.log("HLTB no disponible para este título"));
+
     } catch (error) {
-        console.error("Error al cargar detalles:", error);
+        console.error("Error:", error);
     }
 }
