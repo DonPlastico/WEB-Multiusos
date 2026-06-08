@@ -119,8 +119,16 @@ if (btnAdminTop) {
     });
 }
 
-// detecto cuando usan los botones atras/adelante
+// detecto cuando usan los botones atras/adelante del navegador
 window.addEventListener('popstate', (evento) => {
+    // Si hay un modal de detalles de juego abierto, lo cerramos primero
+    const modalJuego = document.getElementById('game-details-modal');
+    if (modalJuego && modalJuego.classList.contains('show')) {
+        modalJuego.classList.remove('show');
+        document.body.style.overflow = '';
+        return; // Cortamos aquí para que no navegue a otra página
+    }
+
     if (evento.state && evento.state.vista) {
         // vuelvo a la vista anterior sin guardar
         cambiarVista(evento.state.vista, false);
@@ -339,7 +347,7 @@ function crearTarjeta(juego) {
         : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
 
     return `
-        <div class="game-card" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
+        <div class="game-card" data-game-id="${juego.id}" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
                 <div class="platforms-container" style="position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-wrap:wrap; gap:4px;">
                     ${htmlPlataformas}
@@ -1758,3 +1766,88 @@ configurarDrawer(
     document.getElementById('overlay-filters-series'),
     document.getElementById('sidebar-filters-series')
 );
+
+// ==========================================================================
+//   MODAL DE DETALLES DEL JUEGO (Estilo Playnite)
+// ==========================================================================
+const modalJuego = document.getElementById('game-details-modal');
+const btnCerrarModalJuego = document.getElementById('close-game-modal');
+
+// Escuchamos los clics en toda la grilla de juegos
+document.getElementById('games-grid')?.addEventListener('click', (e) => {
+    const card = e.target.closest('.game-card');
+    if (!card) return;
+
+    // 1. Extraemos info de la tarjeta
+    const idJuego = card.getAttribute('data-game-id');
+    const titulo = card.getAttribute('data-game-title');
+
+    // 2. Actualizamos URL (ej: /juegos/007_First_Light)
+    // Cambiamos los espacios por guiones bajos y quitamos caracteres raros
+    const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
+    history.pushState({ modal: 'detalles_juego', titulo: titulo }, '', `/juegos/${urlAmigable}`);
+
+    // 3. Rellenamos el modal con la info visual de la tarjeta (Carga Instantánea)
+    const portadaSrc = card.querySelector('img.game-cover')?.src || '';
+    const htmlPlataformas = card.querySelector('.platforms-container').innerHTML;
+    const fecha = card.querySelector('.date').textContent;
+
+    document.getElementById('detail-title').textContent = titulo;
+    document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
+
+    // Si no tiene imagen, ocultamos la del modal
+    if (portadaSrc) {
+        document.getElementById('detail-cover-img').src = portadaSrc;
+        document.getElementById('detail-cover-img').style.display = 'block';
+        document.getElementById('detail-hero-bg').style.backgroundImage = `url('${portadaSrc}')`;
+    } else {
+        document.getElementById('detail-cover-img').style.display = 'none';
+        document.getElementById('detail-hero-bg').style.backgroundImage = 'none';
+    }
+
+    document.getElementById('detail-date').textContent = fecha;
+
+    // 4. Reseteamos textos mientras esperamos a conectar con la API de detalles
+    document.getElementById('detail-description').innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary);"></i> Estableciendo conexión cifrada...';
+    document.getElementById('detail-dev').textContent = 'Escaneando...';
+    document.getElementById('detail-pub').textContent = 'Escaneando...';
+    document.getElementById('detail-genres').textContent = 'Escaneando...';
+    document.getElementById('detail-modes').textContent = 'Escaneando...';
+
+    // Reset HLTB
+    document.getElementById('hltb-main').textContent = '--';
+    document.getElementById('hltb-extra').textContent = '--';
+    document.getElementById('hltb-comp').textContent = '--';
+    document.querySelector('.bar-main').style.width = '0%';
+    document.querySelector('.bar-extra').style.width = '0%';
+    document.querySelector('.bar-comp').style.width = '0%';
+
+    // 5. Mostramos modal
+    modalJuego.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Bloquea el scroll del fondo
+
+    // 6. AQUÍ LLAMAREMOS A LA API PRÓXIMAMENTE PARA RELLENAR LO QUE FALTA
+    // llamarDetallesJuego(idJuego, titulo); 
+});
+
+// Función para cerrar el modal y restaurar todo
+function cerrarModalJuego() {
+    if (!modalJuego.classList.contains('show')) return;
+
+    modalJuego.classList.remove('show');
+    document.body.style.overflow = '';
+
+    // Restaurar URL limpia de juegos
+    history.pushState({ vista: 'games' }, '', '/juegos');
+}
+
+// Eventos de cierre
+btnCerrarModalJuego?.addEventListener('click', cerrarModalJuego);
+
+modalJuego?.addEventListener('click', (e) => {
+    if (e.target === modalJuego) cerrarModalJuego();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarModalJuego();
+});

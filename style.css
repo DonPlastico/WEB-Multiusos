@@ -1950,7 +1950,268 @@ span.flatpickr-weekday {
     transition: background 0.2s ease;
 }
 
+/* ==========================================================================
+   MODAL DE DETALLES DEL JUEGO (Estilo Playnite)
+   ========================================================================== */
+/* Panel gigante del 90% */
+.game-details-panel {
+    width: 90vw !important;
+    height: 90vh !important;
+    max-width: 1920px !important;
+    max-height: 1080px !important;
+    padding: 0 !important;
+    /* Quitamos padding para que el banner llegue a los bordes */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-main) !important;
+}
 
+/* Botón flotante para cerrar */
+.close-floating-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    width: 45px;
+    height: 45px;
+}
+
+.close-floating-btn:hover {
+    background: var(--error);
+    border-color: var(--error);
+}
+
+/* Hero / Banner Superior (Fondo del juego) */
+.game-hero-section {
+    position: relative;
+    height: 45vh;
+    min-height: 350px;
+    background-size: cover;
+    background-position: top center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 50px;
+    flex-shrink: 0;
+}
+
+/* Degradado oscuro para que el título y el cuerpo se fusionen (Esencial para el estilo Playnite) */
+.hero-overlay-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.1) 0%, rgba(10, 10, 15, 0.7) 60%, var(--bg-main) 100%);
+    z-index: 1;
+}
+
+.hero-content-centered {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 80%;
+    margin-bottom: 10px;
+}
+
+#detail-title {
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    margin-bottom: 5px;
+}
+
+.detail-platforms-badges {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+/* Cuerpo del modal desplazable */
+.game-detail-body {
+    padding: 0 40px 40px 40px;
+    overflow-y: auto;
+    flex-grow: 1;
+    /* Scrollbar perzonalizado para el modal */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--bg-main);
+}
+
+.game-detail-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.game-detail-body::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+.game-detail-body::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+/* Fila de 3 columnas (Carátula, HLTB, Descripción) */
+.game-detail-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr 1.5fr;
+    gap: 30px;
+    margin-top: -80px;
+    /* Sube la carátula para que muerda el degradado del fondo */
+    position: relative;
+    z-index: 10;
+    margin-bottom: 30px;
+    align-items: stretch;
+}
+
+.detail-cover-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.game-cover-large {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9);
+}
+
+/* Paneles de información estilo cristal oscurecido */
+.detail-hltb-col,
+.detail-desc-col,
+.detail-advanced-info {
+    padding: 24px;
+    border-radius: 16px;
+    background: rgba(20, 20, 28, 0.55);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-section-title {
+    font-family: var(--font-cyber);
+    font-size: 1.1rem;
+    color: var(--neon-white);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* HowLongToBeat - Estilo exacto a la imagen */
+.hltb-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.hltb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.hltb-label {
+    font-weight: 600;
+}
+
+.hltb-value {
+    color: var(--neon-white);
+    font-family: monospace;
+    font-size: 1.05rem;
+}
+
+/* Barritas de colores */
+.hltb-bar-container {
+    display: flex;
+    height: 8px;
+    width: 100%;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    margin-top: 15px;
+    overflow: hidden;
+    gap: 2px;
+}
+
+.hltb-bar {
+    height: 100%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar-main {
+    background-color: #00bcd4;
+    width: 0%;
+}
+
+/* Cian */
+.bar-extra {
+    background-color: #3f51b5;
+    width: 0%;
+}
+
+/* Azul */
+.bar-comp {
+    background-color: #4caf50;
+    width: 0%;
+}
+
+/* Descripción */
+.desc-scroll-area {
+    flex-grow: 1;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+.game-desc-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #d1d1e0;
+    white-space: pre-wrap;
+    /* Respeta los saltos de línea de la API */
+}
+
+/* Fila de Detalles Avanzados */
+.advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.advanced-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+}
+
+.adv-icon {
+    color: var(--primary);
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.adv-label {
+    color: var(--text-muted);
+    min-width: 95px;
+}
+
+.adv-value {
+    color: var(--secondary);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 
 
@@ -2140,6 +2401,24 @@ span.flatpickr-weekday {
     .logo {
         justify-self: start;
     }
+
+    .game-detail-grid {
+        grid-template-columns: 220px 1fr;
+        /* Carátula + HLTB arriba */
+    }
+
+    .detail-desc-col {
+        grid-column: 1 / -1;
+        /* Descripción pasa abajo ocupando todo el ancho */
+    }
+
+    .hero-content-centered {
+        max-width: 95%;
+    }
+
+    #detail-title {
+        font-size: 2.5rem !important;
+    }
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
@@ -2228,6 +2507,31 @@ span.flatpickr-weekday {
         width: 100%;
         height: 2px;
         margin: 5px 0;
+    }
+
+    .game-detail-grid {
+        grid-template-columns: 1fr;
+        margin-top: -40px;
+        gap: 20px;
+    }
+
+    .detail-cover-col {
+        align-items: center;
+        /* Centrar la carátula en el móvil */
+    }
+
+    .game-cover-large {
+        max-width: 200px;
+        margin-bottom: 10px;
+    }
+
+    .game-detail-body {
+        padding: 0 20px 20px 20px;
+    }
+
+    .advanced-grid {
+        grid-template-columns: 1fr;
+        /* Lista de 1 columna */
     }
 }
 

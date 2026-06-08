@@ -830,6 +830,102 @@
             </div>
         </div>
 
+        <!-- modal de detalles del juego -->
+        <div id="game-details-modal" class="cyber-modal">
+            <div class="modal-content glass-panel game-details-panel">
+                <button id="close-game-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="game-hero-section" id="detail-hero-bg">
+                    <div class="hero-overlay-gradient"></div>
+                    <div class="hero-content-centered">
+                        <h1 id="detail-title" class="glitch-text" style="font-size: 3.5rem;">Título del Juego</h1>
+                        <div id="detail-platforms" class="detail-platforms-badges">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-detail-body">
+                    <div class="game-detail-grid">
+                        <div class="detail-cover-col">
+                            <img id="detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
+                        </div>
+
+                        <div class="detail-hltb-col glass-panel">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-hourglass-half"></i> HowLongToBeat
+                            </h3>
+                            <div class="hltb-container">
+                                <div class="hltb-row">
+                                    <span class="hltb-label" style="color: #00bcd4;">Historia principal</span>
+                                    <span class="hltb-value" id="hltb-main">--</span>
+                                </div>
+                                <div class="hltb-row">
+                                    <span class="hltb-label" style="color: #3f51b5;">Principal + extra</span>
+                                    <span class="hltb-value" id="hltb-extra">--</span>
+                                </div>
+                                <div class="hltb-row">
+                                    <span class="hltb-label" style="color: #4caf50;">Completista</span>
+                                    <span class="hltb-value" id="hltb-comp">--</span>
+                                </div>
+
+                                <div class="hltb-bar-container">
+                                    <div class="hltb-bar bar-main"></div>
+                                    <div class="hltb-bar bar-extra"></div>
+                                    <div class="hltb-bar bar-comp"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-desc-col glass-panel">
+                            <h3 class="detail-section-title">Descripción</h3>
+                            <div class="desc-scroll-area">
+                                <p id="detail-description" class="game-desc-text">Estableciendo conexión con la base de
+                                    datos...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-advanced-info glass-panel">
+                        <h3 class="detail-section-title">Detalles</h3>
+                        <div class="advanced-grid">
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-calendar-alt"></i></span>
+                                <span class="adv-label">Lanzamiento:</span>
+                                <span class="adv-value" id="detail-date">--</span>
+                            </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-code"></i></span>
+                                <span class="adv-label">Desarrollador:</span>
+                                <span class="adv-value" id="detail-dev">--</span>
+                            </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-building"></i></span>
+                                <span class="adv-label">Editor:</span>
+                                <span class="adv-value" id="detail-pub">--</span>
+                            </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-tags"></i></span>
+                                <span class="adv-label">Géneros:</span>
+                                <span class="adv-value" id="detail-genres">--</span>
+                            </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-users"></i></span>
+                                <span class="adv-label">Modos:</span>
+                                <span class="adv-value" id="detail-modes">--</span>
+                            </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-link"></i></span>
+                                <span class="adv-label">Enlaces:</span>
+                                <span class="adv-value" id="detail-links">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- boton pa volver al tope -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
