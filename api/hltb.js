@@ -3,35 +3,29 @@ export default async function handler(req, res) {
     if (!title) return res.status(400).json({ error: 'Falta el título' });
 
     try {
-        // Hacemos un POST a la web oficial de HLTB
-        const response = await fetch('https://howlongtobeat.com/api/search', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': 'https://howlongtobeat.com/'
-            },
-            body: JSON.stringify({
-                searchTerms: title.split(' '),
-                searchPage: 1,
-                size: 2,
-                searchOptions: { games: { userId: 0, platform: "", sortCategory: "relevance", rangeCategory: "main", rangeTime: { min: 0, max: 0 }, gameplayFilter: "main", timeCategory: "main", timeType: "main", modifier: "any" } }
-            })
-        });
-
+        // Esta URL es pública y no requiere API Key para búsquedas simples
+        const response = await fetch(`https://api.rawg.io/api/games?search=${encodeURIComponent(title)}&search_precise=true`);
         const data = await response.json();
 
-        if (!data.data || data.data.length === 0) return res.status(404).json({ error: 'No encontrado' });
+        if (!data.results || data.results.length === 0) {
+            return res.status(404).json({ error: 'No encontrado' });
+        }
 
-        const game = data.data[0];
+        const game = data.results[0];
 
-        // Formateamos para el frontend
+        // RAWG nos da el "playtime" (tiempo medio en horas)
+        const horas = game.playtime || 0;
+
         res.status(200).json({
-            main: game.gameplayMain ? `${game.gameplayMain} h` : '--',
-            mainExtra: game.gameplayMainExtra ? `${game.gameplayMainExtra} h` : '--',
-            completionist: game.gameplayCompletionist ? `${game.gameplayCompletionist} h` : '--'
+            // Hacemos que coincida con tu formato para las barritas
+            main: horas > 0 ? `${horas} h` : '--',
+            mainExtra: '--',
+            completionist: '--',
+            barMain: horas,
+            barExtra: 0,
+            barComp: 0
         });
     } catch (error) {
-        res.status(500).json({ error: 'Error al consultar HowLongToBeat' });
+        res.status(500).json({ error: 'Error al consultar datos' });
     }
 }
