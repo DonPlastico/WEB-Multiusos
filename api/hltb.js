@@ -1,11 +1,12 @@
-import HLTB from 'howlongtobeat';
-
 export default async function handler(req, res) {
     const { title } = req.query;
     if (!title) return res.status(400).json({ error: 'Falta el título' });
 
     try {
+        // Usamos require dentro del handler para asegurar que se carga en el runtime
+        const HLTB = require('howlongtobeat');
         const hltbService = new HLTB.HowLongToBeatService();
+
         const results = await hltbService.search(title);
 
         if (!results || results.length === 0) {
@@ -24,6 +25,6 @@ export default async function handler(req, res) {
         });
     } catch (error) {
         console.error("Error en HLTB:", error);
-        res.status(500).json({ error: 'Error interno de HLTB' });
+        res.status(500).json({ error: 'Error al consultar HowLongToBeat' });
     }
 }
