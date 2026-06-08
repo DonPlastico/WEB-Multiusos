@@ -1854,26 +1854,25 @@ document.addEventListener('keydown', (e) => {
 
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        // 1. Llamamos a la API buscando por el título exacto
         const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}`);
         const datos = await respuesta.json();
-
-        // Buscamos el juego que coincida con el ID que ya teníamos en la tarjeta
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = "No se pudieron obtener los detalles técnicos.";
+            document.getElementById('detail-description').textContent = "No se pudieron obtener los detalles.";
             return;
         }
 
-        // 2. Descripción (el summary de IGDB ya suele venir en el idioma que configuramos)
-        let desc = juego.summary;
-        if (!desc) {
-            desc = "No hay descripción disponible para este título en nuestra base de datos central.";
+        // Rellenar Descripción con un control de calidad
+        const descElement = document.getElementById('detail-description');
+        if (juego.summary) {
+            descElement.textContent = juego.summary;
+        } else {
+            descElement.textContent = "No hay descripción disponible para este título en nuestra base de datos.";
+            descElement.style.fontStyle = "italic";
         }
-        document.getElementById('detail-description').textContent = desc;
 
-        // 3. Desarrollador y Editor (filtramos los involved_companies)
+        // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
         const dev = empresas.find(e => e.developer)?.company.name || 'Desconocido';
         const pub = empresas.find(e => e.publisher)?.company.name || 'Desconocido';
@@ -1881,7 +1880,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         document.getElementById('detail-dev').textContent = dev;
         document.getElementById('detail-pub').textContent = pub;
 
-        // 4. Géneros y Modos (ya vienen los nombres gracias al campo fields que añadimos)
+        // Rellenar Géneros y Modos
         document.getElementById('detail-genres').textContent = juego.genres
             ? juego.genres.map(g => g.name).join(', ')
             : 'N/A';
@@ -1890,10 +1889,9 @@ async function llamarDetallesJuego(idJuego, titulo) {
             ? juego.game_modes.map(m => m.name).join(', ')
             : 'N/A';
 
-        // 5. Enlaces
+        // Enlaces
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
-            // Cogemos el primer enlace útil (ej: web oficial)
             const web = juego.websites[0];
             containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">Sitio Oficial</a>`;
         } else {
@@ -1902,6 +1900,5 @@ async function llamarDetallesJuego(idJuego, titulo) {
 
     } catch (error) {
         console.error("Error al cargar detalles:", error);
-        document.getElementById('detail-description').textContent = "Error al conectar con la base de datos.";
     }
 }
