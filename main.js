@@ -1898,7 +1898,6 @@ async function llamarDetallesJuego(idJuego, titulo) {
             containerLinks.textContent = 'N/A';
         }
 
-        // LLAMADA A HLTB
         // LLAMADA A TU PROPIA API DE HLTB (que usa RAWG internamente)
         fetch(`/api/hltb?title=${encodeURIComponent(titulo)}`)
             .then(res => res.json())
