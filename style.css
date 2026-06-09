@@ -117,6 +117,8 @@ body {
     transition: background-color 0.3s ease, color 0.2s ease;
 }
 
+
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -2366,23 +2368,25 @@ span.flatpickr-weekday {
         position: fixed;
         top: 0;
         right: 0;
-        /* Lo anclamos a la derecha */
-        transform: translateX(100%);
-        /* Lo escondemos fuera de la pantalla */
         width: min(85vw, 360px);
         height: 100dvh;
-        /* Para que llegue hasta abajo del todo */
         max-height: 100dvh;
         border-radius: 0;
         border-left: 1px solid var(--border-color);
         z-index: 1000;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         margin-top: 0;
+        transform: translateX(100%);
+        /* Lo echamos fuera */
+        visibility: hidden;
+        /* El navegador hace como si no existiera (no ensancha la web) */
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
     }
 
     .filter-sidebar.drawer-open {
         transform: translateX(0);
-        /* Lo metemos en pantalla suavemente */
+        /* Lo metemos en pantalla */
+        visibility: visible;
+        /* Se vuelve un elemento real */
     }
 
     .filter-sidebar .filters-scroll-area {
