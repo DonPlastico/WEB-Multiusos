@@ -1481,7 +1481,8 @@ function openCustomizationModal(type) {
 
     // muestro el modal
     modalEdit.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
 }
 
 // ============================================
@@ -1594,7 +1595,8 @@ const filterSidebar = document.querySelector('.filter-sidebar');
 function abrirDrawerFiltros() {
     filterSidebar?.classList.add('drawer-open');
     filtersOverlay?.classList.add('active');
-    document.body.style.overflow = 'hidden'; // evita scroll del fondo
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
 }
 
 function cerrarDrawerFiltros() {
@@ -1733,7 +1735,8 @@ function configurarDrawer(btnAbrir, btnCerrar, overlay, sidebar) {
     const abrir = () => {
         sidebar.classList.add('drawer-open');
         if (overlay) overlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('no-scroll');
+        document.documentElement.classList.add('no-scroll');
     };
 
     const cerrar = () => {
@@ -1820,7 +1823,8 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
     // 5. Mostramos modal
     modalJuego.classList.add('show');
-    document.body.style.overflow = 'hidden'; // Bloquea el scroll del fondo
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
 
     // 6. AQUÍ LLAMAREMOS A LA API PRÓXIMAMENTE PARA RELLENAR LO QUE FALTA
     llamarDetallesJuego(idJuego, titulo);

@@ -124,11 +124,24 @@ body {
     overflow-x: hidden;
 }
 
+html.no-scroll,
+body.no-scroll {
+    overflow: hidden !important;
+}
+
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+}
+
+/* Evitar que el scroll traspase al fondo de la web */
+.cyber-modal,
+.filters-overlay,
+.filter-sidebar,
+.game-detail-body {
+    overscroll-behavior: contain;
 }
 
 /* navbar q queda bien */
@@ -2471,7 +2484,7 @@ span.flatpickr-weekday {
 
     .game-detail-grid {
         grid-template-columns: 1fr;
-        margin-top: -10px;
+        border-top: 1px solid var(--border-color);
         gap: 15px;
     }
 
