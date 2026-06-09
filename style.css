@@ -9,6 +9,22 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+
+
+*::-webkit-scrollbar {
+    width: 4px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
 :root {
     /* modo oscuro (es mi favorito) */
     --bg-main: #0a0a0f;
@@ -676,20 +692,6 @@ input[type=number]::-webkit-outer-spin-button {
     overflow-y: auto;
     flex-grow: 1;
     overscroll-behavior: contain;
-}
-
-.filters-scroll-area::-webkit-scrollbar {
-    width: 4px;
-}
-
-.filters-scroll-area::-webkit-scrollbar-track {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-.filters-scroll-area::-webkit-scrollbar-thumb {
-    background: var(--primary);
-    border-radius: 4px;
 }
 
 /* acordeones q se cierran y abren */
@@ -2056,7 +2058,7 @@ span.flatpickr-weekday {
     /* Aseguramos que empiece limpio */
 }
 
-.game-detail-body::-webkit-scrollbar {
+/* .game-detail-body::-webkit-scrollbar {
     width: 6px;
 }
 
@@ -2067,12 +2069,12 @@ span.flatpickr-weekday {
 .game-detail-body::-webkit-scrollbar-thumb {
     background: var(--primary);
     border-radius: 4px;
-}
+} */
 
 /* Fila de 3 columnas (Carátula, Descripción) */
 .game-detail-grid {
     z-index: 10;
-    grid-template-columns: 260px 1fr 1.5fr;
+    grid-template-columns: 250px 1fr;
     gap: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -2101,7 +2103,7 @@ span.flatpickr-weekday {
 /* Paneles de información estilo cristal oscurecido */
 .detail-desc-col,
 .detail-advanced-info {
-    padding: 24px;
+    padding: 10px;
     border-radius: 16px;
     background: rgba(20, 20, 28, 0.55);
     border: 1px solid var(--border-color);
@@ -2151,9 +2153,9 @@ span.flatpickr-weekday {
 
 /* Fila de Detalles Avanzados */
 .advanced-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 7.5px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
 }
 
 .advanced-item {
