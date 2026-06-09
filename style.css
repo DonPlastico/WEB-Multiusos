@@ -661,6 +661,7 @@ input[type=number]::-webkit-outer-spin-button {
     padding: 20px 24px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
+    border-radius: 8px 8px 0 0;
 }
 
 .filter-main-header h2 {
@@ -2057,19 +2058,6 @@ span.flatpickr-weekday {
     margin-top: 0;
     /* Aseguramos que empiece limpio */
 }
-
-/* .game-detail-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.game-detail-body::-webkit-scrollbar-track {
-    background: var(--bg-main);
-}
-
-.game-detail-body::-webkit-scrollbar-thumb {
-    background: var(--primary);
-    border-radius: 4px;
-} */
 
 /* Fila de 3 columnas (Carátula, Descripción) */
 .game-detail-grid {
