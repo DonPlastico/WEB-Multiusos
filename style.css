@@ -2365,6 +2365,8 @@ span.flatpickr-weekday {
     }
 
     .filter-sidebar {
+        display: none;
+        /* MAGIA: Desaparece completamente del DOM visual */
         position: fixed;
         top: 0;
         right: 0;
@@ -2375,18 +2377,14 @@ span.flatpickr-weekday {
         border-left: 1px solid var(--border-color);
         z-index: 1000;
         margin-top: 0;
-        transform: translateX(100%);
-        /* Lo echamos fuera */
-        visibility: hidden;
-        /* El navegador hace como si no existiera (no ensancha la web) */
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
     }
 
+    /* CUANDO SE ABRE EL MENÚ */
     .filter-sidebar.drawer-open {
-        transform: translateX(0);
-        /* Lo metemos en pantalla */
-        visibility: visible;
-        /* Se vuelve un elemento real */
+        display: flex;
+        /* Vuelve a existir en la web */
+        flex-direction: column;
+        animation: slideInMenu 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     .filter-sidebar .filters-scroll-area {
@@ -2638,19 +2636,19 @@ span.flatpickr-weekday {
 
     /* DRAWER DE FILTROS */
     .filters-overlay {
-        display: block;
+        display: none;
+        /* Oculto de base */
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(3px);
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
         z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
     }
 
     .filters-overlay.active {
-        opacity: 1;
+        display: block;
+        /* Aparece de golpe y se difumina */
+        animation: fadeOverlay 0.3s ease forwards;
         pointer-events: all;
     }
 
@@ -2718,5 +2716,25 @@ span.flatpickr-weekday {
     to {
         opacity: 1;
         transform: none;
+    }
+}
+
+@keyframes slideInMenu {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOverlay {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
