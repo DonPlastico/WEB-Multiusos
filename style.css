@@ -2055,7 +2055,7 @@ span.flatpickr-weekday {
     border-radius: 4px;
 }
 
-/* Fila de 3 columnas (Carátula, HLTB, Descripción) */
+/* Fila de 3 columnas (Carátula, Descripción) */
 .game-detail-grid {
     z-index: 10;
     grid-template-columns: 260px 1fr 1.5fr;
@@ -2066,7 +2066,6 @@ span.flatpickr-weekday {
     position: relative;
 }
 
-.detail-hltb-col,
 .detail-desc-col {
     min-height: 300px;
 }
@@ -2086,7 +2085,6 @@ span.flatpickr-weekday {
 }
 
 /* Paneles de información estilo cristal oscurecido */
-.detail-hltb-col,
 .detail-desc-col,
 .detail-advanced-info {
     padding: 24px;
@@ -2107,54 +2105,6 @@ span.flatpickr-weekday {
     border-bottom: 1px solid var(--border-light);
     padding-bottom: 10px;
     margin-bottom: 15px;
-}
-
-/* HowLongToBeat - Estilo exacto a la imagen */
-.hltb-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    flex-grow: 1;
-    justify-content: center;
-}
-
-.hltb-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-}
-
-.hltb-label {
-    font-weight: 600;
-}
-
-.hltb-value {
-    color: var(--neon-white);
-    font-family: monospace;
-    font-size: 1.05rem;
-}
-
-/* Barritas de colores */
-.hltb-bar-container {
-    display: flex;
-    height: 8px;
-    width: 100%;
-    background: var(--bg-secondary);
-    border-radius: 4px;
-    margin-top: 15px;
-    overflow: hidden;
-    gap: 2px;
-}
-
-.hltb-bar {
-    height: 100%;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bar-main {
-    background-color: #00bcd4;
-    width: 0%;
 }
 
 /* Cian */
@@ -2415,7 +2365,6 @@ span.flatpickr-weekday {
 
     .game-detail-grid {
         grid-template-columns: 220px 1fr;
-        /* Carátula + HLTB arriba */
     }
 
     .detail-desc-col {

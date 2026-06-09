@@ -1814,14 +1814,6 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     document.getElementById('detail-genres').textContent = 'Escaneando...';
     document.getElementById('detail-modes').textContent = 'Escaneando...';
 
-    // Reset HLTB
-    document.getElementById('hltb-main').textContent = '--';
-    document.getElementById('hltb-extra').textContent = '--';
-    document.getElementById('hltb-comp').textContent = '--';
-    document.querySelector('.bar-main').style.width = '0%';
-    document.querySelector('.bar-extra').style.width = '0%';
-    document.querySelector('.bar-comp').style.width = '0%';
-
     // 5. Mostramos modal
     modalJuego.classList.add('show');
     document.body.style.overflow = 'hidden'; // Bloquea el scroll del fondo
