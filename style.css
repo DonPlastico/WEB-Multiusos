@@ -6,6 +6,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 :root {
@@ -2470,6 +2471,8 @@ span.flatpickr-weekday {
 
     .game-detail-grid {
         grid-template-columns: 1fr;
+        margin-top: -10px;
+        gap: 15px;
     }
 
     /* 1. Ocultamos la carátula grande en móviles */

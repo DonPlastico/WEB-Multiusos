@@ -1481,6 +1481,7 @@ function openCustomizationModal(type) {
 
     // muestro el modal
     modalEdit.classList.add('show');
+    document.body.style.overflow = 'hidden';
 }
 
 // ============================================
@@ -1489,6 +1490,7 @@ function openCustomizationModal(type) {
 window.seleccionarDiseño = async function (tipo, idCard) {
     // cierro el modal al toque
     modalEdit.classList.remove('show');
+    document.body.style.overflow = '';
 
     // pregunto quien es
     const { data: { session } } = await supabase.auth.getSession();
@@ -1628,12 +1630,14 @@ triggerAvatar?.addEventListener('click', (evento) => {
 // cierro con la x
 modalClose?.addEventListener('click', () => {
     modalEdit.classList.remove('show');
+    document.body.style.overflow = '';
 });
 
 // cierro click afuera
 modalEdit?.addEventListener('click', (evento) => {
     if (evento.target === modalEdit) {
         modalEdit.classList.remove('show');
+        document.body.style.overflow = '';
     }
 });
 
