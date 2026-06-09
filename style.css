@@ -2317,18 +2317,17 @@ span.flatpickr-weekday {
     }
 
     .filter-sidebar {
+        border-left: 1px solid var(--border-color);
+        z-index: 1000;
+        border-radius: 0;
+        width: min(90vw, 360px);
+        height: 82dvh;
+        max-height: 100dvh;
+        margin-top: 0;
         display: none;
-        /* MAGIA: Desaparece completamente del DOM visual */
         position: fixed;
         top: 0;
         right: 0;
-        width: min(85vw, 360px);
-        height: 100dvh;
-        max-height: 100dvh;
-        border-radius: 0;
-        border-left: 1px solid var(--border-color);
-        z-index: 1000;
-        margin-top: 0;
     }
 
     /* CUANDO SE ABRE EL MENÚ */
@@ -2473,15 +2472,12 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
+    /* 1. Ocultamos la carátula grande en móviles */
     .detail-cover-col {
-        align-items: center;
-        /* Centrar la carátula en el móvil */
+        display: none;
     }
 
-    .game-cover-large {
-        max-width: 200px;
-        margin-bottom: 10px;
-    }
+    /* (Borramos la clase .game-cover-large que tenías aquí porque ya no hace falta) */
 
     .game-detail-body {
         padding: 0 20px 20px 20px;
@@ -2490,6 +2486,21 @@ span.flatpickr-weekday {
     .advanced-grid {
         grid-template-columns: 1fr;
         /* Lista de 1 columna */
+    }
+
+    /* 2. Arreglamos los textos largos para que bajen de línea */
+    .advanced-item {
+        align-items: flex-start;
+        /* Mantiene el icono alineado arriba cuando el texto baja */
+    }
+
+    .adv-value {
+        white-space: normal;
+        /* Le damos permiso para saltar a la línea de abajo */
+        word-break: break-word;
+        /* Evita que palabras súper largas rompan la pantalla */
+        overflow: visible;
+        /* Quitamos el ocultamiento */
     }
 }
 
