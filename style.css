@@ -2484,7 +2484,6 @@ span.flatpickr-weekday {
 
     .game-detail-grid {
         grid-template-columns: 1fr;
-        border-top: 1px solid var(--border-color);
         gap: 15px;
     }
 
@@ -2496,6 +2495,7 @@ span.flatpickr-weekday {
     /* (Borramos la clase .game-cover-large que tenías aquí porque ya no hace falta) */
 
     .game-detail-body {
+        border-top: 1px solid var(--border-color);
         padding: 0 20px 20px 20px;
     }
 

@@ -125,7 +125,8 @@ window.addEventListener('popstate', (evento) => {
     const modalJuego = document.getElementById('game-details-modal');
     if (modalJuego && modalJuego.classList.contains('show')) {
         modalJuego.classList.remove('show');
-        document.body.style.overflow = '';
+        document.body.classList.remove('no-scroll');
+        document.documentElement.classList.remove('no-scroll');
         return; // Cortamos aquí para que no navegue a otra página
     }
 
@@ -1491,7 +1492,8 @@ function openCustomizationModal(type) {
 window.seleccionarDiseño = async function (tipo, idCard) {
     // cierro el modal al toque
     modalEdit.classList.remove('show');
-    document.body.style.overflow = '';
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
 
     // pregunto quien es
     const { data: { session } } = await supabase.auth.getSession();
@@ -1602,7 +1604,8 @@ function abrirDrawerFiltros() {
 function cerrarDrawerFiltros() {
     filterSidebar?.classList.remove('drawer-open');
     filtersOverlay?.classList.remove('active');
-    document.body.style.overflow = '';
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
 }
 
 btnMobileFilters?.addEventListener('click', abrirDrawerFiltros);
@@ -1632,14 +1635,16 @@ triggerAvatar?.addEventListener('click', (evento) => {
 // cierro con la x
 modalClose?.addEventListener('click', () => {
     modalEdit.classList.remove('show');
-    document.body.style.overflow = '';
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
 });
 
 // cierro click afuera
 modalEdit?.addEventListener('click', (evento) => {
     if (evento.target === modalEdit) {
         modalEdit.classList.remove('show');
-        document.body.style.overflow = '';
+        document.body.classList.remove('no-scroll');
+        document.documentElement.classList.remove('no-scroll');
     }
 });
 
@@ -1742,7 +1747,8 @@ function configurarDrawer(btnAbrir, btnCerrar, overlay, sidebar) {
     const cerrar = () => {
         sidebar.classList.remove('drawer-open');
         if (overlay) overlay.classList.remove('active');
-        document.body.style.overflow = '';
+        document.body.classList.remove('no-scroll');
+        document.documentElement.classList.remove('no-scroll');
     };
 
     btnAbrir.addEventListener('click', abrir);
@@ -1835,7 +1841,8 @@ function cerrarModalJuego() {
     if (!modalJuego.classList.contains('show')) return;
 
     modalJuego.classList.remove('show');
-    document.body.style.overflow = '';
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
 
     // Restaurar URL limpia de juegos
     history.pushState({ vista: 'games' }, '', '/juegos');
