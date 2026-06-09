@@ -1597,15 +1597,11 @@ const filterSidebar = document.querySelector('.filter-sidebar');
 function abrirDrawerFiltros() {
     filterSidebar?.classList.add('drawer-open');
     filtersOverlay?.classList.add('active');
-    document.body.classList.add('no-scroll');
-    document.documentElement.classList.add('no-scroll');
 }
 
 function cerrarDrawerFiltros() {
     filterSidebar?.classList.remove('drawer-open');
     filtersOverlay?.classList.remove('active');
-    document.body.classList.remove('no-scroll');
-    document.documentElement.classList.remove('no-scroll');
 }
 
 btnMobileFilters?.addEventListener('click', abrirDrawerFiltros);
