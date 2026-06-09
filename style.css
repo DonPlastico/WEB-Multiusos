@@ -2352,23 +2352,25 @@ span.flatpickr-weekday {
 }
 
 /* ===== TABLETS Y PANTALLAS PEQUEÑAS (Max 1100px) ===== */
+/* ===== TABLETS Y PANTALLAS PEQUEÑAS (Max 1100px) ===== */
 @media (max-width: 1100px) {
     .cyber-container {
         padding: 40px 60px;
-        /* Reducimos el padding gigante lateral */
     }
 
     .games-layout {
         grid-template-columns: 1fr;
     }
 
+    /* --- PANEL DE FILTROS A PANTALLA COMPLETA --- */
     .filter-sidebar {
         position: fixed;
         top: 0;
         right: -100%;
         width: min(85vw, 360px);
-        height: 70dvh;
-        max-height: 70dvh;
+        height: 100dvh;
+        /* 100% de altura para que no se corte */
+        max-height: 100dvh;
         border-radius: 0;
         border-left: 1px solid var(--border-color);
         z-index: 1000;
@@ -2381,10 +2383,82 @@ span.flatpickr-weekday {
     }
 
     .filter-sidebar .filters-scroll-area {
-        max-height: calc(70dvh - 65px);
+        max-height: calc(100dvh - 65px);
         overflow-y: auto;
     }
 
+    /* --- OVERLAY Y BOTONES (Ahora funciona en todas las pantallas pequeñas) --- */
+    .filters-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .filters-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .filter-drawer-close-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .filter-drawer-title {
+        font-family: var(--font-cyber);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--neon-white);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #btn-close-filters-drawer,
+    #btn-close-movies-mobile,
+    #btn-close-series-mobile {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: 0.2s ease;
+    }
+
+    #btn-close-filters-drawer:hover,
+    #btn-close-movies-mobile:hover,
+    #btn-close-series-mobile:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .btn-mobile-filters {
+        display: flex;
+    }
+
+    .filter-main-header {
+        display: none;
+    }
+
+    /* --- RESTO DE COSAS --- */
     .cyber-nav {
         grid-template-columns: 1fr auto;
         gap: 20px;
@@ -2406,12 +2480,10 @@ span.flatpickr-weekday {
 
     .game-detail-grid {
         grid-template-columns: 220px 1fr;
-        /* Carátula + HLTB arriba */
     }
 
     .detail-desc-col {
         grid-column: 1 / -1;
-        /* Descripción pasa abajo ocupando todo el ancho */
     }
 
     .hero-content-centered {
@@ -2550,9 +2622,7 @@ span.flatpickr-weekday {
     /* Stats debajo de la portada */
     .profile-stats-wrapper {
         margin-top: 50px;
-        /* CRUCIAL: Lo bajamos para que el avatar no pise a las estadísticas */
         flex-direction: column-reverse;
-        /* El botón de añadir amigo pasa abajo o se alinea */
         align-items: flex-end;
         gap: 10px;
     }
@@ -2561,7 +2631,6 @@ span.flatpickr-weekday {
         padding: 0 10px;
     }
 
-    /* Apretamos los números para que quepan */
     .stat-num {
         font-size: 1rem;
     }
@@ -2570,7 +2639,7 @@ span.flatpickr-weekday {
         font-size: 0.65rem;
     }
 
-    /* Modales a 1 y 2 columnas para no verse microscópicos */
+    /* Modales a 1 y 2 columnas */
     .modal-content {
         width: 95%;
         padding: 10px;
@@ -2580,44 +2649,36 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
-    /* Banners ocupan todo el ancho */
     .modal-grid.avatar-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .cyber-grid {
         grid-template-columns: repeat(2, 1fr);
-        /* Fuerza siempre 2 columnas */
         gap: 12px;
-        /* Reducimos el hueco entre tarjetas para aprovechar pantalla */
     }
 
     .game-cover {
         height: 180px;
-        /* Reducimos la altura de la imagen para que no quede estirada */
     }
 
     .game-info {
         padding: 10px;
-        /* Reducimos los márgenes internos */
     }
 
     .game-title {
         font-size: 0.85rem;
-        /* Título un poco más pequeño */
         margin-bottom: 4px;
     }
 
     .game-release-info {
         font-size: 0.65rem;
-        /* Texto de fecha más pequeño */
         gap: 4px;
     }
 
     .top-platform-tag {
         font-size: 0.6rem;
         padding: 3px 6px;
-        /* Etiqueta de plataforma más compacta */
         top: 8px;
         left: 8px;
     }
@@ -2625,77 +2686,6 @@ span.flatpickr-weekday {
     .price-badge {
         font-size: 0.7rem;
         padding: 4px 8px;
-    }
-
-    /* DRAWER DE FILTROS */
-    .filters-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(3px);
-        z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .filters-overlay.active {
-        opacity: 1;
-        pointer-events: all;
-    }
-
-    .filter-drawer-close-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border-color);
-        background: var(--bg-secondary);
-    }
-
-    .filter-drawer-title {
-        font-family: var(--font-cyber);
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--neon-white);
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    #btn-close-filters-drawer,
-    #btn-close-movies-mobile,
-    #btn-close-series-mobile {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-muted);
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        transition: 0.2s ease;
-    }
-
-    #btn-close-filters-drawer:hover,
-    #btn-close-movies-mobile:hover,
-    #btn-close-series-mobile:hoverS {
-        border-color: var(--primary);
-        color: var(--primary);
-    }
-
-    .btn-mobile-filters {
-        display: flex;
-    }
-
-    .filter-main-header {
-        display: none;
     }
 }
 
@@ -2708,6 +2698,6 @@ span.flatpickr-weekday {
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
     }
 }
