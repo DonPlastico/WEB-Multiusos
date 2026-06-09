@@ -2366,9 +2366,12 @@ span.flatpickr-weekday {
         position: fixed;
         top: 0;
         right: 0;
+        /* Lo anclamos a la derecha */
         transform: translateX(100%);
+        /* Lo escondemos fuera de la pantalla */
         width: min(85vw, 360px);
         height: 100dvh;
+        /* Para que llegue hasta abajo del todo */
         max-height: 100dvh;
         border-radius: 0;
         border-left: 1px solid var(--border-color);
@@ -2379,10 +2382,11 @@ span.flatpickr-weekday {
 
     .filter-sidebar.drawer-open {
         transform: translateX(0);
+        /* Lo metemos en pantalla suavemente */
     }
 
     .filter-sidebar .filters-scroll-area {
-        max-height: calc(70dvh - 65px);
+        max-height: calc(100dvh - 65px);
         overflow-y: auto;
     }
 
@@ -2710,6 +2714,5 @@ span.flatpickr-weekday {
     to {
         opacity: 1;
         transform: none;
-        /* ¡CRÍTICO! Esto libera el panel fixed */
     }
 }
