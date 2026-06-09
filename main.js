@@ -1898,30 +1898,6 @@ async function llamarDetallesJuego(idJuego, titulo) {
             containerLinks.textContent = 'N/A';
         }
 
-        // LLAMADA A duracion
-        fetch(`/api/duracion?title=${encodeURIComponent(titulo)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) return;
-
-                const barMain = document.querySelector('.bar-main');
-                const barExtra = document.querySelector('.bar-extra');
-                const barComp = document.querySelector('.bar-comp');
-
-                const max = Math.max(parseFloat(data.barMain) || 0, parseFloat(data.barExtra) || 0, parseFloat(data.barComp) || 0);
-
-                if (max > 0) {
-                    barMain.style.width = `${(parseFloat(data.barMain) / max) * 100}%`;
-                    barExtra.style.width = `${(parseFloat(data.barExtra) / max) * 100}%`;
-                    barComp.style.width = `${(parseFloat(data.barComp) / max) * 100}%`;
-                } else {
-                    barMain.style.width = '0%';
-                    barExtra.style.width = '0%';
-                    barComp.style.width = '0%';
-                }
-            })
-            .catch(err => console.log("HLTB no disponible para este título"));
-
     } catch (error) {
         console.error("Error:", error);
     }
