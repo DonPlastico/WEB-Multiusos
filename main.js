@@ -2048,7 +2048,7 @@ async function cargarPerfilPublico(usernameTarget) {
 }
 
 // ==========================================================================
-//   NEXUS OMNI-CONTROL (PANEL DE ADMINISTRACIÓN)
+//   PANEL DE ADMINISTRACIÓN (NEXUS)
 // ==========================================================================
 let adminPanelIniciado = false;
 let miEmailGlobalAdmin = null;
@@ -2057,7 +2057,7 @@ async function iniciarPanelAdmin() {
     if (adminPanelIniciado) return; // Solo lo arrancamos la primera vez
     adminPanelIniciado = true;
 
-    addAdminLog("Inicializando módulo NEXUS_CORE...", "system");
+    addAdminLog("Inicializando conexión con Base de Datos...", "system");
 
     // Obtenemos nuestro usuario para evitar quitarnos el admin a nosotros mismos
     const { data: { session } } = await supabase.auth.getSession();
@@ -2065,68 +2065,37 @@ async function iniciarPanelAdmin() {
 
     addAdminLog("Credenciales de administrador validadas.", "success");
 
-    // Arrancamos los motores
+    // Arrancamos la carga de la tabla (sin simulador de telemetría falso)
     cargarTablaUsuarios();
-    iniciarSimuladorTelemetria();
 
-    // Evento del buscador
+    // Evento del buscador de la tabla
     document.getElementById('admin-search-input')?.addEventListener('input', (e) => {
         cargarTablaUsuarios(e.target.value.toLowerCase());
     });
 }
 
-// --- TERMINAL DE LOGS ---
+// --- TERMINAL DE REGISTRO DE EVENTOS ---
 function addAdminLog(mensaje, tipo = "system") {
     const terminal = document.getElementById('admin-terminal-logs');
     if (!terminal) return;
 
     const hora = new Date().toLocaleTimeString('es-ES', { hour12: false });
     let prefijo = "[SYS]";
-    if (tipo === "success") prefijo = "[200]";
+    if (tipo === "success") prefijo = "[OK]";
     if (tipo === "error") prefijo = "[ERR]";
     if (tipo === "warning") prefijo = "[WARN]";
 
     const linea = document.createElement('div');
     linea.className = `log-line ${tipo}`;
-    linea.innerHTML = `<span class="log-time">[${hora}] ${prefijo}</span> ${mensaje}`;
+    linea.innerHTML = `<span class="log-time" style="color: var(--text-muted);">[${hora}] ${prefijo}</span> ${mensaje}`;
 
     terminal.appendChild(linea);
-    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll hacia abajo
+    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
 }
 
-// --- SIMULADOR DE TELEMETRÍA (Para el toque Visual/Hacker) ---
-function iniciarSimuladorTelemetria() {
-    let edgeRequests = 8452;
-    let invocations = 14203;
-
-    setInterval(() => {
-        // Subimos los números de forma aleatoria
-        edgeRequests += Math.floor(Math.random() * 5);
-        invocations += Math.floor(Math.random() * 3);
-
-        const reqEl = document.getElementById('metric-edge-requests');
-        const invEl = document.getElementById('metric-func-invocations');
-
-        if (reqEl) reqEl.textContent = (edgeRequests / 1000).toFixed(2) + 'k';
-        if (invEl) invEl.textContent = (invocations / 1000).toFixed(2) + 'k';
-
-        // 10% de probabilidad de escupir un log aleatorio de sistema
-        if (Math.random() > 0.90) {
-            const logsFalsos = [
-                "Limpiando caché de la ruta /api/tmdb...",
-                "Nueva conexión WebSocket detectada.",
-                "Ping de mantenimiento recibido desde el servidor central.",
-                "Sincronizando estado de sesiones de Supabase."
-            ];
-            const logAleatorio = logsFalsos[Math.floor(Math.random() * logsFalsos.length)];
-            addAdminLog(logAleatorio, "system");
-        }
-    }, 2500);
-}
-
-// --- GESTIÓN DE BASE DE DATOS (USUARIOS) ---
+// --- GESTIÓN DE BASE DE DATOS (USUARIOS Y ROLES) ---
 async function cargarTablaUsuarios(filtro = "") {
-    addAdminLog("Ejecutando QUERY en usuarios y roles...", "system");
+    addAdminLog("Descargando identidades y cruce de roles...", "system");
 
     try {
         // 1. Extraemos TODOS los usuarios
@@ -2137,7 +2106,7 @@ async function cargarTablaUsuarios(filtro = "") {
 
         if (errUsuarios) throw errUsuarios;
 
-        // 2. Extraemos TODOS los roles (ya que los tienes en otra tabla)
+        // 2. Extraemos TODOS los roles de la segunda tabla
         const { data: roles, error: errRoles } = await supabase
             .from('roles')
             .select('email, rol');
@@ -2148,33 +2117,33 @@ async function cargarTablaUsuarios(filtro = "") {
         if (!tbody) return;
         tbody.innerHTML = ''; // Limpiamos tabla
 
-        // Filtrado en vivo por el buscador
+        // Filtrado
         const usuariosFiltrados = usuarios.filter(u =>
             u.username.toLowerCase().includes(filtro) ||
             u.email.toLowerCase().includes(filtro)
         );
 
-        // Actualizamos métrica real
+        // Actualizamos métrica del Total de Usuarios
         const metricTotal = document.getElementById('metric-total-users');
         if (metricTotal) metricTotal.textContent = usuarios.length;
 
         usuariosFiltrados.forEach(u => {
             const esMiCuenta = u.email === miEmailGlobalAdmin;
 
-            // 3. Cruzamos los datos: Buscamos el rol de este usuario usando su email
+            // Cruzamos datos usando el email
             const infoRol = roles.find(r => r.email === u.email);
-            const nombreRol = infoRol ? infoRol.rol : 'user'; // Si no está en la tabla de roles, es un usuario normal
+            const nombreRol = infoRol ? infoRol.rol : 'user';
             const esAdmin = nombreRol === 'admin';
 
-            const iconoVerificado = `<i class="fas fa-check-circle status-icon verified" title="Correo Verificado"></i>`;
+            const iconoVerificado = `<i class="fas fa-check-circle status-icon verified" style="color: var(--success);" title="Correo Verificado"></i>`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${u.username}</strong></td>
                 <td>${u.email}</td>
                 <td>${new Date(u.created_at).toLocaleDateString()}</td>
-                <td style="text-align: center;">${iconoVerificado}</td>
-                <td><span class="role-badge ${esAdmin ? 'admin' : ''}">${esAdmin ? 'ADMIN' : 'USER'}</span></td>
+                <td>${iconoVerificado}</td>
+                <td><span class="role-badge ${esAdmin ? 'admin' : ''}" style="background: ${esAdmin ? 'var(--primary-soft)' : 'var(--bg-secondary)'}; color: ${esAdmin ? 'var(--primary)' : 'var(--text-muted)'}; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid ${esAdmin ? 'var(--primary)' : 'var(--border-color)'};">${esAdmin ? 'ADMIN' : 'USER'}</span></td>
                 <td>
                     <div class="table-actions">
                         <button class="action-btn edit" onclick="alert('Editor de perfiles en desarrollo para ${u.username}')" title="Editar datos"><i class="fas fa-pen"></i></button>
@@ -2196,7 +2165,6 @@ async function cargarTablaUsuarios(filtro = "") {
     }
 }
 
-// ⚠️ IMPORTANTE: Fíjate que ahora pasamos el EMAIL en lugar del ID
 window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCuenta) {
     if (esMiCuenta && nuevoRol === 'user') {
         alert("🛡️ PROTOCOLO DE SEGURIDAD: No puedes quitarte el rol de Administrador a ti mismo.");
@@ -2209,17 +2177,13 @@ window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCu
     addAdminLog(`Actualizando rol de ${username} a ${nuevoRol}...`, "system");
 
     try {
-        // Miramos si ya existe su correo en la tabla 'roles'
         const { data: existeRol } = await supabase.from('roles').select('id').eq('email', emailUser).maybeSingle();
 
         let errorQuery = null;
-
         if (existeRol) {
-            // Si existe, le actualizamos el rol
             const { error } = await supabase.from('roles').update({ rol: nuevoRol }).eq('email', emailUser);
             errorQuery = error;
         } else {
-            // Si NO existe (era un 'user' fantasma), lo añadimos a la tabla roles
             const { error } = await supabase.from('roles').insert([{ email: emailUser, rol: nuevoRol }]);
             errorQuery = error;
         }
@@ -2227,7 +2191,7 @@ window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCu
         if (errorQuery) throw errorQuery;
 
         addAdminLog(`Permisos de ${username} modificados con éxito.`, "success");
-        cargarTablaUsuarios(); // Recargamos para que pinte la chapa de ADMIN/USER
+        cargarTablaUsuarios();
 
     } catch (err) {
         addAdminLog(`Fallo al cambiar rol de ${username}: ${err.message}`, "error");
@@ -2246,10 +2210,7 @@ window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCue
     addAdminLog(`Iniciando purga de datos para el usuario ${username}...`, "warning");
 
     try {
-        // 1. Lo borramos de la tabla roles primero (si tiene)
         await supabase.from('roles').delete().eq('email', emailUser);
-
-        // 2. Lo borramos de la tabla usuarios principal
         const { error } = await supabase.from('usuarios').delete().eq('id', idUser);
 
         if (error) throw error;
@@ -2261,13 +2222,17 @@ window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCue
     }
 };
 
-// Acciones Rápidas (Quedan intactas)
+// --- ACCIONES RÁPIDAS (Botones Globales) ---
 document.getElementById('btn-admin-clear-cache')?.addEventListener('click', () => {
-    addAdminLog("Iniciando purga de caché global...", "warning");
-    setTimeout(() => addAdminLog("Caché limpiada con éxito. Memoria liberada.", "success"), 1500);
+    addAdminLog("Iniciando purga de caché de APIs...", "warning");
+    setTimeout(() => addAdminLog("Caché limpiada con éxito. Memoria liberada.", "success"), 1200);
 });
 
 document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
-    const anuncio = prompt("Escribe el mensaje de anuncio para todo el sistema:");
+    const anuncio = prompt("Escribe el mensaje de anuncio para la plataforma:");
     if (anuncio) addAdminLog(`Anuncio enviado: "${anuncio}"`, "success");
+});
+
+document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
+    addAdminLog("⚠️ PROTOCOLO DE BLOQUEO RECHAZADO: Se requiere autorización de nivel 5.", "error");
 });
