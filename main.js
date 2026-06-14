@@ -2225,14 +2225,138 @@ window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCue
 // --- ACCIONES RÁPIDAS (Botones Globales) ---
 document.getElementById('btn-admin-clear-cache')?.addEventListener('click', () => {
     addAdminLog("Iniciando purga de caché de APIs...", "warning");
-    setTimeout(() => addAdminLog("Caché limpiada con éxito. Memoria liberada.", "success"), 1200);
-});
-
-document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
-    const anuncio = prompt("Escribe el mensaje de anuncio para la plataforma:");
-    if (anuncio) addAdminLog(`Anuncio enviado: "${anuncio}"`, "success");
+    setTimeout(() => {
+        addAdminLog("Caché limpiada con éxito. Memoria liberada.", "success");
+        showToast('success', 'Caché Purgada', 'La memoria caché de las APIs ha sido liberada correctamente.');
+    }, 1200);
 });
 
 document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
     addAdminLog("⚠️ PROTOCOLO DE BLOQUEO RECHAZADO: Se requiere autorización de nivel 5.", "error");
+    showToast('error', 'Acceso Denegado', 'Se requiere autorización de nivel 5 para iniciar el Bloqueo Global.');
 });
+
+// ==========================================================================
+//   MODAL DE TRANSMISIÓN GLOBAL (ANUNCIOS)
+// ==========================================================================
+const modalAnnounce = document.getElementById('announce-modal');
+const btnCloseAnnounce = document.getElementById('btn-close-announce');
+const targetSelect = document.getElementById('announce-target');
+const specificUserGroup = document.getElementById('announce-specific-user-group');
+const btnSendAnnounce = document.getElementById('btn-send-announce');
+const announceMessage = document.getElementById('announce-message');
+const announceSpecificUser = document.getElementById('announce-specific-user');
+
+// Abrir modal de transmisión
+document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
+    if (modalAnnounce) {
+        modalAnnounce.classList.add('show');
+        document.body.classList.add('no-scroll');
+        document.documentElement.classList.add('no-scroll');
+    }
+});
+
+// Cerrar modal
+btnCloseAnnounce?.addEventListener('click', () => {
+    modalAnnounce.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+});
+
+// Mostrar/Ocultar campo de usuario específico al cambiar el desplegable
+targetSelect?.addEventListener('change', (e) => {
+    if (e.target.value === 'specific_user') {
+        specificUserGroup.style.display = 'flex';
+    } else {
+        specificUserGroup.style.display = 'none';
+    }
+});
+
+// Botón de Enviar Alerta
+btnSendAnnounce?.addEventListener('click', () => {
+    const target = targetSelect.value;
+    const message = announceMessage.value.trim();
+    const specificUser = announceSpecificUser.value.trim();
+
+    // Validaciones
+    if (!message) {
+        showToast('error', 'Error de transmisión', 'El cuerpo del mensaje no puede estar vacío.');
+        return;
+    }
+
+    if (target === 'specific_user' && !specificUser) {
+        showToast('error', 'Destinatario inválido', 'Debes especificar el nombre de usuario destino.');
+        return;
+    }
+
+    // Registrar en el log de la terminal
+    let destinatarioLog = target === 'all_users' ? 'Todos los Usuarios' :
+        target === 'all_admins' ? 'Administradores' :
+            specificUser;
+
+    addAdminLog(`Transmitiendo mensaje a [${destinatarioLog}]: "${message}"`, "system");
+
+    // Simulación de envío a base de datos (Supabase Realtime iría aquí)
+    setTimeout(() => {
+        addAdminLog(`Transmisión completada exitosamente.`, "success");
+        showToast('success', 'Transmisión Enviada', `El mensaje ha sido entregado a la red.`);
+
+        // Como prueba visual, si lo mandamos a todos, nos lo mostramos a nosotros mismos tras 1.5s
+        if (target === 'all_users' || target === 'all_admins') {
+            setTimeout(() => {
+                showToast('success', 'NUEVA TRANSMISIÓN', message);
+            }, 1500);
+        }
+    }, 800);
+
+    // Limpiar formulario y cerrar
+    announceMessage.value = '';
+    announceSpecificUser.value = '';
+    modalAnnounce.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+});
+
+
+// ==========================================================================
+//   SISTEMA DE NOTIFICACIONES FLOTANTES (TOASTS)
+// ==========================================================================
+window.showToast = async function (tipo, titulo, descripcion) {
+    // 1. REGLA ESTRICTA: Solo mostrar si hay sesión iniciada
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const container = document.getElementById('toast-container');
+    const templateId = tipo === 'success' ? 'toast-success-template' : 'toast-error-template';
+    const template = document.getElementById(templateId);
+
+    if (!container || !template) return;
+
+    // 2. Clonamos la plantilla oculta del HTML
+    const clone = template.content.cloneNode(true);
+    const wrapper = clone.querySelector('.toast-wrapper');
+    const titleEl = clone.querySelector('.toast-title');
+    const descEl = clone.querySelector('.toast-desc');
+    const closeBtn = clone.querySelector('.toast-close');
+
+    // 3. Inyectamos nuestros textos
+    titleEl.textContent = titulo;
+    descEl.textContent = descripcion;
+
+    // 4. Funcionalidad de cerrar manual
+    closeBtn.addEventListener('click', () => {
+        wrapper.classList.add('toast-leave');
+        setTimeout(() => wrapper.remove(), 250); // Esperamos que termine la animación
+    });
+
+    // 5. Auto-destrucción a los 5 segundos
+    setTimeout(() => {
+        if (wrapper.parentElement) {
+            wrapper.classList.add('toast-leave');
+            setTimeout(() => wrapper.remove(), 250);
+        }
+    }, 5000);
+
+    // 6. Lanzamos el Toast a la pantalla
+    container.appendChild(clone);
+};

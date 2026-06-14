@@ -1067,10 +1067,104 @@
             </div>
         </div>
 
+        <!-- modal pa enviar anuncios globales -->
+        <div id="announce-modal" class="modal">
+            <div class="modal-content glass-panel game-card" style="max-width: 500px; padding: 0;">
+                <div class="filter-drawer-close-row"
+                    style="border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding: 20px;">
+                    <h2 class="filter-drawer-title"><i class="fas fa-bullhorn"
+                            style="color: var(--primary); margin-right: 10px;"></i> TRANSMISIÓN GLOBAL</h2>
+                    <button id="btn-close-announce" class="icon-btn"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 15px;">
+                    <div class="auth-field">
+                        <label class="auth-label">Destinatarios</label>
+                        <select id="announce-target" class="auth-input" style="width: 100%; cursor: pointer;">
+                            <option value="all_users">Todos los Usuarios</option>
+                            <option value="all_admins">Solo Administradores</option>
+                            <option value="specific_user">Usuario Específico...</option>
+                        </select>
+                    </div>
+
+                    <div id="announce-specific-user-group" class="auth-field" style="display: none;">
+                        <label class="auth-label">Nombre de Usuario Destino</label>
+                        <input type="text" id="announce-specific-user" class="auth-input" placeholder="Ej. Juanx23">
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="auth-label">Cuerpo del Mensaje</label>
+                        <textarea id="announce-message" class="auth-input" rows="4"
+                            placeholder="Escribe la notificación aquí..."
+                            style="resize: vertical; font-family: inherit; width: 100%;"></textarea>
+                    </div>
+
+                    <button id="btn-send-announce" class="auth-btn primary"
+                        style="width: 100%; justify-content: center; margin-top: 10px;">
+                        <i class="fas fa-paper-plane"></i> ENVIAR ALERTA
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- boton pa volver al tope -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
         </button>
+
+        <div id="toast-container" class="toast-container"></div>
+
+        <template id="toast-success-template">
+            <div class="toast-wrapper">
+                <div class="toast-alert toast-success">
+                    <div class="toast-content">
+                        <div class="toast-icon-bg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="toast-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"></path>
+                            </svg>
+                        </div>
+                        <div class="toast-text">
+                            <p class="toast-title">{title}</p>
+                            <p class="toast-desc">{desc}</p>
+                        </div>
+                    </div>
+                    <button class="toast-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toast-icon-sm">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </template>
+
+        <template id="toast-error-template">
+            <div class="toast-wrapper">
+                <div class="toast-alert toast-error">
+                    <div class="toast-content">
+                        <div class="toast-icon-bg">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="toast-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="toast-text">
+                            <p class="toast-title">{title}</p>
+                            <p class="toast-desc">{desc}</p>
+                        </div>
+                    </div>
+                    <button class="toast-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="toast-icon-sm">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </template>
     </main>
 
     <script type="module" src="main.js"></script>

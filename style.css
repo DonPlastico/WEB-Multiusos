@@ -2299,6 +2299,141 @@ span.flatpickr-weekday {
     color: var(--success);
 }
 
+/* ==========================================================================
+   SISTEMA DE NOTIFICACIONES (TOASTS) Y MODAL DE TRANSMISIÓN
+   ========================================================================== */
+
+/* --- CONTENEDOR FLOTANTE DE NOTIFICACIONES --- */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    /* Por encima de cualquier modal o scanline */
+    pointer-events: none;
+    /* No estorba los clicks de la web a menos que toques el toast */
+}
+
+.toast-wrapper {
+    pointer-events: auto;
+    /* Permite hacer click en el toast o cerrarlo */
+    animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    transition: all 0.3s ease;
+}
+
+/* Notificación base limpia (inspirada en tu diseño de Uiverse) */
+.toast-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 320px;
+    min-height: 56px;
+    border-radius: 8px;
+    background: #232531;
+    /* Fondo exacto de tu paleta elegida */
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Contenedor del Icono con Backdrop Blur */
+.toast-icon-bg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.toast-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Colores específicos de iconos por estado */
+.toast-success .toast-icon-bg {
+    color: #2b9875;
+}
+
+.toast-error .toast-icon-bg {
+    color: #d65563;
+}
+
+/* Textos internos */
+.toast-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.toast-title {
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.toast-desc {
+    color: #8a8d9b;
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Botón de cerrar de la notificación */
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #565867;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.toast-close:hover {
+    color: #ededee;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toast-icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+/* Animación de salida programada */
+.toast-wrapper.toast-leave {
+    animation: toastSlideOut 0.25s ease-in forwards;
+}
+
+/* --- ESTILOS EXTRA DEL MODAL TRANSMISIÓN --- */
+#announce-modal textarea.auth-input {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+#announce-modal textarea.auth-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
 
 
 
@@ -2929,5 +3064,29 @@ span.flatpickr-weekday {
     100% {
         border-color: rgba(239, 68, 68, 1);
         opacity: 1;
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(60px) scale(0.9);
     }
 }
