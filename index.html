@@ -502,40 +502,139 @@
 
         <!-- panel de control pa los admin -->
         <section id="admin-panel" class="view">
-            <div class="hero-section glass-panel">
-                <h1 class="glitch-text" style="color: var(--primary);">NEXUS_CORE // ADMIN</h1>
-                <p class="subtitle-hero">Centro de mando, telemetría y gestión de la plataforma.</p>
-            </div>
+            <div class="cyber-container" style="max-width: 1600px;">
 
-            <div class="games-layout" style="margin-top: 30px;">
-                <div class="games-content" style="grid-column: 1 / -1;">
-                    <div class="cyber-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div class="hero-section glass-panel"
+                    style="padding: 40px; margin-bottom: 30px; text-align: left; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    <div>
+                        <h1 class="glitch-text" style="color: var(--error); font-size: 2.8rem; margin-bottom: 5px;">
+                            NEXUS_CORE // OMNI_CONTROL</h1>
+                        <p class="subtitle-hero" style="margin: 0; max-width: none;">Telemetría avanzada, gestión de
+                            identidades y monitorización de red.</p>
+                    </div>
+                    <div class="system-status-indicator"
+                        style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.1); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--success);">
+                        <div class="pulse-dot"
+                            style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; box-shadow: 0 0 12px var(--success); animation: pulse 2s infinite;">
+                        </div>
+                        <span
+                            style="color: var(--success); font-weight: bold; letter-spacing: 2px; font-size: 0.9rem;">SYSTEM
+                            ONLINE</span>
+                    </div>
+                </div>
 
-                        <div class="glass-panel"
-                            style="padding: 30px; text-align: center; border-top: 3px solid var(--primary);">
-                            <i class="fas fa-users"
-                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
-                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">USUARIOS TOTALES</h3>
-                            <p style="font-size: 3.5rem; color: var(--primary); font-weight: bold; margin-top: 10px;"
-                                id="metric-users">1</p>
+                <div class="admin-metrics-grid">
+
+                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--primary);">
+                        <div class="metric-header">
+                            <span>USUARIOS TOTALES</span>
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="metric-value" id="metric-total-users">--</div>
+                        <div class="metric-trend success"><i class="fas fa-user-plus"></i> <span
+                                id="metric-online-users">1</span> en línea</div>
+                    </div>
+
+                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--secondary);">
+                        <div class="metric-header">
+                            <span>EDGE REQUESTS (24H)</span>
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <div class="metric-value" id="metric-edge-requests">8.4k</div>
+                        <div class="metric-trend success"><i class="fas fa-arrow-up"></i> 12% vs ayer</div>
+                    </div>
+
+                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--accent);">
+                        <div class="metric-header">
+                            <span>FUNCTION INVOCATIONS</span>
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="metric-value" id="metric-func-invocations">14.2k</div>
+                        <div class="metric-trend neutral"><i class="fas fa-minus"></i> Estable</div>
+                    </div>
+
+                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--error);">
+                        <div class="metric-header">
+                            <span>ERROR RATE</span>
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="metric-value" id="metric-error-rate">0.12%</div>
+                        <div class="metric-trend success"><i class="fas fa-arrow-down"></i> Sistema estable</div>
+                    </div>
+                </div>
+
+                <div class="admin-dashboard-layout">
+
+                    <div class="glass-panel admin-table-panel">
+                        <div class="admin-section-header">
+                            <h2><i class="fas fa-id-card-alt" style="color: var(--primary);"></i> BASE DE DATOS DE
+                                IDENTIDADES</h2>
+                            <div class="search-box admin-search">
+                                <input type="text" id="admin-search-input" placeholder="Buscar por usuario o email...">
+                                <button id="btn-admin-search"><i class="fas fa-search"></i></button>
+                            </div>
                         </div>
 
-                        <div class="glass-panel"
-                            style="padding: 30px; text-align: center; border-top: 3px solid var(--success);">
-                            <i class="fas fa-server"
-                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
-                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">ESTADO DEL SISTEMA</h3>
-                            <p style="font-size: 2rem; color: var(--success); font-weight: bold; margin-top: 25px;">
-                                ÓPTIMO</p>
+                        <div class="table-responsive">
+                            <table class="cyber-table">
+                                <thead>
+                                    <tr>
+                                        <th>USUARIO</th>
+                                        <th>EMAIL</th>
+                                        <th>REGISTRO</th>
+                                        <th>ESTADO</th>
+                                        <th>ROL</th>
+                                        <th style="text-align: right;">ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-tbody">
+                                    <tr>
+                                        <td colspan="6"
+                                            style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                            <i class="fas fa-circle-notch fa-spin"
+                                                style="font-size: 2rem; color: var(--primary); margin-bottom: 15px;"></i>
+                                            <br>Conectando con Supabase Auth...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="admin-side-panel">
+
+                        <div class="glass-panel admin-logs-panel">
+                            <div class="admin-section-header compact">
+                                <h2><i class="fas fa-terminal" style="color: var(--secondary);"></i> RUNTIME LOGS</h2>
+                                <span class="live-badge">LIVE</span>
+                            </div>
+
+                            <div class="terminal-box" id="admin-terminal-logs">
+                                <div class="log-line"><span class="log-time">[SYS]</span> Inicializando interfaz de
+                                    administrador...</div>
+                                <div class="log-line"><span class="log-time">[AUTH]</span> Comprobando privilegios de
+                                    acceso.</div>
+                                <div class="log-line success"><span class="log-time">[200]</span> GET /api/users -
+                                    Acceso autorizado.</div>
+                            </div>
                         </div>
 
-                        <div class="glass-panel"
-                            style="padding: 30px; text-align: center; border-top: 3px solid var(--warning);">
-                            <i class="fas fa-bullhorn"
-                                style="font-size: 2rem; color: var(--text-muted); margin-bottom: 15px;"></i>
-                            <h3 style="color: var(--text-muted); letter-spacing: 2px;">LANZAR ANUNCIO</h3>
-                            <button class="auth-btn secondary" style="width: 100%; margin-top: 20px;">CREAR
-                                POST</button>
+                        <div class="glass-panel admin-actions-panel">
+                            <div class="admin-section-header compact">
+                                <h2><i class="fas fa-rocket" style="color: var(--warning);"></i> ACCIONES RÁPIDAS</h2>
+                            </div>
+                            <div class="action-buttons-grid">
+                                <button class="auth-btn secondary full-width text-left" id="btn-admin-announce">
+                                    <i class="fas fa-bullhorn"></i> LANZAR ANUNCIO
+                                </button>
+                                <button class="auth-btn secondary full-width text-left" id="btn-admin-clear-cache">
+                                    <i class="fas fa-broom"></i> PURGAR CACHÉ APIS
+                                </button>
+                                <button class="auth-btn secondary full-width text-left danger-zone"
+                                    id="btn-admin-lockdown">
+                                    <i class="fas fa-shield-alt"></i> MODO BLOQUEO GLOBAL
+                                </button>
+                            </div>
                         </div>
 
                     </div>
