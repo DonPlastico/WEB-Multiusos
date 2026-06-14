@@ -1994,17 +1994,34 @@ async function cargarPerfilPublico(usernameTarget) {
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
 
+        // Elementos privados (Boton de añadir y sección de Mensajes)
+        const btnAddFriend = document.getElementById('btn-add-friend');
+        const cajitasStats = document.querySelectorAll('.profile-stats .stat-box');
+        const divisoresStats = document.querySelectorAll('.profile-stats .stat-divider');
+
         if (miPropioUsername === usuarioABuscar) {
+            // === ES MI PROPIO PERFIL ===
             if (overlayBanner) overlayBanner.style.display = 'flex';
             if (overlayAvatar) overlayAvatar.style.display = 'flex';
             document.querySelector('.profile-banner').style.cursor = 'pointer';
             document.querySelector('.profile-avatar').style.cursor = 'pointer';
+
+            // Muestro mis botones privados y mis mensajes
+            if (btnAddFriend) btnAddFriend.style.display = 'flex'; // los icon-btn usan flex
+            if (cajitasStats[2]) cajitasStats[2].style.display = 'flex'; // la 3ª caja (Mensajes)
+            if (divisoresStats[1]) divisoresStats[1].style.display = 'block'; // la 2ª rayita separadora
+
         } else {
-            // Es de otra persona: Prohibido editar
+            // === ES EL PERFIL DE OTRA PERSONA ===
             if (overlayBanner) overlayBanner.style.display = 'none';
             if (overlayAvatar) overlayAvatar.style.display = 'none';
             document.querySelector('.profile-banner').style.cursor = 'default';
             document.querySelector('.profile-avatar').style.cursor = 'default';
+
+            // Oculto mis botones privados y mis mensajes
+            if (btnAddFriend) btnAddFriend.style.display = 'none';
+            if (cajitasStats[2]) cajitasStats[2].style.display = 'none';
+            if (divisoresStats[1]) divisoresStats[1].style.display = 'none';
         }
 
     } catch (err) {
