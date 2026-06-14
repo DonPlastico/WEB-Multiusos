@@ -2253,20 +2253,18 @@ const announceSpecificUser = document.getElementById('announce-specific-user');
 
 // Función reutilizable de abrir/cerrar
 function openAnnounceModal() {
-    modalAnnounce?.classList.add('active');
+    modalAnnounce?.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 }
 
 function closeAnnounceModal() {
-    modalAnnounce?.classList.remove('active');
+    modalAnnounce?.classList.remove('show');  // era .active
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
-    // Reset campos
     if (announceMessage) announceMessage.value = '';
     if (announceSpecificUser) announceSpecificUser.value = '';
     if (specificUserGroup) specificUserGroup.style.display = 'none';
-    // Reset cyber-select al valor por defecto
     selectOptions.forEach(o => o.classList.remove('selected'));
     selectOptions[0]?.classList.add('selected');
     if (selectLabel) selectLabel.textContent = 'Todos los Usuarios';
