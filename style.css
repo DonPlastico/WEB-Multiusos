@@ -169,7 +169,8 @@ input[type=number]::-webkit-outer-spin-button {
     background: var(--bg-secondary);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color);
-    position: sticky;
+    position: fixed;
+    width: 100%;
     top: 0;
     z-index: 100;
 }
@@ -2323,7 +2324,7 @@ span.flatpickr-weekday {
     .filter-sidebar {
         border-left: 1px solid var(--border-color);
         z-index: 1000;
-        border-radius: 0;
+        border-radius: 8px;
         width: min(90vw, 360px);
         height: 82dvh;
         max-height: 100dvh;

@@ -39,7 +39,7 @@ let seriesCargadas = false;
 const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
-function cambiarVista(target, guardarEnHistorial = true) {
+function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
     // antes de cambiar, guardo donde estaba
     memoriaScroll[vistaActualGlobal] = window.scrollY;
 
@@ -62,11 +62,10 @@ function cambiarVista(target, guardarEnHistorial = true) {
     });
 
     // vuelvo a la posicion de scroll que tenia
-    // espero 10ms para que el navegador pinte primero
     setTimeout(() => {
         window.scrollTo({
-            top: memoriaScroll[target] || 0, // si no habia entrado scroll en 0
-            behavior: 'instant' // sin animacion
+            top: memoriaScroll[target] || 0,
+            behavior: 'instant'
         });
     }, 10);
 
@@ -83,11 +82,20 @@ function cambiarVista(target, guardarEnHistorial = true) {
     } else if (target === 'series' && !seriesCargadas) {
         cargarTMDB('tv');
         seriesCargadas = true;
+    } else if (target === 'profile') {
+        // ---> LO NUEVO: Cargar los datos del usuario en la pantalla <---
+        cargarPerfilPublico(usernameUrl);
     }
 
     // cambio la url sin recargar
-    if (guardarEnHistorial && mapaRutas[target]) {
-        window.history.pushState({ vista: target }, '', mapaRutas[target]);
+    if (guardarEnHistorial) {
+        if (target === 'profile' && usernameUrl) {
+            // URL dinámica para perfiles
+            window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
+        } else if (mapaRutas[target]) {
+            // URLs normales
+            window.history.pushState({ vista: target }, '', mapaRutas[target]);
+        }
     }
 }
 
@@ -132,18 +140,25 @@ window.addEventListener('popstate', (evento) => {
 
     if (evento.state && evento.state.vista) {
         // vuelvo a la vista anterior sin guardar
-        cambiarVista(evento.state.vista, false);
+        cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
-        cambiarVista('home', false);
+        arrancarEnrutador();
     }
 });
 
-// cuando entran directamente a una url tipo /juegos
+// cuando entran directamente a una url tipo /juegos o /perfil/usuario/...
 function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
     let vistaInicial = 'home'; // default
 
-    // busco que vista corresponde a la url
+    // DETECTAR URL DINÁMICA DE PERFIL <---
+    if (rutaActual.startsWith('/perfil/usuario/')) {
+        const usernameUrl = rutaActual.split('/').pop(); // Saca el nombre del final
+        cambiarVista('profile', false, usernameUrl);
+        return; // Cortamos aquí para que no siga buscando
+    }
+
+    // busco que vista corresponde a la url normal
     for (const [idVista, url] of Object.entries(mapaRutas)) {
         if (url === rutaActual) {
             vistaInicial = idVista;
@@ -1903,5 +1918,92 @@ async function llamarDetallesJuego(idJuego, titulo) {
 
     } catch (error) {
         console.error("Error:", error);
+    }
+}
+
+// ==========================================================================
+//   CARGA DINÁMICA DE PERFILES PÚBLICOS
+// ==========================================================================
+async function cargarPerfilPublico(usernameTarget) {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        let miPropioUsername = null;
+        let emailLogueado = null;
+
+        // Sacamos nuestros datos si estamos logueados
+        if (session) {
+            emailLogueado = session.user.email;
+            const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', emailLogueado).single();
+            if (miPerfil) miPropioUsername = miPerfil.username;
+        }
+
+        // Si no me pasan usuario por la URL (entrar desde el menú normal), asumo que quiero ver MI perfil
+        const usuarioABuscar = usernameTarget || miPropioUsername;
+
+        if (!usuarioABuscar) {
+            document.querySelector('.profile-username').textContent = "Inicia sesión para ver tu perfil";
+            return;
+        }
+
+        // Buscamos en Supabase
+        const { data: perfilTarget, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('username', usuarioABuscar)
+            .single();
+
+        if (error || !perfilTarget) {
+            document.querySelector('.profile-username').textContent = "Usuario no encontrado en el Nexus";
+            return;
+        }
+
+        // Pintamos el Nombre
+        document.querySelector('.profile-username').textContent = perfilTarget.username;
+
+        // Pintar Avatar
+        const avatarElement = document.querySelector('.profile-avatar');
+        if (avatarElement) {
+            const overlay = avatarElement.querySelector('.edit-overlay-avatar');
+            avatarElement.innerHTML = ''; // Limpiamos
+            if (overlay) avatarElement.appendChild(overlay); // Devolvemos el lapicero
+
+            if (!perfilTarget.avatar || perfilTarget.avatar === 'default' || perfilTarget.avatar === 'custom') {
+                avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
+            } else {
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${perfilTarget.avatar}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+            }
+        }
+
+        // Pintar Banner
+        const bannerElement = document.querySelector('.profile-banner');
+        if (bannerElement) {
+            if (!perfilTarget.banner || perfilTarget.banner === 'default' || perfilTarget.banner === 'custom') {
+                bannerElement.style.backgroundImage = 'none';
+            } else {
+                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${perfilTarget.banner}.png')`;
+                bannerElement.style.backgroundSize = 'cover';
+                bannerElement.style.backgroundPosition = 'center';
+            }
+        }
+
+        // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
+        const overlayBanner = document.querySelector('.edit-overlay');
+        const overlayAvatar = document.querySelector('.edit-overlay-avatar');
+
+        if (miPropioUsername === usuarioABuscar) {
+            if (overlayBanner) overlayBanner.style.display = 'flex';
+            if (overlayAvatar) overlayAvatar.style.display = 'flex';
+            document.querySelector('.profile-banner').style.cursor = 'pointer';
+            document.querySelector('.profile-avatar').style.cursor = 'pointer';
+        } else {
+            // Es de otra persona: Prohibido editar
+            if (overlayBanner) overlayBanner.style.display = 'none';
+            if (overlayAvatar) overlayAvatar.style.display = 'none';
+            document.querySelector('.profile-banner').style.cursor = 'default';
+            document.querySelector('.profile-avatar').style.cursor = 'default';
+        }
+
+    } catch (err) {
+        console.error("Error al cargar perfil dinámico:", err);
     }
 }
