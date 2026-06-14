@@ -104,7 +104,11 @@ linksMenu.forEach(link => {
     link.addEventListener('click', (evento) => {
         evento.preventDefault();
         const target = link.getAttribute('data-target');
-        cambiarVista(target, true);
+
+        // Solo cambiamos si NO estamos ya en esa vista (Evita historiales duplicados)
+        if (vistaActualGlobal !== target) {
+            cambiarVista(target, true);
+        }
     });
 });
 
@@ -150,24 +154,28 @@ window.addEventListener('popstate', (evento) => {
 function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
     let vistaInicial = 'home'; // default
+    let userInitial = null;
 
-    // DETECTAR URL DINÁMICA DE PERFIL <---
+    // DETECTAR URL DINÁMICA DE PERFIL
     if (rutaActual.startsWith('/perfil/usuario/')) {
-        const usernameUrl = rutaActual.split('/').pop(); // Saca el nombre del final
-        cambiarVista('profile', false, usernameUrl);
-        return; // Cortamos aquí para que no siga buscando
-    }
-
-    // busco que vista corresponde a la url normal
-    for (const [idVista, url] of Object.entries(mapaRutas)) {
-        if (url === rutaActual) {
-            vistaInicial = idVista;
-            break;
+        userInitial = rutaActual.split('/').pop();
+        vistaInicial = 'profile';
+    } else {
+        // busco que vista corresponde a la url normal
+        for (const [idVista, url] of Object.entries(mapaRutas)) {
+            if (url === rutaActual) {
+                vistaInicial = idVista;
+                break;
+            }
         }
     }
 
-    // muestro esa vista
-    cambiarVista(vistaInicial, false);
+    // muestro esa vista sin empujarla al historial todavía
+    cambiarVista(vistaInicial, false, userInitial);
+
+    // Así los botones < y > saben exactamente a dónde volver.
+    const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : (mapaRutas[vistaInicial] || '/');
+    window.history.replaceState({ vista: vistaInicial, user: userInitial }, '', urlFinal);
 }
 
 // ==========================================================================
@@ -1145,6 +1153,15 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     const password = document.getElementById('register-password').value.trim();
     const passConf = document.getElementById('register-password-confirm').value.trim();
     const birthdate = document.getElementById('register-birthdate').value;
+
+    // Obliga a usar un formato limpio y prohíbe el uso de '+' para alias de Gmail
+    const regexEmailLimpio = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!regexEmailLimpio.test(email) || email.includes('+')) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ Correo inválido. No se permiten alias con el símbolo "+".';
+        return;
+    }
 
     // valido en el cliente
     if (email !== emailConf) {
