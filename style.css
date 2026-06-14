@@ -2191,12 +2191,34 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .metric-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.02);
+    z-index: 10;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Resplandores individuales basados en tus variables */
+.metric-card:nth-child(1):hover {
+    box-shadow: 0 0 30px var(--primary-soft), inset 0 0 20px rgba(99, 102, 241, 0.05);
+    border-left-color: var(--primary-hover) !important;
+}
+
+.metric-card:nth-child(2):hover {
+    box-shadow: 0 0 30px var(--secondary-soft), inset 0 0 20px rgba(45, 212, 191, 0.05);
+    border-left-color: var(--secondary-hover) !important;
+}
+
+.metric-card:nth-child(3):hover {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.2), inset 0 0 20px rgba(245, 158, 11, 0.05);
+    border-left-color: var(--accent-hover) !important;
+}
+
+.metric-card:nth-child(4):hover {
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.2), inset 0 0 20px rgba(239, 68, 68, 0.05);
+    border-left-color: #f87171 !important;
 }
 
 .metric-header {
@@ -2290,8 +2312,20 @@ span.flatpickr-weekday {
 }
 
 .admin-search input:focus {
-    border-color: var(--primary);
     outline: none;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 15px var(--primary-soft), inset 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.cyber-table tbody tr {
+    transition: background 0.2s, box-shadow 0.2s, border-left 0.2s;
+    border-left: 2px solid transparent;
+}
+
+.cyber-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+    border-left: 2px solid var(--primary);
+    box-shadow: inset 30px 0 30px -30px var(--primary-soft);
 }
 
 /* Tabla Estilo Cyber */
@@ -2316,10 +2350,9 @@ span.flatpickr-weekday {
 }
 
 .cyber-table td {
-    padding: 16px 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 18px 15px;
+    border-bottom: 1px solid var(--border-color);
     color: var(--text-secondary);
-    font-size: 0.95rem;
     vertical-align: middle;
 }
 
@@ -2334,82 +2367,71 @@ span.flatpickr-weekday {
 }
 
 .status-icon.verified {
-    color: var(--success);
-    text-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    text-shadow: 0 0 10px var(--success);
 }
 
 .status-icon.unverified {
-    color: var(--error);
-    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    text-shadow: 0 0 10px var(--error);
 }
 
 .role-badge {
     background: rgba(255, 255, 255, 0.05);
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 2px;
 }
 
 .role-badge.admin {
-    background: rgba(99, 102, 241, 0.15);
+    background: var(--primary-soft);
     color: var(--primary);
     border: 1px solid rgba(99, 102, 241, 0.5);
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
 }
 
-/* Botones de acción de la tabla */
-.table-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-}
-
-.action-btn {
-    background: rgba(255, 255, 255, 0.03);
+.table-actions .action-btn {
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     color: var(--text-muted);
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
 }
 
-.action-btn:hover {
+.table-actions .action-btn:hover {
     background: var(--bg-hover);
     color: var(--text-main);
-    border-color: var(--text-main);
 }
 
-.action-btn.edit:hover {
+.table-actions .action-btn.edit:hover {
     color: var(--primary);
     border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 10px var(--primary-soft);
 }
 
-.action-btn.promote:hover {
+.table-actions .action-btn.promote:hover {
     color: var(--success);
     border-color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
-.action-btn.demote:hover {
+.table-actions .action-btn.demote:hover {
     color: var(--warning);
     border-color: var(--warning);
-    background: rgba(245, 158, 11, 0.1);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
 }
 
-.action-btn.delete:hover {
+.table-actions .action-btn.delete:hover {
     color: var(--error);
     border-color: var(--error);
-    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
 }
 
 /* --- TERMINAL Y BARRA LATERAL --- */
@@ -2439,22 +2461,24 @@ span.flatpickr-weekday {
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
-/* Scrollbar negra de la terminal */
+/* Scrollbar de neón para la terminal */
 .terminal-box::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .terminal-box::-webkit-scrollbar-track {
-    background: transparent;
+    background: #020203;
+    border-left: 1px solid rgba(99, 102, 241, 0.1);
 }
 
 .terminal-box::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 6px;
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
 }
 
 .terminal-box::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
 }
 
 .log-line {
@@ -2469,20 +2493,22 @@ span.flatpickr-weekday {
     font-size: 0.75rem;
 }
 
-.log-line.success {
-    color: var(--success);
-}
-
-.log-line.error {
-    color: var(--error);
+.log-line.system {
+    color: var(--secondary);
+    text-shadow: 0 0 5px var(--secondary-soft);
 }
 
 .log-line.warning {
     color: var(--warning);
 }
 
-.log-line.system {
-    color: var(--primary);
+.log-line.error {
+    color: var(--error);
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.log-line.success {
+    color: var(--success);
 }
 
 .live-badge {
@@ -2733,10 +2759,16 @@ span.flatpickr-weekday {
         font-size: 2.5rem !important;
     }
 
-    /* --- ADMIN PANEL (TABLETS) --- */
     .admin-dashboard-layout {
-        grid-template-columns: 1fr;
-        /* Colapsa la tabla y la consola a una sola columna */
+        grid-template-columns: 1fr !important;
+    }
+
+    .omni-control-container {
+        max-width: 90% !important;
+    }
+
+    .terminal-box {
+        height: 350px !important;
     }
 }
 
@@ -2751,7 +2783,11 @@ span.flatpickr-weekday {
     }
 
     .glitch-text {
-        font-size: 2.2rem;
+        font-size: 2.2rem !important;
+    }
+
+    .glitch-text span {
+        font-size: 1.8rem !important;
     }
 
     .subtitle-hero {
@@ -2867,12 +2903,15 @@ span.flatpickr-weekday {
 
     /* --- ADMIN PANEL (MÓVILES) --- */
     .hero-section.glass-panel {
-        padding: 30px 20px;
+        padding: 25px 20px !important;
+        flex-direction: column;
+        align-items: flex-start !important;
     }
 
     .admin-section-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-start !important;
+        gap: 15px;
     }
 
     .admin-search {
@@ -2880,19 +2919,21 @@ span.flatpickr-weekday {
     }
 
     .admin-search input {
-        width: 100%;
-        /* El buscador de usuarios ocupa todo el ancho */
-    }
-
-    .metric-value {
-        font-size: 2.2rem;
-        /* Achicamos un poco los números gigantes de las métricas */
+        width: 100% !important;
     }
 
     .admin-table-panel,
     .admin-actions-panel,
     .admin-logs-panel {
-        padding: 15px;
+        padding: 15px !important;
+    }
+
+    .metric-card {
+        padding: 20px !important;
+    }
+
+    .metric-value {
+        font-size: 2.5rem !important;
     }
 }
 
@@ -3113,11 +3154,11 @@ span.flatpickr-weekday {
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
     }
 
     70% {
-        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
     }
 
     100% {

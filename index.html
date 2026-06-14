@@ -502,98 +502,153 @@
 
         <!-- panel de control pa los admin -->
         <section id="admin-panel" class="view">
-            <div class="cyber-container" style="max-width: 1600px;">
+            <div class="cyber-container omni-control-container"
+                style="max-width: 96%; width: 100%; margin: 0 auto; padding: 20px 0;">
 
                 <div class="hero-section glass-panel"
-                    style="padding: 40px; margin-bottom: 30px; text-align: left; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    style="padding: 35px 40px; margin-bottom: 35px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid var(--border-light); background: var(--gradient-card); box-shadow: var(--shadow-lg);">
                     <div>
-                        <h1 class="glitch-text" style="color: var(--error); font-size: 2.8rem; margin-bottom: 5px;">
-                            NEXUS_CORE // OMNI_CONTROL</h1>
-                        <p class="subtitle-hero" style="margin: 0; max-width: none;">Telemetría avanzada, gestión de
-                            identidades y monitorización de red.</p>
+                        <h1 class="glitch-text"
+                            style="color: var(--primary); font-size: 3.2rem; margin-bottom: 5px; text-shadow: 0 0 15px var(--primary-soft);">
+                            NEXUS_CORE <span style="color: var(--text-muted); font-size: 2.5rem;">//</span> <span
+                                style="color: var(--secondary);">OMNI_CONTROL</span>
+                        </h1>
+                        <p class="subtitle-hero"
+                            style="margin: 0; color: var(--text-secondary); letter-spacing: 3px; font-size: 0.95rem; text-transform: uppercase;">
+                            Telemetría de red, gestión de identidades y acceso root
+                        </p>
                     </div>
                     <div class="system-status-indicator"
-                        style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.1); padding: 10px 20px; border-radius: 50px; border: 1px solid var(--success);">
+                        style="display: flex; align-items: center; gap: 15px; background: rgba(16, 185, 129, 0.05); padding: 12px 25px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);">
                         <div class="pulse-dot"
-                            style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; box-shadow: 0 0 12px var(--success); animation: pulse 2s infinite;">
+                            style="width: 14px; height: 14px; background: var(--success); border-radius: 50%; box-shadow: 0 0 15px var(--success); animation: pulse 2s infinite;">
                         </div>
                         <span
-                            style="color: var(--success); font-weight: bold; letter-spacing: 2px; font-size: 0.9rem;">SYSTEM
-                            ONLINE</span>
+                            style="color: var(--success); font-weight: 700; letter-spacing: 3px; font-size: 1rem; text-shadow: 0 0 8px var(--success);">SYS_ONLINE</span>
                     </div>
                 </div>
 
-                <div class="admin-metrics-grid">
+                <div class="admin-metrics-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px;">
 
-                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--primary);">
-                        <div class="metric-header">
-                            <span>USUARIOS TOTALES</span>
-                            <i class="fas fa-users"></i>
+                    <div class="glass-panel metric-card"
+                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); background: var(--bg-card); box-shadow: -5px 0 20px var(--primary-soft);">
+                        <div class="metric-header"
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
+                            <span>USUARIOS_TOTALES</span>
+                            <i class="fas fa-users" style="color: var(--primary); font-size: 1.2rem;"></i>
                         </div>
-                        <div class="metric-value" id="metric-total-users">--</div>
-                        <div class="metric-trend success"><i class="fas fa-user-plus"></i> <span
-                                id="metric-online-users">1</span> en línea</div>
+                        <div class="metric-value" id="metric-total-users"
+                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
+                            --</div>
+                        <div class="metric-trend"
+                            style="color: var(--secondary); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-user-plus"></i> <span id="metric-online-users">1</span> CONECTADO_
+                        </div>
                     </div>
 
-                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--secondary);">
-                        <div class="metric-header">
-                            <span>EDGE REQUESTS (24H)</span>
-                            <i class="fas fa-network-wired"></i>
+                    <div class="glass-panel metric-card"
+                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--secondary); background: var(--bg-card); box-shadow: -5px 0 20px var(--secondary-soft);">
+                        <div class="metric-header"
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
+                            <span>EDGE_REQUESTS (24H)</span>
+                            <i class="fas fa-network-wired" style="color: var(--secondary); font-size: 1.2rem;"></i>
                         </div>
-                        <div class="metric-value" id="metric-edge-requests">8.4k</div>
-                        <div class="metric-trend success"><i class="fas fa-arrow-up"></i> 12% vs ayer</div>
+                        <div class="metric-value" id="metric-edge-requests"
+                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
+                            8.4k</div>
+                        <div class="metric-trend"
+                            style="color: var(--success); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-arrow-up"></i> 12% vs ayer
+                        </div>
                     </div>
 
-                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--accent);">
-                        <div class="metric-header">
-                            <span>FUNCTION INVOCATIONS</span>
-                            <i class="fas fa-bolt"></i>
+                    <div class="glass-panel metric-card"
+                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--accent); background: var(--bg-card); box-shadow: -5px 0 20px rgba(245, 158, 11, 0.15);">
+                        <div class="metric-header"
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
+                            <span>FUNCTION_CALLS</span>
+                            <i class="fas fa-microchip" style="color: var(--accent); font-size: 1.2rem;"></i>
                         </div>
-                        <div class="metric-value" id="metric-func-invocations">14.2k</div>
-                        <div class="metric-trend neutral"><i class="fas fa-minus"></i> Estable</div>
+                        <div class="metric-value" id="metric-func-invocations"
+                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
+                            14.2k</div>
+                        <div class="metric-trend"
+                            style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-minus"></i> Carga estable
+                        </div>
                     </div>
 
-                    <div class="glass-panel metric-card" style="border-top: 3px solid var(--error);">
-                        <div class="metric-header">
-                            <span>ERROR RATE</span>
-                            <i class="fas fa-exclamation-triangle"></i>
+                    <div class="glass-panel metric-card"
+                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--error); background: var(--bg-card); box-shadow: -5px 0 20px rgba(239, 68, 68, 0.15);">
+                        <div class="metric-header"
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
+                            <span>ERROR_RATE</span>
+                            <i class="fas fa-exclamation-triangle" style="color: var(--error); font-size: 1.2rem;"></i>
                         </div>
-                        <div class="metric-value" id="metric-error-rate">0.12%</div>
-                        <div class="metric-trend success"><i class="fas fa-arrow-down"></i> Sistema estable</div>
+                        <div class="metric-value" id="metric-error-rate"
+                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
+                            0.12%</div>
+                        <div class="metric-trend"
+                            style="color: var(--success); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-shield-check"></i> Sistema seguro
+                        </div>
                     </div>
                 </div>
 
-                <div class="admin-dashboard-layout">
+                <div class="admin-dashboard-layout"
+                    style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 30px; align-items: start;">
 
-                    <div class="glass-panel admin-table-panel">
-                        <div class="admin-section-header">
-                            <h2><i class="fas fa-id-card-alt" style="color: var(--primary);"></i> BASE DE DATOS DE
-                                IDENTIDADES</h2>
-                            <div class="search-box admin-search">
-                                <input type="text" id="admin-search-input" placeholder="Buscar por usuario o email...">
-                                <button id="btn-admin-search"><i class="fas fa-search"></i></button>
+                    <div class="glass-panel admin-table-panel"
+                        style="padding: 30px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div class="admin-section-header"
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; margin-bottom: 20px;">
+                            <h2
+                                style="font-size: 1.4rem; color: var(--neon-white); display: flex; align-items: center; gap: 12px; letter-spacing: 1px;">
+                                <i class="fas fa-id-card-alt" style="color: var(--secondary);"></i> BASE DE DATOS DE
+                                IDENTIDADES
+                            </h2>
+                            <div class="search-box admin-search" style="display: flex; gap: 10px;">
+                                <input type="text" id="admin-search-input" placeholder="Rastrear identidad o email..."
+                                    style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 15px; border-radius: 4px; width: 300px;">
+                                <button id="btn-admin-search" class="auth-btn secondary" style="padding: 0 15px;"><i
+                                        class="fas fa-search"></i></button>
                             </div>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="cyber-table">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <table class="cyber-table"
+                                style="width: 100%; border-collapse: collapse; text-align: left;">
                                 <thead>
                                     <tr>
-                                        <th>USUARIO</th>
-                                        <th>EMAIL</th>
-                                        <th>REGISTRO</th>
-                                        <th>ESTADO</th>
-                                        <th>ROL</th>
-                                        <th style="text-align: right;">ACCIONES</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            USUARIO</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            EMAIL</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            REGISTRO</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light); text-align: center;">
+                                            ESTADO</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            ROL</th>
+                                        <th
+                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light); text-align: right;">
+                                            ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-users-tbody">
                                     <tr>
                                         <td colspan="6"
-                                            style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                            style="text-align: center; padding: 60px; color: var(--text-muted);">
                                             <i class="fas fa-circle-notch fa-spin"
-                                                style="font-size: 2rem; color: var(--primary); margin-bottom: 15px;"></i>
-                                            <br>Conectando con Supabase Auth...
+                                                style="font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--primary));"></i>
+                                            <br><span style="letter-spacing: 2px;">ESTABLECIENDO CONEXIÓN SEGURA CON
+                                                BASE DE DATOS...</span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -601,38 +656,57 @@
                         </div>
                     </div>
 
-                    <div class="admin-side-panel">
+                    <div class="admin-side-panel" style="display: flex; flex-direction: column; gap: 30px;">
 
-                        <div class="glass-panel admin-logs-panel">
-                            <div class="admin-section-header compact">
-                                <h2><i class="fas fa-terminal" style="color: var(--secondary);"></i> RUNTIME LOGS</h2>
-                                <span class="live-badge">LIVE</span>
+                        <div class="glass-panel admin-logs-panel"
+                            style="padding: 25px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
+                            <div class="admin-section-header compact"
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 15px;">
+                                <h2
+                                    style="font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-white); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-terminal" style="color: var(--primary);"></i> RUNTIME_LOGS
+                                </h2>
+                                <span class="live-badge"
+                                    style="background: rgba(239, 68, 68, 0.1); color: var(--error); border: 1px solid var(--error); padding: 4px 10px; font-size: 0.7rem; font-weight: bold; letter-spacing: 2px; border-radius: 4px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">REC_LIVE</span>
                             </div>
 
-                            <div class="terminal-box" id="admin-terminal-logs">
-                                <div class="log-line"><span class="log-time">[SYS]</span> Inicializando interfaz de
-                                    administrador...</div>
-                                <div class="log-line"><span class="log-time">[AUTH]</span> Comprobando privilegios de
-                                    acceso.</div>
-                                <div class="log-line success"><span class="log-time">[200]</span> GET /api/users -
-                                    Acceso autorizado.</div>
+                            <div class="terminal-box" id="admin-terminal-logs"
+                                style="background: #020203; border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 6px; padding: 20px; font-family: 'Courier New', monospace; font-size: 0.9rem; height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 0 0 40px rgba(0,0,0,0.9);">
+                                <div class="log-line" style="color: var(--text-secondary);"><span class="log-time"
+                                        style="color: #555;">[SYS]</span> Inicializando interfaz de administrador...
+                                </div>
+                                <div class="log-line" style="color: var(--text-secondary);"><span class="log-time"
+                                        style="color: #555;">[AUTH]</span> Comprobando privilegios de acceso.</div>
+                                <div class="log-line success" style="color: var(--success);"><span class="log-time"
+                                        style="color: #555;">[200]</span> GET /api/users - Acceso root autorizado.</div>
                             </div>
                         </div>
 
-                        <div class="glass-panel admin-actions-panel">
-                            <div class="admin-section-header compact">
-                                <h2><i class="fas fa-rocket" style="color: var(--warning);"></i> ACCIONES RÁPIDAS</h2>
+                        <div class="glass-panel admin-actions-panel"
+                            style="padding: 25px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
+                            <div class="admin-section-header compact"
+                                style="border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 15px;">
+                                <h2
+                                    style="font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-white); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-server" style="color: var(--accent);"></i> SERVER_ACTIONS
+                                </h2>
                             </div>
-                            <div class="action-buttons-grid">
-                                <button class="auth-btn secondary full-width text-left" id="btn-admin-announce">
-                                    <i class="fas fa-bullhorn"></i> LANZAR ANUNCIO
+                            <div class="action-buttons-grid" style="display: flex; flex-direction: column; gap: 15px;">
+                                <button class="auth-btn secondary full-width text-left" id="btn-admin-announce"
+                                    style="justify-content: flex-start; padding-left: 20px; border-color: var(--primary-soft);">
+                                    <i class="fas fa-bullhorn" style="color: var(--primary); margin-right: 10px;"></i>
+                                    ENVIAR TRANSMISIÓN GLOBAL
                                 </button>
-                                <button class="auth-btn secondary full-width text-left" id="btn-admin-clear-cache">
-                                    <i class="fas fa-broom"></i> PURGAR CACHÉ APIS
+                                <button class="auth-btn secondary full-width text-left" id="btn-admin-clear-cache"
+                                    style="justify-content: flex-start; padding-left: 20px; border-color: var(--secondary-soft);">
+                                    <i class="fas fa-broom" style="color: var(--secondary); margin-right: 10px;"></i>
+                                    PURGAR CACHÉ DE APIS
                                 </button>
                                 <button class="auth-btn secondary full-width text-left danger-zone"
-                                    id="btn-admin-lockdown">
-                                    <i class="fas fa-shield-alt"></i> MODO BLOQUEO GLOBAL
+                                    id="btn-admin-lockdown"
+                                    style="justify-content: flex-start; padding-left: 20px; border-color: rgba(239, 68, 68, 0.3); color: var(--error);">
+                                    <i class="fas fa-shield-alt" style="margin-right: 10px;"></i> ACTIVAR PROTOCOLO DE
+                                    BLOQUEO
                                 </button>
                             </div>
                         </div>
