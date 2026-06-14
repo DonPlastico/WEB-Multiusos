@@ -1068,40 +1068,68 @@
         </div>
 
         <!-- modal pa enviar anuncios globales -->
-        <div id="announce-modal" class="modal"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
-            <div class="modal-content glass-panel game-card" style="max-width: 500px; padding: 0;">
-                <div class="filter-drawer-close-row"
-                    style="border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding: 20px;">
-                    <h2 class="filter-drawer-title"><i class="fas fa-bullhorn"
-                            style="color: var(--primary); margin-right: 10px;"></i> TRANSMISIÓN GLOBAL</h2>
-                    <button id="btn-close-announce" class="icon-btn"><i class="fas fa-times"></i></button>
+        <div id="announce-modal" class="cyber-modal">
+            <div class="modal-content glass-panel announce-panel">
+                <button id="btn-close-announce" class="icon-btn close-floating-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- cabecera -->
+                <div class="announce-header">
+                    <div class="announce-icon-wrap">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h2 class="announce-title glitch-text">TRANSMISIÓN GLOBAL</h2>
+                        <p class="announce-subtitle">Envía una alerta a los operadores del Nexus</p>
+                    </div>
                 </div>
 
-                <div style="padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 15px;">
-                    <div class="auth-field">
-                        <label class="auth-label">Destinatarios</label>
-                        <select id="announce-target" class="auth-input" style="width: 100%; cursor: pointer;">
-                            <option value="all_users">Todos los Usuarios</option>
-                            <option value="all_admins">Solo Administradores</option>
-                            <option value="specific_user">Usuario Específico...</option>
-                        </select>
+                <!-- cuerpo -->
+                <div class="announce-body">
+
+                    <!-- SELECT CUSTOM: Destinatarios -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-satellite-dish"></i> Destinatarios</label>
+                        <div class="cyber-select-wrapper" id="announce-select-wrapper">
+                            <div class="cyber-select-trigger" id="announce-select-trigger">
+                                <span id="announce-select-label">Todos los Usuarios</span>
+                                <i class="fas fa-chevron-down cyber-select-arrow"></i>
+                            </div>
+                            <div class="cyber-select-dropdown" id="announce-select-dropdown">
+                                <div class="cyber-select-option selected" data-value="all_users">
+                                    <i class="fas fa-users"></i> Todos los Usuarios
+                                </div>
+                                <div class="cyber-select-option" data-value="all_admins">
+                                    <i class="fas fa-user-shield"></i> Solo Administradores
+                                </div>
+                                <div class="cyber-select-option" data-value="specific_user">
+                                    <i class="fas fa-user-tag"></i> Usuario Específico...
+                                </div>
+                            </div>
+                        </div>
+                        <!-- input oculto real para leer el valor en JS -->
+                        <input type="hidden" id="announce-target" value="all_users">
                     </div>
 
-                    <div id="announce-specific-user-group" class="auth-field" style="display: none;">
-                        <label class="auth-label">Nombre de Usuario Destino</label>
-                        <input type="text" id="announce-specific-user" class="auth-input" placeholder="Ej. Juanx23">
+                    <!-- campo usuario específico (oculto por defecto) -->
+                    <div id="announce-specific-user-group" class="field-group" style="display: none;">
+                        <label class="field-label"><i class="fas fa-at"></i> Nombre de Usuario Destino</label>
+                        <div class="field-wrapper">
+                            <i class="fas fa-user field-icon"></i>
+                            <input type="text" id="announce-specific-user" class="cyber-input"
+                                placeholder="Ej. Juanx23">
+                        </div>
                     </div>
 
-                    <div class="auth-field">
-                        <label class="auth-label">Cuerpo del Mensaje</label>
-                        <textarea id="announce-message" class="auth-input" rows="4"
-                            placeholder="Escribe la notificación aquí..."
-                            style="resize: vertical; font-family: inherit; width: 100%;"></textarea>
+                    <!-- textarea del mensaje -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-terminal"></i> Cuerpo del Mensaje</label>
+                        <textarea id="announce-message" class="cyber-input announce-textarea"
+                            placeholder="Escribe la notificación aquí..."></textarea>
                     </div>
 
-                    <button id="btn-send-announce" class="auth-btn primary"
-                        style="width: 100%; justify-content: center; margin-top: 10px;">
+                    <button id="btn-send-announce" class="auth-btn primary full-width">
                         <i class="fas fa-paper-plane"></i> ENVIAR ALERTA
                     </button>
                 </div>

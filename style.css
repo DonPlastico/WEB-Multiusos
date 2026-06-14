@@ -2420,18 +2420,167 @@ span.flatpickr-weekday {
     animation: toastSlideOut 0.25s ease-in forwards;
 }
 
-/* --- ESTILOS EXTRA DEL MODAL TRANSMISIÓN --- */
-#announce-modal textarea.auth-input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    border-radius: 6px;
-    padding: 12px;
+/* --- ANNOUNCE MODAL --- */
+.announce-panel {
+    width: 100%;
+    max-width: 480px;
+    padding: 0;
+    position: relative;
+    border-top: 3px solid var(--primary);
 }
 
-#announce-modal textarea.auth-input:focus {
-    outline: none;
+.announce-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 28px 30px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.announce-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(108, 92, 231, 0.15);
+    border: 1px solid rgba(108, 92, 231, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--primary);
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.2);
+}
+
+.announce-title {
+    font-size: 1.3rem;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-main);
+    margin: 0 0 4px;
+}
+
+.announce-subtitle {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.announce-body {
+    padding: 24px 30px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.announce-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+/* --- CYBER SELECT CUSTOM --- */
+.cyber-select-wrapper {
+    position: relative;
+    user-select: none;
+}
+
+.cyber-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cyber-select-trigger:hover,
+.cyber-select-wrapper.open .cyber-select-trigger {
     border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.cyber-select-arrow {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+
+.cyber-select-wrapper.open .cyber-select-arrow {
+    transform: rotate(180deg);
+    color: var(--primary);
+}
+
+.cyber-select-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    z-index: 10000;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(108, 92, 231, 0.2);
+    animation: selectOpen 0.18s ease;
+}
+
+.cyber-select-wrapper.open .cyber-select-dropdown {
+    display: block;
+}
+
+.cyber-select-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s;
+    letter-spacing: 0.5px;
+}
+
+.cyber-select-option i {
+    width: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    transition: color 0.15s;
+}
+
+.cyber-select-option:hover {
+    background: rgba(108, 92, 231, 0.12);
+    color: var(--text-main);
+}
+
+.cyber-select-option:hover i {
+    color: var(--primary);
+}
+
+.cyber-select-option.selected {
+    background: rgba(108, 92, 231, 0.18);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.cyber-select-option.selected i {
+    color: var(--primary);
+}
+
+.cyber-select-option+.cyber-select-option {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 
@@ -3088,5 +3237,17 @@ span.flatpickr-weekday {
     to {
         opacity: 0;
         transform: translateX(60px) scale(0.9);
+    }
+}
+
+@keyframes selectOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

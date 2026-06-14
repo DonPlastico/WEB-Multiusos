@@ -2241,50 +2241,80 @@ document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
 // ==========================================================================
 const modalAnnounce = document.getElementById('announce-modal');
 const btnCloseAnnounce = document.getElementById('btn-close-announce');
-const targetSelect = document.getElementById('announce-target');
+const selectWrapper = document.getElementById('announce-select-wrapper');
+const selectTrigger = document.getElementById('announce-select-trigger');
+const selectLabel = document.getElementById('announce-select-label');
+const selectInput = document.getElementById('announce-target');
+const selectOptions = document.querySelectorAll('#announce-select-dropdown .cyber-select-option');
 const specificUserGroup = document.getElementById('announce-specific-user-group');
 const btnSendAnnounce = document.getElementById('btn-send-announce');
 const announceMessage = document.getElementById('announce-message');
 const announceSpecificUser = document.getElementById('announce-specific-user');
 
-// Abrir modal de transmisión
-document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
-    if (modalAnnounce) {
-        modalAnnounce.style.display = 'flex'; // Forzamos el display
-        document.body.classList.add('no-scroll');
-        document.documentElement.classList.add('no-scroll');
-    }
-});
+// Función reutilizable de abrir/cerrar
+function openAnnounceModal() {
+    modalAnnounce?.classList.add('active');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+}
 
-// Cerrar modal
-btnCloseAnnounce?.addEventListener('click', () => {
-    modalAnnounce.style.display = 'none'; // Lo ocultamos totalmente
+function closeAnnounceModal() {
+    modalAnnounce?.classList.remove('active');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
+    // Reset campos
+    if (announceMessage) announceMessage.value = '';
+    if (announceSpecificUser) announceSpecificUser.value = '';
+    if (specificUserGroup) specificUserGroup.style.display = 'none';
+    // Reset cyber-select al valor por defecto
+    selectOptions.forEach(o => o.classList.remove('selected'));
+    selectOptions[0]?.classList.add('selected');
+    if (selectLabel) selectLabel.textContent = 'Todos los Usuarios';
+    if (selectInput) selectInput.value = 'all_users';
+    selectWrapper?.classList.remove('open');
+}
 
-    // Reseteo de campos al cerrar
-    announceMessage.value = '';
-    announceSpecificUser.value = '';
-    targetSelect.value = 'all_users';
-    specificUserGroup.style.display = 'none';
+// Abrir
+document.getElementById('btn-admin-announce')?.addEventListener('click', openAnnounceModal);
+
+// Cerrar con botón X
+btnCloseAnnounce?.addEventListener('click', closeAnnounceModal);
+
+// Cerrar al clicar el fondo (igual que el resto de modales)
+modalAnnounce?.addEventListener('click', (e) => {
+    if (e.target === modalAnnounce) closeAnnounceModal();
 });
 
-// Mostrar/Ocultar campo de usuario específico al cambiar el desplegable
-targetSelect?.addEventListener('change', (e) => {
-    if (e.target.value === 'specific_user') {
-        specificUserGroup.style.display = 'flex';
-    } else {
-        specificUserGroup.style.display = 'none';
+// --- Cyber Select ---
+selectTrigger?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    selectWrapper.classList.toggle('open');
+});
+
+selectOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+        selectOptions.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectLabel.textContent = opt.textContent.trim();
+        selectInput.value = opt.dataset.value;
+        specificUserGroup.style.display = opt.dataset.value === 'specific_user' ? 'flex' : 'none';
+        selectWrapper.classList.remove('open');
+    });
+});
+
+// Cierra el select al clicar fuera
+document.addEventListener('click', (e) => {
+    if (!selectWrapper?.contains(e.target)) {
+        selectWrapper?.classList.remove('open');
     }
 });
 
-// Botón de Enviar Alerta
+// --- Enviar Alerta ---
 btnSendAnnounce?.addEventListener('click', () => {
-    const target = targetSelect.value;
-    const message = announceMessage.value.trim();
-    const specificUser = announceSpecificUser.value.trim();
+    const target = selectInput?.value || 'all_users';
+    const message = announceMessage?.value.trim();
+    const specificUser = announceSpecificUser?.value.trim();
 
-    // Validaciones
     if (!message) {
         showToast('error', 'Error de transmisión', 'El cuerpo del mensaje no puede estar vacío.');
         return;
@@ -2295,34 +2325,22 @@ btnSendAnnounce?.addEventListener('click', () => {
         return;
     }
 
-    // Registrar en el log de la terminal
-    let destinatarioLog = target === 'all_users' ? 'Todos los Usuarios' :
-        target === 'all_admins' ? 'Administradores' :
-            specificUser;
+    const destinatarioLog = target === 'all_users' ? 'Todos los Usuarios' :
+        target === 'all_admins' ? 'Administradores' : specificUser;
 
     addAdminLog(`Transmitiendo mensaje a [${destinatarioLog}]: "${message}"`, "system");
 
-    // Simulación de envío a base de datos (Supabase Realtime iría aquí)
     setTimeout(() => {
         addAdminLog(`Transmisión completada exitosamente.`, "success");
         showToast('success', 'Transmisión Enviada', `El mensaje ha sido entregado a la red.`);
 
-        // Como prueba visual, si lo mandamos a todos, nos lo mostramos a nosotros mismos tras 1.5s
         if (target === 'all_users' || target === 'all_admins') {
-            setTimeout(() => {
-                showToast('success', 'NUEVA TRANSMISIÓN', message);
-            }, 1500);
+            setTimeout(() => showToast('success', 'NUEVA TRANSMISIÓN', message), 1500);
         }
     }, 800);
 
-    // Limpiar formulario y cerrar
-    announceMessage.value = '';
-    announceSpecificUser.value = '';
-    modalAnnounce.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-    document.documentElement.classList.remove('no-scroll');
+    closeAnnounceModal();
 });
-
 
 // ==========================================================================
 //   SISTEMA DE NOTIFICACIONES FLOTANTES (TOASTS)
