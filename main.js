@@ -308,25 +308,25 @@ const langFlagImg = langBtn.querySelector('img');
 const langMenu = document.createElement('div');
 langMenu.className = 'theme-menu lang-menu';
 langMenu.innerHTML = `
-    <button class="lang-option active" data-lang="es" data-flag="es">
+    <button class="theme-option lang-option active" data-lang="es" data-flag="es">
         <img src="https://flagcdn.com/24x18/es.png" alt="ES"> <span>Español</span>
     </button>
-    <button class="lang-option" data-lang="en" data-flag="us">
+    <button class="theme-option lang-option" data-lang="en" data-flag="us">
         <img src="https://flagcdn.com/24x18/us.png" alt="EN"> <span>English (EE.UU)</span>
     </button>
-    <button class="lang-option" data-lang="fr" data-flag="fr">
+    <button class="theme-option lang-option" data-lang="fr" data-flag="fr">
         <img src="https://flagcdn.com/24x18/fr.png" alt="FR"> <span>Français</span>
     </button>
-    <button class="lang-option" data-lang="it" data-flag="it">
+    <button class="theme-option lang-option" data-lang="it" data-flag="it">
         <img src="https://flagcdn.com/24x18/it.png" alt="IT"> <span>Italiano</span>
     </button>
-    <button class="lang-option" data-lang="de" data-flag="de">
+    <button class="theme-option lang-option" data-lang="de" data-flag="de">
         <img src="https://flagcdn.com/24x18/de.png" alt="DE"> <span>Deutsch</span>
     </button>
-    <button class="lang-option" data-lang="zh" data-flag="cn">
+    <button class="theme-option lang-option" data-lang="zh" data-flag="cn">
         <img src="https://flagcdn.com/24x18/cn.png" alt="ZH"> <span>简体中文</span>
     </button>
-    <button class="lang-option" data-lang="ja" data-flag="jp">
+    <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
         <img src="https://flagcdn.com/24x18/jp.png" alt="JA"> <span>日本語</span>
     </button>
 `;
@@ -359,7 +359,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-document.querySelectorAll('.lang-option').forEach(opt => {
+document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
     opt.addEventListener('click', () => {
         const lang = opt.dataset.lang;
         const flag = opt.dataset.flag;
@@ -369,7 +369,7 @@ document.querySelectorAll('.lang-option').forEach(opt => {
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
-        document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+        document.querySelectorAll('.theme-option.lang-option').forEach(o => o.classList.remove('active'));
         opt.classList.add('active');
 
         // guarda en localStorage
