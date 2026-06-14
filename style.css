@@ -339,6 +339,10 @@ input[type=number]::-webkit-outer-spin-button {
     background: var(--primary-soft);
 }
 
+.lang-menu {
+    min-width: 200px;
+}
+
 /* alineacion de banderas en el menu de idiomas */
 .lang-menu .theme-option img {
     width: 24px;
