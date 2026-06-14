@@ -502,96 +502,114 @@
 
         <!-- panel de control pa los admin -->
         <section id="admin-panel" class="view">
-            <div class="cyber-container omni-control-container"
-                style="max-width: 96%; width: 100%; margin: 0 auto; padding: 20px 0;">
+            <div class="cyber-container" style="max-width: 96%; width: 100%; margin: 0 auto; padding: 20px 0;">
 
-                <div class="hero-section glass-panel"
-                    style="padding: 35px 40px; margin-bottom: 35px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; border: 1px solid var(--border-light); background: var(--gradient-card); box-shadow: var(--shadow-lg);">
+                <div class="hero-section glass-panel game-card"
+                    style="padding: 35px 40px; margin-bottom: 35px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
                     <div>
-                        <h1 class="glitch-text"
-                            style="color: var(--primary); font-size: 3.2rem; margin-bottom: 5px; text-shadow: 0 0 15px var(--primary-soft);">
-                            NEXUS_CORE <span style="color: var(--text-muted); font-size: 2.5rem;">//</span> <span
-                                style="color: var(--secondary);">OMNI_CONTROL</span>
+                        <h1
+                            style="color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; font-family: var(--font-cyber); font-weight: bold;">
+                            PANEL DE ADMINISTRACIÓN <span style="color: var(--text-muted);">//</span> <span
+                                style="color: var(--primary);">NEXUS</span>
                         </h1>
-                        <p class="subtitle-hero"
-                            style="margin: 0; color: var(--text-secondary); letter-spacing: 3px; font-size: 0.95rem; text-transform: uppercase;">
-                            Telemetría de red, gestión de identidades y acceso root
+                        <p
+                            style="margin: 0; color: var(--text-secondary); font-size: 0.95rem; max-width: 800px; line-height: 1.6;">
+                            Centro de control unificado de la plataforma. Desde aquí puedes gestionar las identidades y
+                            roles de los usuarios en la base de datos (Supabase), supervisar la telemetría y peticiones
+                            de red en tiempo real (Vercel), y administrar acciones críticas del servidor.
                         </p>
                     </div>
-                    <div class="system-status-indicator"
-                        style="display: flex; align-items: center; gap: 15px; background: rgba(16, 185, 129, 0.05); padding: 12px 25px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);">
+                    <div
+                        style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
                         <div class="pulse-dot"
-                            style="width: 14px; height: 14px; background: var(--success); border-radius: 50%; box-shadow: 0 0 15px var(--success); animation: pulse 2s infinite;">
+                            style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite;">
                         </div>
                         <span
-                            style="color: var(--success); font-weight: 700; letter-spacing: 3px; font-size: 1rem; text-shadow: 0 0 8px var(--success);">SYS_ONLINE</span>
+                            style="color: var(--success); font-weight: 600; font-size: 0.9rem; letter-spacing: 1px;">SISTEMA
+                            EN LÍNEA</span>
                     </div>
                 </div>
 
                 <div class="admin-metrics-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px;">
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px;">
 
-                    <div class="glass-panel metric-card"
-                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); background: var(--bg-card); box-shadow: -5px 0 20px var(--primary-soft);">
-                        <div class="metric-header"
-                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
-                            <span>USUARIOS_TOTALES</span>
-                            <i class="fas fa-users" style="color: var(--primary); font-size: 1.2rem;"></i>
+                    <div class="glass-panel game-card" style="padding: 25px; display: flex; flex-direction: column;">
+                        <div
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
+                            <span>USUARIOS EN BBDD</span>
+                            <i class="fas fa-users" style="color: var(--text-secondary);"></i>
                         </div>
-                        <div class="metric-value" id="metric-total-users"
-                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
+                        <div id="metric-total-users"
+                            style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
                             --</div>
-                        <div class="metric-trend"
-                            style="color: var(--secondary); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-user-plus"></i> <span id="metric-online-users">1</span> CONECTADO_
+
+                        <svg viewBox="0 0 100 20"
+                            style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
+                            <path d="M0,15 Q25,15 50,10 T100,5" fill="none" stroke="var(--text-muted)" stroke-width="2"
+                                opacity="0.5"></path>
+                            <circle cx="100" cy="5" r="3" fill="var(--primary)"></circle>
+                        </svg>
+
+                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Cuentas registradas en Supabase
                         </div>
                     </div>
 
-                    <div class="glass-panel metric-card"
-                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--secondary); background: var(--bg-card); box-shadow: -5px 0 20px var(--secondary-soft);">
-                        <div class="metric-header"
-                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
-                            <span>EDGE_REQUESTS (24H)</span>
-                            <i class="fas fa-network-wired" style="color: var(--secondary); font-size: 1.2rem;"></i>
+                    <div class="glass-panel game-card" style="padding: 25px; display: flex; flex-direction: column;">
+                        <div
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
+                            <span>EDGE REQUESTS (VERCEL)</span>
+                            <i class="fas fa-network-wired" style="color: var(--text-secondary);"></i>
                         </div>
-                        <div class="metric-value" id="metric-edge-requests"
-                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
-                            8.4k</div>
-                        <div class="metric-trend"
-                            style="color: var(--success); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-arrow-up"></i> 12% vs ayer
+                        <div id="metric-edge-requests"
+                            style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
+                            304</div>
+
+                        <svg viewBox="0 0 100 20"
+                            style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
+                            <path d="M0,15 L20,12 L40,16 L60,8 L80,14 L100,5" fill="none" stroke="var(--text-muted)"
+                                stroke-width="2" opacity="0.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+
+                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Peticiones de red procesadas hoy
                         </div>
                     </div>
 
-                    <div class="glass-panel metric-card"
-                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--accent); background: var(--bg-card); box-shadow: -5px 0 20px rgba(245, 158, 11, 0.15);">
-                        <div class="metric-header"
-                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
-                            <span>FUNCTION_CALLS</span>
-                            <i class="fas fa-microchip" style="color: var(--accent); font-size: 1.2rem;"></i>
+                    <div class="glass-panel game-card" style="padding: 25px; display: flex; flex-direction: column;">
+                        <div
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
+                            <span>FUNCTION CALLS</span>
+                            <i class="fas fa-microchip" style="color: var(--text-secondary);"></i>
                         </div>
-                        <div class="metric-value" id="metric-func-invocations"
-                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
-                            14.2k</div>
-                        <div class="metric-trend"
-                            style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-minus"></i> Carga estable
-                        </div>
+                        <div id="metric-func-invocations"
+                            style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
+                            16</div>
+
+                        <svg viewBox="0 0 100 20"
+                            style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
+                            <path d="M0,15 L10,15 L15,5 L20,15 L100,15" fill="none" stroke="var(--text-muted)"
+                                stroke-width="2" opacity="0.5"></path>
+                        </svg>
+
+                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Llamadas internas a las APIs
+                            externas</div>
                     </div>
 
-                    <div class="glass-panel metric-card"
-                        style="padding: 30px; position: relative; border: 1px solid var(--border-color); border-left: 4px solid var(--error); background: var(--bg-card); box-shadow: -5px 0 20px rgba(239, 68, 68, 0.15);">
-                        <div class="metric-header"
-                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 2px; font-weight: bold; margin-bottom: 15px;">
-                            <span>ERROR_RATE</span>
-                            <i class="fas fa-exclamation-triangle" style="color: var(--error); font-size: 1.2rem;"></i>
+                    <div class="glass-panel game-card" style="padding: 25px; display: flex; flex-direction: column;">
+                        <div
+                            style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
+                            <span>ERROR RATE</span>
+                            <i class="fas fa-check-circle" style="color: var(--success);"></i>
                         </div>
-                        <div class="metric-value" id="metric-error-rate"
-                            style="font-size: 3.5rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 10px;">
-                            0.12%</div>
-                        <div class="metric-trend"
-                            style="color: var(--success); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-shield-check"></i> Sistema seguro
+                        <div id="metric-error-rate"
+                            style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
+                            0%</div>
+
+                        <svg viewBox="0 0 100 20"
+                            style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
+                            <path d="M0,15 L100,15" fill="none" stroke="var(--success)" stroke-width="2"></path>
+                        </svg>
+
+                        <div style="color: var(--success); font-size: 0.85rem;">Infraestructura estable y sin bloqueos
                         </div>
                     </div>
                 </div>
@@ -599,56 +617,53 @@
                 <div class="admin-dashboard-layout"
                     style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 30px; align-items: start;">
 
-                    <div class="glass-panel admin-table-panel"
-                        style="padding: 30px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
+                    <div class="glass-panel game-card" style="padding: 30px;">
                         <div class="admin-section-header"
-                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 20px; margin-bottom: 20px;">
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
                             <h2
-                                style="font-size: 1.4rem; color: var(--neon-white); display: flex; align-items: center; gap: 12px; letter-spacing: 1px;">
-                                <i class="fas fa-id-card-alt" style="color: var(--secondary);"></i> BASE DE DATOS DE
-                                IDENTIDADES
+                                style="font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-id-card-alt" style="color: var(--text-secondary);"></i> GESTIÓN DE
+                                USUARIOS Y ROLES
                             </h2>
                             <div class="search-box admin-search" style="display: flex; gap: 10px;">
-                                <input type="text" id="admin-search-input" placeholder="Rastrear identidad o email..."
-                                    style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 15px; border-radius: 4px; width: 300px;">
+                                <input type="text" id="admin-search-input" placeholder="Buscar por usuario o email..."
+                                    style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 15px; border-radius: 6px; width: 300px;">
                                 <button id="btn-admin-search" class="auth-btn secondary" style="padding: 0 15px;"><i
                                         class="fas fa-search"></i></button>
                             </div>
                         </div>
 
                         <div class="table-responsive" style="overflow-x: auto;">
-                            <table class="cyber-table"
-                                style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <table class="cyber-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             USUARIO</th>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             EMAIL</th>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             REGISTRO</th>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light); text-align: center;">
+                                            style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ESTADO</th>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light);">
+                                            style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ROL</th>
                                         <th
-                                            style="padding: 15px; color: var(--text-muted); font-size: 0.85rem; letter-spacing: 1.5px; border-bottom: 2px solid var(--border-light); text-align: right;">
+                                            style="padding: 15px; text-align: right; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-users-tbody">
                                     <tr>
                                         <td colspan="6"
-                                            style="text-align: center; padding: 60px; color: var(--text-muted);">
+                                            style="text-align: center; padding: 50px; color: var(--text-muted);">
                                             <i class="fas fa-circle-notch fa-spin"
-                                                style="font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--primary));"></i>
-                                            <br><span style="letter-spacing: 2px;">ESTABLECIENDO CONEXIÓN SEGURA CON
-                                                BASE DE DATOS...</span>
+                                                style="font-size: 2rem; color: var(--text-secondary); margin-bottom: 15px;"></i>
+                                            <br>Descargando listado de identidades...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -658,55 +673,44 @@
 
                     <div class="admin-side-panel" style="display: flex; flex-direction: column; gap: 30px;">
 
-                        <div class="glass-panel admin-logs-panel"
-                            style="padding: 25px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
-                            <div class="admin-section-header compact"
-                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 15px;">
+                        <div class="glass-panel game-card" style="padding: 25px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
                                 <h2
-                                    style="font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-white); display: flex; align-items: center; gap: 10px;">
-                                    <i class="fas fa-terminal" style="color: var(--primary);"></i> RUNTIME_LOGS
+                                    style="font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-terminal" style="color: var(--text-secondary);"></i> REGISTRO DE
+                                    EVENTOS
                                 </h2>
-                                <span class="live-badge"
-                                    style="background: rgba(239, 68, 68, 0.1); color: var(--error); border: 1px solid var(--error); padding: 4px 10px; font-size: 0.7rem; font-weight: bold; letter-spacing: 2px; border-radius: 4px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);">REC_LIVE</span>
                             </div>
 
                             <div class="terminal-box" id="admin-terminal-logs"
-                                style="background: #020203; border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 6px; padding: 20px; font-family: 'Courier New', monospace; font-size: 0.9rem; height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 0 0 40px rgba(0,0,0,0.9);">
+                                style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; font-family: 'Courier New', monospace; font-size: 0.85rem; height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
                                 <div class="log-line" style="color: var(--text-secondary);"><span class="log-time"
-                                        style="color: #555;">[SYS]</span> Inicializando interfaz de administrador...
-                                </div>
-                                <div class="log-line" style="color: var(--text-secondary);"><span class="log-time"
-                                        style="color: #555;">[AUTH]</span> Comprobando privilegios de acceso.</div>
-                                <div class="log-line success" style="color: var(--success);"><span class="log-time"
-                                        style="color: #555;">[200]</span> GET /api/users - Acceso root autorizado.</div>
+                                        style="color: var(--text-muted);">[SYS]</span> Esperando conexión...</div>
                             </div>
                         </div>
 
-                        <div class="glass-panel admin-actions-panel"
-                            style="padding: 25px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;">
-                            <div class="admin-section-header compact"
-                                style="border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 15px;">
+                        <div class="glass-panel game-card" style="padding: 25px;">
+                            <div
+                                style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
                                 <h2
-                                    style="font-size: 1.2rem; letter-spacing: 2px; color: var(--neon-white); display: flex; align-items: center; gap: 10px;">
-                                    <i class="fas fa-server" style="color: var(--accent);"></i> SERVER_ACTIONS
+                                    style="font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-server" style="color: var(--text-secondary);"></i> HERRAMIENTAS
+                                    GLOBALES
                                 </h2>
                             </div>
-                            <div class="action-buttons-grid" style="display: flex; flex-direction: column; gap: 15px;">
-                                <button class="auth-btn secondary full-width text-left" id="btn-admin-announce"
-                                    style="justify-content: flex-start; padding-left: 20px; border-color: var(--primary-soft);">
-                                    <i class="fas fa-bullhorn" style="color: var(--primary); margin-right: 10px;"></i>
-                                    ENVIAR TRANSMISIÓN GLOBAL
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <button class="auth-btn secondary" id="btn-admin-announce"
+                                    style="width: 100%; justify-content: flex-start;">
+                                    <i class="fas fa-bullhorn" style="width: 25px;"></i> Transmisión Global
                                 </button>
-                                <button class="auth-btn secondary full-width text-left" id="btn-admin-clear-cache"
-                                    style="justify-content: flex-start; padding-left: 20px; border-color: var(--secondary-soft);">
-                                    <i class="fas fa-broom" style="color: var(--secondary); margin-right: 10px;"></i>
-                                    PURGAR CACHÉ DE APIS
+                                <button class="auth-btn secondary" id="btn-admin-clear-cache"
+                                    style="width: 100%; justify-content: flex-start;">
+                                    <i class="fas fa-broom" style="width: 25px;"></i> Purgar Caché
                                 </button>
-                                <button class="auth-btn secondary full-width text-left danger-zone"
-                                    id="btn-admin-lockdown"
-                                    style="justify-content: flex-start; padding-left: 20px; border-color: rgba(239, 68, 68, 0.3); color: var(--error);">
-                                    <i class="fas fa-shield-alt" style="margin-right: 10px;"></i> ACTIVAR PROTOCOLO DE
-                                    BLOQUEO
+                                <button class="auth-btn secondary" id="btn-admin-lockdown"
+                                    style="width: 100%; justify-content: flex-start; color: var(--error);">
+                                    <i class="fas fa-shield-alt" style="width: 25px;"></i> Bloqueo de Emergencia
                                 </button>
                             </div>
                         </div>
