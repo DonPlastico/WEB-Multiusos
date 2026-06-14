@@ -1068,7 +1068,8 @@
         </div>
 
         <!-- modal pa enviar anuncios globales -->
-        <div id="announce-modal" class="modal">
+        <div id="announce-modal" class="modal"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
             <div class="modal-content glass-panel game-card" style="max-width: 500px; padding: 0;">
                 <div class="filter-drawer-close-row"
                     style="border-bottom: 1px solid var(--border-color); margin-bottom: 20px; padding: 20px;">
@@ -1112,8 +1113,10 @@
             <i class="fas fa-chevron-up"></i>
         </button>
 
+        <!-- contenedor de notificaciones -->
         <div id="toast-container" class="toast-container"></div>
 
+        <!-- templates de notificaciones -->
         <template id="toast-success-template">
             <div class="toast-wrapper">
                 <div class="toast-alert toast-success">
@@ -1139,6 +1142,7 @@
             </div>
         </template>
 
+        <!-- template de notificacion de error -->
         <template id="toast-error-template">
             <div class="toast-wrapper">
                 <div class="toast-alert toast-error">

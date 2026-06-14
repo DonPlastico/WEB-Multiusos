@@ -2250,7 +2250,7 @@ const announceSpecificUser = document.getElementById('announce-specific-user');
 // Abrir modal de transmisión
 document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
     if (modalAnnounce) {
-        modalAnnounce.classList.add('show');
+        modalAnnounce.style.display = 'flex'; // Forzamos el display
         document.body.classList.add('no-scroll');
         document.documentElement.classList.add('no-scroll');
     }
@@ -2258,9 +2258,15 @@ document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
 
 // Cerrar modal
 btnCloseAnnounce?.addEventListener('click', () => {
-    modalAnnounce.classList.remove('show');
+    modalAnnounce.style.display = 'none'; // Lo ocultamos totalmente
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
+
+    // Reseteo de campos al cerrar
+    announceMessage.value = '';
+    announceSpecificUser.value = '';
+    targetSelect.value = 'all_users';
+    specificUserGroup.style.display = 'none';
 });
 
 // Mostrar/Ocultar campo de usuario específico al cambiar el desplegable
