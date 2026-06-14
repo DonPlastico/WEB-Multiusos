@@ -1961,26 +1961,30 @@ async function cargarPerfilPublico(usernameTarget) {
         document.querySelector('.profile-username').textContent = perfilTarget.username;
 
         // Pintar Avatar
+        const avatarDB = perfilTarget.avatar ? perfilTarget.avatar.replace(/'/g, "") : 'default';
+        const bannerDB = perfilTarget.banner ? perfilTarget.banner.replace(/'/g, "") : 'default';
+
+        // Pintar Avatar
         const avatarElement = document.querySelector('.profile-avatar');
         if (avatarElement) {
             const overlay = avatarElement.querySelector('.edit-overlay-avatar');
             avatarElement.innerHTML = ''; // Limpiamos
             if (overlay) avatarElement.appendChild(overlay); // Devolvemos el lapicero
 
-            if (!perfilTarget.avatar || perfilTarget.avatar === 'default' || perfilTarget.avatar === 'custom') {
+            if (avatarDB === 'default' || avatarDB === 'custom') {
                 avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
             } else {
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${perfilTarget.avatar}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
         }
 
         // Pintar Banner
         const bannerElement = document.querySelector('.profile-banner');
         if (bannerElement) {
-            if (!perfilTarget.banner || perfilTarget.banner === 'default' || perfilTarget.banner === 'custom') {
-                bannerElement.style.backgroundImage = 'none';
+            if (bannerDB === 'default' || bannerDB === 'custom') {
+                bannerElement.style.backgroundImage = 'none'; // Esto limpiará tu banner si el otro no tiene
             } else {
-                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${perfilTarget.banner}.png')`;
+                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.png')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             }
