@@ -2306,7 +2306,7 @@ span.flatpickr-weekday {
 /* --- CONTENEDOR FLOTANTE DE NOTIFICACIONES --- */
 .toast-container {
     position: fixed;
-    top: 100px;
+    top: 90px;
     right: 20px;
     display: flex;
     flex-direction: column;

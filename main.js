@@ -257,12 +257,15 @@ function loadSavedTheme() {
 let menuOpen = false;
 themeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    // cierra los otros menus
+    langMenu.classList.remove('show');
+    langMenuOpen = false;
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+    // abre/cierra el de tema
     menuOpen = !menuOpen;
-    if (menuOpen) {
-        themeMenu.classList.add('show');
-    } else {
-        themeMenu.classList.remove('show');
-    }
+    if (menuOpen) themeMenu.classList.add('show');
+    else themeMenu.classList.remove('show');
 });
 
 // Cerrar menú al hacer clic fuera
@@ -294,6 +297,88 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 
 // cargo el tema al iniciar
 loadSavedTheme();
+
+// ==========================================================================
+//   IDIOMA - MENU DESPLEGABLE (igual que el de tema)
+// ==========================================================================
+
+const langBtn = document.getElementById('lang-toggle');
+const langFlagImg = langBtn.querySelector('img');
+
+const langMenu = document.createElement('div');
+langMenu.className = 'theme-menu lang-menu';
+langMenu.innerHTML = `
+    <button class="lang-option active" data-lang="es" data-flag="es">
+        <img src="https://flagcdn.com/24x18/es.png" alt="ES"> <span>Español</span>
+    </button>
+    <button class="lang-option" data-lang="en" data-flag="us">
+        <img src="https://flagcdn.com/24x18/us.png" alt="EN"> <span>English (EE.UU)</span>
+    </button>
+    <button class="lang-option" data-lang="fr" data-flag="fr">
+        <img src="https://flagcdn.com/24x18/fr.png" alt="FR"> <span>Français</span>
+    </button>
+    <button class="lang-option" data-lang="it" data-flag="it">
+        <img src="https://flagcdn.com/24x18/it.png" alt="IT"> <span>Italiano</span>
+    </button>
+    <button class="lang-option" data-lang="de" data-flag="de">
+        <img src="https://flagcdn.com/24x18/de.png" alt="DE"> <span>Deutsch</span>
+    </button>
+    <button class="lang-option" data-lang="zh" data-flag="cn">
+        <img src="https://flagcdn.com/24x18/cn.png" alt="ZH"> <span>简体中文</span>
+    </button>
+    <button class="lang-option" data-lang="ja" data-flag="jp">
+        <img src="https://flagcdn.com/24x18/jp.png" alt="JA"> <span>日本語</span>
+    </button>
+`;
+
+const langContainer = document.createElement('div');
+langContainer.className = 'theme-dropdown';
+langBtn.parentNode.insertBefore(langContainer, langBtn);
+langContainer.appendChild(langBtn);
+langContainer.appendChild(langMenu);
+
+let langMenuOpen = false;
+langBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // cierra el de tema si está abierto
+    themeMenu.classList.remove('show');
+    menuOpen = false;
+    // cierra el de usuario si está abierto
+    userMenu?.classList.remove('show');
+    userMenuOpen = false;
+
+    langMenuOpen = !langMenuOpen;
+    if (langMenuOpen) langMenu.classList.add('show');
+    else langMenu.classList.remove('show');
+});
+
+document.addEventListener('click', (e) => {
+    if (!langContainer.contains(e.target)) {
+        langMenu.classList.remove('show');
+        langMenuOpen = false;
+    }
+});
+
+document.querySelectorAll('.lang-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        const lang = opt.dataset.lang;
+        const flag = opt.dataset.flag;
+
+        // actualiza la bandera del botón
+        langFlagImg.src = `https://flagcdn.com/24x18/${flag}.png`;
+        langFlagImg.alt = lang.toUpperCase();
+
+        // marca el active
+        document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+
+        // guarda en localStorage
+        localStorage.setItem('dp_sys_lang', lang);
+
+        langMenu.classList.remove('show');
+        langMenuOpen = false;
+    });
+});
 
 // ==========================================================================
 //   LOGICA DE JUEGOS Y IGDB API
@@ -1049,7 +1134,12 @@ btnPerfil.addEventListener('click', (e) => {
     e.stopPropagation();
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            // si estas logueado abro el menu
+            // cierra los otros menus
+            themeMenu.classList.remove('show');
+            menuOpen = false;
+            langMenu.classList.remove('show');
+            langMenuOpen = false;
+            // abre/cierra el de usuario
             userMenuOpen = !userMenuOpen;
             if (userMenuOpen) userMenu.classList.add('show');
             else userMenu.classList.remove('show');
