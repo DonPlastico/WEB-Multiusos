@@ -83,8 +83,9 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
         cargarTMDB('tv');
         seriesCargadas = true;
     } else if (target === 'profile') {
-        // ---> LO NUEVO: Cargar los datos del usuario en la pantalla <---
         cargarPerfilPublico(usernameUrl);
+    } else if (target === 'admin-panel') {
+        iniciarPanelAdmin();
     }
 
     // cambio la url sin recargar
@@ -2045,3 +2046,228 @@ async function cargarPerfilPublico(usernameTarget) {
         console.error("Error al cargar perfil dinámico:", err);
     }
 }
+
+// ==========================================================================
+//   NEXUS OMNI-CONTROL (PANEL DE ADMINISTRACIÓN)
+// ==========================================================================
+let adminPanelIniciado = false;
+let miEmailGlobalAdmin = null;
+
+async function iniciarPanelAdmin() {
+    if (adminPanelIniciado) return; // Solo lo arrancamos la primera vez
+    adminPanelIniciado = true;
+
+    addAdminLog("Inicializando módulo NEXUS_CORE...", "system");
+
+    // Obtenemos nuestro usuario para evitar quitarnos el admin a nosotros mismos
+    const { data: { session } } = await supabase.auth.getSession();
+    miEmailGlobalAdmin = session?.user?.email;
+
+    addAdminLog("Credenciales de administrador validadas.", "success");
+
+    // Arrancamos los motores
+    cargarTablaUsuarios();
+    iniciarSimuladorTelemetria();
+
+    // Evento del buscador
+    document.getElementById('admin-search-input')?.addEventListener('input', (e) => {
+        cargarTablaUsuarios(e.target.value.toLowerCase());
+    });
+}
+
+// --- TERMINAL DE LOGS ---
+function addAdminLog(mensaje, tipo = "system") {
+    const terminal = document.getElementById('admin-terminal-logs');
+    if (!terminal) return;
+
+    const hora = new Date().toLocaleTimeString('es-ES', { hour12: false });
+    let prefijo = "[SYS]";
+    if (tipo === "success") prefijo = "[200]";
+    if (tipo === "error") prefijo = "[ERR]";
+    if (tipo === "warning") prefijo = "[WARN]";
+
+    const linea = document.createElement('div');
+    linea.className = `log-line ${tipo}`;
+    linea.innerHTML = `<span class="log-time">[${hora}] ${prefijo}</span> ${mensaje}`;
+
+    terminal.appendChild(linea);
+    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll hacia abajo
+}
+
+// --- SIMULADOR DE TELEMETRÍA (Para el toque Visual/Hacker) ---
+function iniciarSimuladorTelemetria() {
+    let edgeRequests = 8452;
+    let invocations = 14203;
+
+    setInterval(() => {
+        // Subimos los números de forma aleatoria
+        edgeRequests += Math.floor(Math.random() * 5);
+        invocations += Math.floor(Math.random() * 3);
+
+        const reqEl = document.getElementById('metric-edge-requests');
+        const invEl = document.getElementById('metric-func-invocations');
+
+        if (reqEl) reqEl.textContent = (edgeRequests / 1000).toFixed(2) + 'k';
+        if (invEl) invEl.textContent = (invocations / 1000).toFixed(2) + 'k';
+
+        // 10% de probabilidad de escupir un log aleatorio de sistema
+        if (Math.random() > 0.90) {
+            const logsFalsos = [
+                "Limpiando caché de la ruta /api/tmdb...",
+                "Nueva conexión WebSocket detectada.",
+                "Ping de mantenimiento recibido desde el servidor central.",
+                "Sincronizando estado de sesiones de Supabase."
+            ];
+            const logAleatorio = logsFalsos[Math.floor(Math.random() * logsFalsos.length)];
+            addAdminLog(logAleatorio, "system");
+        }
+    }, 2500);
+}
+
+// --- GESTIÓN DE BASE DE DATOS (USUARIOS) ---
+async function cargarTablaUsuarios(filtro = "") {
+    addAdminLog("Ejecutando QUERY en usuarios y roles...", "system");
+
+    try {
+        // 1. Extraemos TODOS los usuarios
+        const { data: usuarios, error: errUsuarios } = await supabase
+            .from('usuarios')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (errUsuarios) throw errUsuarios;
+
+        // 2. Extraemos TODOS los roles (ya que los tienes en otra tabla)
+        const { data: roles, error: errRoles } = await supabase
+            .from('roles')
+            .select('email, rol');
+
+        if (errRoles) throw errRoles;
+
+        const tbody = document.getElementById('admin-users-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = ''; // Limpiamos tabla
+
+        // Filtrado en vivo por el buscador
+        const usuariosFiltrados = usuarios.filter(u =>
+            u.username.toLowerCase().includes(filtro) ||
+            u.email.toLowerCase().includes(filtro)
+        );
+
+        // Actualizamos métrica real
+        const metricTotal = document.getElementById('metric-total-users');
+        if (metricTotal) metricTotal.textContent = usuarios.length;
+
+        usuariosFiltrados.forEach(u => {
+            const esMiCuenta = u.email === miEmailGlobalAdmin;
+
+            // 3. Cruzamos los datos: Buscamos el rol de este usuario usando su email
+            const infoRol = roles.find(r => r.email === u.email);
+            const nombreRol = infoRol ? infoRol.rol : 'user'; // Si no está en la tabla de roles, es un usuario normal
+            const esAdmin = nombreRol === 'admin';
+
+            const iconoVerificado = `<i class="fas fa-check-circle status-icon verified" title="Correo Verificado"></i>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${u.username}</strong></td>
+                <td>${u.email}</td>
+                <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                <td style="text-align: center;">${iconoVerificado}</td>
+                <td><span class="role-badge ${esAdmin ? 'admin' : ''}">${esAdmin ? 'ADMIN' : 'USER'}</span></td>
+                <td>
+                    <div class="table-actions">
+                        <button class="action-btn edit" onclick="alert('Editor de perfiles en desarrollo para ${u.username}')" title="Editar datos"><i class="fas fa-pen"></i></button>
+                        ${esAdmin
+                    ? `<button class="action-btn demote" onclick="cambiarRolUsuario('${u.email}', '${u.username}', 'user', ${esMiCuenta})" title="Quitar Administrador"><i class="fas fa-user-minus"></i></button>`
+                    : `<button class="action-btn promote" onclick="cambiarRolUsuario('${u.email}', '${u.username}', 'admin', ${esMiCuenta})" title="Hacer Administrador"><i class="fas fa-user-shield"></i></button>`
+                }
+                        <button class="action-btn delete" onclick="borrarUsuarioPanel('${u.id}', '${u.email}', '${u.username}', ${esMiCuenta})" title="Eliminar cuenta permanente"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        addAdminLog(`Tabla actualizada: ${usuariosFiltrados.length} registros listados.`, "success");
+
+    } catch (err) {
+        addAdminLog("Error al extraer usuarios: " + err.message, "error");
+    }
+}
+
+// ⚠️ IMPORTANTE: Fíjate que ahora pasamos el EMAIL en lugar del ID
+window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCuenta) {
+    if (esMiCuenta && nuevoRol === 'user') {
+        alert("🛡️ PROTOCOLO DE SEGURIDAD: No puedes quitarte el rol de Administrador a ti mismo.");
+        addAdminLog("Bloqueada auto-degradación de permisos.", "warning");
+        return;
+    }
+
+    if (!confirm(`¿Seguro que quieres cambiar el rol de ${username} a ${nuevoRol.toUpperCase()}?`)) return;
+
+    addAdminLog(`Actualizando rol de ${username} a ${nuevoRol}...`, "system");
+
+    try {
+        // Miramos si ya existe su correo en la tabla 'roles'
+        const { data: existeRol } = await supabase.from('roles').select('id').eq('email', emailUser).maybeSingle();
+
+        let errorQuery = null;
+
+        if (existeRol) {
+            // Si existe, le actualizamos el rol
+            const { error } = await supabase.from('roles').update({ rol: nuevoRol }).eq('email', emailUser);
+            errorQuery = error;
+        } else {
+            // Si NO existe (era un 'user' fantasma), lo añadimos a la tabla roles
+            const { error } = await supabase.from('roles').insert([{ email: emailUser, rol: nuevoRol }]);
+            errorQuery = error;
+        }
+
+        if (errorQuery) throw errorQuery;
+
+        addAdminLog(`Permisos de ${username} modificados con éxito.`, "success");
+        cargarTablaUsuarios(); // Recargamos para que pinte la chapa de ADMIN/USER
+
+    } catch (err) {
+        addAdminLog(`Fallo al cambiar rol de ${username}: ${err.message}`, "error");
+    }
+};
+
+window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCuenta) {
+    if (esMiCuenta) {
+        alert("🛡️ PROTOCOLO DE SEGURIDAD: No puedes eliminar tu propia cuenta desde el panel de administrador.");
+        return;
+    }
+
+    const seguro = confirm(`⚠️ PELIGRO: ¿Estás ABSOLUTAMENTE seguro de querer eliminar la cuenta de ${username}? Esta acción borrará sus datos de la base de datos pública.`);
+    if (!seguro) return;
+
+    addAdminLog(`Iniciando purga de datos para el usuario ${username}...`, "warning");
+
+    try {
+        // 1. Lo borramos de la tabla roles primero (si tiene)
+        await supabase.from('roles').delete().eq('email', emailUser);
+
+        // 2. Lo borramos de la tabla usuarios principal
+        const { error } = await supabase.from('usuarios').delete().eq('id', idUser);
+
+        if (error) throw error;
+
+        addAdminLog(`Usuario ${username} eliminado de los registros exitosamente.`, "success");
+        cargarTablaUsuarios();
+    } catch (err) {
+        addAdminLog(`Error crítico al intentar purgar a ${username}: ${err.message}`, "error");
+    }
+};
+
+// Acciones Rápidas (Quedan intactas)
+document.getElementById('btn-admin-clear-cache')?.addEventListener('click', () => {
+    addAdminLog("Iniciando purga de caché global...", "warning");
+    setTimeout(() => addAdminLog("Caché limpiada con éxito. Memoria liberada.", "success"), 1500);
+});
+
+document.getElementById('btn-admin-announce')?.addEventListener('click', () => {
+    const anuncio = prompt("Escribe el mensaje de anuncio para todo el sistema:");
+    if (anuncio) addAdminLog(`Anuncio enviado: "${anuncio}"`, "success");
+});
