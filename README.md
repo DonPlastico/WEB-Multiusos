@@ -13,6 +13,25 @@ WEB Multiusos
 │   ├── 📄 igdb.js
 │   ├── 📄 itad.js
 │   └── 📄 tmdb.js
+├── 📁 img
+│   ├── 📁 Avatars
+│   │   ├── 🖼️ 1_f.png
+│   │   ├── 🖼️ 1_m.png
+│   │   ├── 🖼️ 2_f.png
+│   │   ├── 🖼️ 2_m.png
+│   │   ├── 🖼️ 3_f.png
+│   │   ├── 🖼️ 3_m.png
+│   │   ├── 🖼️ 4_f.png
+│   │   └── 🖼️ 4_m.png
+│   ├── 📁 Banners
+│   │   ├── 🖼️ 1.png
+│   │   ├── 🖼️ 2.png
+│   │   ├── 🖼️ 3.png
+│   │   ├── 🖼️ 4.png
+│   │   └── 🖼️ 5.png
+│   ├── 🖼️ Fondo.png
+│   ├── 🖼️ Logo.png
+│   └── 🖼️ prox.png
 ├── ⚙️ .gitignore
 ├── 📝 README.md
 ├── 🌐 index.html
@@ -20,7 +39,8 @@ WEB Multiusos
 ├── ⚙️ package-lock.json
 ├── ⚙️ package.json
 ├── 🎨 style.css
-└── 📄 supabase.js
+├── 📄 supabase.js
+└── ⚙️ vercel.json
 
 USO VITE, PARA UNIRLO CON TWITCH CLIENT/SECTRET KEYS, VERCEL, GITHUB Y MAS COSAS A CARA DE FUTURO...
 C:\Users\alexn\Downloads\WEB Multiusos\node_modules\.vite\deps: _metadata.json y package.json

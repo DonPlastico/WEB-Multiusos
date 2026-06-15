@@ -2596,7 +2596,165 @@ span.flatpickr-weekday {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* ==========================================================================
+   MODAL AÑADIR CONTACTOS / BUSCADOR DE AMIGOS
+   ========================================================================== */
+.add-friend-panel {
+    width: 100%;
+    max-width: 550px;
+    /* Tamaño perfecto para que el buscador no se vea gigantesco */
+    padding: 0;
+    border-top: 3px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+}
 
+/* Ajustes de cabecera usando variables limpias */
+.announce-friend-header {
+    margin-bottom: 0;
+    padding: 24px 30px;
+}
+
+.friend-icon-wrap {
+    color: var(--primary);
+    border-color: var(--primary-soft);
+    background: var(--primary-soft);
+    box-shadow: 0 0 15px var(--primary-soft);
+}
+
+/* Buscador adaptado */
+.add-friend-search {
+    margin: 20px 30px;
+    padding: 12px;
+}
+
+.add-friend-search input {
+    width: 100%;
+}
+
+/* Área de resultados con scroll */
+.friend-results-scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0 30px 30px 30px;
+    min-height: 300px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estado vacío (centrado absoluto horizontal y verticalmente) */
+.empty-state-centered {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-align: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.empty-state-centered .empty-icon {
+    font-size: 3.5rem;
+    color: var(--border-light);
+}
+
+/* Grid de resultados (Oculto de base, el JS le dará display: flex) */
+.friend-results-grid {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    z-index: 2;
+    /* Por encima del placeholder vacío */
+}
+
+/* Tarjeta individual de usuario buscado */
+.friend-user-card {
+    display: flex;
+    align-items: center;
+    gap: 7.5px;
+    /* Exactamente lo que pediste entre avatar y texto */
+    padding: 12px 18px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.friend-user-card:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-soft);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Avatar de la tarjeta */
+.friend-card-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.friend-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Contenedor del nombre (empuja el botón hacia la derecha) */
+.friend-card-info {
+    flex-grow: 1;
+    /* Esto hace que ocupe el espacio central y tire el botón al fondo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.friend-card-username {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--neon-white);
+    margin: 0;
+}
+
+/* Botón de añadir (derecha del todo) */
+.btn-send-request {
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid transparent;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-send-request:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--primary-soft);
+    transform: scale(1.05);
+}
 
 
 
@@ -3162,6 +3320,22 @@ span.flatpickr-weekday {
     .search-box button:not(.btn-mobile-filters) {
         padding: 0 16px;
         /* Hacemos el botón de la lupa más fino */
+    }
+
+    .add-friend-panel {
+        max-width: 95%;
+    }
+
+    .announce-friend-header,
+    .add-friend-search,
+    .friend-results-scroll-area {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .add-friend-search {
+        margin-left: 20px;
+        margin-right: 20px;
     }
 }
 

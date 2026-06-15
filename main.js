@@ -30,20 +30,6 @@ const mapaRutas = {
     'verified-account': '/cuenta-verificada'
 };
 
-// Títulos para que el historial del navegador quede precioso
-const mapaTitulos = {
-    'home': 'Inicio | DP-SYS',
-    'games': 'Juegos | DP-SYS',
-    'movies': 'Películas | DP-SYS',
-    'series': 'Series | DP-SYS',
-    'profile': 'Perfil | DP-SYS',
-    'admin-panel': 'Panel de Administración | DP-SYS',
-    'login': 'Iniciar Sesión | DP-SYS',
-    'register': 'Registro | DP-SYS',
-    'waiting-confirmation': 'Verificación | DP-SYS',
-    'verified-account': 'Cuenta Verificada | DP-SYS'
-};
-
 // banderas para no cargar 2 veces lo mismo de la api
 let juegosCargados = false;
 let peliculasCargadas = false;
@@ -56,15 +42,6 @@ let vistaActualGlobal = 'home'; // saco cual es la vista actual
 function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
     // antes de cambiar, guardo donde estaba
     memoriaScroll[vistaActualGlobal] = window.scrollY;
-
-    // Actualizar el título de la pestaña dinámicamente
-    if (target === 'profile' && usernameUrl) {
-        document.title = `Perfil de ${usernameUrl} | DP-SYS`;
-    } else if (mapaTitulos[target]) {
-        document.title = mapaTitulos[target];
-    } else {
-        document.title = 'DP-SYS | Nexus';
-    }
 
     // cambio el color del menu
     linksMenu.forEach(link => {
@@ -157,28 +134,19 @@ if (btnAdminTop) {
 
 // detecto cuando usan los botones atras/adelante del navegador
 window.addEventListener('popstate', (evento) => {
-    // 1. Si hay un modal de detalles de juego abierto, lo cerramos
+    // Si hay un modal de detalles de juego abierto, lo cerramos primero
     const modalJuego = document.getElementById('game-details-modal');
     if (modalJuego && modalJuego.classList.contains('show')) {
         modalJuego.classList.remove('show');
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
-
-        // Al cerrar el modal retrocediendo, el título vuelve a ser el de juegos
-        document.title = mapaTitulos['games'] || 'Juegos | DP-SYS';
-
-        // IMPORTANTE: Aunque hayamos cerrado el modal, necesitamos asegurar
-        // que nuestro enrutador interno sigue apuntando a 'games'
-        vistaActualGlobal = 'games';
-        return; // Cortamos aquí para que no ejecute el cambio de vista completo
+        return; // Cortamos aquí para que no navegue a otra página
     }
 
-    // 2. Navegación normal entre secciones
     if (evento.state && evento.state.vista) {
-        // Vuelvo a la vista anterior SIN guardar en el historial otra vez
+        // vuelvo a la vista anterior sin guardar
         cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
-        // Si no hay estado (ej: entras directo a la web y vas atrás), arranca el enrutador
         arrancarEnrutador();
     }
 });
@@ -1804,11 +1772,146 @@ document.getElementById('btn-open-stats-modal')?.addEventListener('click', () =>
     openCustomizationModal('stats');
 });
 
-// boton de agregar amigo
-document.getElementById('btn-add-friend')?.addEventListener('click', () => {
-    console.log('📡 Abriendo panel de busqueda de amigos...');
-    // aqui luego hago un modal o mando una solicitud, ya vere
+// ==========================================================================
+//   BUSCADOR DE AMIGOS / CONTACTOS (AÑADIR)
+// ==========================================================================
+const modalAddFriend = document.getElementById('add-friend-modal');
+const btnCloseAddFriend = document.getElementById('close-add-friend-modal');
+const inputSearchFriend = document.getElementById('search-friend-input');
+const btnSearchFriend = document.getElementById('btn-search-friend');
+const friendEmptyState = document.getElementById('friend-search-empty');
+const friendEmptyText = document.getElementById('friend-empty-text');
+const friendResultsGrid = document.getElementById('friend-results-grid');
+
+// 1. Abrir/Cerrar Modal
+function openAddFriendModal() {
+    modalAddFriend?.classList.add('show');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+
+    // Limpiar búsqueda anterior
+    if (inputSearchFriend) inputSearchFriend.value = '';
+    if (friendResultsGrid) {
+        friendResultsGrid.style.display = 'none';
+        friendResultsGrid.innerHTML = '';
+    }
+    if (friendEmptyState) {
+        friendEmptyState.style.display = 'flex';
+        const icon = friendEmptyState.querySelector('i');
+        if (icon) icon.className = 'fas fa-satellite-dish fa-fade empty-icon';
+        if (friendEmptyText) friendEmptyText.textContent = 'Esperando parámetros de búsqueda...';
+    }
+}
+
+function closeAddFriendModal() {
+    modalAddFriend?.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+}
+
+// Escuchadores de apertura/cierre
+document.getElementById('btn-add-friend')?.addEventListener('click', openAddFriendModal);
+btnCloseAddFriend?.addEventListener('click', closeAddFriendModal);
+
+modalAddFriend?.addEventListener('click', (e) => {
+    if (e.target === modalAddFriend) closeAddFriendModal();
 });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalAddFriend?.classList.contains('show')) closeAddFriendModal();
+});
+
+// 2. Lógica de Búsqueda en Supabase
+async function buscarAmigos() {
+    const query = inputSearchFriend.value.trim();
+    if (!query) return;
+
+    // Ponemos estado de carga
+    friendResultsGrid.style.display = 'none';
+    friendEmptyState.style.display = 'flex';
+    const icon = friendEmptyState.querySelector('i');
+    if (icon) icon.className = 'fas fa-circle-notch fa-spin empty-icon';
+    friendEmptyText.textContent = 'Rastreando base de datos...';
+
+    try {
+        // Hacemos un ilike para buscar coincidencias ignorando mayus/minus
+        const { data, error } = await supabase
+            .from('usuarios')
+            .select('username, avatar')
+            .ilike('username', `%${query}%`)
+            .limit(20); // Limitamos a 20 para no saturar la vista
+
+        if (error) throw error;
+
+        // Conseguir mi propio usuario para no mostrarme a mi mismo en la búsqueda
+        const { data: { session } } = await supabase.auth.getSession();
+        let miEmail = session?.user?.email;
+        let miUsername = null;
+
+        if (miEmail) {
+            const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', miEmail).single();
+            if (miPerfil) miUsername = miPerfil.username;
+        }
+
+        // Filtrar para no salir yo mismo
+        const resultadosValidos = data.filter(u => u.username !== miUsername);
+
+        if (resultadosValidos.length === 0) {
+            if (icon) icon.className = 'fas fa-user-slash empty-icon';
+            friendEmptyText.textContent = `No se encontró a nadie con "${query}" en el Nexus.`;
+            return;
+        }
+
+        // Tenemos resultados, ocultamos el empty state y pintamos el grid
+        friendEmptyState.style.display = 'none';
+        friendResultsGrid.style.display = 'flex';
+        friendResultsGrid.innerHTML = '';
+
+        resultadosValidos.forEach(user => {
+            // Parsear avatar de la BD
+            const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
+            let avatarHtml = '';
+
+            if (avatarDB === 'default' || avatarDB === 'custom') {
+                avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+            } else {
+                avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+            }
+
+            const userCard = document.createElement('div');
+            userCard.className = 'friend-user-card';
+            userCard.innerHTML = `
+                <div class="friend-card-avatar">
+                    ${avatarHtml}
+                </div>
+                <div class="friend-card-info">
+                    <h4 class="friend-card-username">${user.username}</h4>
+                </div>
+                <button class="btn-send-request" onclick="enviarSolicitudAmistad('${user.username}')" title="Enviar solicitud">
+                    <i class="fas fa-user-plus"></i>
+                </button>
+            `;
+            friendResultsGrid.appendChild(userCard);
+        });
+
+    } catch (error) {
+        console.error("Error buscando usuarios:", error);
+        if (icon) icon.className = 'fas fa-exclamation-triangle empty-icon';
+        friendEmptyText.textContent = 'Error de conexión al rastrear usuarios.';
+    }
+}
+
+// 3. Listeners de búsqueda
+btnSearchFriend?.addEventListener('click', buscarAmigos);
+inputSearchFriend?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') buscarAmigos();
+});
+
+// 4. Acción de enviar solicitud (Se ejecuta al darle al botón + de la tarjeta)
+window.enviarSolicitudAmistad = function (targetUsername) {
+    // Por ahora solo lanzamos el Toast como pediste.
+    // A futuro aquí harás el INSERT en una tabla 'amistades' o 'notificaciones'
+    showToast('success', 'Solicitud Enviada', `Has enviado una petición de acceso a ${targetUsername}.`);
+};
 
 // ============================================
 // LISTENERS PARA FILTROS +18 Y BOTONES LIMPIAR
@@ -1947,10 +2050,8 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const titulo = card.getAttribute('data-game-title');
 
     // 2. Actualizamos URL (ej: /juegos/007_First_Light)
+    // Cambiamos los espacios por guiones bajos y quitamos caracteres raros
     const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
-
-    // Poner el título del juego en la pestaña para el historial
-    document.title = `${titulo} | DP-SYS`;
     history.pushState({ modal: 'detalles_juego', titulo: titulo }, '', `/juegos/${urlAmigable}`);
 
     // 3. Rellenamos el modal con la info visual de la tarjeta (Carga Instantánea)
@@ -1961,6 +2062,7 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     document.getElementById('detail-title').textContent = titulo;
     document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
 
+    // Si no tiene imagen, ocultamos la del modal
     if (portadaSrc) {
         document.getElementById('detail-cover-img').src = portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
@@ -1996,9 +2098,8 @@ function cerrarModalJuego() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // En lugar de meter un pushState nuevo que rompe la flecha adelante, simplemente le decimos al navegador que tire una posición hacia atrás.
-    // Esto disparará el popstate de arriba de forma nativa, cerrando el juego de forma segura.
-    history.back();
+    // Restaurar URL limpia de juegos
+    history.pushState({ vista: 'games' }, '', '/juegos');
 }
 
 // Eventos de cierre

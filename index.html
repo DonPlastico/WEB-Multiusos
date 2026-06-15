@@ -1063,6 +1063,48 @@
             </div>
         </div>
 
+        <!-- modal pa buscar y agregar amigos -->
+        <div id="add-friend-modal" class="cyber-modal">
+            <div class="modal-content glass-panel add-friend-panel">
+                <button id="close-add-friend-modal" class="icon-btn close-floating-btn" title="Cerrar búsqueda">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="announce-header announce-friend-header">
+                    <div class="announce-icon-wrap friend-icon-wrap">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div>
+                        <h2 class="announce-title glitch-text">AÑADIR CONTACTO</h2>
+                        <p class="announce-subtitle">Rastrea usuarios en la base de datos del Nexus</p>
+                    </div>
+                </div>
+
+                <div class="search-box glass-panel add-friend-search">
+                    <input type="text" id="search-friend-input" placeholder="Escribe el nombre de usuario...">
+                    <button id="btn-search-friend"><i class="fas fa-search"></i></button>
+                </div>
+
+                <div class="search-box glass-panel add-friend-search" style="margin-bottom: 20px; width: 100%;">
+                    <input type="text" id="search-friend-input" placeholder="Escribe el nombre de usuario..."
+                        style="width: 100%;">
+                    <button id="btn-search-friend"><i class="fas fa-search"></i></button>
+                </div>
+
+                <div id="friend-results-area" class="friend-results-scroll-area">
+
+                    <div id="friend-search-empty" class="empty-state-centered">
+                        <i class="fas fa-satellite-dish fa-fade empty-icon"></i>
+                        <p id="friend-empty-text">Esperando parámetros de búsqueda...</p>
+                    </div>
+
+                    <div id="friend-results-grid" class="friend-results-grid" style="display: none;">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         <!-- modal pa enviar anuncios globales -->
         <div id="announce-modal" class="cyber-modal">
             <div class="modal-content glass-panel announce-panel">
