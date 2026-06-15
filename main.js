@@ -1941,8 +1941,14 @@ window.seguirUsuario = async function (targetUsername, btnElement) {
 
         showToast('success', 'Nueva Conexión', `Ahora sigues a ${targetUsername}.`);
 
-        // Ocultar el botón automáticamente
+        // 1. Ocultar el botón
         if (btnElement) btnElement.style.display = 'none';
+
+        // 2. Si estamos viendo el perfil de alguien (o el nuestro), refrescamos los contadores
+        const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
+        if (mainProfileUsername) {
+            cargarPerfilPublico(mainProfileUsername);
+        }
 
     } catch (error) {
         console.error("❌ Error al seguir:", error);
