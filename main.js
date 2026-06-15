@@ -1245,12 +1245,13 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     const passConf = document.getElementById('register-password-confirm').value.trim();
     const birthdate = document.getElementById('register-birthdate').value;
 
-    // Obliga a usar un formato limpio y prohíbe el uso de '+' para alias de Gmail
-    const regexEmailLimpio = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // CORTAFUEGOS ANTI-CLONES: Extraemos la parte de antes del @
+    const [localPart, domainPart] = email.split('@');
 
-    if (!regexEmailLimpio.test(email) || email.includes('+')) {
+    // Bloqueo absoluto: Ni puntos (.) ni símbolos (+) antes del @
+    if (!localPart || !domainPart || localPart.includes('+') || localPart.includes('.')) {
         msgBox.style.color = 'var(--error)';
-        msgBox.textContent = '❌ Correo inválido. No se permiten alias con el símbolo "+".';
+        msgBox.textContent = '❌ Correo inválido. El sistema no permite puntos "." ni alias "+" antes del @.';
         return;
     }
 
@@ -1317,6 +1318,18 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     btnSubmit.disabled = true;
 
     let emailToUse = identifier;
+
+    // CORTAFUEGOS ANTI-CLONES EN LOGIN
+    if (identifier.includes('@')) {
+        const localPart = identifier.split('@')[0];
+        if (localPart.includes('+') || localPart.includes('.')) {
+            msgBox.style.color = 'var(--error)';
+            msgBox.textContent = '❌ Formato inválido. No se permiten puntos "." ni alias "+" en el correo.';
+            btnSubmit.innerHTML = '<i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS';
+            btnSubmit.disabled = false;
+            return;
+        }
+    }
 
     // si no tiene @ es un usuario
     if (!identifier.includes('@')) {
