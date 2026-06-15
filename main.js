@@ -2297,15 +2297,15 @@ async function cargarPerfilPublico(usernameTarget) {
             const { count: siguiendoCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('solicitante', usuarioABuscar);
-            // .eq('estado', 'aceptada'); // <- Descomenta esto a futuro si solo quieres contar los confirmados
+                .eq('solicitante', usuarioABuscar)
+                .eq('estado', 'aceptada');
 
             // Contamos cuántos siguen a esta persona (él es el receptor)
             const { count: seguidoresCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('receptor', usuarioABuscar);
-            // .eq('estado', 'aceptada'); // <- Igual aquí
+                .eq('receptor', usuarioABuscar)
+                .eq('estado', 'aceptada');
 
             const statNums = document.querySelectorAll('.profile-stats .stat-num');
             if (statNums.length >= 2) {
@@ -2802,25 +2802,131 @@ btnCloseChatbox?.addEventListener('click', () => {
     }, 200);
 });
 
-// 2. Cambio de Pestañas
+// ==========================================================================
+//   LOGICA DE ALERTAS / NOTIFICACIONES
+// ==========================================================================
+
+window.cargarAlertas = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const areaNotifs = document.getElementById('chatbox-notifs-scroll');
+    if (!areaNotifs) return;
+
+    // Ponemos loader de carga
+    areaNotifs.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">Sincronizando red...</p></div>';
+
+    try {
+        // Sacamos nuestro username actual
+        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
+        if (!miPerfil) throw new Error("Perfil no encontrado");
+        const miUsername = miPerfil.username;
+
+        // Buscamos quién nos ha enviado peticiones (somos el 'receptor' y estado 'pendiente')
+        const { data: peticiones, error } = await supabase
+            .from('amistades')
+            .select('id, solicitante, created_at')
+            .eq('receptor', miUsername)
+            .eq('estado', 'pendiente')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Si no hay nada, mostramos el mensaje vacío
+        if (!peticiones || peticiones.length === 0) {
+            areaNotifs.innerHTML = `
+                <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
+                    <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Sin alertas pendientes
+                </div>`;
+            return;
+        }
+
+        // Si hay peticiones, buscamos los avatares de esa gente
+        const solicitantesUsernames = peticiones.map(p => p.solicitante);
+        const { data: perfilesSolicitantes } = await supabase.from('usuarios').select('username, avatar').in('username', solicitantesUsernames);
+
+        areaNotifs.innerHTML = ''; // Limpiamos para inyectar
+
+        peticiones.forEach(peticion => {
+            const perfil = perfilesSolicitantes?.find(u => u.username === peticion.solicitante);
+            const avatarDB = perfil?.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
+
+            let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
+                ? '<i class="fas fa-user-astronaut"></i>'
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png">`;
+
+            areaNotifs.innerHTML += `
+                <div class="notif-card" id="notif-req-${peticion.id}">
+                    <div class="notif-card-avatar">${avatarHtml}</div>
+                    <div class="notif-card-info">
+                        <span class="notif-subtitle">Petición de acceso</span>
+                        <span class="notif-title">${peticion.solicitante}</span>
+                    </div>
+                    <div class="notif-card-actions">
+                        <button class="btn-notif btn-notif-accept" onclick="responderSolicitud(${peticion.id}, 'aceptar', '${peticion.solicitante}')" title="Aceptar conexión"><i class="fas fa-check"></i></button>
+                        <button class="btn-notif btn-notif-reject" onclick="responderSolicitud(${peticion.id}, 'rechazar', '${peticion.solicitante}')" title="Rechazar"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+
+    } catch (err) {
+        console.error("Error cargando alertas:", err);
+        areaNotifs.innerHTML = '<div style="text-align:center; color: var(--error); padding:20px;">Fallo de conexión en las alertas</div>';
+    }
+};
+
+window.responderSolicitud = async function (idAmistad, accion, usernameSolicitante) {
+    // Para que no le den dos veces rápido, ocultamos la tarjeta temporalmente
+    const tarjeta = document.getElementById(`notif-req-${idAmistad}`);
+    if (tarjeta) tarjeta.style.opacity = '0.5';
+
+    try {
+        if (accion === 'aceptar') {
+            const { error } = await supabase.from('amistades').update({ estado: 'aceptada' }).eq('id', idAmistad);
+            if (error) throw error;
+            showToast('success', 'Conexión Establecida', `Has aceptado a ${usernameSolicitante} en tu red.`);
+        } else {
+            // Si rechaza, borramos el registro directamente
+            const { error } = await supabase.from('amistades').delete().eq('id', idAmistad);
+            if (error) throw error;
+            showToast('warning', 'Petición Denegada', `Acceso denegado a ${usernameSolicitante}.`);
+        }
+
+        // Recargamos la lista visual de alertas
+        cargarAlertas();
+
+        // Actualizamos los contadores del perfil en vivo (Si estamos en la pestaña perfil)
+        const currentVista = document.querySelector('.view.active')?.id;
+        const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
+        if (currentVista === 'profile' && mainProfileUsername) {
+            cargarPerfilPublico(mainProfileUsername);
+        }
+
+    } catch (err) {
+        console.error("Fallo al responder:", err);
+        showToast('error', 'Error del Sistema', 'No se pudo procesar la respuesta.');
+        if (tarjeta) tarjeta.style.opacity = '1';
+    }
+};
+
+// 2. Cambio de Pestañas (Modificado para cargar Alertas)
 tabChat?.addEventListener('click', () => {
-    // Cambiar estilos de los botones
     tabChat.classList.add('active');
     tabNotifs.classList.remove('active');
-
-    // Cambiar las vistas
     viewChat.style.display = 'flex';
     viewNotifs.style.display = 'none';
 });
 
 tabNotifs?.addEventListener('click', () => {
-    // Cambiar estilos de los botones
     tabNotifs.classList.add('active');
     tabChat.classList.remove('active');
-
-    // Cambiar las vistas
     viewNotifs.style.display = 'flex';
     viewChat.style.display = 'none';
+
+    // Cada vez que haces clic en "Alertas", consulta a Supabase
+    cargarAlertas();
 });
 
 // 3. Escuchador inteligente para la caja de "Mensajes" del perfil
