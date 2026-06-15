@@ -2322,10 +2322,8 @@ async function cargarPerfilPublico(usernameTarget) {
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
 
-        // Elementos privados (Boton de añadir y sección de Mensajes)
+        // Elementos privados
         const btnAddFriend = document.getElementById('btn-add-friend');
-        const cajitasStats = document.querySelectorAll('.profile-stats .stat-box');
-        const divisoresStats = document.querySelectorAll('.profile-stats .stat-divider');
 
         if (miPropioUsername === usuarioABuscar) {
             // === ES MI PROPIO PERFIL ===
@@ -2334,10 +2332,8 @@ async function cargarPerfilPublico(usernameTarget) {
             document.querySelector('.profile-banner').style.cursor = 'pointer';
             document.querySelector('.profile-avatar').style.cursor = 'pointer';
 
-            // Muestro mis botones privados y mis mensajes
-            if (btnAddFriend) btnAddFriend.style.display = 'flex'; // los icon-btn usan flex
-            if (cajitasStats[2]) cajitasStats[2].style.display = 'flex'; // la 3ª caja (Mensajes)
-            if (divisoresStats[1]) divisoresStats[1].style.display = 'block'; // la 2ª rayita separadora
+            // Muestro mi botón de añadir amigos
+            if (btnAddFriend) btnAddFriend.style.display = 'flex';
 
         } else {
             // === ES EL PERFIL DE OTRA PERSONA ===
@@ -2346,10 +2342,8 @@ async function cargarPerfilPublico(usernameTarget) {
             document.querySelector('.profile-banner').style.cursor = 'default';
             document.querySelector('.profile-avatar').style.cursor = 'default';
 
-            // Oculto mis botones privados y mis mensajes
+            // Oculto botón
             if (btnAddFriend) btnAddFriend.style.display = 'none';
-            if (cajitasStats[2]) cajitasStats[2].style.display = 'none';
-            if (divisoresStats[1]) divisoresStats[1].style.display = 'none';
         }
 
     } catch (err) {
@@ -2771,17 +2765,18 @@ window.showToast = async function (tipo, titulo, descripcion) {
 // ==========================================================================
 const nexusChatbox = document.getElementById('nexus-chatbox');
 const btnCloseChatbox = document.getElementById('close-nexus-chatbox');
+const chatboxNavBar = document.querySelector('.chatbox-nav-bar');
 const tabChat = document.getElementById('tab-btn-chat');
 const tabNotifs = document.getElementById('tab-btn-notifs');
 const viewChat = document.getElementById('chat-view-messages');
 const viewNotifs = document.getElementById('chat-view-notifs');
 
-// 1. Abrir y Cerrar el panel
-window.abrirChatbox = function (pestaña = 'chat') {
+// 1. Abrir el panel (Expandir hacia arriba)
+window.abrirChatbox = function (pestaña = 'chat') { // Por defecto siempre 'chat'
     if (!nexusChatbox) return;
-    nexusChatbox.style.display = 'flex';
+    nexusChatbox.classList.remove('collapsed');
 
-    // Forzamos el click en la pestaña que queramos abrir por defecto
+    // Si nos piden una pestaña específica, cambiamos a ella
     if (pestaña === 'notifs') {
         tabNotifs.click();
     } else {
@@ -2789,17 +2784,37 @@ window.abrirChatbox = function (pestaña = 'chat') {
     }
 };
 
-btnCloseChatbox?.addEventListener('click', () => {
-    // Animación inversa simple antes de ocultar
-    nexusChatbox.style.opacity = '0';
-    nexusChatbox.style.transform = 'translateY(20px) scale(0.95)';
+// Si hacemos clic en la barra y está cerrado, se abre (solo uno)
+chatboxNavBar?.addEventListener('click', () => {
+    if (nexusChatbox.classList.contains('collapsed')) {
+        abrirChatbox('chat'); // Se abre por defecto en mensajes
+    }
+});
 
-    setTimeout(() => {
-        nexusChatbox.style.display = 'none';
-        // Restauramos los estilos base para la próxima vez que se abra
-        nexusChatbox.style.opacity = '';
-        nexusChatbox.style.transform = '';
-    }, 200);
+// Cerrar (Colapsar hacia abajo) con la X
+btnCloseChatbox?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evita que se dispare el evento de abrir de la navbar
+    nexusChatbox.classList.add('collapsed');
+});
+
+// 2. Cambio de Pestañas (con carga dinámica para Alertas)
+tabChat?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evita conflicto con expandir
+    tabChat.classList.add('active');
+    tabNotifs.classList.remove('active');
+    viewChat.style.display = 'flex';
+    viewNotifs.style.display = 'none';
+});
+
+tabNotifs?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evita conflicto con expandir
+    tabNotifs.classList.add('active');
+    tabChat.classList.remove('active');
+    viewNotifs.style.display = 'flex';
+    viewChat.style.display = 'none';
+
+    // Si estamos abriendo o ya está abierto, cargamos las notificaciones
+    cargarAlertas();
 });
 
 // ==========================================================================

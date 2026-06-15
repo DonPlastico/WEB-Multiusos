@@ -2761,20 +2761,42 @@ span.flatpickr-weekday {
    ========================================================================== */
 .chatbox-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 0;
+    /* Anclado al fondo exacto */
+    right: 30px;
     width: 340px;
     height: 450px;
+    /* Altura extendida */
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-bottom: none;
+    /* Quitamos borde de abajo para que fusione con la pantalla */
+    border-radius: 12px 12px 0 0;
+    /* Redondeado solo arriba */
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
     z-index: 9999;
     overflow: hidden;
-    /* Animación chula al abrir */
-    animation: chatboxPopup 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+}
+
+/* Estado Colapsado (Solo se ve la cabecera) */
+.chatbox-container.collapsed {
+    height: 50px;
+    cursor: pointer;
+}
+
+/* Brillo sutil si pasas el ratón cuando está colapsado */
+.chatbox-container.collapsed:hover .chatbox-nav-bar {
+    background-color: var(--bg-hover);
+}
+
+/* Ocultamos la X cuando está colapsado */
+.chatbox-container.collapsed .chatbox-close {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
 }
 
 .chatbox-nav-bar {
@@ -2786,6 +2808,7 @@ span.flatpickr-weekday {
     justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
     padding: 0 10px;
+    transition: background-color 0.2s;
 }
 
 .chatbox-tabs {
