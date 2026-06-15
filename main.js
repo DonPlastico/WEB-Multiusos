@@ -2835,8 +2835,12 @@ window.cargarAlertas = async function () {
         if (!miPerfil) throw new Error("Perfil no encontrado");
         const miUsername = miPerfil.username;
 
-        // Buscamos quién nos sigue (simplemente, quien tiene una fila en amistades apuntando a nosotros)
-        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', solicitantesUsernames);
+        // 1. Buscamos quién nos sigue (en la tabla amistades)
+        const { data: seguidores, error } = await supabase
+            .from('amistades')
+            .select('solicitante, created_at')
+            .eq('receptor', miUsername)
+            .order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -2849,8 +2853,9 @@ window.cargarAlertas = async function () {
             return;
         }
 
+        // 2. Extraemos los nombres y buscamos sus avatares en la VISTA SEGURA
         const solicitantesUsernames = seguidores.map(s => s.solicitante);
-        const { data: perfiles } = await supabase.from('usuarios').select('username, avatar').in('username', solicitantesUsernames);
+        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', solicitantesUsernames);
 
         areaNotifs.innerHTML = '';
 
@@ -2860,7 +2865,7 @@ window.cargarAlertas = async function () {
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             areaNotifs.innerHTML += `
                 <div class="notif-card">
