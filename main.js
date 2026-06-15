@@ -2996,7 +2996,7 @@ async function cargarDatosSociales() {
 
         // Pintar cuadrícula
         socialEmpty.style.display = 'none';
-        socialGrid.style.display = 'flex';
+        socialGrid.style.display = 'grid';
         socialGrid.innerHTML = '';
 
         relaciones.forEach(rel => {

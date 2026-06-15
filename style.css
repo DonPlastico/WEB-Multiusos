@@ -3064,6 +3064,25 @@ span.flatpickr-weekday {
    PAGINACIÓN Y BOTONES DE LISTAS SOCIALES
    ========================================================================== */
 
+/* Hacemos este modal más ancho para que quepan 3 columnas holgadamente */
+.social-list-panel {
+    width: 100%;
+    max-width: 900px;
+    padding: 0;
+    border-top: 3px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+}
+
+/* Forzamos a que este contenedor sea un Grid de 3 columnas */
+#social-list-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    width: 100%;
+}
+
 /* Estado desactivado para los botones de pasar página */
 .pagination-controls .icon-btn:disabled {
     opacity: 0.3;
@@ -3357,6 +3376,11 @@ span.flatpickr-weekday {
 
     .terminal-box {
         height: 350px !important;
+    }
+
+
+    #social-list-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
@@ -3729,6 +3753,10 @@ span.flatpickr-weekday {
         right: 0;
         border-radius: 0;
         z-index: 10000;
+    }
+
+    #social-list-grid {
+        grid-template-columns: 1fr;
     }
 }
 
