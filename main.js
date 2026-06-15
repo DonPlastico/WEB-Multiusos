@@ -1285,9 +1285,6 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ ' + error.message;
     } else {
-        // guardo el usuario en la bd
-        await supabase.from('usuarios').insert([{ username: username, email: email, birthdate: birthdate }]);
-
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '✅ ¡Cuenta creada! Revisa tu correo.';
 
@@ -2383,7 +2380,7 @@ async function iniciarPanelAdmin() {
             const testEmail = `${testUser}@nexus.com`;
             const testPassword = 'PasswordTest123'; // Contraseña maestra para todos los clones
 
-            // 1. Forzar registro en Supabase Auth
+            // Forzar registro en Supabase Auth
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: testEmail,
                 password: testPassword,
@@ -2391,19 +2388,6 @@ async function iniciarPanelAdmin() {
             });
 
             if (authError) throw authError;
-
-            // 2. Inyectar en tu tabla pública 'usuarios' con avatar/banner listos
-            const { error: dbError } = await supabase.from('usuarios').insert([
-                {
-                    username: testUser,
-                    email: testEmail,
-                    birthdate: '2000-01-01',
-                    avatar: '3_m',
-                    banner: '2'
-                }
-            ]);
-
-            if (dbError) throw dbError;
 
             addAdminLog(`Sujeto de pruebas creado: ${testUser}. RLS Bypass Completo.`, "success");
             showToast('success', 'Clon Creado', `Identidad ${testUser} lista para simulación.`);
