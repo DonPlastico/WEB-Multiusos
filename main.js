@@ -2316,6 +2316,7 @@ async function cargarPerfilPublico(usernameTarget) {
         } catch (err) {
             console.error("Error al extraer telemetría de amistades:", err);
         }
+        
 
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
         const overlayBanner = document.querySelector('.edit-overlay');
