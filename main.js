@@ -2353,6 +2353,74 @@ async function iniciarPanelAdmin() {
     document.getElementById('admin-search-input')?.addEventListener('input', (e) => {
         cargarTablaUsuarios(e.target.value.toLowerCase());
     });
+
+    // Escuchador para crear usuario de pruebas verificado instantáneo
+    document.getElementById('btn-admin-create-test-user')?.addEventListener('click', async () => {
+        addAdminLog("Generando clon de pruebas en el Nexus...", "warning");
+        try {
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            const testUser = `test_${rand}`;
+            const testEmail = `${testUser}@nexus.com`;
+            const testPassword = 'PasswordTest123'; // Contraseña maestra para todos los clones
+
+            // 1. Forzar registro en Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: testEmail,
+                password: testPassword,
+                options: { data: { username: testUser, birthdate: '2000-01-01' } }
+            });
+
+            if (authError) throw authError;
+
+            // 2. Inyectar en tu tabla pública 'usuarios' con avatar/banner listos
+            const { error: dbError } = await supabase.from('usuarios').insert([
+                {
+                    username: testUser,
+                    email: testEmail,
+                    birthdate: '2000-01-01',
+                    avatar: '3_m', // Le asignamos uno cualquiera para pruebas
+                    banner: '2'
+                }
+            ]);
+
+            if (dbError) throw dbError;
+
+            addAdminLog(`Sujeto de pruebas creado: ${testUser}. RLS Bypass Completo.`, "success");
+            showToast('success', 'Clon Creado', `Identidad ${testUser} lista para simulación.`);
+
+            // Actualizar la tabla para verlo reflejado
+            cargarTablaUsuarios();
+
+        } catch (err) {
+            addAdminLog(`Fallo al inyectar usuario de pruebas: ${err.message}`, "error");
+            showToast('error', 'Error de Matriz', 'Revisa la consola o desactiva "Confirm Email" en Supabase.');
+        }
+    });
+
+    // Función global para cambiar de cuenta al instante con un clic
+    window.loginComoTestUser = async function (emailUser) {
+        addAdminLog(`Destruyendo sesión de administrador e iniciando bypass para ${emailUser}...`, "warning");
+        try {
+            // El login de Supabase pisa automáticamente la sesión actual en localStorage
+            const { error } = await supabase.auth.signInWithPassword({
+                email: emailUser,
+                password: 'PasswordTest123'
+            });
+
+            if (error) throw error;
+
+            showToast('success', 'Identidad Suplantada', 'Bypass completado. Redireccionando al inicio...');
+
+            // Forzamos un reload limpio al home para inicializar toda la app con la sesión del clon
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+
+        } catch (err) {
+            addAdminLog(`Fallo crítico en el bypass: ${err.message}`, "error");
+            showToast('error', 'Bypass Fallido', 'No se pudo forzar el inicio de sesión.');
+        }
+    };
 }
 
 // --- TERMINAL DE REGISTRO DE EVENTOS ---
@@ -2411,6 +2479,9 @@ async function cargarTablaUsuarios(filtro = "") {
         usuariosFiltrados.forEach(u => {
             const esMiCuenta = u.email === miEmailGlobalAdmin;
 
+            // Detectar si es cuenta de pruebas automática
+            const esTestUser = u.username.startsWith('test_');
+
             // Cruzamos datos usando el email
             const infoRol = roles.find(r => r.email === u.email);
             const nombreRol = infoRol ? infoRol.rol : 'user';
@@ -2427,6 +2498,8 @@ async function cargarTablaUsuarios(filtro = "") {
                 <td><span class="role-badge ${esAdmin ? 'admin' : ''}" style="background: ${esAdmin ? 'var(--primary-soft)' : 'var(--bg-secondary)'}; color: ${esAdmin ? 'var(--primary)' : 'var(--text-muted)'}; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; border: 1px solid ${esAdmin ? 'var(--primary)' : 'var(--border-color)'};">${esAdmin ? 'ADMIN' : 'USER'}</span></td>
                 <td>
                     <div class="table-actions">
+                        ${esTestUser ? `<button class="action-btn promote" onclick="loginComoTestUser('${u.email}')" title="Suplantar / Iniciar Sesión" style="color: var(--secondary); border-color: var(--secondary);"><i class="fas fa-sign-in-alt"></i></button>` : ''}
+                        
                         <button class="action-btn edit" onclick="alert('Editor de perfiles en desarrollo para ${u.username}')" title="Editar datos"><i class="fas fa-pen"></i></button>
                         ${esAdmin
                     ? `<button class="action-btn demote" onclick="cambiarRolUsuario('${u.email}', '${u.username}', 'user', ${esMiCuenta})" title="Quitar Administrador"><i class="fas fa-user-minus"></i></button>`
