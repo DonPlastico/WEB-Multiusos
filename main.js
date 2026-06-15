@@ -2772,11 +2772,13 @@ const viewChat = document.getElementById('chat-view-messages');
 const viewNotifs = document.getElementById('chat-view-notifs');
 
 // 1. Abrir el panel (Expandir hacia arriba)
-window.abrirChatbox = function (pestaña = 'chat') { // Por defecto siempre 'chat'
+window.abrirChatbox = function (pestaña = 'chat') {
     if (!nexusChatbox) return;
+
+    // Si estaba colapsado, lo expandimos
     nexusChatbox.classList.remove('collapsed');
 
-    // Si nos piden una pestaña específica, cambiamos a ella
+    // Cambiamos a la pestaña indicada
     if (pestaña === 'notifs') {
         tabNotifs.click();
     } else {
@@ -2784,10 +2786,12 @@ window.abrirChatbox = function (pestaña = 'chat') { // Por defecto siempre 'cha
     }
 };
 
-// Si hacemos clic en la barra y está cerrado, se abre (solo uno)
-chatboxNavBar?.addEventListener('click', () => {
+// Evento unificado para todo el header (Navbar)
+chatboxNavBar?.addEventListener('click', (e) => {
+    // Si ya está expandido, no hacemos nada (o podríamos hacer que colapse, pero mejor dejarlo abierto)
     if (nexusChatbox.classList.contains('collapsed')) {
-        abrirChatbox('chat'); // Se abre por defecto en mensajes
+        // Al clicar en el header general, abrimos por defecto en 'chat'
+        abrirChatbox('chat');
     }
 });
 
@@ -2799,7 +2803,8 @@ btnCloseChatbox?.addEventListener('click', (e) => {
 
 // 2. Cambio de Pestañas (con carga dinámica para Alertas)
 tabChat?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita conflicto con expandir
+    e.stopPropagation(); // Evita que se propague al chatboxNavBar y lo reinicie
+    nexusChatbox.classList.remove('collapsed'); // Asegura que esté abierto
     tabChat.classList.add('active');
     tabNotifs.classList.remove('active');
     viewChat.style.display = 'flex';
@@ -2807,7 +2812,8 @@ tabChat?.addEventListener('click', (e) => {
 });
 
 tabNotifs?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita conflicto con expandir
+    e.stopPropagation(); // Evita que se propague al chatboxNavBar
+    nexusChatbox.classList.remove('collapsed'); // Asegura que esté abierto
     tabNotifs.classList.add('active');
     tabChat.classList.remove('active');
     viewNotifs.style.display = 'flex';
