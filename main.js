@@ -30,6 +30,20 @@ const mapaRutas = {
     'verified-account': '/cuenta-verificada'
 };
 
+// Títulos para que el historial del navegador quede precioso
+const mapaTitulos = {
+    'home': 'Inicio | DP-SYS',
+    'games': 'Juegos | DP-SYS',
+    'movies': 'Películas | DP-SYS',
+    'series': 'Series | DP-SYS',
+    'profile': 'Perfil | DP-SYS',
+    'admin-panel': 'Panel de Administración | DP-SYS',
+    'login': 'Iniciar Sesión | DP-SYS',
+    'register': 'Registro | DP-SYS',
+    'waiting-confirmation': 'Verificación | DP-SYS',
+    'verified-account': 'Cuenta Verificada | DP-SYS'
+};
+
 // banderas para no cargar 2 veces lo mismo de la api
 let juegosCargados = false;
 let peliculasCargadas = false;
@@ -42,6 +56,15 @@ let vistaActualGlobal = 'home'; // saco cual es la vista actual
 function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
     // antes de cambiar, guardo donde estaba
     memoriaScroll[vistaActualGlobal] = window.scrollY;
+
+    // Actualizar el título de la pestaña dinámicamente
+    if (target === 'profile' && usernameUrl) {
+        document.title = `Perfil de ${usernameUrl} | DP-SYS`;
+    } else if (mapaTitulos[target]) {
+        document.title = mapaTitulos[target];
+    } else {
+        document.title = 'DP-SYS | Nexus';
+    }
 
     // cambio el color del menu
     linksMenu.forEach(link => {
@@ -140,7 +163,10 @@ window.addEventListener('popstate', (evento) => {
         modalJuego.classList.remove('show');
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
-        return; // Cortamos aquí para que no navegue a otra página
+
+        // Al volver atrás del modal, restauramos el título a la sección de juegos
+        document.title = mapaTitulos['games'] || 'Juegos | DP-SYS';
+        return; // Cortamos aquí para que no navegue a otra página entera
     }
 
     if (evento.state && evento.state.vista) {
@@ -1915,8 +1941,10 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const titulo = card.getAttribute('data-game-title');
 
     // 2. Actualizamos URL (ej: /juegos/007_First_Light)
-    // Cambiamos los espacios por guiones bajos y quitamos caracteres raros
     const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
+
+    // Poner el título del juego en la pestaña para el historial
+    document.title = `${titulo} | DP-SYS`;
     history.pushState({ modal: 'detalles_juego', titulo: titulo }, '', `/juegos/${urlAmigable}`);
 
     // 3. Rellenamos el modal con la info visual de la tarjeta (Carga Instantánea)
@@ -1927,7 +1955,6 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     document.getElementById('detail-title').textContent = titulo;
     document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
 
-    // Si no tiene imagen, ocultamos la del modal
     if (portadaSrc) {
         document.getElementById('detail-cover-img').src = portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
@@ -1963,8 +1990,9 @@ function cerrarModalJuego() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // Restaurar URL limpia de juegos
-    history.pushState({ vista: 'games' }, '', '/juegos');
+    // En lugar de meter un pushState nuevo que rompe la flecha adelante, simplemente le decimos al navegador que tire una posición hacia atrás.
+    // Esto disparará el popstate de arriba de forma nativa, cerrando el juego de forma segura.
+    history.back();
 }
 
 // Eventos de cierre
