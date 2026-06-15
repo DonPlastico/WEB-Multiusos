@@ -1932,10 +1932,13 @@ window.seguirUsuario = async function (targetUsername, btnElement) {
             return;
         }
 
-        // INSERT DIRECTO como estado 'aceptada' para que sume al contador
+        // INSERT DIRECTO
         const { error: insertError } = await supabase
             .from('amistades')
-            .insert([{ solicitante: miUsername, receptor: targetUsername, estado: 'aceptada' }]);
+            .insert([{
+                solicitante: miUsername,
+                receptor: targetUsername
+            }]);
 
         if (insertError) throw insertError;
 
@@ -2280,19 +2283,17 @@ async function cargarPerfilPublico(usernameTarget) {
         // CARGAR CONTADORES DE SEGUIDORES/SIGUIENDO
         // ============================================
         try {
-            // Contamos a cuántos sigue esta persona (él es el solicitante)
+            // Contamos a cuántos sigue esta persona
             const { count: siguiendoCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('solicitante', usuarioABuscar)
-                .eq('estado', 'aceptada');
+                .eq('solicitante', usuarioABuscar); // Quitamos .eq('estado', 'aceptada')
 
-            // Contamos cuántos siguen a esta persona (él es el receptor)
+            // Contamos cuántos siguen a esta persona
             const { count: seguidoresCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('receptor', usuarioABuscar)
-                .eq('estado', 'aceptada');
+                .eq('receptor', usuarioABuscar); // Quitamos .eq('estado', 'aceptada')
 
             const statNums = document.querySelectorAll('.profile-stats .stat-num');
             if (statNums.length >= 2) {
@@ -2828,12 +2829,11 @@ window.cargarAlertas = async function () {
         if (!miPerfil) throw new Error("Perfil no encontrado");
         const miUsername = miPerfil.username;
 
-        // Buscamos quién nos sigue (somos el 'receptor' y estado 'aceptada')
+        // Buscamos quién nos sigue (simplemente, quien tiene una fila en amistades apuntando a nosotros)
         const { data: seguidores, error } = await supabase
             .from('amistades')
             .select('solicitante, created_at')
             .eq('receptor', miUsername)
-            .eq('estado', 'aceptada')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
