@@ -1333,21 +1333,18 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
 
     // si no tiene @ es un usuario
     if (!identifier.includes('@')) {
-        // pregunto cual es el correo del usuario
-        const { data: userData } = await supabase
-            .from('usuarios')
-            .select('email')
-            .eq('username', identifier)
-            .maybeSingle();
+        // Usamos la función segura (RPC) para obtener el email sin romper la seguridad
+        const { data: correoDevuelto, error: errorRpc } = await supabase
+            .rpc('get_email_por_usuario', { username_buscado: identifier });
 
-        if (userData && userData.email) {
-            emailToUse = userData.email; // Traducción completada
+        if (correoDevuelto) {
+            emailToUse = correoDevuelto;
         } else {
             msgBox.style.color = 'var(--error)';
             msgBox.textContent = '❌ Usuario no encontrado en el Nexus.';
             btnSubmit.innerHTML = '<i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS';
             btnSubmit.disabled = false;
-            return; // Cortamos aquí porque el usuario no existe
+            return;
         }
     }
 
