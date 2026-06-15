@@ -2780,7 +2780,7 @@ span.flatpickr-weekday {
 
 /* Estado Colapsado */
 .chatbox-container.collapsed {
-    height: 31.5px;
+    height: 50px;
     cursor: pointer;
 }
 
@@ -2803,7 +2803,7 @@ span.flatpickr-weekday {
 .chatbox-tabs {
     display: flex;
     width: 100%;
-    height: 100%;
+    height: 50px;
 }
 
 .chatbox-tab {
