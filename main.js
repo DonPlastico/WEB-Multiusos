@@ -2766,6 +2766,7 @@ window.showToast = async function (tipo, titulo, descripcion) {
     container.appendChild(clone);
 };
 
+
 // ==========================================================================
 //   CHATBOX Y NOTIFICACIONES FLOTANTE
 // ==========================================================================
