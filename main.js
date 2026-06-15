@@ -157,22 +157,28 @@ if (btnAdminTop) {
 
 // detecto cuando usan los botones atras/adelante del navegador
 window.addEventListener('popstate', (evento) => {
-    // Si hay un modal de detalles de juego abierto, lo cerramos primero
+    // 1. Si hay un modal de detalles de juego abierto, lo cerramos
     const modalJuego = document.getElementById('game-details-modal');
     if (modalJuego && modalJuego.classList.contains('show')) {
         modalJuego.classList.remove('show');
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
 
-        // Al volver atrás del modal, restauramos el título a la sección de juegos
+        // Al cerrar el modal retrocediendo, el título vuelve a ser el de juegos
         document.title = mapaTitulos['games'] || 'Juegos | DP-SYS';
-        return; // Cortamos aquí para que no navegue a otra página entera
+
+        // IMPORTANTE: Aunque hayamos cerrado el modal, necesitamos asegurar
+        // que nuestro enrutador interno sigue apuntando a 'games'
+        vistaActualGlobal = 'games';
+        return; // Cortamos aquí para que no ejecute el cambio de vista completo
     }
 
+    // 2. Navegación normal entre secciones
     if (evento.state && evento.state.vista) {
-        // vuelvo a la vista anterior sin guardar
+        // Vuelvo a la vista anterior SIN guardar en el historial otra vez
         cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
+        // Si no hay estado (ej: entras directo a la web y vas atrás), arranca el enrutador
         arrancarEnrutador();
     }
 });
