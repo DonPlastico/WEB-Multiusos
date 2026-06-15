@@ -2378,7 +2378,7 @@ async function iniciarPanelAdmin() {
                     username: testUser,
                     email: testEmail,
                     birthdate: '2000-01-01',
-                    avatar: '3_m', // Le asignamos uno cualquiera para pruebas
+                    avatar: '3_m',
                     banner: '2'
                 }
             ]);
