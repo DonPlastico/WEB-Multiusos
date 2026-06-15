@@ -1237,6 +1237,57 @@
         </template>
     </main>
 
+    <div id="nexus-chatbox" class="chatbox-container" style="display: none;">
+        <div class="chatbox-nav-bar">
+            <div class="chatbox-tabs">
+                <span class="chatbox-tab active" id="tab-btn-chat">Mensajes</span>
+                <span class="chatbox-tab" id="tab-btn-notifs">Alertas</span>
+            </div>
+            <div class="chatbox-close" id="close-nexus-chatbox">
+                <div class="chatbox-line one"></div>
+                <div class="chatbox-line two"></div>
+            </div>
+        </div>
+
+        <div id="chat-view-messages" class="chatbox-view active">
+            <div class="chatbox-messages-area" id="chatbox-messages-scroll">
+                <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
+                    <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Selecciona un amigo para chatear
+                </div>
+            </div>
+
+            <div class="chatbox-sender-area">
+                <div class="chatbox-input-place">
+                    <input placeholder="Escribe un mensaje..." class="chatbox-send-input" id="chatbox-input"
+                        type="text">
+                    <div class="chatbox-send" id="chatbox-send-btn">
+                        <svg class="chatbox-send-icon" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+                            xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
+                            style="enable-background:new 0 0 512 512;" xml:space="preserve">
+                            <g>
+                                <g>
+                                    <path fill="#6B6C7B"
+                                        d="M481.508,210.336L68.414,38.926c-17.403-7.222-37.064-4.045-51.309,8.287C2.86,59.547-3.098,78.551,1.558,96.808 L38.327,241h180.026c8.284,0,15.001,6.716,15.001,15.001c0,8.284-6.716,15.001-15.001,15.001H38.327L1.558,415.193 c-4.656,18.258,1.301,37.262,15.547,49.595c14.274,12.357,33.937,15.495,51.31,8.287l413.094-171.409 C500.317,293.862,512,276.364,512,256.001C512,235.638,500.317,218.139,481.508,210.336z">
+                                    </path>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="chat-view-notifs" class="chatbox-view" style="display: none;">
+            <div class="chatbox-messages-area notifs-area" id="chatbox-notifs-scroll" style="height: 280px;">
+                <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
+                    <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Sin alertas pendientes
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="main.js"></script>
 </body>
 

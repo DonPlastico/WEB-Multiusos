@@ -2316,7 +2316,7 @@ async function cargarPerfilPublico(usernameTarget) {
         } catch (err) {
             console.error("Error al extraer telemetría de amistades:", err);
         }
-        
+
 
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
         const overlayBanner = document.querySelector('.edit-overlay');
@@ -2765,3 +2765,73 @@ window.showToast = async function (tipo, titulo, descripcion) {
     // 6. Lanzamos el Toast a la pantalla
     container.appendChild(clone);
 };
+
+// ==========================================================================
+//   CHATBOX Y NOTIFICACIONES FLOTANTE
+// ==========================================================================
+const nexusChatbox = document.getElementById('nexus-chatbox');
+const btnCloseChatbox = document.getElementById('close-nexus-chatbox');
+const tabChat = document.getElementById('tab-btn-chat');
+const tabNotifs = document.getElementById('tab-btn-notifs');
+const viewChat = document.getElementById('chat-view-messages');
+const viewNotifs = document.getElementById('chat-view-notifs');
+
+// 1. Abrir y Cerrar el panel
+window.abrirChatbox = function (pestaña = 'chat') {
+    if (!nexusChatbox) return;
+    nexusChatbox.style.display = 'flex';
+
+    // Forzamos el click en la pestaña que queramos abrir por defecto
+    if (pestaña === 'notifs') {
+        tabNotifs.click();
+    } else {
+        tabChat.click();
+    }
+};
+
+btnCloseChatbox?.addEventListener('click', () => {
+    // Animación inversa simple antes de ocultar
+    nexusChatbox.style.opacity = '0';
+    nexusChatbox.style.transform = 'translateY(20px) scale(0.95)';
+
+    setTimeout(() => {
+        nexusChatbox.style.display = 'none';
+        // Restauramos los estilos base para la próxima vez que se abra
+        nexusChatbox.style.opacity = '';
+        nexusChatbox.style.transform = '';
+    }, 200);
+});
+
+// 2. Cambio de Pestañas
+tabChat?.addEventListener('click', () => {
+    // Cambiar estilos de los botones
+    tabChat.classList.add('active');
+    tabNotifs.classList.remove('active');
+
+    // Cambiar las vistas
+    viewChat.style.display = 'flex';
+    viewNotifs.style.display = 'none';
+});
+
+tabNotifs?.addEventListener('click', () => {
+    // Cambiar estilos de los botones
+    tabNotifs.classList.add('active');
+    tabChat.classList.remove('active');
+
+    // Cambiar las vistas
+    viewNotifs.style.display = 'flex';
+    viewChat.style.display = 'none';
+});
+
+// 3. Escuchador inteligente para la caja de "Mensajes" del perfil
+// Usamos "delegación de eventos" por si las cajitas se recargan de forma asíncrona
+document.addEventListener('click', (e) => {
+    const statBoxClick = e.target.closest('.stat-box');
+    if (statBoxClick) {
+        const label = statBoxClick.querySelector('.stat-label');
+        // Si la cajita que hemos clicado es la de "Mensajes"
+        if (label && label.textContent.trim().toLowerCase() === 'mensajes') {
+            abrirChatbox('chat');
+        }
+    }
+});
