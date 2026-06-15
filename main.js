@@ -2289,6 +2289,34 @@ async function cargarPerfilPublico(usernameTarget) {
             }
         }
 
+        // ============================================
+        // CARGAR CONTADORES DE SEGUIDORES/SIGUIENDO
+        // ============================================
+        try {
+            // Contamos a cuántos sigue esta persona (él es el solicitante)
+            const { count: siguiendoCount } = await supabase
+                .from('amistades')
+                .select('*', { count: 'exact', head: true })
+                .eq('solicitante', usuarioABuscar);
+            // .eq('estado', 'aceptada'); // <- Descomenta esto a futuro si solo quieres contar los confirmados
+
+            // Contamos cuántos siguen a esta persona (él es el receptor)
+            const { count: seguidoresCount } = await supabase
+                .from('amistades')
+                .select('*', { count: 'exact', head: true })
+                .eq('receptor', usuarioABuscar);
+            // .eq('estado', 'aceptada'); // <- Igual aquí
+
+            const statNums = document.querySelectorAll('.profile-stats .stat-num');
+            if (statNums.length >= 2) {
+                // Hacemos una mini animación para que los números suban visualmente
+                statNums[0].textContent = siguiendoCount || 0; // Siguiendo
+                statNums[1].textContent = seguidoresCount || 0; // Seguidores
+            }
+        } catch (err) {
+            console.error("Error al extraer telemetría de amistades:", err);
+        }
+
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
