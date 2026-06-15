@@ -2880,3 +2880,222 @@ document.addEventListener('click', (e) => {
         }
     }
 });
+
+// ==========================================================================
+//   MODAL DE LISTAS SOCIALES (SIGUIENDO / SEGUIDORES)
+// ==========================================================================
+const socialModal = document.getElementById('social-list-modal');
+const btnCloseSocial = document.getElementById('close-social-list-modal');
+const socialTitle = document.getElementById('social-list-title');
+const socialSubtitle = document.getElementById('social-list-subtitle');
+const socialGrid = document.getElementById('social-list-grid');
+const socialEmpty = document.getElementById('social-list-empty');
+const socialPageInfo = document.getElementById('social-page-info');
+const btnSocialPrev = document.getElementById('btn-social-prev');
+const btnSocialNext = document.getElementById('btn-social-next');
+const socialIcon = document.querySelector('#social-list-icon i');
+
+let currentSocialType = 'siguiendo'; // 'siguiendo' o 'seguidores'
+let currentSocialPage = 1;
+const ITEMS_PER_SOCIAL_PAGE = 8; // Cuántos usuarios mostrar por página
+let totalSocialItems = 0;
+
+// 1. Abrir Modal
+window.abrirListaSocial = function (tipo) {
+    currentSocialType = tipo;
+    currentSocialPage = 1; // Reiniciamos a la página 1 siempre que se abre
+
+    socialModal?.classList.add('show');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+
+    if (tipo === 'siguiendo') {
+        socialTitle.textContent = 'SIGUIENDO';
+        socialSubtitle.textContent = 'Usuarios a los que sigue';
+        if (socialIcon) socialIcon.className = 'fas fa-user-check';
+    } else {
+        socialTitle.textContent = 'SEGUIDORES';
+        socialSubtitle.textContent = 'Usuarios que le siguen';
+        if (socialIcon) socialIcon.className = 'fas fa-users';
+    }
+
+    cargarDatosSociales();
+};
+
+// Listeners para abrir desde las cajas del perfil
+document.getElementById('btn-ver-siguiendo')?.addEventListener('click', () => abrirListaSocial('siguiendo'));
+document.getElementById('btn-ver-seguidores')?.addEventListener('click', () => abrirListaSocial('seguidores'));
+
+// 2. Cerrar Modal
+function cerrarListaSocial() {
+    socialModal?.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+}
+
+btnCloseSocial?.addEventListener('click', cerrarListaSocial);
+socialModal?.addEventListener('click', (e) => {
+    if (e.target === socialModal) cerrarListaSocial();
+});
+
+// 3. Cargar Datos Paginados de Supabase
+async function cargarDatosSociales() {
+    const usuarioVisto = document.getElementById('main-profile-username')?.textContent;
+    if (!usuarioVisto) return;
+
+    // Saber quién soy yo para mostrar o no el botón de "Dejar de seguir"
+    const { data: { session } } = await supabase.auth.getSession();
+    let miUsername = null;
+    if (session) {
+        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
+        miUsername = miPerfil?.username;
+    }
+
+    // Mostrar estado de carga
+    socialGrid.style.display = 'none';
+    socialEmpty.style.display = 'flex';
+    socialEmpty.innerHTML = '<i class="fas fa-circle-notch fa-spin empty-icon" style="color: var(--primary);"></i><p id="social-empty-text">Rastreando conexiones en el Nexus...</p>';
+
+    // Calcular Offsets de paginación
+    const fromIdx = (currentSocialPage - 1) * ITEMS_PER_SOCIAL_PAGE;
+    const toIdx = fromIdx + ITEMS_PER_SOCIAL_PAGE - 1;
+
+    try {
+        // Preparar consulta base a 'amistades'
+        let query = supabase.from('amistades').select('*', { count: 'exact' });
+
+        if (currentSocialType === 'siguiendo') {
+            query = query.eq('solicitante', usuarioVisto);
+        } else {
+            query = query.eq('receptor', usuarioVisto);
+        }
+
+        // Ordenar del más reciente al más antiguo y aplicar límite
+        const { data: relaciones, count, error } = await query
+            .order('created_at', { ascending: false })
+            .range(fromIdx, toIdx);
+
+        if (error) throw error;
+
+        // Configurar UI de Paginación
+        totalSocialItems = count || 0;
+        const totalPages = Math.ceil(totalSocialItems / ITEMS_PER_SOCIAL_PAGE) || 1;
+        socialPageInfo.textContent = `${currentSocialPage} / ${totalPages}`;
+        btnSocialPrev.disabled = currentSocialPage <= 1;
+        btnSocialNext.disabled = currentSocialPage >= totalPages;
+
+        // Si no hay resultados
+        if (!relaciones || relaciones.length === 0) {
+            socialEmpty.innerHTML = '<i class="fas fa-user-astronaut fa-fade empty-icon"></i><p id="social-empty-text">La red está vacía.</p>';
+            return;
+        }
+
+        // Buscar los avatares de esos usuarios en la tabla 'usuarios'
+        const usernamesBuscar = relaciones.map(r => currentSocialType === 'siguiendo' ? r.receptor : r.solicitante);
+        const { data: perfiles } = await supabase.from('usuarios').select('username, avatar').in('username', usernamesBuscar);
+
+        // Pintar cuadrícula
+        socialEmpty.style.display = 'none';
+        socialGrid.style.display = 'flex';
+        socialGrid.innerHTML = '';
+
+        relaciones.forEach(rel => {
+            const targetUsername = currentSocialType === 'siguiendo' ? rel.receptor : rel.solicitante;
+            const perfil = perfiles?.find(p => p.username === targetUsername);
+            const avatarDB = perfil?.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
+
+            let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
+                ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+
+            // Botón de Dejar de Seguir (SOLO si veo mi propia pestaña de "Siguiendo")
+            let actionBtnHtml = '';
+            if (currentSocialType === 'siguiendo' && miUsername === usuarioVisto) {
+                actionBtnHtml = `
+                    <button class="btn-remove-friend" onclick="dejarDeSeguir('${targetUsername}', this, event)" title="Dejar de seguir">
+                        <i class="fas fa-user-minus"></i>
+                    </button>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'friend-user-card';
+            // Toda la tarjeta será clicable para ir al perfil de esa persona
+            card.onclick = () => irAPerfilDesdeLista(targetUsername);
+            card.style.cursor = 'pointer';
+
+            card.innerHTML = `
+                <div class="friend-card-avatar">${avatarHtml}</div>
+                <div class="friend-card-info">
+                    <h4 class="friend-card-username">${targetUsername}</h4>
+                    <span style="font-size:0.7rem; color:var(--text-muted);">${new Date(rel.created_at).toLocaleDateString()}</span>
+                </div>
+                ${actionBtnHtml}
+            `;
+            socialGrid.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error("Error cargando lista social:", err);
+        socialEmpty.innerHTML = '<i class="fas fa-exclamation-triangle empty-icon" style="color: var(--error);"></i><p id="social-empty-text">Fallo de conexión al extraer datos.</p>';
+    }
+}
+
+// 4. Controles de Paginación
+btnSocialPrev?.addEventListener('click', () => {
+    if (currentSocialPage > 1) {
+        currentSocialPage--;
+        cargarDatosSociales();
+    }
+});
+
+btnSocialNext?.addEventListener('click', () => {
+    const totalPages = Math.ceil(totalSocialItems / ITEMS_PER_SOCIAL_PAGE) || 1;
+    if (currentSocialPage < totalPages) {
+        currentSocialPage++;
+        cargarDatosSociales();
+    }
+});
+
+// 5. Función de Dejar de Seguir
+window.dejarDeSeguir = async function (targetUsername, btnElement, evento) {
+    evento.stopPropagation(); // Para no clickear la tarjeta e ir al perfil por accidente
+
+    if (!confirm(`¿Estás seguro de que quieres dejar de seguir a ${targetUsername}?`)) return;
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
+
+        const { error } = await supabase.from('amistades')
+            .delete()
+            .eq('solicitante', miPerfil.username)
+            .eq('receptor', targetUsername);
+
+        if (error) throw error;
+
+        showToast('warning', 'Enlace cortado', `Has dejado de seguir a ${targetUsername}.`);
+
+        // Ocultar tarjeta visualmente
+        const card = btnElement.closest('.friend-user-card');
+        if (card) card.style.display = 'none';
+
+        // Actualizar contadores del perfil de fondo
+        const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
+        if (mainProfileUsername) cargarPerfilPublico(mainProfileUsername);
+
+        // Opcional: si quieres que la lista se reorganice automáticamente, descomenta la siguiente línea:
+        // cargarDatosSociales();
+
+    } catch (err) {
+        console.error(err);
+        showToast('error', 'Error', 'No se pudo procesar la desconexión.');
+    }
+};
+
+// 6. Navegar al perfil al clickear una tarjeta
+window.irAPerfilDesdeLista = function (usernameTarget) {
+    cerrarListaSocial(); // Cerramos el modal
+    cambiarVista('profile', true, usernameTarget); // Usamos tu router para ir a su perfil
+};

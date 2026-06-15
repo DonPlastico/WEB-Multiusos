@@ -920,12 +920,12 @@
 
                     <!-- estadisticas sociales -->
                     <div class="profile-stats">
-                        <div class="stat-box">
+                        <div class="stat-box" id="btn-ver-siguiendo">
                             <span class="stat-num">0</span>
                             <span class="stat-label">Siguiendo</span>
                         </div>
                         <div class="stat-divider"></div>
-                        <div class="stat-box">
+                        <div class="stat-box" id="btn-ver-seguidores">
                             <span class="stat-num">0</span>
                             <span class="stat-label">Seguidores</span>
                         </div>
@@ -1096,6 +1096,48 @@
 
                     <div id="friend-results-grid" class="friend-results-grid" style="display: none;">
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- modal para seguidores y siguiendo -->
+        <div id="social-list-modal" class="cyber-modal">
+            <div class="modal-content glass-panel add-friend-panel" style="display: flex; flex-direction: column;">
+                <button id="close-social-list-modal" class="icon-btn close-floating-btn" title="Cerrar lista">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="announce-header announce-friend-header" style="padding-bottom: 20px;">
+                    <div class="announce-icon-wrap friend-icon-wrap" id="social-list-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h2 class="announce-title glitch-text" id="social-list-title" style="font-size: 1.8rem;">
+                            CONTACTOS</h2>
+                        <p class="announce-subtitle" id="social-list-subtitle">Red de usuarios</p>
+                    </div>
+                </div>
+
+                <div id="social-list-area" class="friend-results-scroll-area"
+                    style="min-height: 350px; max-height: 50vh; padding-bottom: 10px;">
+                    <div id="social-list-empty" class="empty-state-centered" style="display: none;">
+                        <i class="fas fa-user-astronaut fa-fade empty-icon"></i>
+                        <p id="social-empty-text">No hay usuarios para mostrar.</p>
+                    </div>
+
+                    <div id="social-list-grid" class="friend-results-grid">
+                    </div>
+                </div>
+
+                <div class="pagination-controls"
+                    style="display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 30px; border-top: 1px solid var(--border-color); background: var(--bg-secondary); border-radius: 0 0 12px 12px;">
+                    <button id="btn-social-prev" class="icon-btn" style="width: 38px; height: 38px;"><i
+                            class="fas fa-chevron-left"></i></button>
+                    <span id="social-page-info"
+                        style="font-family: var(--font-cyber); font-weight: 700; font-size: 1.2rem; color: var(--neon-white); letter-spacing: 2px;">1
+                        / 1</span>
+                    <button id="btn-social-next" class="icon-btn" style="width: 38px; height: 38px;"><i
+                            class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>

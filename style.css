@@ -3060,7 +3060,44 @@ span.flatpickr-weekday {
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
 
+/* ==========================================================================
+   PAGINACIÓN Y BOTONES DE LISTAS SOCIALES
+   ========================================================================== */
 
+/* Estado desactivado para los botones de pasar página */
+.pagination-controls .icon-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-muted) !important;
+    transform: none !important;
+}
+
+/* Botón rojo para "Dejar de seguir" en la lista */
+.btn-remove-friend {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid transparent;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-remove-friend:hover {
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    transform: scale(1.05);
+}
 
 
 
