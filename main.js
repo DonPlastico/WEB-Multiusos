@@ -647,7 +647,7 @@ function guardarFiltros() {
     const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
         .map(cb => cb.value);
 
-    // === NUEVO: GUARDAR MODOS DE JUEGO (JUGADORES) ===
+    // GUARDAR MODOS DE JUEGO (JUGADORES)
     const modosSeleccionados = Array.from(document.querySelectorAll('.mode-item:checked'))
         .map(cb => cb.value);
 
@@ -713,7 +713,7 @@ function restaurarFiltrosDOM() {
                 });
             }
 
-            // === NUEVO: RESTAURAR MODOS DE JUEGO ===
+            // RESTAURAR MODOS DE JUEGO
             if (state.games.modes && state.games.modes.length > 0) {
                 const modeInputs = document.querySelectorAll('.mode-item');
                 modeInputs.forEach(cb => {
@@ -1820,7 +1820,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modalAddFriend?.classList.contains('show')) closeAddFriendModal();
 });
 
-// 2. Lógica de Búsqueda en Supabase
 async function buscarAmigos() {
     const query = inputSearchFriend.value.trim();
     if (!query) return;
@@ -1833,56 +1832,56 @@ async function buscarAmigos() {
     friendEmptyText.textContent = 'Rastreando base de datos...';
 
     try {
-        // Hacemos un ilike para buscar coincidencias ignorando mayus/minus
-        const { data, error } = await supabase
+        // 1. Obtener mi sesión y nombre de usuario
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
+        const miUsername = miPerfil.username;
+
+        // 2. BUSQUEDA: Traer usuarios que coincidan y no sea yo
+        const { data: coincidencias, error } = await supabase
             .from('usuarios')
             .select('username, avatar')
             .ilike('username', `%${query}%`)
-            .limit(20); // Limitamos a 20 para no saturar la vista
+            .neq('username', miUsername)
+            .limit(20);
 
         if (error) throw error;
 
-        // Conseguir mi propio usuario para no mostrarme a mi mismo en la búsqueda
-        const { data: { session } } = await supabase.auth.getSession();
-        let miEmail = session?.user?.email;
-        let miUsername = null;
+        // 3. Traer a todos los que YA SIGO
+        const { data: seguidos } = await supabase
+            .from('amistades')
+            .select('receptor')
+            .eq('solicitante', miUsername);
 
-        if (miEmail) {
-            const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', miEmail).single();
-            if (miPerfil) miUsername = miPerfil.username;
-        }
+        const listaSeguidos = seguidos.map(s => s.receptor);
 
-        // Filtrar para no salir yo mismo
-        const resultadosValidos = data.filter(u => u.username !== miUsername);
+        // 4. FILTRAR: Quitamos de la lista los que ya están en listaSeguidos
+        const resultadosFinales = coincidencias.filter(u => !listaSeguidos.includes(u.username));
 
-        if (resultadosValidos.length === 0) {
+        // 5. Manejo de vacío
+        if (resultadosFinales.length === 0) {
             if (icon) icon.className = 'fas fa-user-slash empty-icon';
-            friendEmptyText.textContent = `No se encontró a nadie con "${query}" en el Nexus.`;
+            friendEmptyText.textContent = `No se encontró gente nueva con "${query}".`;
             return;
         }
 
-        // Tenemos resultados, ocultamos el empty state y pintamos el grid
+        // 6. Pintar grid
         friendEmptyState.style.display = 'none';
         friendResultsGrid.style.display = 'flex';
         friendResultsGrid.innerHTML = '';
 
-        resultadosValidos.forEach(user => {
-            // Parsear avatar de la BD
+        resultadosFinales.forEach(user => {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
-            let avatarHtml = '';
-
-            if (avatarDB === 'default' || avatarDB === 'custom') {
-                avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
-            } else {
-                avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
-            }
+            let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
+                ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
             userCard.innerHTML = `
-                <div class="friend-card-avatar">
-                    ${avatarHtml}
-                </div>
+                <div class="friend-card-avatar">${avatarHtml}</div>
                 <div class="friend-card-info">
                     <h4 class="friend-card-username">${user.username}</h4>
                 </div>
@@ -1896,7 +1895,7 @@ async function buscarAmigos() {
     } catch (error) {
         console.error("Error buscando usuarios:", error);
         if (icon) icon.className = 'fas fa-exclamation-triangle empty-icon';
-        friendEmptyText.textContent = 'Error de conexión al rastrear usuarios.';
+        friendEmptyText.textContent = 'Error al conectar con el Nexus.';
     }
 }
 
