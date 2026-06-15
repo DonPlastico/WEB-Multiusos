@@ -1907,10 +1907,66 @@ inputSearchFriend?.addEventListener('keypress', (e) => {
 });
 
 // 4. Acción de enviar solicitud (Se ejecuta al darle al botón + de la tarjeta)
-window.enviarSolicitudAmistad = function (targetUsername) {
-    // Por ahora solo lanzamos el Toast como pediste.
-    // A futuro aquí harás el INSERT en una tabla 'amistades' o 'notificaciones'
-    showToast('success', 'Solicitud Enviada', `Has enviado una petición de acceso a ${targetUsername}.`);
+window.enviarSolicitudAmistad = async function (targetUsername) {
+    try {
+        // 1. Sacamos tu sesión actual
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            showToast('error', 'Error de conexión', 'Debes estar identificado en el Nexus.');
+            return;
+        }
+
+        const miEmail = session.user.email;
+
+        // 2. Buscamos tu nombre de usuario (tú eres el 'solicitante')
+        const { data: miPerfil } = await supabase
+            .from('usuarios')
+            .select('username')
+            .eq('email', miEmail)
+            .single();
+
+        if (!miPerfil) throw new Error("No se encontró tu perfil");
+        const miUsername = miPerfil.username;
+
+        // 3. Sistema Anti-Spam: Comprobar si ya existe relación entre ambos
+        // Verifica ambas direcciones (A pide a B, o B pidió a A)
+        const { data: peticionExistente, error: checkError } = await supabase
+            .from('amistades')
+            .select('id, estado')
+            .or(`and(solicitante.eq.${miUsername},receptor.eq.${targetUsername}),and(solicitante.eq.${targetUsername},receptor.eq.${miUsername})`)
+            .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (peticionExistente) {
+            if (peticionExistente.estado === 'pendiente') {
+                showToast('warning', 'Petición en curso', `Ya hay una solicitud de enlace pendiente con ${targetUsername}.`);
+            } else if (peticionExistente.estado === 'aceptada') {
+                showToast('warning', 'Enlace establecido', `La identidad ${targetUsername} ya forma parte de tus contactos.`);
+            }
+            return;
+        }
+
+        // 4. Si todo está limpio, inyectamos la solicitud en BBDD
+        const { error: insertError } = await supabase
+            .from('amistades')
+            .insert([
+                {
+                    solicitante: miUsername,
+                    receptor: targetUsername,
+                    estado: 'pendiente'
+                }
+            ]);
+
+        if (insertError) throw insertError;
+
+        // 5. Feedback de éxito al usuario
+        showToast('success', 'Solicitud Enviada', `Petición de conexión enviada con éxito a ${targetUsername}.`);
+
+    } catch (error) {
+        console.error("❌ Error en la matriz de amistades:", error);
+        showToast('error', 'Fallo de Red', 'El servidor no pudo procesar tu solicitud.');
+    }
 };
 
 // ============================================
