@@ -2762,28 +2762,25 @@ span.flatpickr-weekday {
 .chatbox-container {
     position: fixed;
     bottom: 0;
-    /* Anclado al fondo exacto */
     right: 30px;
     width: 340px;
     height: 450px;
-    /* Altura extendida */
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-bottom: none;
-    /* Quitamos borde de abajo para que fusione con la pantalla */
+    /* Mantenemos borde completo para que se vea delimitado al subir */
     border-radius: 12px 12px 0 0;
-    /* Redondeado solo arriba */
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-lg);
     z-index: 9999;
+    padding: 0;
     overflow: hidden;
-    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Estado Colapsado (Solo se ve la cabecera) */
+/* Estado Colapsado */
 .chatbox-container.collapsed {
-    height: 50px;
+    height: 31.5px;
     cursor: pointer;
 }
 
@@ -2792,70 +2789,48 @@ span.flatpickr-weekday {
     background-color: var(--bg-hover);
 }
 
-/* Ocultamos la X cuando está colapsado */
-.chatbox-container.collapsed .chatbox-close {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.5);
-}
-
 .chatbox-nav-bar {
     width: 100%;
     height: 50px;
     background-color: var(--bg-secondary);
     display: flex;
     align-items: center;
-    justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
-    padding: 0 10px;
-    transition: background-color 0.2s;
+    padding: 0;
+    /* Padding a 0 porque las pestañas tienen su propio padding */
 }
 
 .chatbox-tabs {
     display: flex;
+    width: 100%;
     height: 100%;
 }
 
 .chatbox-tab {
+    flex: 1;
     color: var(--text-muted);
     font-family: var(--font-cyber);
     font-weight: 700;
     font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 0 15px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    /* Centrado perfecto */
     cursor: pointer;
-    transition: color 0.3s, border-bottom 0.3s;
+    transition: all 0.3s ease;
     border-bottom: 2px solid transparent;
-    user-select: none;
 }
 
 .chatbox-tab:hover {
     color: var(--neon-white);
+    background: var(--bg-hover);
 }
 
 .chatbox-tab.active {
     color: var(--primary);
     border-bottom-color: var(--primary);
-}
-
-.chatbox-close {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: background 0.2s;
-}
-
-.chatbox-close:hover {
-    background: rgba(239, 68, 68, 0.15);
-    /* Tu color de error suave */
 }
 
 .chatbox-line {
@@ -2865,10 +2840,6 @@ span.flatpickr-weekday {
     background-color: var(--text-muted);
     border-radius: 30px;
     transition: background-color 0.2s;
-}
-
-.chatbox-close:hover .chatbox-line {
-    background-color: var(--error);
 }
 
 .chatbox-line.one {

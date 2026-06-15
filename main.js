@@ -2751,21 +2751,17 @@ window.showToast = async function (tipo, titulo, descripcion) {
 //   CHATBOX Y NOTIFICACIONES FLOTANTE
 // ==========================================================================
 const nexusChatbox = document.getElementById('nexus-chatbox');
-const btnCloseChatbox = document.getElementById('close-nexus-chatbox');
 const chatboxNavBar = document.querySelector('.chatbox-nav-bar');
 const tabChat = document.getElementById('tab-btn-chat');
 const tabNotifs = document.getElementById('tab-btn-notifs');
 const viewChat = document.getElementById('chat-view-messages');
 const viewNotifs = document.getElementById('chat-view-notifs');
 
-// 1. Abrir el panel (Expandir hacia arriba)
+// 1. Abrir/Expandir el panel
 window.abrirChatbox = function (pestaña = 'chat') {
     if (!nexusChatbox) return;
-
-    // Si estaba colapsado, lo expandimos
     nexusChatbox.classList.remove('collapsed');
 
-    // Cambiamos a la pestaña indicada
     if (pestaña === 'notifs') {
         tabNotifs.click();
     } else {
@@ -2773,25 +2769,24 @@ window.abrirChatbox = function (pestaña = 'chat') {
     }
 };
 
-// Evento unificado para todo el header (Navbar)
-chatboxNavBar?.addEventListener('click', (e) => {
-    // Si ya está expandido, no hacemos nada (o podríamos hacer que colapse, pero mejor dejarlo abierto)
+// Clic en el header: Expande si está colapsado y mantiene la pestaña activa
+chatboxNavBar?.addEventListener('click', () => {
     if (nexusChatbox.classList.contains('collapsed')) {
-        // Al clicar en el header general, abrimos por defecto en 'chat'
         abrirChatbox('chat');
     }
 });
 
-// Cerrar (Colapsar hacia abajo) con la X
-btnCloseChatbox?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita que se dispare el evento de abrir de la navbar
-    nexusChatbox.classList.add('collapsed');
+// CLIC FUERA: Colapsar si clicas fuera del chatbox
+document.addEventListener('click', (e) => {
+    if (!nexusChatbox.contains(e.target) && !nexusChatbox.classList.contains('collapsed')) {
+        nexusChatbox.classList.add('collapsed');
+    }
 });
 
-// 2. Cambio de Pestañas (con carga dinámica para Alertas)
+// 2. Cambio de Pestañas
 tabChat?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita que se propague al chatboxNavBar y lo reinicie
-    nexusChatbox.classList.remove('collapsed'); // Asegura que esté abierto
+    e.stopPropagation(); // Evita que se dispare el evento del header
+    nexusChatbox.classList.remove('collapsed'); // Asegura expansión
     tabChat.classList.add('active');
     tabNotifs.classList.remove('active');
     viewChat.style.display = 'flex';
@@ -2799,14 +2794,13 @@ tabChat?.addEventListener('click', (e) => {
 });
 
 tabNotifs?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evita que se propague al chatboxNavBar
-    nexusChatbox.classList.remove('collapsed'); // Asegura que esté abierto
+    e.stopPropagation(); // Evita que se dispare el evento del header
+    nexusChatbox.classList.remove('collapsed'); // Asegura expansión
     tabNotifs.classList.add('active');
     tabChat.classList.remove('active');
     viewNotifs.style.display = 'flex';
     viewChat.style.display = 'none';
 
-    // Si estamos abriendo o ya está abierto, cargamos las notificaciones
     cargarAlertas();
 });
 
