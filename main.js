@@ -1854,7 +1854,7 @@ async function buscarAmigos() {
 
         // 2. BUSQUEDA: Traer usuarios que coincidan y no sea yo
         const { data: coincidencias, error } = await supabase
-            .from('usuarios')
+            .from('perfiles_publicos')
             .select('username, avatar')
             .ilike('username', `%${query}%`)
             .neq('username', miUsername)
@@ -2248,7 +2248,7 @@ async function cargarPerfilPublico(usernameTarget) {
 
         // Buscamos en Supabase
         const { data: perfilTarget, error } = await supabase
-            .from('usuarios')
+            .from('perfiles_publicos')
             .select('*')
             .eq('username', usuarioABuscar)
             .single();
@@ -2836,11 +2836,7 @@ window.cargarAlertas = async function () {
         const miUsername = miPerfil.username;
 
         // Buscamos quién nos sigue (simplemente, quien tiene una fila en amistades apuntando a nosotros)
-        const { data: seguidores, error } = await supabase
-            .from('amistades')
-            .select('solicitante, created_at')
-            .eq('receptor', miUsername)
-            .order('created_at', { ascending: false });
+        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', solicitantesUsernames);
 
         if (error) throw error;
 
@@ -3005,7 +3001,7 @@ async function cargarDatosSociales() {
 
         // Buscar los avatares de esos usuarios en la tabla 'usuarios'
         const usernamesBuscar = relaciones.map(r => currentSocialType === 'siguiendo' ? r.receptor : r.solicitante);
-        const { data: perfiles } = await supabase.from('usuarios').select('username, avatar').in('username', usernamesBuscar);
+        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', usernamesBuscar);
 
         // Pintar cuadrícula
         socialEmpty.style.display = 'none';
