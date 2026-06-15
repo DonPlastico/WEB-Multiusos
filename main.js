@@ -1886,7 +1886,7 @@ async function buscarAmigos() {
                 <div class="friend-card-info">
                     <h4 class="friend-card-username">${user.username}</h4>
                 </div>
-                <button class="btn-send-request" onclick="enviarSolicitudAmistad('${user.username}')" title="Enviar solicitud">
+                <button class="btn-send-request" onclick="seguirUsuario('${user.username}', this)" title="Seguir usuario">
                     <i class="fas fa-user-plus"></i>
                 </button>
             `;
@@ -1906,66 +1906,47 @@ inputSearchFriend?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') buscarAmigos();
 });
 
-// 4. Acción de enviar solicitud (Se ejecuta al darle al botón + de la tarjeta)
-window.enviarSolicitudAmistad = async function (targetUsername) {
+// 4. Acción de seguir (Se ejecuta al darle al botón + de la tarjeta)
+window.seguirUsuario = async function (targetUsername, btnElement) {
     try {
-        // 1. Sacamos tu sesión actual
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-            showToast('error', 'Error de conexión', 'Debes estar identificado en el Nexus.');
+            showToast('error', 'Error de conexión', 'Debes estar identificado.');
             return;
         }
 
         const miEmail = session.user.email;
-
-        // 2. Buscamos tu nombre de usuario (tú eres el 'solicitante')
-        const { data: miPerfil } = await supabase
-            .from('usuarios')
-            .select('username')
-            .eq('email', miEmail)
-            .single();
-
-        if (!miPerfil) throw new Error("No se encontró tu perfil");
+        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', miEmail).single();
         const miUsername = miPerfil.username;
 
-        // 3. Sistema Anti-Spam: Comprobar si ya existe relación entre ambos
-        // Verifica ambas direcciones (A pide a B, o B pidió a A)
-        const { data: peticionExistente, error: checkError } = await supabase
+        // Comprobamos si ya lo seguimos
+        const { data: yaSigue } = await supabase
             .from('amistades')
-            .select('id, estado')
-            .or(`and(solicitante.eq.${miUsername},receptor.eq.${targetUsername}),and(solicitante.eq.${targetUsername},receptor.eq.${miUsername})`)
+            .select('id')
+            .eq('solicitante', miUsername)
+            .eq('receptor', targetUsername)
             .maybeSingle();
 
-        if (checkError) throw checkError;
-
-        if (peticionExistente) {
-            if (peticionExistente.estado === 'pendiente') {
-                showToast('warning', 'Petición en curso', `Ya hay una solicitud de enlace pendiente con ${targetUsername}.`);
-            } else if (peticionExistente.estado === 'aceptada') {
-                showToast('warning', 'Enlace establecido', `La identidad ${targetUsername} ya forma parte de tus contactos.`);
-            }
+        if (yaSigue) {
+            showToast('warning', 'Ya le sigues', `Ya eres seguidor de ${targetUsername}.`);
             return;
         }
 
-        // 4. Si todo está limpio, inyectamos la solicitud en BBDD
+        // INSERT DIRECTO como estado 'aceptada' para que sume al contador
         const { error: insertError } = await supabase
             .from('amistades')
-            .insert([
-                {
-                    solicitante: miUsername,
-                    receptor: targetUsername,
-                    estado: 'pendiente'
-                }
-            ]);
+            .insert([{ solicitante: miUsername, receptor: targetUsername, estado: 'aceptada' }]);
 
         if (insertError) throw insertError;
 
-        // 5. Feedback de éxito al usuario
-        showToast('success', 'Solicitud Enviada', `Petición de conexión enviada con éxito a ${targetUsername}.`);
+        showToast('success', 'Nueva Conexión', `Ahora sigues a ${targetUsername}.`);
+
+        // Ocultar el botón automáticamente
+        if (btnElement) btnElement.style.display = 'none';
 
     } catch (error) {
-        console.error("❌ Error en la matriz de amistades:", error);
-        showToast('error', 'Fallo de Red', 'El servidor no pudo procesar tu solicitud.');
+        console.error("❌ Error al seguir:", error);
+        showToast('error', 'Fallo de Red', 'No se pudo procesar el seguimiento.');
     }
 };
 
@@ -2824,7 +2805,7 @@ tabNotifs?.addEventListener('click', (e) => {
 });
 
 // ==========================================================================
-//   LOGICA DE ALERTAS / NOTIFICACIONES
+//   LOGICA DE ALERTAS / NOTIFICACIONES (Simplificado a Seguidores)
 // ==========================================================================
 
 window.cargarAlertas = async function () {
@@ -2834,43 +2815,39 @@ window.cargarAlertas = async function () {
     const areaNotifs = document.getElementById('chatbox-notifs-scroll');
     if (!areaNotifs) return;
 
-    // Ponemos loader de carga
     areaNotifs.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">Sincronizando red...</p></div>';
 
     try {
-        // Sacamos nuestro username actual
         const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
         if (!miPerfil) throw new Error("Perfil no encontrado");
         const miUsername = miPerfil.username;
 
-        // Buscamos quién nos ha enviado peticiones (somos el 'receptor' y estado 'pendiente')
-        const { data: peticiones, error } = await supabase
+        // Buscamos quién nos sigue (somos el 'receptor' y estado 'aceptada')
+        const { data: seguidores, error } = await supabase
             .from('amistades')
-            .select('id, solicitante, created_at')
+            .select('solicitante, created_at')
             .eq('receptor', miUsername)
-            .eq('estado', 'pendiente')
+            .eq('estado', 'aceptada')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        // Si no hay nada, mostramos el mensaje vacío
-        if (!peticiones || peticiones.length === 0) {
+        if (!seguidores || seguidores.length === 0) {
             areaNotifs.innerHTML = `
                 <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
-                    <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Sin alertas pendientes
+                    <i class="fas fa-users-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                    Sin nuevos seguidores
                 </div>`;
             return;
         }
 
-        // Si hay peticiones, buscamos los avatares de esa gente
-        const solicitantesUsernames = peticiones.map(p => p.solicitante);
-        const { data: perfilesSolicitantes } = await supabase.from('usuarios').select('username, avatar').in('username', solicitantesUsernames);
+        const solicitantesUsernames = seguidores.map(s => s.solicitante);
+        const { data: perfiles } = await supabase.from('usuarios').select('username, avatar').in('username', solicitantesUsernames);
 
-        areaNotifs.innerHTML = ''; // Limpiamos para inyectar
+        areaNotifs.innerHTML = '';
 
-        peticiones.forEach(peticion => {
-            const perfil = perfilesSolicitantes?.find(u => u.username === peticion.solicitante);
+        seguidores.forEach(seg => {
+            const perfil = perfiles?.find(u => u.username === seg.solicitante);
             const avatarDB = perfil?.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
@@ -2878,85 +2855,27 @@ window.cargarAlertas = async function () {
                 : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png">`;
 
             areaNotifs.innerHTML += `
-                <div class="notif-card" id="notif-req-${peticion.id}">
+                <div class="notif-card">
                     <div class="notif-card-avatar">${avatarHtml}</div>
                     <div class="notif-card-info">
-                        <span class="notif-subtitle">Petición de acceso</span>
-                        <span class="notif-title">${peticion.solicitante}</span>
-                    </div>
-                    <div class="notif-card-actions">
-                        <button class="btn-notif btn-notif-accept" onclick="responderSolicitud(${peticion.id}, 'aceptar', '${peticion.solicitante}')" title="Aceptar conexión"><i class="fas fa-check"></i></button>
-                        <button class="btn-notif btn-notif-reject" onclick="responderSolicitud(${peticion.id}, 'rechazar', '${peticion.solicitante}')" title="Rechazar"><i class="fas fa-times"></i></button>
+                        <span class="notif-subtitle">Nuevo seguidor</span>
+                        <span class="notif-title">${seg.solicitante}</span>
                     </div>
                 </div>
             `;
         });
 
     } catch (err) {
-        console.error("Error cargando alertas:", err);
-        areaNotifs.innerHTML = '<div style="text-align:center; color: var(--error); padding:20px;">Fallo de conexión en las alertas</div>';
+        console.error("Error cargando seguidores:", err);
+        areaNotifs.innerHTML = '<div style="text-align:center; color: var(--error); padding:20px;">Fallo de conexión.</div>';
     }
 };
 
-window.responderSolicitud = async function (idAmistad, accion, usernameSolicitante) {
-    // Para que no le den dos veces rápido, ocultamos la tarjeta temporalmente
-    const tarjeta = document.getElementById(`notif-req-${idAmistad}`);
-    if (tarjeta) tarjeta.style.opacity = '0.5';
-
-    try {
-        if (accion === 'aceptar') {
-            const { error } = await supabase.from('amistades').update({ estado: 'aceptada' }).eq('id', idAmistad);
-            if (error) throw error;
-            showToast('success', 'Conexión Establecida', `Has aceptado a ${usernameSolicitante} en tu red.`);
-        } else {
-            // Si rechaza, borramos el registro directamente
-            const { error } = await supabase.from('amistades').delete().eq('id', idAmistad);
-            if (error) throw error;
-            showToast('warning', 'Petición Denegada', `Acceso denegado a ${usernameSolicitante}.`);
-        }
-
-        // Recargamos la lista visual de alertas
-        cargarAlertas();
-
-        // Actualizamos los contadores del perfil en vivo (Si estamos en la pestaña perfil)
-        const currentVista = document.querySelector('.view.active')?.id;
-        const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
-        if (currentVista === 'profile' && mainProfileUsername) {
-            cargarPerfilPublico(mainProfileUsername);
-        }
-
-    } catch (err) {
-        console.error("Fallo al responder:", err);
-        showToast('error', 'Error del Sistema', 'No se pudo procesar la respuesta.');
-        if (tarjeta) tarjeta.style.opacity = '1';
-    }
-};
-
-// 2. Cambio de Pestañas (Modificado para cargar Alertas)
-tabChat?.addEventListener('click', () => {
-    tabChat.classList.add('active');
-    tabNotifs.classList.remove('active');
-    viewChat.style.display = 'flex';
-    viewNotifs.style.display = 'none';
-});
-
-tabNotifs?.addEventListener('click', () => {
-    tabNotifs.classList.add('active');
-    tabChat.classList.remove('active');
-    viewNotifs.style.display = 'flex';
-    viewChat.style.display = 'none';
-
-    // Cada vez que haces clic en "Alertas", consulta a Supabase
-    cargarAlertas();
-});
-
-// 3. Escuchador inteligente para la caja de "Mensajes" del perfil
-// Usamos "delegación de eventos" por si las cajitas se recargan de forma asíncrona
+// 3. Escuchador inteligente para abrir el chat
 document.addEventListener('click', (e) => {
     const statBoxClick = e.target.closest('.stat-box');
     if (statBoxClick) {
         const label = statBoxClick.querySelector('.stat-label');
-        // Si la cajita que hemos clicado es la de "Mensajes"
         if (label && label.textContent.trim().toLowerCase() === 'mensajes') {
             abrirChatbox('chat');
         }
