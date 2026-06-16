@@ -1,5 +1,5 @@
-// Importamos Supabase directamente desde un CDN web (así el navegador lo entiende sin necesidad de Vite)
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// supabase.js
+import { createClient } from '@supabase/supabase-js';
 
 // Ponemos la URL y la clave ANON directamente aquí (¡Es 100% seguro y es como se hace en frontend!)
 const supabaseUrl = 'https://faxdteqakxgakiwfaokm.supabase.co';
