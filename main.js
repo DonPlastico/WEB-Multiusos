@@ -2161,7 +2161,7 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const idJuego = card.getAttribute('data-game-id');
     const titulo = card.getAttribute('data-game-title');
     const storesRaw = card.getAttribute('data-stores');
-    const storeUrlRaw = card.getAttribute('data-store-url'); // <--- NUEVO: Leemos la URL oculta
+    const storeUrlRaw = card.getAttribute('data-store-url'); // Leemos la URL oculta
 
     // 2. Actualizamos URL (ej: /juegos/007_First_Light)
     const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
@@ -2368,32 +2368,121 @@ async function abrirModalMedia(id, tipo) {
     // 1. Resetear y preparar UI
     document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
     document.getElementById('media-detail-description').textContent = "Descargando datos...";
-    document.getElementById('media-detail-advanced').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    document.getElementById('media-detail-duration').textContent = "--";
+    document.getElementById('media-detail-genres').textContent = "--";
+    document.getElementById('media-detail-watch-date').textContent = "--";
+    document.getElementById('media-detail-watch-status').textContent = "No vista";
+    document.getElementById('media-detail-platforms').innerHTML = '';
+    document.getElementById('media-detail-trailer-img').src = '';
+    document.getElementById('media-detail-rating-value').textContent = "0.0";
+    document.getElementById('media-detail-rating-stars').innerHTML = '';
+    document.getElementById('media-detail-rating-count').textContent = "-- valoraciones";
 
     // 2. Abrir Modal
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // 3. Llamada al servidor (el tmdb.js que ya configuramos)
+    // 3. Llamada al servidor (el tmdb.js que actualizaremos luego)
     try {
         const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
         const data = await respuesta.json();
 
-        // 4. Inyectar datos reales
+        // 4. Inyectar datos principales
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-description').textContent = data.sinopsis;
         document.getElementById('media-detail-cover-img').src = data.poster;
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
 
-        document.getElementById('media-detail-advanced').innerHTML = `
-            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-calendar"></i></span><span class="adv-label">Estreno:</span><span class="adv-value">${data.fecha}</span></div>
-            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-star"></i></span><span class="adv-label">Nota:</span><span class="adv-value">${data.nota}</span></div>
-        `;
+        // 5. Formatear Duración (121 -> 2 h 1 min)
+        let textoDuracion = '--';
+        if (data.duracion) {
+            const horas = Math.floor(data.duracion / 60);
+            const mins = data.duracion % 60;
+            textoDuracion = horas > 0 ? `${horas} h ${mins} min` : `${mins} min`;
+        } else if (tipo === 'tv' && data.temporadas) {
+            textoDuracion = `${data.temporadas} Temporada(s)`;
+        }
+        document.getElementById('media-detail-duration').textContent = textoDuracion;
+
+        // 6. Géneros (Los prepararemos en el paso de tmdb.js)
+        document.getElementById('media-detail-genres').textContent = data.generos || 'N/A';
+
+        // 7. Plataformas de Streaming Dinámicas
+        const platformsContainer = document.getElementById('media-detail-platforms');
+        platformsContainer.innerHTML = '';
+
+        // Usaremos data.plataformasArray que crearemos en tmdb.js
+        const listaPlats = data.plataformasArray || [];
+
+        if (listaPlats.length > 0) {
+            listaPlats.forEach(plat => {
+                const infoPlat = obtenerEstiloPlataforma(plat);
+                // Si la plataforma requiere color de texto negro (ej: Rakuten amarillo)
+                const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
+
+                platformsContainer.innerHTML += `
+                    <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
+                        <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
+                    </a>
+                `;
+            });
+        } else {
+            platformsContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">No disponible en streaming actualmente.</span>';
+        }
+
+        // 8. Lógica del Tráiler de YouTube
+        const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
+        const urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
+
+        document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
+        document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster; // Usamos el backdrop de miniatura
+
+        // 9. Lógica de Valoración (Nota + Estrellas Dinámicas)
+        const notaNum = parseFloat(data.nota || 0);
+        document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
+
+        // Votos (Lo añadiremos en tmdb.js)
+        const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
+        document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} valoraciones`;
+
+        // Sistema de 5 estrellas basado en la nota sobre 10
+        const notaSobre5 = notaNum / 2;
+        let estrellasHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (notaSobre5 >= i) {
+                estrellasHtml += '<i class="fas fa-star"></i>'; // Llena
+            } else if (notaSobre5 >= i - 0.5) {
+                estrellasHtml += '<i class="fas fa-star-half-alt"></i>'; // Mitad
+            } else {
+                estrellasHtml += '<i class="far fa-star"></i>'; // Vacía
+            }
+        }
+        document.getElementById('media-detail-rating-stars').innerHTML = estrellasHtml;
+
     } catch (err) {
+        console.error(err);
         document.getElementById('media-detail-title').textContent = "Error de conexión";
-        document.getElementById('media-detail-description').textContent = "No se pudieron obtener los detalles.";
+        document.getElementById('media-detail-description').textContent = "No se pudieron obtener los detalles completos.";
     }
+}
+
+// Helper para asignar los colores corporativos de cada plataforma
+function obtenerEstiloPlataforma(nombre) {
+    const n = nombre.toLowerCase();
+    if (n.includes('netflix')) return { color: '#E50914' };
+    if (n.includes('amazon') || n.includes('prime')) return { color: '#00A8E1' };
+    if (n.includes('disney')) return { color: '#113CCF' };
+    if (n.includes('hbo') || n.includes('max')) return { color: '#5822B4' };
+    if (n.includes('apple')) return { color: '#000000' };
+    if (n.includes('youtube')) return { color: '#FF0000' };
+    if (n.includes('rakuten')) return { color: '#FFE300', textoOscuro: true };
+    if (n.includes('orange')) return { color: '#FF7900' };
+    if (n.includes('movistar')) return { color: '#019DF4' };
+    if (n.includes('filmin')) return { color: '#00D573' };
+    if (n.includes('crunchyroll')) return { color: '#F47521' };
+    if (n.includes('atres')) return { color: '#E51C24' };
+    return { color: 'var(--primary)' }; // Por defecto usa tu morado/azul del Nexus
 }
 
 // Cierre del modal

@@ -14,13 +14,18 @@ export default async function handler(req, res) {
     };
 
     try {
-        // DETALLES DE UN SOLO ITEM 
+        // =========================================================
+        // DETALLES DE UN SOLO ITEM
+        // =========================================================
         if (id) {
             const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&append_to_response=watch/providers`, { headers });
             const data = await resDetalle.json();
 
             const providersES = data['watch/providers']?.results?.ES;
-            const plataformas = providersES?.flatrate ? providersES.flatrate.map(p => p.provider_name).join(', ') : 'No disponible en streaming';
+
+            // Extraemos las plataformas como Array para poder iterarlas en el frontend (colores)
+            const plataformasArray = providersES?.flatrate ? providersES.flatrate.map(p => p.provider_name) : [];
+            const plataformas = plataformasArray.length > 0 ? plataformasArray.join(', ') : 'No disponible en streaming';
 
             return res.status(200).json({
                 id: data.id,
@@ -31,13 +36,18 @@ export default async function handler(req, res) {
                 backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
                 fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
                 nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
+                votos: data.vote_count || 0, // Número de valoraciones totales
+                generos: data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A', // Extraemos los géneros 
                 plataformas: plataformas,
+                plataformasArray: plataformasArray, // Array para los botones de colores en main.js
                 temporadas: data.number_of_seasons,
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
             });
         }
 
-        // LISTADOS
+        // =========================================================
+        // LISTADOS (Para las tarjetas iniciales y búsquedas)
+        // =========================================================
         const urlLista = busqueda
             ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`
             : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
@@ -49,7 +59,8 @@ export default async function handler(req, res) {
 
         const promesasDetalles = listData.results.map(async (item) => {
             try {
-                const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers&language=es-ES`, { headers });
+                // Añadimos content_ratings para las series y release_dates para las pelis
+                const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
                 return await detailRes.json();
             } catch (e) { return null; }
         });
@@ -63,12 +74,15 @@ export default async function handler(req, res) {
                 providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
             }
 
-            // OBTENER CERTIFICACIÓN POR EDAD
-            const releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
-                data.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || '';
-
-            // En el objeto final:
-            certification: releaseDates
+            // OBTENER CERTIFICACIÓN POR EDAD (Arreglado el error de sintaxis y soporte para series)
+            let releaseDates = '';
+            if (tipo === 'movie') {
+                releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
+                    data.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || '';
+            } else {
+                releaseDates = data.content_ratings?.results?.find(r => r.iso_3166_1 === 'ES')?.rating ||
+                    data.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating || '';
+            }
 
             return {
                 id: data.id,

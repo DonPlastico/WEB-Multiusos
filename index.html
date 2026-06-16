@@ -1083,10 +1083,11 @@
                 </div>
 
                 <div class="game-detail-body">
-                    <div class="game-detail-grid">
+                    <div class="media-top-grid">
                         <div class="detail-cover-col">
                             <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
                         </div>
+
                         <div class="detail-desc-col glass-panel">
                             <h3 class="detail-section-title">Sinopsis</h3>
                             <div class="desc-scroll-area">
@@ -1094,11 +1095,56 @@
                                 </p>
                             </div>
                         </div>
+
+                        <div class="detail-tech-col glass-panel">
+                            <h3 class="detail-section-title">Detalles Técnicos</h3>
+                            <div class="tech-info-content">
+                                <div class="tech-item"><i class="fas fa-clock"></i> <span
+                                        id="media-detail-duration">--</span></div>
+                                <div class="tech-item"><i class="fas fa-tags"></i> <span
+                                        id="media-detail-genres">--</span></div>
+
+                                <div class="tech-divider"></div>
+
+                                <div class="tech-item placeholder-action"><i class="fas fa-calendar-alt"></i> <span
+                                        id="media-detail-watch-date">--</span></div>
+                                <div class="tech-item placeholder-action"><i class="fas fa-eye-slash"></i> <span
+                                        id="media-detail-watch-status">No vista</span></div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="detail-advanced-info glass-panel">
-                        <h3 class="detail-section-title">Detalles Técnicos</h3>
-                        <div class="advanced-grid" id="media-detail-advanced">
+                    <div class="media-where-to-watch glass-panel">
+                        <h3 class="detail-section-title">Dónde verlo</h3>
+                        <div id="media-detail-platforms" class="streaming-platforms-grid">
+                        </div>
+                    </div>
+
+                    <div class="media-bottom-grid">
+                        <div class="media-trailer-col glass-panel">
+                            <h3 class="detail-section-title">Tráiler</h3>
+                            <div class="trailer-content">
+                                <div class="trailer-thumbnail-container">
+                                    <img id="media-detail-trailer-img" src="" alt="Miniatura Trailer">
+                                    <span id="media-detail-trailer-duration" class="trailer-duration">--:--</span>
+                                </div>
+                                <button id="media-detail-trailer-btn" class="auth-btn primary btn-trailer">
+                                    <i class="fab fa-youtube"></i> VER TRÁILER
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="media-rating-col glass-panel">
+                            <h3 class="detail-section-title">Valoración Global</h3>
+                            <div class="rating-content">
+                                <div class="rating-score">
+                                    <span id="media-detail-rating-value" class="score-big">0.0</span><span
+                                        class="score-max">/10</span>
+                                </div>
+                                <div class="rating-stars" id="media-detail-rating-stars">
+                                </div>
+                                <div id="media-detail-rating-count" class="rating-count">-- valoraciones</div>
+                            </div>
                         </div>
                     </div>
                 </div>

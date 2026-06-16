@@ -3186,6 +3186,227 @@ span.flatpickr-weekday {
     /* ¡El tag rojo brilla para alertar! */
 }
 
+/* ==========================================================================
+   ESTRUCTURA DEL MODAL (CINE/SERIES TIPO TV TIME)
+   ========================================================================== */
+
+/* --- TOP GRID: Portada, Sinopsis, Detalles --- */
+.media-top-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr 280px;
+    /* 3 Columnas */
+    gap: 15px;
+    margin-top: 10px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Columna de Detalles Técnicos */
+.detail-tech-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.tech-info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-right: 10px;
+}
+
+.tech-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.tech-item i {
+    color: var(--primary);
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.tech-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 4px 0;
+}
+
+.placeholder-action {
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.placeholder-action:hover {
+    color: var(--primary);
+}
+
+/* --- DÓNDE VERLO (Fila central) --- */
+.media-where-to-watch {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.streaming-platforms-grid {
+    display: grid;
+    /* La magia: Si hay pocos ocupan todo, si hay muchos se adaptan (max 5 por fila aprox) */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.platform-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    white-space: nowrap;
+}
+
+.platform-btn:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* --- TRÁILER Y VALORACIÓN (Grid Inferior 2 Columnas) --- */
+.media-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Sección Tráiler */
+.media-trailer-col,
+.media-rating-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.trailer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100%;
+}
+
+.trailer-thumbnail-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    /* Proporción oficial de YouTube */
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.trailer-thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.trailer-thumbnail-container:hover img {
+    opacity: 1;
+}
+
+.trailer-duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.btn-trailer {
+    padding: 12px !important;
+    background: #FF0000 !important;
+    /* Rojo YouTube */
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3) !important;
+    margin-top: auto;
+}
+
+.btn-trailer:hover {
+    background: #ff3333 !important;
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5) !important;
+}
+
+/* Sección Valoración */
+.rating-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    gap: 10px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    padding: 20px;
+}
+
+.rating-score {
+    display: flex;
+    align-items: baseline;
+}
+
+.score-big {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--neon-white);
+    line-height: 1;
+}
+
+.score-max {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-left: 5px;
+    font-weight: 700;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 5px;
+    font-size: 1.8rem;
+    color: gold;
+    /* Color estrella clásico */
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.rating-count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
 
 
 
@@ -3629,6 +3850,14 @@ span.flatpickr-weekday {
 
     .metric-value {
         font-size: 2.5rem !important;
+    }
+
+    .media-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .media-bottom-grid {
+        grid-template-columns: 1fr;
     }
 }
 
