@@ -3892,7 +3892,12 @@ span.flatpickr-weekday {
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
 @media (max-width: 768px) {
     .cyber-container {
+        padding-top: 85px !important;
         padding: 20px;
+    }
+
+    .games-content {
+        padding-top: 10px !important;
     }
 
     .hero-section {
