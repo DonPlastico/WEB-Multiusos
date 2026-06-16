@@ -1026,6 +1026,13 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
 
         datos.forEach(item => {
+            // Escudo anti-adulto en frontend
+            const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
+            const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
+
+            // Si el item es adulto y el filtro está apagado, nos saltamos esta tarjeta
+            if (item.adult && !isAdultFilterActive) return;
+
             grid.innerHTML += crearTarjetaTMDB(item, tipo);
         });
 
