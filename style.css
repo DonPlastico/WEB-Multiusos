@@ -3163,7 +3163,28 @@ span.flatpickr-weekday {
     margin-top: 15px;
 }
 
+/* ==========================================================================
+   TAGS DINÁMICOS DE CONTENIDO (+18)
+   ========================================================================== */
 
+.nsfw-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    /* A la derecha, opuesto a la nota */
+    background: var(--error);
+    color: white;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 800;
+    z-index: 3;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    animation: pulse-border 2s infinite;
+    /* ¡El tag rojo brilla para alertar! */
+}
 
 
 

@@ -24,6 +24,7 @@ export default async function handler(req, res) {
 
             return res.status(200).json({
                 id: data.id,
+                adult: data.adult,
                 titulo: tipo === 'movie' ? data.title : data.name,
                 sinopsis: data.overview || 'Sin descripción disponible.',
                 poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
@@ -64,6 +65,7 @@ export default async function handler(req, res) {
 
             return {
                 id: data.id,
+                adult: data.adult,
                 titulo: tipo === 'movie' ? data.title : data.name,
                 poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
                 fecha: tipo === 'movie' ? data.release_date : data.first_air_date,

@@ -926,7 +926,10 @@ let cargandoTMDB = false;
 
 function crearTarjetaTMDB(media, tipo) {
     const isMovie = tipo === 'movie';
-    const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA'; // solo el año
+    const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
+
+    // 1. Lógica del tag NSFW (Solo si es adulto)
+    const nsfwTag = media.adult ? '<span class="nsfw-tag">+18</span>' : '';
 
     // info extra segun si es peli o serie
     let extraInfo = '';
@@ -944,6 +947,7 @@ function crearTarjetaTMDB(media, tipo) {
         <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
                 <div class="top-platform-tag"><i class="fas fa-star" style="color:gold;"></i> ${media.nota}</div>
+                ${nsfwTag} 
                 <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
             </div>
             <div class="game-info">
@@ -2318,7 +2322,7 @@ async function abrirModalMedia(id, tipo) {
     document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
     document.getElementById('media-detail-description').textContent = "Descargando datos...";
     document.getElementById('media-detail-advanced').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
+
     // 2. Abrir Modal
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
@@ -2334,7 +2338,7 @@ async function abrirModalMedia(id, tipo) {
         document.getElementById('media-detail-description').textContent = data.sinopsis;
         document.getElementById('media-detail-cover-img').src = data.poster;
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
-        
+
         document.getElementById('media-detail-advanced').innerHTML = `
             <div class="advanced-item"><span class="adv-icon"><i class="fas fa-calendar"></i></span><span class="adv-label">Estreno:</span><span class="adv-value">${data.fecha}</span></div>
             <div class="advanced-item"><span class="adv-icon"><i class="fas fa-star"></i></span><span class="adv-label">Nota:</span><span class="adv-value">${data.nota}</span></div>
