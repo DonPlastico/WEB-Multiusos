@@ -1075,6 +1075,25 @@
                     <i class="fas fa-times"></i>
                 </button>
 
+                <!-- Botón de OJO (estado de vista) - Flotante a la derecha -->
+                <button id="btn-watch-toggle" class="icon-btn close-floating-btn" style="top: 265px; z-index: 10;"
+                    title="Clic izq: Marcar vista | Clic der: Opciones">
+                    <i id="icon-watch-status" class="fas fa-eye-slash"></i>
+                </button>
+
+                <!-- Menú contextual para el ojo (flotante) -->
+                <div id="watch-context-menu" class="theme-menu user-menu-panel"
+                    style="display: none; position: absolute; top: 310px; right: 20px; min-width: 180px; z-index: 100;">
+                    <button class="theme-option" id="btn-context-rewatch">
+                        <i class="fas fa-redo"></i><span>Vista de nuevo</span>
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="theme-option" id="btn-context-unwatch">
+                        <i class="fas fa-eye-slash" style="color: var(--error);"></i>
+                        <span style="color: var(--error);">Cambiar a NO VISTA</span>
+                    </button>
+                </div>
+
                 <div class="game-hero-section" id="media-detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
@@ -1111,29 +1130,12 @@
                                 <div class="tech-item"><i class="fas fa-calendar-alt"></i> <span
                                         id="media-detail-watch-date">--</span></div>
 
-                                <!-- Botón del OJO con su menú contextual -->
-                                <div class="tech-item placeholder-action" style="position: relative;">
-
-                                    <div id="btn-toggle-watched"
-                                        style="display: flex; align-items: center; gap: 12px; width: 100%;"
-                                        title="Clic izq: Marcar vista | Clic der: Opciones">
-                                        <i id="icon-watched-status" class="fas fa-eye-slash"
-                                            style="color: var(--text-muted);"></i>
-                                        <span id="media-detail-watch-status">No vista</span>
-                                    </div>
-
-                                    <!-- Menú contextual (Clic Derecho) -->
-                                    <div id="watched-context-menu" class="theme-menu user-menu-panel"
-                                        style="top: 100%; left: 0; min-width: 180px; z-index: 100;">
-                                        <button class="theme-option" id="btn-context-rewatch">
-                                            <i class="fas fa-redo"></i><span>Vista de nuevo</span>
-                                        </button>
-                                        <div class="dropdown-divider"></div>
-                                        <button class="theme-option" id="btn-context-unwatch">
-                                            <i class="fas fa-eye-slash" style="color: var(--error);"></i>
-                                            <span style="color: var(--error);">Cambiar a NO VISTA</span>
-                                        </button>
-                                    </div>
+                                <!-- Estado de visionado (SOLO TEXTO, sin interacción) -->
+                                <div class="tech-item"
+                                    style="display: flex; align-items: center; gap: 12px; opacity: 0.7;">
+                                    <i id="icon-watch-status-text" class="fas fa-eye-slash"
+                                        style="color: var(--text-muted);"></i>
+                                    <span id="media-detail-watch-status">No vista</span>
                                 </div>
                             </div>
                         </div>
