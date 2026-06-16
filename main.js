@@ -941,7 +941,7 @@ function crearTarjetaTMDB(media, tipo) {
         : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
 
     return `
-        <div class="game-card">
+        <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
                 <div class="top-platform-tag"><i class="fas fa-star" style="color:gold;"></i> ${media.nota}</div>
                 <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
@@ -1081,6 +1081,17 @@ inputSeries.addEventListener('input', () => {
 });
 btnSeries.addEventListener('click', () => { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); });
 inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); } });
+
+document.getElementById('movies-grid')?.addEventListener('click', (e) => capturarClicMedia(e, 'movie'));
+document.getElementById('series-grid')?.addEventListener('click', (e) => capturarClicMedia(e, 'tv'));
+
+function capturarClicMedia(e, tipo) {
+    const card = e.target.closest('.game-card');
+    if (!card) return;
+
+    const id = card.getAttribute('data-id');
+    abrirModalMedia(id, tipo);
+}
 
 // ==========================================================================
 //   AUTENTICACION Y SESION
@@ -2301,29 +2312,54 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
 });
 
 async function abrirModalMedia(id, tipo) {
-    // 1. Resetear UI del modal
-    document.getElementById('media-detail-title').textContent = "Cargando...";
-    document.getElementById('media-detail-description').textContent = "Estableciendo conexión con el Nexus...";
-    document.getElementById('media-detail-advanced').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    if (!id) return;
 
+    // 1. Resetear y preparar UI
+    document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
+    document.getElementById('media-detail-description').textContent = "Descargando datos...";
+    document.getElementById('media-detail-advanced').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
     // 2. Abrir Modal
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // 3. Llamar a la API (implementaremos esto en el siguiente paso)
-    cargarDetallesTMDB(id, tipo);
+    // 3. Llamada al servidor (el tmdb.js que ya configuramos)
+    try {
+        const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
+        const data = await respuesta.json();
+
+        // 4. Inyectar datos reales
+        document.getElementById('media-detail-title').textContent = data.titulo;
+        document.getElementById('media-detail-description').textContent = data.sinopsis;
+        document.getElementById('media-detail-cover-img').src = data.poster;
+        document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
+        
+        document.getElementById('media-detail-advanced').innerHTML = `
+            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-calendar"></i></span><span class="adv-label">Estreno:</span><span class="adv-value">${data.fecha}</span></div>
+            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-star"></i></span><span class="adv-label">Nota:</span><span class="adv-value">${data.nota}</span></div>
+        `;
+    } catch (err) {
+        document.getElementById('media-detail-title').textContent = "Error de conexión";
+        document.getElementById('media-detail-description').textContent = "No se pudieron obtener los detalles.";
+    }
 }
 
 // Cierre del modal
-function cerrarModalMedia() {
+btnCerrarMedia?.addEventListener('click', () => {
     modalMedia.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
-}
+});
 
-btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
-modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
+// Cierre al clicar fuera
+modalMedia?.addEventListener('click', (e) => {
+    if (e.target === modalMedia) {
+        modalMedia.classList.remove('show');
+        document.body.classList.remove('no-scroll');
+        document.documentElement.classList.remove('no-scroll');
+    }
+});
 
 async function cargarDetallesTMDB(id, tipo) {
     try {
