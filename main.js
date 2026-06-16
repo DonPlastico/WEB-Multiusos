@@ -2126,15 +2126,12 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
     document.getElementById('detail-date').textContent = fecha;
 
-    // LÓGICA DE PRECIO Y TIENDA (EN UNA SOLA LÍNEA) ---
+    // LÓGICA DE PRECIO Y TIENDA (CON ENLACE OFICIAL Y MERCADO GRIS) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
-        // Configuración de fila horizontal
         detailPriceEl.style.display = 'flex';
-        detailPriceEl.style.flexDirection = 'row';
-        detailPriceEl.style.alignItems = 'center';
-        detailPriceEl.style.gap = '15px';
-        detailPriceEl.style.width = '100%';
+        detailPriceEl.style.flexDirection = 'column';
+        detailPriceEl.style.gap = '10px';
 
         // 1. EL PRECIO OFICIAL (ITAD)
         let htmlPrecioOficial = '';
@@ -2146,37 +2143,47 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
                     'ea': 'EA App', 'wingamestore': 'WinGameStore',
                     'greenmangaming': 'Green Man Gaming', 'humblestore': 'Humble Store'
                 };
+
                 let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
                 if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
-                    htmlPrecioOficial = `<a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="color: var(--success); text-decoration: none; font-weight: bold; white-space: nowrap;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} <span style="color: var(--text-muted); font-weight: normal;">en ${tiendaBonita}</span></a>`;
+                    htmlPrecioOficial = `
+                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display:inline-block; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span>
+                        </a>
+                    `;
                 } else {
-                    htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold; white-space: nowrap;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} en ${tiendaBonita}</span>`;
+                    htmlPrecioOficial = `
+                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent}</span>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">en ${tiendaBonita}</span>
+                    `;
                 }
             } else {
-                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold; white-space: nowrap;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
+                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
             }
         } else if (priceNa) {
-            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">${priceNa.textContent}</span>`;
+            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
         } else {
             htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
         }
 
-        // 2. GENERADORES DE URLS
+        // 2. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
+        // Limpiamos el título para la URL (quitamos símbolos raros)
         const tituloLimpio = titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
+
         const urlAllKeyShop = `https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/`;
         const urlCDKeys = `https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}`;
 
-        // 3. INYECTAMOS TODO (Horizontal, botones a la derecha del precio)
+        // 3. INYECTAMOS TODO EN EL CONTENEDOR
         detailPriceEl.innerHTML = `
-            <div style="flex: 1; min-width: fit-content;">${htmlPrecioOficial}</div>
+            <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
             
-            <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+            <div style="display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
                     <i class="fas fa-fire"></i> AllKeyShop
                 </a>
-                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
                     <i class="fas fa-key"></i> CDKeys
                 </a>
             </div>
