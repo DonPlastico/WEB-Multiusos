@@ -3751,29 +3751,30 @@ span.flatpickr-weekday {
    ESTRELLAS INTERACTIVAS (HOVER Y CLICK PARA VALORAR)
    ========================================================================== */
 
-/* Contenedor de las estrellas personales */
+/* Estrellas personales con hover de media estrella */
 .personal-stars {
     display: flex;
-    gap: 3px;
-    font-size: 1.6rem;
+    gap: 2px;
+    font-size: 1.8rem;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     justify-content: center;
     flex-wrap: wrap;
+    position: relative;
 }
 
-/* Cada estrella individual */
 .personal-stars i {
     transition: all 0.15s ease;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 1.4rem;
+    font-size: 1.6rem;
+    position: relative;
 }
 
 /* Efecto hover - se iluminan y crecen */
 .personal-stars i:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
 }
 
 /* Estrellas activas (votadas) */
@@ -3782,10 +3783,28 @@ span.flatpickr-weekday {
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
-/* Estrellas en hover (se iluminan temporalmente) */
+/* Hover que ilumina SOLO la estrella bajo el cursor (sin medias) */
 .personal-stars i.active-star {
     color: gold !important;
     text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+/* Para hover de media estrella: usamos pseudo-elementos */
+.personal-stars i.half-hover::before {
+    content: '\f5c0';
+    /* fa-star-half-alt */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: gold;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    overflow: hidden;
+}
+
+.personal-stars i.half-hover {
+    color: var(--text-muted);
 }
 
 /* Panel de valoración personal - más compacto */

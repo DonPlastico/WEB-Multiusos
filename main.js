@@ -3639,7 +3639,24 @@ document.getElementById('btn-context-unwatch')?.addEventListener('click', () => 
 //   ESTRELLAS INTERACTIVAS (HOVER Y CLICK PARA VALORAR) - 5 ESTRELLAS
 // ==========================================================================
 
-// Función para resetear las estrellas al estado guardado (para 5 estrellas)
+// Función para actualizar las estrellas según la nota (0-10)
+function actualizarEstrellasPersonal(nota) {
+    const stars = document.querySelectorAll('#media-detail-personal-stars i');
+    const notaSobre5 = nota / 2; // 0-10 -> 0-5
+
+    stars.forEach((star, index) => {
+        const starValue = index + 1; // 1, 2, 3, 4, 5
+        if (notaSobre5 >= starValue) {
+            star.className = 'fas fa-star';
+        } else if (notaSobre5 >= starValue - 0.5) {
+            star.className = 'fas fa-star-half-alt';
+        } else {
+            star.className = 'far fa-star';
+        }
+    });
+}
+
+// Función para resetear las estrellas al estado guardado
 function resetearEstrellasPersonal() {
     const stars = document.querySelectorAll('#media-detail-personal-stars i');
     const starsContainer = document.getElementById('media-detail-personal-stars');
@@ -3647,18 +3664,7 @@ function resetearEstrellasPersonal() {
     const notaActual = window.estadoMediaActual?.nota_personal || null;
 
     if (notaActual !== null && notaActual !== undefined) {
-        // Pintar las estrellas según la nota (0-10 -> 0-5)
-        const notaSobre5 = notaActual / 2;
-        stars.forEach((star, index) => {
-            const starValue = index + 1;
-            if (notaSobre5 >= starValue) {
-                star.className = 'fas fa-star';
-            } else if (notaSobre5 >= starValue - 0.5) {
-                star.className = 'fas fa-star-half-alt';
-            } else {
-                star.className = 'far fa-star';
-            }
-        });
+        actualizarEstrellasPersonal(notaActual);
         starsContainer.classList.add('voted');
         personalText.textContent = 'Tu nota personal';
     } else {
@@ -3672,7 +3678,7 @@ function resetearEstrellasPersonal() {
     }
 }
 
-// EVENTO: Hover sobre las estrellas (se iluminan)
+// EVENTO: Hover sobre las estrellas (se iluminan con medias estrellas)
 document.addEventListener('mouseover', (e) => {
     const star = e.target.closest('#media-detail-personal-stars i');
     if (!star) return;
@@ -3680,21 +3686,39 @@ document.addEventListener('mouseover', (e) => {
     const starsContainer = document.getElementById('media-detail-personal-stars');
     if (starsContainer.classList.contains('voted')) return;
 
+    // Obtener posición del mouse dentro de la estrella
+    const rect = star.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const isHalf = mouseX < rect.width / 2;
+
     const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
     const stars = starsContainer.querySelectorAll('i');
 
     stars.forEach((s, index) => {
-        if (index <= starIndex) {
+        s.className = 'far fa-star';
+        s.style.color = '';
+
+        if (index < starIndex) {
             s.className = 'fas fa-star';
             s.style.color = 'gold';
-        } else {
-            s.className = 'far fa-star';
-            s.style.color = '';
+        } else if (index === starIndex) {
+            if (isHalf) {
+                s.className = 'fas fa-star-half-alt';
+                s.style.color = 'gold';
+            } else {
+                s.className = 'fas fa-star';
+                s.style.color = 'gold';
+            }
         }
     });
 
-    // Mostrar nota temporal (0.5 * (index + 1) * 2 = index + 1)
-    const nota = (starIndex + 1) * 2;
+    // Mostrar nota temporal
+    let nota = (starIndex) * 2; // Estrellas completas antes
+    if (isHalf) {
+        nota += 1; // +1 por la media
+    } else {
+        nota += 2; // +2 por la estrella completa
+    }
     document.getElementById('media-detail-personal-text').textContent = `${nota.toFixed(1)} / 10`;
 });
 
@@ -3717,9 +3741,24 @@ document.addEventListener('click', (e) => {
         return;
     }
 
+    // Calcular nota basada en hover
     const starsContainer = document.getElementById('media-detail-personal-stars');
     const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
-    const nota = (starIndex + 1) * 2; // 1 estrella = 2, 2 estrellas = 4, etc.
+
+    // Verificar si la estrella está a medias (por el hover)
+    const rect = star.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const isHalf = mouseX < rect.width / 2;
+
+    let nota = (starIndex) * 2; // Estrellas completas antes
+    if (isHalf) {
+        nota += 1; // +1 por la media
+    } else {
+        nota += 2; // +2 por la estrella completa
+    }
+
+    // Limitar a 10
+    nota = Math.min(nota, 10);
 
     guardarInteraccionMedia({ nota_personal: nota });
 });
