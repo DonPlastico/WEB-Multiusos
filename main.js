@@ -2096,9 +2096,9 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // 1. Extraemos info de la tarjeta
     const idJuego = card.getAttribute('data-game-id');
     const titulo = card.getAttribute('data-game-title');
+    const storesRaw = card.getAttribute('data-stores'); // <--- NUEVO: Obtenemos las tiendas ocultas en la tarjeta
 
     // 2. Actualizamos URL (ej: /juegos/007_First_Light)
-    // Cambiamos los espacios por guiones bajos y quitamos caracteres raros
     const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
     history.pushState({ modal: 'detalles_juego', titulo: titulo }, '', `/juegos/${urlAmigable}`);
 
@@ -2106,11 +2106,12 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const portadaSrc = card.querySelector('img.game-cover')?.src || '';
     const htmlPlataformas = card.querySelector('.platforms-container').innerHTML;
     const fecha = card.querySelector('.date').textContent;
+    const priceBadge = card.querySelector('.price-badge strong'); // <--- NUEVO: Obtenemos el texto del precio
+    const priceNa = card.querySelector('.price-na'); // <--- NUEVO: Obtenemos el texto de "Sin ofertas"
 
     document.getElementById('detail-title').textContent = titulo;
     document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
 
-    // Si no tiene imagen, ocultamos la del modal
     if (portadaSrc) {
         document.getElementById('detail-cover-img').src = portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
@@ -2121,6 +2122,34 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     }
 
     document.getElementById('detail-date').textContent = fecha;
+
+    // --- NUEVO: LÓGICA DE PRECIO Y TIENDA ---
+    const detailPriceEl = document.getElementById('detail-price');
+    if (detailPriceEl) {
+        if (priceBadge) {
+            let storeText = '';
+            if (storesRaw && storesRaw !== 'none') {
+                // Diccionario para que los nombres de las tiendas se vean profesionales
+                const storeMap = {
+                    'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG',
+                    'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect',
+                    'gamivo': 'Gamivo', 'instant gaming': 'Instant Gaming',
+                    'eneba': 'Eneba', 'cdkeys': 'CDKeys'
+                };
+
+                // Cogemos la primera tienda de la lista y la formateamos
+                let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
+                let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
+
+                storeText = ` <span style="font-size: 0.8rem; color: var(--text-muted);">en ${tiendaBonita}</span>`;
+            }
+            detailPriceEl.innerHTML = `<span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>${storeText}`;
+        } else if (priceNa) {
+            detailPriceEl.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
+        } else {
+            detailPriceEl.textContent = '--';
+        }
+    }
 
     // 4. Reseteamos textos mientras esperamos a conectar con la API de detalles
     document.getElementById('detail-description').innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary);"></i> Estableciendo conexión cifrada...';
@@ -2766,6 +2795,13 @@ chatboxNavBar?.addEventListener('click', () => {
     if (nexusChatbox.classList.contains('collapsed')) {
         abrirChatbox('chat');
     }
+});
+
+// Clic en la flechita para minimizar
+const btnCollapseChat = document.getElementById('btn-collapse-chat');
+btnCollapseChat?.addEventListener('click', (e) => {
+    e.stopPropagation(); // ¡Súper importante! Evita que el clic llegue al nav-bar y lo vuelva a abrir
+    nexusChatbox.classList.add('collapsed');
 });
 
 // CLIC FUERA: Colapsar si clicas fuera del chatbox

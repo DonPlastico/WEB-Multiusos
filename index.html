@@ -1060,6 +1060,11 @@
                                 <span class="adv-label">Enlaces:</span>
                                 <span class="adv-value" id="detail-links">--</span>
                             </div>
+                            <div class="advanced-item">
+                                <span class="adv-icon"><i class="fas fa-shopping-cart"></i></span>
+                                <span class="adv-label">Mejor Precio:</span>
+                                <span class="adv-value" id="detail-price">--</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1276,10 +1281,16 @@
     <!-- chat box para mensajes y notificaciones -->
     <div id="nexus-chatbox" class="chatbox-container collapsed">
         <div class="chatbox-nav-bar">
-            <div class="chatbox-tabs">
+            <div class="chatbox-tabs" style="flex-grow: 1; width: auto;">
                 <span class="chatbox-tab active" id="tab-btn-chat">Mensajes</span>
                 <span class="chatbox-tab" id="tab-btn-notifs">Alertas</span>
             </div>
+
+            <button id="btn-collapse-chat" title="Minimizar"
+                style="background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; padding: 0 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"
+                onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+                <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
 
         <div id="chat-view-messages" class="chatbox-view active">
