@@ -4370,57 +4370,59 @@ span.flatpickr-weekday {
 
     /* ===== AJUSTE CRÍTICO PARA QUE EL MODAL QUEPA EN MÓVIL ===== */
 
-    /* Forzar que el modal ocupe toda la pantalla */
+    /* Forzar que el modal ocupe MENOS altura */
     #media-details-modal .modal-content {
-        height: 100vh !important;
-        max-height: 100vh !important;
+        height: 92vh !important;
+        /* Antes 100vh, ahora 92vh */
+        max-height: 92vh !important;
         width: 100vw !important;
         max-width: 100vw !important;
         border-radius: 0 !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
-        /* Evita que el modal haga scroll, solo el body */
+        top: auto !important;
+        bottom: 0 !important;
+        /* Anclar abajo */
+        margin: 0 !important;
     }
 
-    /* Hero más pequeño para dejar espacio al contenido */
+    /* Hero más pequeño */
     #media-detail-hero-bg {
         height: 22vh !important;
-        min-height: 140px !important;
-        padding-bottom: 10px !important;
+        min-height: 130px !important;
+        padding-bottom: 8px !important;
         flex-shrink: 0 !important;
-        /* No se encoge */
     }
 
     /* Título del hero más pequeño */
     #media-detail-hero-bg .glitch-text {
-        font-size: 1.8rem !important;
+        font-size: 1.6rem !important;
     }
 
     /* El cuerpo del modal ocupa el espacio restante y hace scroll */
     .game-detail-body {
         flex: 1 1 auto !important;
         overflow-y: auto !important;
-        padding: 8px 12px 12px 12px !important;
+        padding: 6px 12px 10px 12px !important;
         min-height: 0 !important;
-        /* CRUCIAL: permite que flex se encoga */
         height: auto !important;
     }
 
     /* Reducir padding de los paneles */
     .padded-panel {
-        padding: 6px !important;
+        padding: 5px !important;
     }
 
     /* Reducir gap entre secciones */
     .media-top-grid {
-        gap: 6px !important;
+        gap: 4px !important;
         margin-top: 4px !important;
     }
 
     .media-bottom-grid {
-        gap: 6px !important;
-        margin-top: 6px !important;
+        gap: 4px !important;
+        margin-top: 4px !important;
     }
 
     /* Ocultar portada en móvil */
@@ -4430,59 +4432,59 @@ span.flatpickr-weekday {
 
     /* Hacer el "Dónde verlo" más compacto */
     .media-where-to-watch {
-        margin-top: 6px !important;
-    }
-
-    .providers-3col-grid {
-        gap: 4px !important;
         margin-top: 4px !important;
     }
 
+    .providers-3col-grid {
+        gap: 3px !important;
+        margin-top: 3px !important;
+    }
+
     .provider-col {
-        padding: 4px !important;
-        gap: 4px !important;
+        padding: 3px !important;
+        gap: 3px !important;
     }
 
     .provider-col-title {
-        font-size: 0.65rem !important;
-        padding-bottom: 3px !important;
+        font-size: 0.6rem !important;
+        padding-bottom: 2px !important;
         margin-bottom: 2px !important;
     }
 
     .platform-btn {
-        font-size: 0.6rem !important;
-        padding: 3px 5px !important;
-        gap: 4px !important;
+        font-size: 0.55rem !important;
+        padding: 2px 4px !important;
+        gap: 3px !important;
     }
 
     /* Hacer las estrellas más pequeñas */
     .personal-stars {
-        font-size: 1.2rem !important;
+        font-size: 1rem !important;
         gap: 1px !important;
     }
 
     .personal-stars i {
-        font-size: 1rem !important;
+        font-size: 0.9rem !important;
     }
 
     .personal-rating-content {
-        padding: 4px !important;
-        min-height: 30px !important;
-        gap: 4px !important;
+        padding: 3px !important;
+        min-height: 25px !important;
+        gap: 2px !important;
     }
 
     .rating-count {
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
     }
 
     /* Reducir el tamaño de las tarjetas de actores */
     .cast-carousel {
-        gap: 6px !important;
+        gap: 4px !important;
     }
 
     .cast-card {
-        min-width: 60px !important;
-        max-width: 60px !important;
+        min-width: 50px !important;
+        max-width: 50px !important;
     }
 
     .cast-img {
@@ -4490,25 +4492,45 @@ span.flatpickr-weekday {
     }
 
     .cast-name {
-        font-size: 0.6rem !important;
+        font-size: 0.55rem !important;
     }
 
     .cast-character {
-        font-size: 0.5rem !important;
+        font-size: 0.45rem !important;
     }
 
     /* Valoración global más compacta */
     .global-rating-mini {
-        padding: 4px !important;
-        gap: 2px !important;
+        padding: 3px !important;
+        gap: 1px !important;
     }
 
     .global-rating-mini .score-big {
-        font-size: 1.6rem !important;
+        font-size: 1.4rem !important;
     }
 
     .global-rating-mini .rating-stars {
+        font-size: 0.8rem !important;
+    }
+
+    /* El separador entre secciones */
+    .media-rating-col {
+        gap: 6px !important;
+        padding: 5px !important;
+    }
+
+    /* Botón del ojo más pequeño y arriba */
+    #btn-watch-toggle {
+        width: 30px !important;
+        height: 30px !important;
         font-size: 0.9rem !important;
+        margin-top: 0 !important;
+        top: 70px !important;
+        right: 10px !important;
+    }
+
+    #watch-context-menu {
+        top: 110px !important;
     }
 }
 
