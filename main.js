@@ -2129,8 +2129,10 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // LÓGICA DE PRECIO Y TIENDA (CON ENLACE) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
+        // Quitamos la limitación de espacio para que el botón se expanda bien
+        detailPriceEl.style.overflow = 'visible';
+
         if (priceBadge) {
-            let storeText = '';
             if (storesRaw && storesRaw !== 'none') {
                 // Diccionario para que los nombres de las tiendas se vean profesionales
                 const storeMap = {
@@ -2140,18 +2142,27 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
                     'eneba': 'Eneba', 'cdkeys': 'CDKeys'
                 };
 
-                // Cogemos la primera tienda de la lista y la formateamos
                 let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
-                // Si tenemos la URL de la tienda, convertimos el texto en un botón/enlace interactivo
+                // Si tenemos la URL, creamos un BOTÓN ENTERO clicable
                 if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
-                    storeText = ` <a href="${storeUrlRaw}" target="_blank" style="font-size: 0.85rem; color: var(--secondary); text-decoration: none; margin-left: 5px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--secondary)'">en ${tiendaBonita} <i class="fas fa-external-link-alt" style="font-size: 0.75rem;"></i></a>`;
+                    detailPriceEl.innerHTML = `
+                        <a href="${storeUrlRaw}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(16, 185, 129, 0.2)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(0)';">
+                            <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;">${priceBadge.textContent}</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">en <span style="color: var(--neon-white); font-weight: 600;">${tiendaBonita}</span> <i class="fas fa-external-link-alt" style="font-size: 0.75rem; color: var(--secondary); margin-left: 2px;"></i></span>
+                        </a>
+                    `;
                 } else {
-                    storeText = ` <span style="font-size: 0.8rem; color: var(--text-muted);">en ${tiendaBonita}</span>`;
+                    // Texto normal si no hay enlace
+                    detailPriceEl.innerHTML = `
+                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;">${priceBadge.textContent}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 6px;">en ${tiendaBonita}</span>
+                    `;
                 }
+            } else {
+                detailPriceEl.innerHTML = `<span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>`;
             }
-            detailPriceEl.innerHTML = `<span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>${storeText}`;
         } else if (priceNa) {
             detailPriceEl.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
         } else {
