@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         // LISTADOS
         const urlLista = busqueda
             ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`
-            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}`;
+            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
