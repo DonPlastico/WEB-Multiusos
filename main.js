@@ -2126,44 +2126,68 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
     document.getElementById('detail-date').textContent = fecha;
 
-    // LÓGICA DE PRECIO Y TIENDA (CON ENLACE) ---
+    // LÓGICA DE PRECIO Y TIENDA (CON ENLACE OFICIAL Y MERCADO GRIS) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
+        detailPriceEl.style.display = 'flex';
+        detailPriceEl.style.flexDirection = 'column';
+        detailPriceEl.style.gap = '10px';
+
+        // 1. EL PRECIO OFICIAL (ITAD)
+        let htmlPrecioOficial = '';
         if (priceBadge) {
             if (storesRaw && storesRaw !== 'none') {
-                // He añadido wingamestore a tu diccionario para que quede perfecto
                 const storeMap = {
                     'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG',
                     'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect',
-                    'gamivo': 'Gamivo', 'instant gaming': 'Instant Gaming',
-                    'eneba': 'Eneba', 'cdkeys': 'CDKeys', 'wingamestore': 'WinGameStore'
+                    'ea': 'EA App', 'wingamestore': 'WinGameStore',
+                    'greenmangaming': 'Green Man Gaming', 'humblestore': 'Humble Store'
                 };
 
                 let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
-                // Si tenemos la URL, creamos un enlace limpio que imita al Sitio Oficial pero en verde
                 if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
-                    detailPriceEl.innerHTML = `
-                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="color: var(--success); text-decoration: none; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                            ${priceBadge.textContent} <span style="color: var(--text-muted); font-weight: normal;">en ${tiendaBonita}</span> <i class="fas fa-external-link-alt" style="font-size: 0.8rem; margin-left: 4px;"></i>
+                    htmlPrecioOficial = `
+                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display:inline-block; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span>
                         </a>
                     `;
                 } else {
-                    // Texto normal si por algún motivo no llega el enlace
-                    detailPriceEl.innerHTML = `
-                        <span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>
-                        <span style="color: var(--text-muted);">en ${tiendaBonita}</span>
+                    htmlPrecioOficial = `
+                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent}</span>
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">en ${tiendaBonita}</span>
                     `;
                 }
             } else {
-                detailPriceEl.innerHTML = `<span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>`;
+                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
             }
         } else if (priceNa) {
-            detailPriceEl.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
+            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
         } else {
-            detailPriceEl.textContent = '--';
+            htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
         }
+
+        // 2. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
+        // Limpiamos el título para la URL (quitamos símbolos raros)
+        const tituloLimpio = titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
+
+        const urlAllKeyShop = `https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/`;
+        const urlCDKeys = `https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}`;
+
+        // 3. INYECTAMOS TODO EN EL CONTENEDOR
+        detailPriceEl.innerHTML = `
+            <div>${htmlPrecioOficial}</div>
+            
+            <div style="display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap;">
+                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
+                    <i class="fas fa-fire"></i> Buscar en AllKeyShop
+                </a>
+                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
+                    <i class="fas fa-key"></i> Buscar en CDKeys
+                </a>
+            </div>
+        `;
     }
 
     // 4. Reseteamos textos mientras esperamos a conectar con la API de detalles
