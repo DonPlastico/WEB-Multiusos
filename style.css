@@ -4621,7 +4621,7 @@ span.flatpickr-weekday {
         right: 0 !important;
         width: 100% !important;
         height: auto !important;
-        max-height: 50px !important;
+        max-height: 21px !important;
         border-radius: 0 !important;
         border-left: none !important;
         border-right: none !important;
@@ -4639,7 +4639,7 @@ span.flatpickr-weekday {
     }
 
     .chatbox-nav-bar {
-        height: 45px !important;
+        height: 21px !important;
         border-bottom: 1px solid var(--border-color) !important;
         background: var(--bg-secondary) !important;
         flex-shrink: 0 !important;
@@ -4647,7 +4647,7 @@ span.flatpickr-weekday {
     }
 
     .chatbox-tabs {
-        height: 45px !important;
+        height: 20px !important;
     }
 
     .chatbox-tab {
