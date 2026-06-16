@@ -4267,8 +4267,6 @@ span.flatpickr-weekday {
         display: none;
     }
 
-    /* (Borramos la clase .game-cover-large que tenías aquí porque ya no hace falta) */
-
     .game-detail-body {
         border-top: 1px solid var(--border-color);
         padding: 0 20px 20px 20px;
@@ -4335,6 +4333,39 @@ span.flatpickr-weekday {
 
     .media-bottom-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
+
+    /* Botón del ojo - más pequeño y más arriba */
+    #btn-watch-toggle {
+        margin-top: 130px !important;
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* Menú contextual del ojo - más arriba también */
+    #watch-context-menu {
+        top: 160px !important;
+    }
+
+    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
+    .providers-3col-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    /* Las columnas de proveedores se apilan verticalmente */
+    .provider-col {
+        padding: 10px !important;
+    }
+
+    /* Los botones de plataformas se vuelven más pequeños en móvil */
+    .platform-btn {
+        font-size: 0.75rem !important;
+        padding: 6px 8px !important;
+        white-space: normal !important;
     }
 }
 
