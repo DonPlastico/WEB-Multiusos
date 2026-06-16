@@ -3852,7 +3852,43 @@ span.flatpickr-weekday {
     display: none;
 }
 
+/* Columna de valoración dividida en dos divs con gap */
+.media-rating-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+}
 
+.media-rating-col .personal-rating-section,
+.media-rating-col .global-rating-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Asegurar que el contenido se estire correctamente */
+.media-rating-col .personal-rating-content,
+.media-rating-col .global-rating-mini {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Eliminar el separador que ya no necesitas (ahora usamos gap) */
+.media-rating-col>div[style*="height: 1px"] {
+    display: none !important;
+}
+
+/* Ajustar el panel global para que ocupe todo el espacio */
+.global-rating-mini {
+    padding: 10px !important;
+    background: rgba(99, 102, 241, 0.03) !important;
+    border: 1px dashed var(--primary-soft) !important;
+    border-radius: 8px !important;
+    gap: 5px !important;
+}
 
 
 

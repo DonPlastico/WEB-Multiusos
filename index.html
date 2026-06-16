@@ -1195,11 +1195,14 @@
                         </div>
 
                         <!-- Columna 3: Valoración y Estado -->
-                        <div class="media-rating-col glass-panel padded-panel">
-                            <!-- Mi Valoración Personal -->
-                            <div class="personal-rating-section">
+                        <div class="media-rating-col glass-panel padded-panel"
+                            style="display: flex; flex-direction: column; gap: 15px;">
+
+                            <!-- Mi Valoración Personal (DIV 1) -->
+                            <div class="personal-rating-section"
+                                style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Mi Valoración</h3>
-                                <div class="personal-rating-content" id="btn-personal-rating">
+                                <div class="personal-rating-content" id="btn-personal-rating" style="flex: 1;">
                                     <!-- 5 estrellas (cada entera = 2 puntos, media = 1 punto) -->
                                     <div class="rating-stars personal-stars" id="media-detail-personal-stars">
                                         <i class="far fa-star" data-value="1"></i> <!-- 1 punto -->
@@ -1213,12 +1216,11 @@
                                 </div>
                             </div>
 
-                            <div style="height: 1px; background: var(--border-light); margin: 15px 0;"></div>
-
-                            <!-- Valoración Global (La de TMDB) -->
-                            <div class="global-rating-section">
+                            <!-- Valoración Global (DIV 2) -->
+                            <div class="global-rating-section" style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Valoración Global</h3>
-                                <div class="rating-content global-rating-mini">
+                                <div class="rating-content global-rating-mini"
+                                    style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div class="rating-score">
                                         <span id="media-detail-rating-value" class="score-big"
                                             style="font-size: 2.2rem;">0.0</span>
@@ -1230,6 +1232,7 @@
                                         style="font-size: 0.75rem;">-- valoraciones</div>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
