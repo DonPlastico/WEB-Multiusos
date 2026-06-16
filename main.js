@@ -154,15 +154,20 @@ window.addEventListener('popstate', (evento) => {
 // cuando entran directamente a una url tipo /juegos o /perfil/usuario/...
 function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
-    let vistaInicial = 'home'; // default
+    let vistaInicial = 'home';
     let userInitial = null;
 
-    // DETECTAR URL DINÁMICA DE PERFIL
+    // DETECTAR URL DINÁMICA DE PERFIL Y DE MODALES
     if (rutaActual.startsWith('/perfil/usuario/')) {
         userInitial = rutaActual.split('/').pop();
         vistaInicial = 'profile';
+    } else if (rutaActual.startsWith('/juegos')) {
+        vistaInicial = 'games';
+    } else if (rutaActual.startsWith('/peliculas')) {
+        vistaInicial = 'movies';
+    } else if (rutaActual.startsWith('/series')) {
+        vistaInicial = 'series';
     } else {
-        // busco que vista corresponde a la url normal
         for (const [idVista, url] of Object.entries(mapaRutas)) {
             if (url === rutaActual) {
                 vistaInicial = idVista;
@@ -174,9 +179,37 @@ function arrancarEnrutador() {
     // muestro esa vista sin empujarla al historial todavía
     cambiarVista(vistaInicial, false, userInitial);
 
-    // Así los botones < y > saben exactamente a dónde volver.
-    const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : (mapaRutas[vistaInicial] || '/');
+    // Mantenemos la url actual si es un modal (para no borrar el /juegos/Mufasa de la barra)
+    const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : rutaActual;
     window.history.replaceState({ vista: vistaInicial, user: userInitial }, '', urlFinal);
+
+    // ==========================================
+    // MAGIA F5: RESTAURAR MODALES SI EXISTEN
+    // ==========================================
+    setTimeout(() => {
+        if (vistaInicial === 'movies' || vistaInicial === 'series') {
+            const mediaAbierta = localStorage.getItem('modalMediaAbierto');
+            if (mediaAbierta) {
+                const data = JSON.parse(mediaAbierta);
+                if (rutaActual.includes(data.urlAmigable)) {
+                    // Si la URL coincide con lo guardado, ¡abrimos el modal! (false = no empujar al historial otra vez)
+                    abrirModalMedia(data.id, data.tipo, false);
+                } else {
+                    localStorage.removeItem('modalMediaAbierto');
+                }
+            }
+        } else if (vistaInicial === 'games') {
+            const juegoAbierto = localStorage.getItem('modalJuegoAbierto');
+            if (juegoAbierto) {
+                const j = JSON.parse(juegoAbierto);
+                if (rutaActual.includes(j.urlAmigable)) {
+                    procesarAperturaModalJuego(j, false);
+                } else {
+                    localStorage.removeItem('modalJuegoAbierto');
+                }
+            }
+        }
+    }, 300); // Le damos 300ms a la web para que pinte el fondo antes de lanzar el modal
 }
 
 // ==========================================================================
@@ -2158,138 +2191,109 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     if (!card) return;
 
     // 1. Extraemos info de la tarjeta
-    const idJuego = card.getAttribute('data-game-id');
     const titulo = card.getAttribute('data-game-title');
-    const storesRaw = card.getAttribute('data-stores');
-    const storeUrlRaw = card.getAttribute('data-store-url'); // Leemos la URL oculta
+    const juegoData = {
+        idJuego: card.getAttribute('data-game-id'),
+        titulo: titulo,
+        urlAmigable: titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_'),
+        storesRaw: card.getAttribute('data-stores'),
+        storeUrlRaw: card.getAttribute('data-store-url'),
+        portadaSrc: card.querySelector('img.game-cover')?.src || '',
+        htmlPlataformas: card.querySelector('.platforms-container')?.innerHTML || '',
+        fecha: card.querySelector('.date')?.textContent || 'TBA',
+        priceText: card.querySelector('.price-badge strong')?.textContent || null,
+        priceNaText: card.querySelector('.price-na')?.textContent || null
+    };
 
-    // 2. Actualizamos URL (ej: /juegos/007_First_Light)
-    const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
-    history.pushState({ modal: 'detalles_juego', titulo: titulo }, '', `/juegos/${urlAmigable}`);
+    procesarAperturaModalJuego(juegoData, true);
+});
 
-    // 3. Rellenamos el modal con la info visual de la tarjeta (Carga Instantánea)
-    const portadaSrc = card.querySelector('img.game-cover')?.src || '';
-    const htmlPlataformas = card.querySelector('.platforms-container').innerHTML;
-    const fecha = card.querySelector('.date').textContent;
-    const priceBadge = card.querySelector('.price-badge strong');
-    const priceNa = card.querySelector('.price-na');
+// Función centralizada para abrir (usada por click y por F5)
+window.procesarAperturaModalJuego = function (data, updateHistory = true) {
+    if (updateHistory) {
+        history.pushState({ modal: 'detalles_juego' }, '', `/juegos/${data.urlAmigable}`);
+    }
+    // Guardamos recuerdo para el F5
+    localStorage.setItem('modalJuegoAbierto', JSON.stringify(data));
 
-    document.getElementById('detail-title').textContent = titulo;
-    document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
+    document.getElementById('detail-title').textContent = data.titulo;
+    document.getElementById('detail-platforms').innerHTML = data.htmlPlataformas;
 
-    if (portadaSrc) {
-        document.getElementById('detail-cover-img').src = portadaSrc;
+    if (data.portadaSrc) {
+        document.getElementById('detail-cover-img').src = data.portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
-        document.getElementById('detail-hero-bg').style.backgroundImage = `url('${portadaSrc}')`;
+        document.getElementById('detail-hero-bg').style.backgroundImage = `url('${data.portadaSrc}')`;
     } else {
         document.getElementById('detail-cover-img').style.display = 'none';
         document.getElementById('detail-hero-bg').style.backgroundImage = 'none';
     }
 
-    document.getElementById('detail-date').textContent = fecha;
+    document.getElementById('detail-date').textContent = data.fecha;
 
-    // LÓGICA DE PRECIO Y TIENDA (CON ENLACE OFICIAL Y MERCADO GRIS) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
         detailPriceEl.style.display = 'flex';
         detailPriceEl.style.flexDirection = 'column';
         detailPriceEl.style.gap = '10px';
 
-        // 1. EL PRECIO OFICIAL (ITAD)
         let htmlPrecioOficial = '';
-        if (priceBadge) {
-            if (storesRaw && storesRaw !== 'none') {
-                const storeMap = {
-                    'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG',
-                    'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect',
-                    'ea': 'EA App', 'wingamestore': 'WinGameStore',
-                    'greenmangaming': 'Green Man Gaming', 'humblestore': 'Humble Store'
-                };
-
-                let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
+        if (data.priceText) {
+            if (data.storesRaw && data.storesRaw !== 'none') {
+                const storeMap = { 'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG', 'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect', 'ea': 'EA App' };
+                let primeraTienda = data.storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
-                if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
-                    htmlPrecioOficial = `
-                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display:inline-block; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                            <i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span>
-                        </a>
-                    `;
+                if (data.storeUrlRaw && data.storeUrlRaw !== 'undefined' && data.storeUrlRaw !== '') {
+                    htmlPrecioOficial = `<a href="${data.storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display:inline-block; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i class="fas fa-check-circle"></i> Oficial: ${data.priceText} <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span></a>`;
                 } else {
-                    htmlPrecioOficial = `
-                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent}</span>
-                        <span style="color: var(--text-muted); font-size: 0.9rem;">en ${tiendaBonita}</span>
-                    `;
+                    htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Oficial: ${data.priceText}</span> <span style="color: var(--text-muted); font-size: 0.9rem;">en ${tiendaBonita}</span>`;
                 }
             } else {
-                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
+                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> ${data.priceText}</span>`;
             }
-        } else if (priceNa) {
-            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
+        } else if (data.priceNaText) {
+            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem;">${data.priceNaText}</span>`;
         } else {
             htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
         }
 
-        // 2. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
-        // Limpiamos el título para la URL (quitamos símbolos raros)
-        const tituloLimpio = titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
-
-        const urlAllKeyShop = `https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/`;
-        const urlCDKeys = `https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}`;
-
-        // 3. INYECTAMOS TODO EN EL CONTENEDOR
+        const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
         detailPriceEl.innerHTML = `
             <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
-            
             <div style="display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
-                    <i class="fas fa-fire"></i> AllKeyShop
-                </a>
-                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
-                    <i class="fas fa-key"></i> CDKeys
-                </a>
+                <a href="https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'"><i class="fas fa-fire"></i> AllKeyShop</a>
+                <a href="https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'"><i class="fas fa-key"></i> CDKeys</a>
             </div>
         `;
     }
 
-    // 4. Reseteamos textos mientras esperamos a conectar con la API de detalles
     document.getElementById('detail-description').innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary);"></i> Estableciendo conexión cifrada...';
     document.getElementById('detail-dev').textContent = 'Escaneando...';
     document.getElementById('detail-pub').textContent = 'Escaneando...';
     document.getElementById('detail-genres').textContent = 'Escaneando...';
     document.getElementById('detail-modes').textContent = 'Escaneando...';
 
-    // 5. Mostramos modal
     modalJuego.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // 6. AQUÍ LLAMAREMOS A LA API PRÓXIMAMENTE PARA RELLENAR LO QUE FALTA
-    llamarDetallesJuego(idJuego, titulo);
-});
+    llamarDetallesJuego(data.idJuego, data.titulo);
+};
 
-// Función para cerrar el modal y restaurar todo
+// Función para cerrar (Elimina el recuerdo y restaura la URL)
 function cerrarModalJuego() {
     if (!modalJuego.classList.contains('show')) return;
-
     modalJuego.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // Restaurar URL limpia de juegos
+    localStorage.removeItem('modalJuegoAbierto');
     history.pushState({ vista: 'games' }, '', '/juegos');
 }
 
-// Eventos de cierre
 btnCerrarModalJuego?.addEventListener('click', cerrarModalJuego);
-
-modalJuego?.addEventListener('click', (e) => {
-    if (e.target === modalJuego) cerrarModalJuego();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') cerrarModalJuego();
-});
+modalJuego?.addEventListener('click', (e) => { if (e.target === modalJuego) cerrarModalJuego(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalJuego(); });
 
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
@@ -2362,10 +2366,9 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
     });
 });
 
-async function abrirModalMedia(id, tipo) {
+async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
-    // 1. Resetear y preparar UI
     document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
     document.getElementById('media-detail-description').textContent = "Descargando datos...";
     document.getElementById('media-detail-duration').textContent = "--";
@@ -2373,25 +2376,32 @@ async function abrirModalMedia(id, tipo) {
     document.getElementById('media-detail-watch-date').textContent = "--";
     document.getElementById('media-detail-watch-status').textContent = "No vista";
 
-    // Vaciamos las 3 columnas nuevas
     document.getElementById('providers-flatrate').innerHTML = '';
     document.getElementById('providers-rent').innerHTML = '';
     document.getElementById('providers-buy').innerHTML = '';
-
     document.getElementById('media-detail-trailer-img').src = '';
     document.getElementById('media-detail-rating-value').textContent = "0.0";
     document.getElementById('media-detail-rating-stars').innerHTML = '';
     document.getElementById('media-detail-rating-count').textContent = "-- valoraciones";
 
-    // 2. Abrir Modal
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // 3. Llamada al servidor
     try {
         const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
         const data = await respuesta.json();
+
+        // ====================================================
+        // MAGIA DE URL Y PERSISTENCIA (Para F5)
+        // ====================================================
+        const urlAmigable = data.titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
+        const rutaBase = tipo === 'movie' ? '/peliculas' : '/series';
+
+        if (updateHistory) {
+            history.pushState({ modal: `detalles_${tipo}` }, '', `${rutaBase}/${urlAmigable}`);
+        }
+        localStorage.setItem('modalMediaAbierto', JSON.stringify({ id, tipo, urlAmigable }));
 
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-description').textContent = data.sinopsis;
@@ -2407,71 +2417,51 @@ async function abrirModalMedia(id, tipo) {
             textoDuracion = `${data.temporadas} Temporada(s)`;
         }
         document.getElementById('media-detail-duration').textContent = textoDuracion;
-
         document.getElementById('media-detail-genres').textContent = data.generos || 'N/A';
 
-        // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
         function inyectarPlataformas(lista, contenedorId) {
             const contenedor = document.getElementById(contenedorId);
             contenedor.innerHTML = '';
-
             if (lista && lista.length > 0) {
-                const unicos = [...new Set(lista)]; // Evitamos duplicados
+                const unicos = [...new Set(lista)];
                 unicos.forEach(plat => {
                     const infoPlat = obtenerEstiloPlataforma(plat);
                     const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
-                    contenedor.innerHTML += `
-                        <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
-                            <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
-                        </a>
-                    `;
+                    contenedor.innerHTML += `<a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()"><i class="fas fa-play-circle"></i> ${plat.toUpperCase()}</a>`;
                 });
             } else {
                 contenedor.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 5px; text-align:center; display:block;">No disponible</span>';
             }
         }
 
-        // Inyectamos cada array en su columna
         inyectarPlataformas(data.suscripcion, 'providers-flatrate');
         inyectarPlataformas(data.alquiler, 'providers-rent');
         inyectarPlataformas(data.compra, 'providers-buy');
 
-        // 8. Tráiler
         let urlTrailer = '';
         if (data.trailer_id) {
-            // Si tenemos el ID oficial, vamos directo al vídeo
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
             document.getElementById('media-detail-trailer-duration').textContent = "OFICIAL";
-
-            // BONUS: Ponemos la miniatura real del vídeo directo desde los servidores de YouTube
             document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
         } else {
-            // Fallback: Si la peli es rara y no tiene tráiler en TMDB, hacemos la búsqueda
             const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
             urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
             document.getElementById('media-detail-trailer-duration').textContent = "BÚSQUEDA";
             document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
         }
-
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
 
-        // 9. Valoración
         const notaNum = parseFloat(data.nota || 0);
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
-
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
         document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} valoraciones`;
 
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
         for (let i = 1; i <= 5; i++) {
-            if (notaSobre5 >= i) {
-                estrellasHtml += '<i class="fas fa-star"></i>';
-            } else if (notaSobre5 >= i - 0.5) {
-                estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
-            } else {
-                estrellasHtml += '<i class="far fa-star"></i>';
-            }
+            if (notaSobre5 >= i) estrellasHtml += '<i class="fas fa-star"></i>';
+            else if (notaSobre5 >= i - 0.5) estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
+            else estrellasHtml += '<i class="far fa-star"></i>';
         }
         document.getElementById('media-detail-rating-stars').innerHTML = estrellasHtml;
 
@@ -2480,6 +2470,22 @@ async function abrirModalMedia(id, tipo) {
         document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
     }
 }
+
+// Cierre del modal y limpieza
+function cerrarModalMedia() {
+    if (!modalMedia.classList.contains('show')) return;
+    modalMedia.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+
+    localStorage.removeItem('modalMediaAbierto');
+    const vista = vistaActualGlobal === 'series' ? '/series' : '/peliculas';
+    history.pushState({ vista: vistaActualGlobal }, '', vista);
+}
+
+btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
+modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalMedia(); });
 
 // Helper para asignar los colores corporativos de cada plataforma
 function obtenerEstiloPlataforma(nombre) {
@@ -2497,53 +2503,6 @@ function obtenerEstiloPlataforma(nombre) {
     if (n.includes('crunchyroll')) return { color: '#F47521' };
     if (n.includes('atres')) return { color: '#E51C24' };
     return { color: 'var(--primary)' }; // Por defecto usa tu morado/azul del Nexus
-}
-
-// Cierre del modal
-btnCerrarMedia?.addEventListener('click', () => {
-    modalMedia.classList.remove('show');
-    document.body.classList.remove('no-scroll');
-    document.documentElement.classList.remove('no-scroll');
-});
-
-// Cierre al clicar fuera
-modalMedia?.addEventListener('click', (e) => {
-    if (e.target === modalMedia) {
-        modalMedia.classList.remove('show');
-        document.body.classList.remove('no-scroll');
-        document.documentElement.classList.remove('no-scroll');
-    }
-});
-
-async function cargarDetallesTMDB(id, tipo) {
-    try {
-        // Necesitaremos crear este endpoint en tu server o usar una query específica en tmdb.js
-        const url = `/api/tmdb?id=${id}&tipo=${tipo}&detalles=true`;
-        const respuesta = await fetch(url);
-        const data = await respuesta.json();
-
-        // Actualizar UI
-        document.getElementById('media-detail-title').textContent = data.titulo;
-        document.getElementById('media-detail-description').textContent = data.sinopsis;
-        document.getElementById('media-detail-cover-img').src = data.poster;
-        document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
-
-        // Inyectar Detalles Técnicos dinámicos
-        let htmlInfo = `
-            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-calendar"></i></span><span class="adv-label">Estreno:</span><span class="adv-value">${data.fecha}</span></div>
-            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-star"></i></span><span class="adv-label">Nota:</span><span class="adv-value">${data.nota}</span></div>
-        `;
-
-        if (tipo === 'tv') {
-            htmlInfo += `<div class="advanced-item"><span class="adv-icon"><i class="fas fa-tv"></i></span><span class="adv-label">Temporadas:</span><span class="adv-value">${data.temporadas}</span></div>`;
-        }
-
-        document.getElementById('media-detail-advanced').innerHTML = htmlInfo;
-
-    } catch (error) {
-        console.error("Error al cargar detalles media:", error);
-        document.getElementById('media-detail-description').textContent = "Error al conectar con la base de datos.";
-    }
 }
 
 // ==========================================================================
