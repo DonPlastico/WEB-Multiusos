@@ -4367,6 +4367,86 @@ span.flatpickr-weekday {
         padding: 6px 8px !important;
         white-space: normal !important;
     }
+
+    /* Reducir altura del modal en móvil */
+    #media-details-modal .modal-content {
+        height: 95vh !important;
+        max-height: 95vh !important;
+    }
+
+    /* Reducir el hero del modal */
+    #media-detail-hero-bg {
+        height: 20vh !important;
+        min-height: 150px !important;
+        padding-bottom: 15px !important;
+    }
+
+    /* Hacer el cuerpo más compacto */
+    .game-detail-body {
+        padding: 0 15px 15px 15px !important;
+    }
+
+    /* Reducir gaps y paddings de las columnas */
+    .media-top-grid {
+        gap: 10px !important;
+        margin-top: 5px !important;
+    }
+
+    .media-top-grid .padded-panel {
+        padding: 8px !important;
+    }
+
+    /* Reducir el tamaño de la portada */
+    .detail-cover-col .game-cover-large {
+        max-height: 180px !important;
+        width: auto !important;
+    }
+
+    /* Reducir la sección de "Dónde verlo" */
+    .media-where-to-watch {
+        margin-top: 10px !important;
+    }
+
+    .provider-col {
+        padding: 6px !important;
+    }
+
+    .platform-btn {
+        font-size: 0.7rem !important;
+        padding: 4px 6px !important;
+    }
+
+    /* Reducir la sección de valoración */
+    .media-rating-col {
+        gap: 10px !important;
+        padding: 8px !important;
+    }
+
+    .personal-rating-content {
+        padding: 8px !important;
+        min-height: 50px !important;
+    }
+
+    .personal-stars {
+        font-size: 1.4rem !important;
+    }
+
+    .personal-stars i {
+        font-size: 1.2rem !important;
+    }
+
+    /* Asegurar que el body del modal haga scroll */
+    .game-detail-body {
+        overflow-y: auto !important;
+        max-height: calc(95vh - 200px) !important;
+    }
+
+    /* Reducir márgenes del chatbox en móvil para que no estorbe */
+    .chatbox-container {
+        z-index: 9998 !important;
+        height: 40px !important;
+        bottom: 0 !important;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
