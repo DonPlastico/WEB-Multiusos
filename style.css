@@ -3892,7 +3892,7 @@ span.flatpickr-weekday {
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
 @media (max-width: 768px) {
     .cyber-container {
-        margin-top: 115px;
+        margin-top: 110px;
     }
 
     .games-content {
