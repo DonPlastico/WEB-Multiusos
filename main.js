@@ -3600,14 +3600,14 @@ const contextMenuWatched = document.getElementById('watch-context-menu');
 
 // CLIC PRINCIPAL (Izquierdo en PC o Toque en Móvil)
 btnToggleWatched?.addEventListener('click', (e) => {
-    e.stopPropagation(); // Evitamos que el clic se propague al documento y lo cierre
+    e.stopPropagation();
     if (!window.estadoMediaActual) return;
 
     if (window.estadoMediaActual.visto) {
         // Si YA está vista, el toque abre el menú directamente
+        contextMenuWatched.style.display = 'block';
         contextMenuWatched.classList.toggle('show');
     } else {
-        // Si NO está vista, la marca como vista la 1ª vez
         const fechaHoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         guardarInteraccionMedia({ visto: true, veces_vista: 1, fecha_vista: fechaHoy });
     }
