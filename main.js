@@ -435,8 +435,9 @@ function crearTarjeta(juego) {
         `).join('');
     }
 
-    // guardo datos ocultos para el filtro
+    // guardo datos ocultos para el filtro (Y AHORA LA URL DE COMPRA)
     const storesData = juego.itad ? juego.itad.stores : 'none';
+    const storeUrlData = (juego.itad && juego.itad.url) ? juego.itad.url : ''; // Extraemos URL
     const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
     const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
@@ -453,11 +454,12 @@ function crearTarjeta(juego) {
 
     // 2. Lógica del contenedor de imagen
     const imgHtml = tienePortada
-        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" onerror="this.parentElement.innerHTML='<div class=\'no-cover\'><i class=\'fas fa-gamepad\'></i></div>'">`
+        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
         : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
 
+    // Inyectamos el data-store-url en la etiqueta principal de la tarjeta
     return `
-        <div class="game-card" data-game-id="${juego.id}" data-game-title="${juego.name}" data-stores="${storesData}" data-platforms="${platformsData}">
+        <div class="game-card" data-game-id="${juego.id}" data-game-title="${juego.name}" data-stores="${storesData}" data-store-url="${storeUrlData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
                 <div class="platforms-container" style="position:absolute; top:12px; left:12px; z-index:2; display:flex; flex-wrap:wrap; gap:4px;">
                     ${htmlPlataformas}
@@ -2096,7 +2098,8 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // 1. Extraemos info de la tarjeta
     const idJuego = card.getAttribute('data-game-id');
     const titulo = card.getAttribute('data-game-title');
-    const storesRaw = card.getAttribute('data-stores'); // <--- NUEVO: Obtenemos las tiendas ocultas en la tarjeta
+    const storesRaw = card.getAttribute('data-stores');
+    const storeUrlRaw = card.getAttribute('data-store-url'); // <--- NUEVO: Leemos la URL oculta
 
     // 2. Actualizamos URL (ej: /juegos/007_First_Light)
     const urlAmigable = titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
@@ -2106,8 +2109,8 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const portadaSrc = card.querySelector('img.game-cover')?.src || '';
     const htmlPlataformas = card.querySelector('.platforms-container').innerHTML;
     const fecha = card.querySelector('.date').textContent;
-    const priceBadge = card.querySelector('.price-badge strong'); // <--- NUEVO: Obtenemos el texto del precio
-    const priceNa = card.querySelector('.price-na'); // <--- NUEVO: Obtenemos el texto de "Sin ofertas"
+    const priceBadge = card.querySelector('.price-badge strong');
+    const priceNa = card.querySelector('.price-na');
 
     document.getElementById('detail-title').textContent = titulo;
     document.getElementById('detail-platforms').innerHTML = htmlPlataformas;
@@ -2123,7 +2126,7 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
     document.getElementById('detail-date').textContent = fecha;
 
-    // --- NUEVO: LÓGICA DE PRECIO Y TIENDA ---
+    // LÓGICA DE PRECIO Y TIENDA (CON ENLACE) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
         if (priceBadge) {
@@ -2141,7 +2144,12 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
                 let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
-                storeText = ` <span style="font-size: 0.8rem; color: var(--text-muted);">en ${tiendaBonita}</span>`;
+                // Si tenemos la URL de la tienda, convertimos el texto en un botón/enlace interactivo
+                if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
+                    storeText = ` <a href="${storeUrlRaw}" target="_blank" style="font-size: 0.85rem; color: var(--secondary); text-decoration: none; margin-left: 5px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--secondary)'">en ${tiendaBonita} <i class="fas fa-external-link-alt" style="font-size: 0.75rem;"></i></a>`;
+                } else {
+                    storeText = ` <span style="font-size: 0.8rem; color: var(--text-muted);">en ${tiendaBonita}</span>`;
+                }
             }
             detailPriceEl.innerHTML = `<span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>${storeText}`;
         } else if (priceNa) {
