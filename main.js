@@ -1012,13 +1012,16 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     const pageActual = tipo === 'movie' ? pageMovies : pageSeries;
     const searchActual = tipo === 'movie' ? searchMoviesActual : searchSeriesActual;
 
-    // === LEER ESTADO DEL FILTRO +18 ===
+    // === LEER ESTADO DEL FILTRO +18 (SIEMPRE CONSULTAMOS EL DOM) ===
     const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
+    // FORZAMOS a que sea 'true' o 'false' en minúsculas, sin excepciones
     const isAdult = checkboxAdulto && checkboxAdulto.checked ? 'true' : 'false';
+    console.log(`🔞 Filtro +18 para ${tipo}: ${isAdult}`); // Para depuración
 
     try {
         // Le pasamos el &adult=true o false al servidor
-        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}`;
+        const timestamp = Date.now();
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
@@ -1469,8 +1472,9 @@ async function verificarSesion() {
         document.querySelectorAll('.nsfw-filter-container').forEach(el => {
             el.style.display = 'none';
             const cb = el.querySelector('.adult-checkbox');
-            if (cb && cb.checked) {
+            if (cb) {
                 cb.checked = false;
+                cb.disabled = true;
                 borrado = true;
             }
         });
@@ -1988,13 +1992,15 @@ window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
 // ============================================
 // LISTENERS PARA FILTROS +18 Y BOTONES LIMPIAR
 // ============================================
-document.getElementById('adult-filter-movie')?.addEventListener('change', () => {
-    guardarFiltros(); // Guardamos el estado
+document.getElementById('adult-filter-movie')?.addEventListener('change', (e) => {
+    console.log('🔞 Cambio en filtro +18 de películas:', e.target.checked);
+    guardarFiltros();
     cargarTMDB('movie', searchMoviesActual, true);
 });
 
-document.getElementById('adult-filter-series')?.addEventListener('change', () => {
-    guardarFiltros(); // Guardamos el estado
+document.getElementById('adult-filter-series')?.addEventListener('change', (e) => {
+    console.log('🔞 Cambio en filtro +18 de series:', e.target.checked);
+    guardarFiltros();
     cargarTMDB('tv', searchSeriesActual, true);
 });
 
