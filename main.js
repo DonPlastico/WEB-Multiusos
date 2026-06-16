@@ -928,11 +928,13 @@ function crearTarjetaTMDB(media, tipo) {
     const isMovie = tipo === 'movie';
     const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
 
-    // Consideramos +18 si: adult=true O certificación es 18/R/NC-17
+    // === MISMA LÓGICA QUE EL FILTRO ===
+    const PALABRAS_ADULTO = ['sex', 'porn', 'erotic', 'erotica', 'sensual', 'xxx', 'desnudo', 'hotel erotica', 'carnal'];
     const esContenidoAdulto = media.adult ||
         media.certification === '18' ||
         media.certification === 'R' ||
-        media.certification === 'NC-17';
+        media.certification === 'NC-17' ||
+        PALABRAS_ADULTO.some(palabra => media.titulo.toLowerCase().includes(palabra.toLowerCase()));
 
     const nsfwTag = esContenidoAdulto ? '<span class="nsfw-tag">+18</span>' : '';
 
@@ -1034,17 +1036,21 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
 
         datos.forEach(item => {
-            // Escudo anti-adulto en frontend
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
-            // Consideramos +18 si: adult=true O certificación es 18/R/NC-17
+            // Detecta TODO tipo de contenido adulto
+            // 1. adult: true (pornografía explícita)
+            // 2. certification: 18, R, NC-17 (clasificación por edades)
+            // 3. keywords en el título (para películas sin certificación)
+            const PALABRAS_ADULTO = ['sex', 'porn', 'erotic', 'erotica', 'sensual', 'xxx', 'desnudo', 'hotel erotica', 'carnal'];
+
             const esContenidoAdulto = item.adult ||
                 item.certification === '18' ||
                 item.certification === 'R' ||
-                item.certification === 'NC-17';
+                item.certification === 'NC-17' ||
+                PALABRAS_ADULTO.some(palabra => item.titulo.toLowerCase().includes(palabra.toLowerCase()));
 
-            // Si es contenido +18 y el filtro está apagado, nos saltamos esta tarjeta
             if (esContenidoAdulto && !isAdultFilterActive) return;
 
             grid.innerHTML += crearTarjetaTMDB(item, tipo);

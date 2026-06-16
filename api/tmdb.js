@@ -67,6 +67,9 @@ export default async function handler(req, res) {
             const releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
                 data.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || '';
 
+            // En el objeto final:
+            certification: releaseDates
+
             return {
                 id: data.id,
                 adult: data.adult,
