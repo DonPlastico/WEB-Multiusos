@@ -1081,7 +1081,7 @@
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
                         style="position: relative; top: 0; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
-                        <i id="icon-watch-status" class="fas fa-eye-slash" style="color: grey;"></i>
+                        <i id="icon-watch-status" class="fas fa-eye-slash" style="color: grey !important;"></i>
                         <span id="watch-count-badge" class="watch-count-badge"></span>
                     </button>
 
@@ -1196,36 +1196,44 @@
 
                         <!-- Columna 3: Valoración y Estado -->
                         <div class="media-rating-col glass-panel padded-panel">
-                            <!-- Mi Valoración Personal-->
-                            <h3 class="detail-section-title">Mi Valoración</h3>
-                            <div class="personal-rating-content">
-                                <div class="rating-score personal-score-box" id="btn-personal-rating"
-                                    title="Haz clic para puntuar">
-                                    <span id="media-detail-personal-value" class="score-big"
-                                        style="color: var(--primary);">?</span><span class="score-max">/10</span>
-                                </div>
-                                <div class="rating-stars personal-stars" id="media-detail-personal-stars">
-                                    <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i
-                                        class="far fa-star"></i><i class="far fa-star"></i>
-                                </div>
-                                <div id="media-detail-personal-text" class="rating-count">Debes marcarla como vista
+                            <!-- Mi Valoración Personal -->
+                            <div class="personal-rating-section">
+                                <h3 class="detail-section-title">Mi Valoración</h3>
+                                <div class="personal-rating-content" id="btn-personal-rating">
+                                    <!-- Estrellas clickeables -->
+                                    <div class="rating-stars personal-stars" id="media-detail-personal-stars">
+                                        <i class="far fa-star" data-value="0.5"></i>
+                                        <i class="far fa-star" data-value="1"></i>
+                                        <i class="far fa-star" data-value="1.5"></i>
+                                        <i class="far fa-star" data-value="2"></i>
+                                        <i class="far fa-star" data-value="2.5"></i>
+                                        <i class="far fa-star" data-value="3"></i>
+                                        <i class="far fa-star" data-value="3.5"></i>
+                                        <i class="far fa-star" data-value="4"></i>
+                                        <i class="far fa-star" data-value="4.5"></i>
+                                        <i class="far fa-star" data-value="5"></i>
+                                    </div>
+                                    <div id="media-detail-personal-text" class="rating-count">Debes marcarla como vista
+                                    </div>
                                 </div>
                             </div>
 
                             <div style="height: 1px; background: var(--border-light); margin: 15px 0;"></div>
 
                             <!-- Valoración Global (La de TMDB) -->
-                            <h3 class="detail-section-title">Valoración Global</h3>
-                            <div class="rating-content global-rating-mini">
-                                <div class="rating-score">
-                                    <span id="media-detail-rating-value" class="score-big"
-                                        style="font-size: 2.2rem;">0.0</span><span class="score-max"
-                                        style="font-size: 0.9rem;">/10</span>
+                            <div class="global-rating-section">
+                                <h3 class="detail-section-title">Valoración Global</h3>
+                                <div class="rating-content global-rating-mini">
+                                    <div class="rating-score">
+                                        <span id="media-detail-rating-value" class="score-big"
+                                            style="font-size: 2.2rem;">0.0</span>
+                                        <span class="score-max" style="font-size: 0.9rem;">/10</span>
+                                    </div>
+                                    <div class="rating-stars" id="media-detail-rating-stars" style="font-size: 1.2rem;">
+                                    </div>
+                                    <div id="media-detail-rating-count" class="rating-count"
+                                        style="font-size: 0.75rem;">-- valoraciones</div>
                                 </div>
-                                <div class="rating-stars" id="media-detail-rating-stars" style="font-size: 1.2rem;">
-                                </div>
-                                <div id="media-detail-rating-count" class="rating-count" style="font-size: 0.75rem;">--
-                                    valoraciones</div>
                             </div>
                         </div>
                     </div>
