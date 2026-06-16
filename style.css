@@ -4368,65 +4368,7 @@ span.flatpickr-weekday {
         white-space: normal !important;
     }
 
-    /* Forzar que el modal ocupe casi toda la pantalla */
-    #media-details-modal .modal-content {
-        height: 98vh !important;
-        max-height: 98vh !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        border-radius: 0 !important;
-    }
-
-    /* Hero más pequeño */
-    #media-detail-hero-bg {
-        height: 25vh !important;
-        min-height: 180px !important;
-        padding-bottom: 15px !important;
-    }
-
-    /* El cuerpo del modal debe ocupar el espacio restante y hacer scroll */
-    .game-detail-body {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        padding: 0 15px 15px 15px !important;
-        max-height: calc(98vh - 200px) !important;
-        /* Ajusta este valor según necesites */
-    }
-
-    /* Reducir padding de los paneles */
-    .padded-panel {
-        padding: 8px !important;
-    }
-
-    /* Reducir gap entre secciones */
-    .media-top-grid {
-        gap: 10px !important;
-        margin-top: 5px !important;
-    }
-
-    .media-bottom-grid {
-        gap: 10px !important;
-        margin-top: 10px !important;
-    }
-
-    /* Ocultar portada en móvil si es necesario */
-    .detail-cover-col {
-        display: none !important;
-    }
-
-    /* Hacer el "Dónde verlo" más compacto */
-    .providers-3col-grid {
-        gap: 6px !important;
-    }
-
-    .provider-col {
-        padding: 6px !important;
-    }
-
-    .platform-btn {
-        font-size: 0.7rem !important;
-        padding: 4px 6px !important;
-    }
+    
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
