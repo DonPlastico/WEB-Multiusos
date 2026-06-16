@@ -3188,13 +3188,13 @@ span.flatpickr-weekday {
 
 /* 2. Padded panels (Dar aire a los cristales) */
 .padded-panel {
-    padding: 20px !important;
+    padding: 10px !important;
 }
 
 /* --- TOP GRID: Portada, Sinopsis, Detalles --- */
 .media-top-grid {
     display: grid;
-    grid-template-columns: 250px 1fr 280px;
+    grid-template-columns: 224px 1fr 300px;
     gap: 15px;
     margin-top: 10px;
     position: relative;
@@ -3800,8 +3800,8 @@ span.flatpickr-weekday {
 /* ===== TABLETS Y PANTALLAS PEQUEÑAS (Max 1100px) ===== */
 @media (max-width: 1100px) {
     .cyber-container {
-        padding: 40px 60px;
-        /* Reducimos el padding gigante lateral */
+        padding: 20px;
+        margin-top: 140px;
     }
 
     .games-layout {
@@ -3892,8 +3892,7 @@ span.flatpickr-weekday {
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
 @media (max-width: 768px) {
     .cyber-container {
-        padding-top: 85px !important;
-        padding: 20px;
+        margin-top: 115px;
     }
 
     .games-content {
