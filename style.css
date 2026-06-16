@@ -3393,7 +3393,8 @@ span.flatpickr-weekday {
     overflow-x: auto;
     padding-bottom: 10px;
     height: 100%;
-    align-items: flex-start;
+    /* MAGIA: 'stretch' fuerza a todos los hijos a tener la misma altura máxima */
+    align-items: stretch;
 }
 
 /* Scrollbar fina exclusiva para el carrusel */
@@ -3426,6 +3427,8 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease, border-color 0.2s ease;
+    height: auto;
+    /* Se adapta a la altura del stretch */
 }
 
 .cast-card:hover {
@@ -3440,6 +3443,8 @@ span.flatpickr-weekday {
     object-fit: cover;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+    /* Evita que la imagen se encoja para dejar espacio al texto */
 }
 
 .cast-info {
@@ -3447,6 +3452,8 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-grow: 1;
+    /* Obliga al contenedor de texto a estirarse hasta el final de la tarjeta */
 }
 
 /* Nombre real (Blanco) */
@@ -3456,7 +3463,6 @@ span.flatpickr-weekday {
     font-size: 0.85rem;
     font-weight: 700;
     line-height: 1.1;
-    /* Cortar a 2 líneas con puntos suspensivos si es muy largo */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -3469,7 +3475,6 @@ span.flatpickr-weekday {
     color: var(--text-muted);
     font-size: 0.7rem;
     line-height: 1.2;
-    /* Cortar a 2 líneas con puntos suspensivos si es muy largo */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
