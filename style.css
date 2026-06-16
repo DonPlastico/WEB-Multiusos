@@ -4196,6 +4196,7 @@ span.flatpickr-weekday {
         gap: 15px;
         padding: 8px 12px;
         flex-wrap: wrap;
+        /* Deja que bajen de línea si no caben */
     }
 
     .nav-links a {
@@ -4217,6 +4218,7 @@ span.flatpickr-weekday {
         height: 220px;
     }
 
+    /* Portada más baja en móvil */
     .profile-avatar {
         width: 90px;
         height: 90px;
@@ -4234,7 +4236,7 @@ span.flatpickr-weekday {
         font-size: 1.5rem;
     }
 
-    /* Modales de personalización */
+    /* Modales de personalización a menos columnas */
     .modal-grid.banner-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -4243,7 +4245,7 @@ span.flatpickr-weekday {
         grid-template-columns: repeat(3, 1fr);
     }
 
-    /* Estadísticas Detalladas */
+    /* Estadísticas Detalladas: Pasamos el grid a columna única */
     .stats-cards-wrapper {
         flex-direction: column;
         gap: 15px;
@@ -4260,6 +4262,7 @@ span.flatpickr-weekday {
         gap: 15px;
     }
 
+    /* 1. Ocultamos la carátula grande en móviles */
     .detail-cover-col {
         display: none;
     }
@@ -4271,19 +4274,25 @@ span.flatpickr-weekday {
 
     .advanced-grid {
         grid-template-columns: 1fr;
+        /* Lista de 1 columna */
     }
 
+    /* 2. Arreglamos los textos largos para que bajen de línea */
     .advanced-item {
         align-items: flex-start;
+        /* Mantiene el icono alineado arriba cuando el texto baja */
     }
 
     .adv-value {
         white-space: normal;
+        /* Le damos permiso para saltar a la línea de abajo */
         word-break: break-word;
+        /* Evita que palabras súper largas rompan la pantalla */
         overflow: visible;
+        /* Quitamos el ocultamiento */
     }
 
-    /* ADMIN PANEL */
+    /* --- ADMIN PANEL (MÓVILES) --- */
     .hero-section.glass-panel {
         padding: 25px 20px !important;
         flex-direction: column;
@@ -4328,6 +4337,7 @@ span.flatpickr-weekday {
 
     /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
 
+    /* Botón del ojo - más pequeño y más arriba */
     #btn-watch-toggle {
         margin-top: 130px !important;
         width: 35px !important;
@@ -4335,97 +4345,27 @@ span.flatpickr-weekday {
         font-size: 1.1rem !important;
     }
 
+    /* Menú contextual del ojo - más arriba también */
     #watch-context-menu {
         top: 160px !important;
     }
 
+    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
     .providers-3col-grid {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
 
+    /* Las columnas de proveedores se apilan verticalmente */
     .provider-col {
         padding: 10px !important;
     }
 
+    /* Los botones de plataformas se vuelven más pequeños en móvil */
     .platform-btn {
         font-size: 0.75rem !important;
         padding: 6px 8px !important;
         white-space: normal !important;
-    }
-
-    /* ===== CHATBOX COMO FOOTER EN TABLETS ===== */
-    .chatbox-container {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        max-height: 55px !important;
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-top: 1px solid var(--border-color) !important;
-        background: var(--bg-secondary) !important;
-        z-index: 9999 !important;
-        overflow: hidden !important;
-        transition: max-height 0.3s ease !important;
-    }
-
-    .chatbox-container:not(.collapsed) {
-        max-height: 80vh !important;
-        height: 80vh !important;
-        border-radius: 12px 12px 0 0 !important;
-    }
-
-    .chatbox-nav-bar {
-        height: 50px !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        background: var(--bg-secondary) !important;
-        flex-shrink: 0 !important;
-        cursor: pointer !important;
-    }
-
-    .chatbox-tabs {
-        height: 50px !important;
-    }
-
-    .chatbox-tab {
-        font-size: 0.8rem !important;
-    }
-
-    .chatbox-view {
-        height: calc(100% - 50px) !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    .chatbox-messages-area {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        padding: 10px !important;
-        max-height: calc(80vh - 100px) !important;
-    }
-
-    .chatbox-sender-area {
-        padding: 8px 12px !important;
-        flex-shrink: 0 !important;
-    }
-
-    .chatbox-send-input {
-        font-size: 0.85rem !important;
-    }
-
-    /* Ajuste para que el modal no quede tapado por el footer */
-    #media-details-modal .modal-content {
-        margin-bottom: 55px !important;
-        height: calc(100vh - 55px) !important;
-        max-height: calc(100vh - 55px) !important;
-    }
-
-    .cyber-modal .modal-content {
-        margin-bottom: 55px !important;
     }
 }
 
@@ -4444,7 +4384,9 @@ span.flatpickr-weekday {
     /* Stats debajo de la portada */
     .profile-stats-wrapper {
         margin-top: 50px;
+        /* CRUCIAL: Lo bajamos para que el avatar no pise a las estadísticas */
         flex-direction: column-reverse;
+        /* El botón de añadir amigo pasa abajo o se alinea */
         align-items: flex-end;
         gap: 10px;
     }
@@ -4453,6 +4395,7 @@ span.flatpickr-weekday {
         padding: 0 10px;
     }
 
+    /* Apretamos los números para que quepan */
     .stat-num {
         font-size: 1rem;
     }
@@ -4461,7 +4404,7 @@ span.flatpickr-weekday {
         font-size: 0.65rem;
     }
 
-    /* Modales */
+    /* Modales a 1 y 2 columnas para no verse microscópicos */
     .modal-content {
         width: 95%;
         padding: 10px;
@@ -4471,32 +4414,39 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
+    /* Banners ocupan todo el ancho */
     .modal-grid.avatar-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .cyber-grid {
         grid-template-columns: repeat(2, 1fr);
+        /* Fuerza siempre 2 columnas */
         gap: 12px;
+        /* Reducimos el hueco entre tarjetas para aprovechar pantalla */
     }
 
     .game-info {
         padding: 10px;
+        /* Reducimos los márgenes internos */
     }
 
     .game-title {
         font-size: 0.85rem;
+        /* Título un poco más pequeño */
         margin-bottom: 4px;
     }
 
     .game-release-info {
         font-size: 0.65rem;
+        /* Texto de fecha más pequeño */
         gap: 4px;
     }
 
     .top-platform-tag {
         font-size: 0.6rem;
         padding: 3px 6px;
+        /* Etiqueta de plataforma más compacta */
         top: 8px;
         left: 8px;
     }
@@ -4509,6 +4459,7 @@ span.flatpickr-weekday {
     /* DRAWER DE FILTROS */
     .filters-overlay {
         display: none;
+        /* Oculto de base */
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.7);
@@ -4518,6 +4469,7 @@ span.flatpickr-weekday {
 
     .filters-overlay.active {
         display: block;
+        /* Aparece de golpe y se difumina */
         animation: fadeOverlay 0.3s ease forwards;
         pointer-events: all;
     }
@@ -4562,7 +4514,7 @@ span.flatpickr-weekday {
 
     #btn-close-filters-drawer:hover,
     #btn-close-movies-mobile:hover,
-    #btn-close-series-mobile:hover {
+    #btn-close-series-mobile:hoverS {
         border-color: var(--primary);
         color: var(--primary);
     }
@@ -4577,20 +4529,25 @@ span.flatpickr-weekday {
 
     .cyber-nav {
         padding: 12px 16px;
+        /* Reducimos el margen lateral gigante del menú superior */
     }
 
     .search-box {
         padding: 10px;
+        /* Menos relleno exterior */
         gap: 8px;
+        /* Menos hueco entre la caja y los botones */
     }
 
     .search-box input {
         padding: 10px 12px;
         min-width: 0;
+        /* Permite que la barra de texto se encoja lo necesario */
     }
 
     .search-box button:not(.btn-mobile-filters) {
         padding: 0 16px;
+        /* Hacemos el botón de la lupa más fino */
     }
 
     .add-friend-panel {
@@ -4609,82 +4566,17 @@ span.flatpickr-weekday {
         margin-right: 20px;
     }
 
+    .chatbox-container {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+        z-index: 10000;
+    }
+
     #social-list-grid {
         grid-template-columns: 1fr;
-    }
-
-    /* ===== CHATBOX COMO FOOTER EN MÓVIL PEQUEÑO ===== */
-    .chatbox-container {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        max-height: 21px !important;
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-top: 1px solid var(--border-color) !important;
-        background: var(--bg-secondary) !important;
-        z-index: 9999 !important;
-        overflow: hidden !important;
-        transition: max-height 0.3s ease !important;
-    }
-
-    .chatbox-container:not(.collapsed) {
-        max-height: 80vh !important;
-        height: 80vh !important;
-        border-radius: 12px 12px 0 0 !important;
-    }
-
-    .chatbox-nav-bar {
-        height: 21px !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        background: var(--bg-secondary) !important;
-        flex-shrink: 0 !important;
-        cursor: pointer !important;
-    }
-
-    .chatbox-tabs {
-        height: 20px !important;
-    }
-
-    .chatbox-tab {
-        font-size: 0.75rem !important;
-    }
-
-    .chatbox-view {
-        height: calc(100% - 45px) !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    .chatbox-messages-area {
-        flex: 1 !important;
-        overflow-y: auto !important;
-        padding: 8px !important;
-        max-height: calc(80vh - 90px) !important;
-    }
-
-    .chatbox-sender-area {
-        padding: 6px 10px !important;
-        flex-shrink: 0 !important;
-    }
-
-    .chatbox-send-input {
-        font-size: 0.8rem !important;
-    }
-
-    /* Ajuste para que el modal no quede tapado por el footer */
-    #media-details-modal .modal-content {
-        margin-bottom: 50px !important;
-        height: calc(100vh - 50px) !important;
-        max-height: calc(100vh - 50px) !important;
-    }
-
-    .cyber-modal .modal-content {
-        margin-bottom: 50px !important;
     }
 }
 
