@@ -2129,11 +2129,14 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // LÓGICA DE PRECIO Y TIENDA (CON ENLACE OFICIAL Y MERCADO GRIS) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
-        detailPriceEl.style.display = 'flex';
-        detailPriceEl.style.flexDirection = 'column';
-        detailPriceEl.style.gap = '10px';
 
-        // 1. EL PRECIO OFICIAL (ITAD)
+        // 1. ESTIRAMOS EL CONTENEDOR: Forzamos que ocupe todo el ancho para que quepa todo
+        const parentItem = detailPriceEl.closest('.advanced-item');
+        if (parentItem) {
+            parentItem.style.gridColumn = '1 / -1';
+        }
+
+        // 2. EL PRECIO OFICIAL (ITAD)
         let htmlPrecioOficial = '';
         if (priceBadge) {
             if (storesRaw && storesRaw !== 'none') {
@@ -2149,37 +2152,38 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
                 if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
                     htmlPrecioOficial = `
-                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display:inline-block; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 5px; color: var(--success); text-decoration: none; font-weight: bold; font-size: 1.1rem; transition: opacity 0.2s; white-space: nowrap;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                             <i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent} <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span>
                         </a>
                     `;
                 } else {
                     htmlPrecioOficial = `
-                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;"><i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent}</span>
-                        <span style="color: var(--text-muted); font-size: 0.9rem;">en ${tiendaBonita}</span>
+                        <span style="display: flex; align-items: center; gap: 5px; color: var(--success); font-weight: bold; font-size: 1.1rem; white-space: nowrap;">
+                            <i class="fas fa-check-circle"></i> Oficial: ${priceBadge.textContent}
+                            <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: normal;">en ${tiendaBonita}</span>
+                        </span>
                     `;
                 }
             } else {
-                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
+                htmlPrecioOficial = `<span style="color: var(--success); font-weight: bold; white-space: nowrap;"><i class="fas fa-check-circle"></i> ${priceBadge.textContent}</span>`;
             }
         } else if (priceNa) {
-            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem;">${priceNa.textContent}</span>`;
+            htmlPrecioOficial = `<span style="color: var(--text-muted); font-size: 0.85rem; white-space: nowrap;">${priceNa.textContent}</span>`;
         } else {
-            htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
+            htmlPrecioOficial = '<span style="color: var(--text-muted); white-space: nowrap;">--</span>';
         }
 
-        // 2. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
-        // Limpiamos el título para la URL (quitamos símbolos raros)
+        // 3. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
         const tituloLimpio = titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
-
         const urlAllKeyShop = `https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/`;
         const urlCDKeys = `https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}`;
 
-        // 3. INYECTAMOS TODO EN EL CONTENEDOR
+        // 4. INYECTAMOS TODO EN UNA ÚNICA FILA HORIZONTAL
         detailPriceEl.innerHTML = `
-            <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
-            
-            <div style="display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: center; width: 100%;">
+                
+                ${htmlPrecioOficial}
+                
                 <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
                     <i class="fas fa-fire"></i> AllKeyShop
                 </a>
