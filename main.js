@@ -2372,7 +2372,12 @@ async function abrirModalMedia(id, tipo) {
     document.getElementById('media-detail-genres').textContent = "--";
     document.getElementById('media-detail-watch-date').textContent = "--";
     document.getElementById('media-detail-watch-status').textContent = "No vista";
-    document.getElementById('media-detail-platforms').innerHTML = '';
+
+    // Vaciamos las 3 columnas nuevas
+    document.getElementById('providers-flatrate').innerHTML = '';
+    document.getElementById('providers-rent').innerHTML = '';
+    document.getElementById('providers-buy').innerHTML = '';
+
     document.getElementById('media-detail-trailer-img').src = '';
     document.getElementById('media-detail-rating-value').textContent = "0.0";
     document.getElementById('media-detail-rating-stars').innerHTML = '';
@@ -2383,18 +2388,16 @@ async function abrirModalMedia(id, tipo) {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // 3. Llamada al servidor (el tmdb.js que actualizaremos luego)
+    // 3. Llamada al servidor
     try {
         const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
         const data = await respuesta.json();
 
-        // 4. Inyectar datos principales
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-description').textContent = data.sinopsis;
         document.getElementById('media-detail-cover-img').src = data.poster;
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
 
-        // 5. Formatear Duración (121 -> 2 h 1 min)
         let textoDuracion = '--';
         if (data.duracion) {
             const horas = Math.floor(data.duracion / 60);
@@ -2405,65 +2408,63 @@ async function abrirModalMedia(id, tipo) {
         }
         document.getElementById('media-detail-duration').textContent = textoDuracion;
 
-        // 6. Géneros (Los prepararemos en el paso de tmdb.js)
         document.getElementById('media-detail-genres').textContent = data.generos || 'N/A';
 
-        // 7. Plataformas de Streaming Dinámicas
-        const platformsContainer = document.getElementById('media-detail-platforms');
-        platformsContainer.innerHTML = '';
+        // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
+        function inyectarPlataformas(lista, contenedorId) {
+            const contenedor = document.getElementById(contenedorId);
+            contenedor.innerHTML = '';
 
-        // Usaremos data.plataformasArray que crearemos en tmdb.js
-        const listaPlats = data.plataformasArray || [];
-
-        if (listaPlats.length > 0) {
-            listaPlats.forEach(plat => {
-                const infoPlat = obtenerEstiloPlataforma(plat);
-                // Si la plataforma requiere color de texto negro (ej: Rakuten amarillo)
-                const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
-
-                platformsContainer.innerHTML += `
-                    <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
-                        <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
-                    </a>
-                `;
-            });
-        } else {
-            platformsContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">No disponible en streaming actualmente.</span>';
+            if (lista && lista.length > 0) {
+                const unicos = [...new Set(lista)]; // Evitamos duplicados
+                unicos.forEach(plat => {
+                    const infoPlat = obtenerEstiloPlataforma(plat);
+                    const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
+                    contenedor.innerHTML += `
+                        <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
+                            <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
+                        </a>
+                    `;
+                });
+            } else {
+                contenedor.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 5px; text-align:center; display:block;">No disponible</span>';
+            }
         }
 
-        // 8. Lógica del Tráiler de YouTube
+        // Inyectamos cada array en su columna
+        inyectarPlataformas(data.suscripcion, 'providers-flatrate');
+        inyectarPlataformas(data.alquiler, 'providers-rent');
+        inyectarPlataformas(data.compra, 'providers-buy');
+
+        // 8. Tráiler
         const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
         const urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
-
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
-        document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster; // Usamos el backdrop de miniatura
+        document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
 
-        // 9. Lógica de Valoración (Nota + Estrellas Dinámicas)
+        // 9. Valoración
         const notaNum = parseFloat(data.nota || 0);
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
 
-        // Votos (Lo añadiremos en tmdb.js)
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
         document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} valoraciones`;
 
-        // Sistema de 5 estrellas basado en la nota sobre 10
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
         for (let i = 1; i <= 5; i++) {
             if (notaSobre5 >= i) {
-                estrellasHtml += '<i class="fas fa-star"></i>'; // Llena
+                estrellasHtml += '<i class="fas fa-star"></i>';
             } else if (notaSobre5 >= i - 0.5) {
-                estrellasHtml += '<i class="fas fa-star-half-alt"></i>'; // Mitad
+                estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
             } else {
-                estrellasHtml += '<i class="far fa-star"></i>'; // Vacía
+                estrellasHtml += '<i class="far fa-star"></i>';
             }
         }
         document.getElementById('media-detail-rating-stars').innerHTML = estrellasHtml;
 
     } catch (err) {
         console.error(err);
-        document.getElementById('media-detail-title').textContent = "Error de conexión";
-        document.getElementById('media-detail-description').textContent = "No se pudieron obtener los detalles completos.";
+        document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
     }
 }
 
