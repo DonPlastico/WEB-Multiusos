@@ -3668,7 +3668,7 @@ span.flatpickr-weekday {
 /* Menú contextual del ojo */
 #watch-context-menu {
     position: absolute;
-    top: 50px;
+    top: 230px !important;
     right: 0;
     min-width: 180px;
     z-index: 100;
