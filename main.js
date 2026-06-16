@@ -2129,11 +2129,17 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // LÓGICA DE PRECIO Y TIENDA (CON ENLACE OFICIAL Y MERCADO GRIS) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
-        detailPriceEl.style.display = 'flex';
-        detailPriceEl.style.flexDirection = 'column';
-        detailPriceEl.style.gap = '10px';
 
-        // 1. EL PRECIO OFICIAL (ITAD)
+        // 1. Forzamos a que este elemento ocupe TODA LA FILA del grid para que quepan los 3 botones
+        const parentItem = detailPriceEl.closest('.advanced-item');
+        if (parentItem) {
+            parentItem.style.gridColumn = '1 / -1';
+        }
+
+        // Limpiamos los estilos en columna anteriores
+        detailPriceEl.style.display = 'block';
+
+        // 2. EL PRECIO OFICIAL (ITAD)
         let htmlPrecioOficial = '';
         if (priceBadge) {
             if (storesRaw && storesRaw !== 'none') {
@@ -2168,21 +2174,20 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
             htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
         }
 
-        // 2. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
-        // Limpiamos el título para la URL (quitamos símbolos raros)
+        // 3. GENERADORES DE URLS DINÁMICAS (MERCADO GRIS)
         const tituloLimpio = titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
-
         const urlAllKeyShop = `https://www.allkeyshop.com/blog/catalogue/search-${tituloLimpio}/`;
         const urlCDKeys = `https://www.cdkeys.com/es_es/catalogsearch/result/?q=${tituloLimpio}`;
 
-        // 3. INYECTAMOS TODO EN EL CONTENEDOR
+        // 4. INYECTAMOS TODO EN UNA ÚNICA FILA (Flex Row)
         detailPriceEl.innerHTML = `
-            <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
-            
-            <div style="display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <div style="margin-right: 8px;">${htmlPrecioOficial}</div>
+                
                 <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
                     <i class="fas fa-fire"></i> AllKeyShop
                 </a>
+                
                 <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
                     <i class="fas fa-key"></i> CDKeys
                 </a>
