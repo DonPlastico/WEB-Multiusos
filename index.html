@@ -1075,23 +1075,28 @@
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- Botón de OJO (estado de vista) - Flotante a la derecha -->
-                <button id="btn-watch-toggle" class="icon-btn close-floating-btn" style="top: 265px; z-index: 10;"
-                    title="Clic izq: Marcar vista | Clic der: Opciones">
-                    <i id="icon-watch-status" class="fas fa-eye-slash"></i>
-                </button>
+                <!-- Contenedor del ojo y menú contextual -->
+                <div style="position: absolute; top: 75px; right: 20px; z-index: 100;">
+                    <!-- Botón de OJO (estado de vista) - Flotante a la derecha -->
+                    <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
+                        style="position: relative; top: 0; right: 0; z-index: 10;"
+                        title="Clic izq: Marcar vista | Clic der: Opciones">
+                        <i id="icon-watch-status" class="fas fa-eye-slash"></i>
+                        <span id="watch-count-badge" class="watch-count-badge"></span>
+                    </button>
 
-                <!-- Menú contextual para el ojo (flotante) -->
-                <div id="watch-context-menu" class="theme-menu user-menu-panel"
-                    style="position: absolute; top: 310px; right: 20px; min-width: 180px; z-index: 100;">
-                    <button class="theme-option" id="btn-context-rewatch">
-                        <i class="fas fa-redo"></i><span>Vista de nuevo</span>
-                    </button>
-                    <div class="dropdown-divider"></div>
-                    <button class="theme-option" id="btn-context-unwatch">
-                        <i class="fas fa-eye-slash" style="color: var(--error);"></i>
-                        <span style="color: var(--error);">Cambiar a NO VISTA</span>
-                    </button>
+                    <!-- Menú contextual para el ojo (flotante) -->
+                    <div id="watch-context-menu" class="theme-menu user-menu-panel"
+                        style="position: absolute; top: 50px; right: 0; min-width: 180px; z-index: 100;">
+                        <button class="theme-option" id="btn-context-rewatch">
+                            <i class="fas fa-redo"></i><span>Vista de nuevo</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="theme-option" id="btn-context-unwatch">
+                            <i class="fas fa-eye-slash" style="color: var(--error);"></i>
+                            <span style="color: var(--error);">Cambiar a NO VISTA</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="game-hero-section" id="media-detail-hero-bg">
