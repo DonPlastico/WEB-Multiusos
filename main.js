@@ -1839,33 +1839,31 @@ async function buscarAmigos() {
     friendEmptyText.textContent = 'Rastreando base de datos...';
 
     try {
-        // 1. Obtener mi sesión y nombre de usuario
+        // 1. Obtener mi sesión y mi ID secreto
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
+        const miId = session.user.id;
 
-        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
-        const miUsername = miPerfil.username;
-
-        // 2. BUSQUEDA: Traer usuarios que coincidan y no sea yo
+        // 2. BUSQUEDA: Traer usuarios que coincidan y no sea yo (ahora pedimos el auth_id)
         const { data: coincidencias, error } = await supabase
             .from('perfiles_publicos')
-            .select('username, avatar')
+            .select('auth_id, username, avatar')
             .ilike('username', `%${query}%`)
-            .neq('username', miUsername)
+            .neq('auth_id', miId)
             .limit(20);
 
         if (error) throw error;
 
-        // 3. Traer a todos los que YA SIGO
+        // 3. Traer a todos los que YA SIGO usando mi ID
         const { data: seguidos } = await supabase
             .from('amistades')
-            .select('receptor')
-            .eq('solicitante', miUsername);
+            .select('receptor_id')
+            .eq('solicitante_id', miId);
 
-        const listaSeguidos = seguidos.map(s => s.receptor);
+        const listaSeguidos = seguidos.map(s => s.receptor_id);
 
-        // 4. FILTRAR: Quitamos de la lista los que ya están en listaSeguidos
-        const resultadosFinales = coincidencias.filter(u => !listaSeguidos.includes(u.username));
+        // 4. FILTRAR: Quitamos de la lista los que ya están en listaSeguidos (comparamos IDs)
+        const resultadosFinales = coincidencias.filter(u => !listaSeguidos.includes(u.auth_id));
 
         // 5. Manejo de vacío
         if (resultadosFinales.length === 0) {
@@ -1892,7 +1890,7 @@ async function buscarAmigos() {
                 <div class="friend-card-info">
                     <h4 class="friend-card-username">${user.username}</h4>
                 </div>
-                <button class="btn-send-request" onclick="seguirUsuario('${user.username}', this)" title="Seguir usuario">
+                <button class="btn-send-request" onclick="seguirUsuario('${user.auth_id}', '${user.username}', this)" title="Seguir usuario">
                     <i class="fas fa-user-plus"></i>
                 </button>
             `;
@@ -1912,8 +1910,8 @@ inputSearchFriend?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') buscarAmigos();
 });
 
-// 4. Acción de seguir (Se ejecuta al darle al botón + de la tarjeta)
-window.seguirUsuario = async function (targetUsername, btnElement) {
+// 4. Acción de seguir (Ahora usa el targetId)
+window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
     try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
@@ -1921,16 +1919,14 @@ window.seguirUsuario = async function (targetUsername, btnElement) {
             return;
         }
 
-        const miEmail = session.user.email;
-        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', miEmail).single();
-        const miUsername = miPerfil.username;
+        const miId = session.user.id; // Ya no buscamos nuestro username, usamos el token
 
-        // Comprobamos si ya lo seguimos
+        // Comprobamos si ya lo seguimos (Por UUID)
         const { data: yaSigue } = await supabase
             .from('amistades')
             .select('id')
-            .eq('solicitante', miUsername)
-            .eq('receptor', targetUsername)
+            .eq('solicitante_id', miId)
+            .eq('receptor_id', targetId)
             .maybeSingle();
 
         if (yaSigue) {
@@ -1938,12 +1934,12 @@ window.seguirUsuario = async function (targetUsername, btnElement) {
             return;
         }
 
-        // INSERT DIRECTO
+        // INSERT DIRECTO CON UUIDs
         const { error: insertError } = await supabase
             .from('amistades')
             .insert([{
-                solicitante: miUsername,
-                receptor: targetUsername
+                solicitante_id: miId,
+                receptor_id: targetId
             }]);
 
         if (insertError) throw insertError;
@@ -1953,7 +1949,7 @@ window.seguirUsuario = async function (targetUsername, btnElement) {
         // 1. Ocultar el botón
         if (btnElement) btnElement.style.display = 'none';
 
-        // 2. Si estamos viendo el perfil de alguien (o el nuestro), refrescamos los contadores
+        // 2. Refrescar contadores
         const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
         if (mainProfileUsername) {
             cargarPerfilPublico(mainProfileUsername);
@@ -2289,23 +2285,25 @@ async function cargarPerfilPublico(usernameTarget) {
         // CARGAR CONTADORES DE SEGUIDORES/SIGUIENDO
         // ============================================
         try {
+            // Extraemos el UUID del perfil que estamos mirando en pantalla
+            const targetId = perfilTarget.auth_id;
+
             // Contamos a cuántos sigue esta persona
             const { count: siguiendoCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('solicitante', usuarioABuscar); // Quitamos .eq('estado', 'aceptada')
+                .eq('solicitante_id', targetId);
 
             // Contamos cuántos siguen a esta persona
             const { count: seguidoresCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
-                .eq('receptor', usuarioABuscar); // Quitamos .eq('estado', 'aceptada')
+                .eq('receptor_id', targetId);
 
             const statNums = document.querySelectorAll('.profile-stats .stat-num');
             if (statNums.length >= 2) {
-                // Hacemos una mini animación para que los números suban visualmente
-                statNums[0].textContent = siguiendoCount || 0; // Siguiendo
-                statNums[1].textContent = seguidoresCount || 0; // Seguidores
+                statNums[0].textContent = siguiendoCount || 0;
+                statNums[1].textContent = seguidoresCount || 0;
             }
         } catch (err) {
             console.error("Error al extraer telemetría de amistades:", err);
@@ -2812,15 +2810,13 @@ window.cargarAlertas = async function () {
     areaNotifs.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">Sincronizando red...</p></div>';
 
     try {
-        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
-        if (!miPerfil) throw new Error("Perfil no encontrado");
-        const miUsername = miPerfil.username;
+        const miId = session.user.id; // Usamos nuestro UUID directamente
 
-        // 1. Buscamos quién nos sigue (en la tabla amistades)
+        // 1. Buscamos quién nos sigue (en la tabla amistades usando receptor_id)
         const { data: seguidores, error } = await supabase
             .from('amistades')
-            .select('solicitante, created_at')
-            .eq('receptor', miUsername)
+            .select('solicitante_id, created_at')
+            .eq('receptor_id', miId)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -2834,15 +2830,17 @@ window.cargarAlertas = async function () {
             return;
         }
 
-        // 2. Extraemos los nombres y buscamos sus avatares en la VISTA SEGURA
-        const solicitantesUsernames = seguidores.map(s => s.solicitante);
-        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', solicitantesUsernames);
+        // 2. Extraemos los IDs y buscamos sus perfiles en la VISTA SEGURA
+        const solicitantesIds = seguidores.map(s => s.solicitante_id);
+        const { data: perfiles } = await supabase.from('perfiles_publicos').select('auth_id, username, avatar').in('auth_id', solicitantesIds);
 
         areaNotifs.innerHTML = '';
 
         seguidores.forEach(seg => {
-            const perfil = perfiles?.find(u => u.username === seg.solicitante);
-            const avatarDB = perfil?.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
+            const perfil = perfiles?.find(u => u.auth_id === seg.solicitante_id);
+            if (!perfil) return;
+
+            const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
@@ -2853,7 +2851,7 @@ window.cargarAlertas = async function () {
                     <div class="notif-card-avatar">${avatarHtml}</div>
                     <div class="notif-card-info">
                         <span class="notif-subtitle">Nuevo seguidor</span>
-                        <span class="notif-title">${seg.solicitante}</span>
+                        <span class="notif-title">${perfil.username}</span>
                     </div>
                 </div>
             `;
@@ -2938,13 +2936,9 @@ async function cargarDatosSociales() {
     const usuarioVisto = document.getElementById('main-profile-username')?.textContent;
     if (!usuarioVisto) return;
 
-    // Saber quién soy yo para mostrar o no el botón de "Dejar de seguir"
+    // Saber quién soy yo (Mi ID)
     const { data: { session } } = await supabase.auth.getSession();
-    let miUsername = null;
-    if (session) {
-        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
-        miUsername = miPerfil?.username;
-    }
+    let miId = session?.user?.id;
 
     // Mostrar estado de carga
     socialGrid.style.display = 'none';
@@ -2956,16 +2950,21 @@ async function cargarDatosSociales() {
     const toIdx = fromIdx + ITEMS_PER_SOCIAL_PAGE - 1;
 
     try {
+        // PRIMERO: Obtenemos el ID del usuario cuyo perfil estamos viendo
+        const { data: perfilVisto } = await supabase.from('perfiles_publicos').select('auth_id').eq('username', usuarioVisto).single();
+        if (!perfilVisto) throw new Error("Perfil no encontrado para extraer ID");
+        const targetId = perfilVisto.auth_id;
+
         // Preparar consulta base a 'amistades'
         let query = supabase.from('amistades').select('*', { count: 'exact' });
 
         if (currentSocialType === 'siguiendo') {
-            query = query.eq('solicitante', usuarioVisto);
+            query = query.eq('solicitante_id', targetId);
         } else {
-            query = query.eq('receptor', usuarioVisto);
+            query = query.eq('receptor_id', targetId);
         }
 
-        // Ordenar del más reciente al más antiguo y aplicar límite
+        // Ordenar y aplicar límite
         const { data: relaciones, count, error } = await query
             .order('created_at', { ascending: false })
             .range(fromIdx, toIdx);
@@ -2979,15 +2978,14 @@ async function cargarDatosSociales() {
         btnSocialPrev.disabled = currentSocialPage <= 1;
         btnSocialNext.disabled = currentSocialPage >= totalPages;
 
-        // Si no hay resultados
         if (!relaciones || relaciones.length === 0) {
             socialEmpty.innerHTML = '<i class="fas fa-user-astronaut fa-fade empty-icon"></i><p id="social-empty-text">La red está vacía.</p>';
             return;
         }
 
-        // Buscar los avatares de esos usuarios en la tabla 'usuarios'
-        const usernamesBuscar = relaciones.map(r => currentSocialType === 'siguiendo' ? r.receptor : r.solicitante);
-        const { data: perfiles } = await supabase.from('perfiles_publicos').select('username, avatar').in('username', usernamesBuscar);
+        // Extraer IDs a buscar y consultar perfiles
+        const idsBuscar = relaciones.map(r => currentSocialType === 'siguiendo' ? r.receptor_id : r.solicitante_id);
+        const { data: perfiles } = await supabase.from('perfiles_publicos').select('auth_id, username, avatar').in('auth_id', idsBuscar);
 
         // Pintar cuadrícula
         socialEmpty.style.display = 'none';
@@ -2995,19 +2993,20 @@ async function cargarDatosSociales() {
         socialGrid.innerHTML = '';
 
         relaciones.forEach(rel => {
-            const targetUsername = currentSocialType === 'siguiendo' ? rel.receptor : rel.solicitante;
-            const perfil = perfiles?.find(p => p.username === targetUsername);
-            const avatarDB = perfil?.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
+            const currId = currentSocialType === 'siguiendo' ? rel.receptor_id : rel.solicitante_id;
+            const perfil = perfiles?.find(p => p.auth_id === currId);
+            if (!perfil) return;
 
+            const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
                 : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
-            // Botón de Dejar de Seguir (SOLO si veo mi propia pestaña de "Siguiendo")
+            // Botón de Dejar de Seguir (Comparamos MI ID con el TARGET ID)
             let actionBtnHtml = '';
-            if (currentSocialType === 'siguiendo' && miUsername === usuarioVisto) {
+            if (currentSocialType === 'siguiendo' && miId === targetId) {
                 actionBtnHtml = `
-                    <button class="btn-remove-friend" onclick="dejarDeSeguir('${targetUsername}', this, event)" title="Dejar de seguir">
+                    <button class="btn-remove-friend" onclick="dejarDeSeguir('${currId}', '${perfil.username}', this, event)" title="Dejar de seguir">
                         <i class="fas fa-user-minus"></i>
                     </button>
                 `;
@@ -3015,14 +3014,13 @@ async function cargarDatosSociales() {
 
             const card = document.createElement('div');
             card.className = 'friend-user-card';
-            // Toda la tarjeta será clicable para ir al perfil de esa persona
-            card.onclick = () => irAPerfilDesdeLista(targetUsername);
+            card.onclick = () => irAPerfilDesdeLista(perfil.username);
             card.style.cursor = 'pointer';
 
             card.innerHTML = `
                 <div class="friend-card-avatar">${avatarHtml}</div>
                 <div class="friend-card-info">
-                    <h4 class="friend-card-username">${targetUsername}</h4>
+                    <h4 class="friend-card-username">${perfil.username}</h4>
                     <span style="font-size:0.7rem; color:var(--text-muted);">${new Date(rel.created_at).toLocaleDateString()}</span>
                 </div>
                 ${actionBtnHtml}
@@ -3052,36 +3050,31 @@ btnSocialNext?.addEventListener('click', () => {
     }
 });
 
-// 5. Función de Dejar de Seguir
-window.dejarDeSeguir = async function (targetUsername, btnElement, evento) {
-    evento.stopPropagation(); // Para no clickear la tarjeta e ir al perfil por accidente
+// 5. Función de Dejar de Seguir (Ahora usa ID)
+window.dejarDeSeguir = async function (targetId, targetUsername, btnElement, evento) {
+    evento.stopPropagation();
 
     if (!confirm(`¿Estás seguro de que quieres dejar de seguir a ${targetUsername}?`)) return;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
-        const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', session.user.email).single();
+        const miId = session.user.id;
 
         const { error } = await supabase.from('amistades')
             .delete()
-            .eq('solicitante', miPerfil.username)
-            .eq('receptor', targetUsername);
+            .eq('solicitante_id', miId)
+            .eq('receptor_id', targetId);
 
         if (error) throw error;
 
         showToast('warning', 'Enlace cortado', `Has dejado de seguir a ${targetUsername}.`);
 
-        // Ocultar tarjeta visualmente
         const card = btnElement.closest('.friend-user-card');
         if (card) card.style.display = 'none';
 
-        // Actualizar contadores del perfil de fondo
         const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
         if (mainProfileUsername) cargarPerfilPublico(mainProfileUsername);
-
-        // Opcional: si quieres que la lista se reorganice automáticamente, descomenta la siguiente línea:
-        // cargarDatosSociales();
 
     } catch (err) {
         console.error(err);
