@@ -4368,7 +4368,148 @@ span.flatpickr-weekday {
         white-space: normal !important;
     }
 
-    
+    /* ===== AJUSTE CRÍTICO PARA QUE EL MODAL QUEPA EN MÓVIL ===== */
+
+    /* Forzar que el modal ocupe toda la pantalla */
+    #media-details-modal .modal-content {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        /* Evita que el modal haga scroll, solo el body */
+    }
+
+    /* Hero más pequeño para dejar espacio al contenido */
+    #media-detail-hero-bg {
+        height: 22vh !important;
+        min-height: 140px !important;
+        padding-bottom: 10px !important;
+        flex-shrink: 0 !important;
+        /* No se encoge */
+    }
+
+    /* Título del hero más pequeño */
+    #media-detail-hero-bg .glitch-text {
+        font-size: 1.8rem !important;
+    }
+
+    /* El cuerpo del modal ocupa el espacio restante y hace scroll */
+    .game-detail-body {
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        padding: 8px 12px 12px 12px !important;
+        min-height: 0 !important;
+        /* CRUCIAL: permite que flex se encoga */
+        height: auto !important;
+    }
+
+    /* Reducir padding de los paneles */
+    .padded-panel {
+        padding: 6px !important;
+    }
+
+    /* Reducir gap entre secciones */
+    .media-top-grid {
+        gap: 6px !important;
+        margin-top: 4px !important;
+    }
+
+    .media-bottom-grid {
+        gap: 6px !important;
+        margin-top: 6px !important;
+    }
+
+    /* Ocultar portada en móvil */
+    .detail-cover-col {
+        display: none !important;
+    }
+
+    /* Hacer el "Dónde verlo" más compacto */
+    .media-where-to-watch {
+        margin-top: 6px !important;
+    }
+
+    .providers-3col-grid {
+        gap: 4px !important;
+        margin-top: 4px !important;
+    }
+
+    .provider-col {
+        padding: 4px !important;
+        gap: 4px !important;
+    }
+
+    .provider-col-title {
+        font-size: 0.65rem !important;
+        padding-bottom: 3px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .platform-btn {
+        font-size: 0.6rem !important;
+        padding: 3px 5px !important;
+        gap: 4px !important;
+    }
+
+    /* Hacer las estrellas más pequeñas */
+    .personal-stars {
+        font-size: 1.2rem !important;
+        gap: 1px !important;
+    }
+
+    .personal-stars i {
+        font-size: 1rem !important;
+    }
+
+    .personal-rating-content {
+        padding: 4px !important;
+        min-height: 30px !important;
+        gap: 4px !important;
+    }
+
+    .rating-count {
+        font-size: 0.7rem !important;
+    }
+
+    /* Reducir el tamaño de las tarjetas de actores */
+    .cast-carousel {
+        gap: 6px !important;
+    }
+
+    .cast-card {
+        min-width: 60px !important;
+        max-width: 60px !important;
+    }
+
+    .cast-img {
+        aspect-ratio: 1/1 !important;
+    }
+
+    .cast-name {
+        font-size: 0.6rem !important;
+    }
+
+    .cast-character {
+        font-size: 0.5rem !important;
+    }
+
+    /* Valoración global más compacta */
+    .global-rating-mini {
+        padding: 4px !important;
+        gap: 2px !important;
+    }
+
+    .global-rating-mini .score-big {
+        font-size: 1.6rem !important;
+    }
+
+    .global-rating-mini .rating-stars {
+        font-size: 0.9rem !important;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
