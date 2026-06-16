@@ -2032,6 +2032,23 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     aplicarFiltros();
 });
 
+document.querySelectorAll('#btn-reset-filters[data-target]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const target = e.target.getAttribute('data-target');
+        if (target === 'movie') {
+            const cb = document.getElementById('adult-filter-movie');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('movie', searchMoviesActual, true);
+        } else if (target === 'tv') {
+            const cb = document.getElementById('adult-filter-series');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('tv', searchSeriesActual, true);
+        }
+    });
+});
+
 // Botones de Limpiar de SERIES y PELÍCULAS
 document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
     btn.addEventListener('click', (e) => {
