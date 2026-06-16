@@ -929,7 +929,7 @@ function crearTarjetaTMDB(media, tipo) {
     const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
 
     // === MISMA LÓGICA QUE EL FILTRO ===
-    const PALABRAS_ADULTO = ['sex', 'porn', 'erotic', 'erotica', 'sensual', 'xxx', 'desnudo', 'hotel erotica', 'carnal'];
+    const PALABRAS_ADULTO = ['sex', 'porn'];
     const esContenidoAdulto = media.adult ||
         media.certification === '18' ||
         media.certification === 'R' ||
