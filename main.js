@@ -928,8 +928,13 @@ function crearTarjetaTMDB(media, tipo) {
     const isMovie = tipo === 'movie';
     const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
 
-    // 1. Lógica del tag NSFW (Solo si es adulto)
-    const nsfwTag = media.adult ? '<span class="nsfw-tag">+18</span>' : '';
+    // Consideramos +18 si: adult=true O certificación es 18/R/NC-17
+    const esContenidoAdulto = media.adult ||
+        media.certification === '18' ||
+        media.certification === 'R' ||
+        media.certification === 'NC-17';
+
+    const nsfwTag = esContenidoAdulto ? '<span class="nsfw-tag">+18</span>' : '';
 
     // info extra segun si es peli o serie
     let extraInfo = '';
@@ -1033,8 +1038,14 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
-            // Si el item es adulto y el filtro está apagado, nos saltamos esta tarjeta
-            if (item.adult && !isAdultFilterActive) return;
+            // Consideramos +18 si: adult=true O certificación es 18/R/NC-17
+            const esContenidoAdulto = item.adult ||
+                item.certification === '18' ||
+                item.certification === 'R' ||
+                item.certification === 'NC-17';
+
+            // Si es contenido +18 y el filtro está apagado, nos saltamos esta tarjeta
+            if (esContenidoAdulto && !isAdultFilterActive) return;
 
             grid.innerHTML += crearTarjetaTMDB(item, tipo);
         });

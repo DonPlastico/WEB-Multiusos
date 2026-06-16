@@ -63,6 +63,10 @@ export default async function handler(req, res) {
                 providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
             }
 
+            // OBTENER CERTIFICACIÓN POR EDAD
+            const releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
+                data.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || '';
+
             return {
                 id: data.id,
                 adult: data.adult,
@@ -73,7 +77,8 @@ export default async function handler(req, res) {
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0),
                 temporadas: tipo === 'tv' ? data.number_of_seasons : null,
                 episodios: tipo === 'tv' ? data.number_of_episodes : null,
-                plataformas: plataformas.length > 0 ? plataformas.join(', ') : 'No disponible en streaming'
+                plataformas: plataformas.length > 0 ? plataformas.join(', ') : 'No disponible en streaming',
+                certification: releaseDates
             };
         });
 
