@@ -3473,15 +3473,29 @@ window.actualizarUIMediaPersonal = function (data) {
     if (window.estadoMediaActual.visto) {
         watchDate.textContent = window.estadoMediaActual.fecha_vista || '--';
 
-        let badge = '';
+        // Calcular badge de veces vista
+        let badgeText = '';
+        let badgeHtml = '';
         if (window.estadoMediaActual.veces_vista > 1) {
             let num = window.estadoMediaActual.veces_vista;
-            let displayNum = num > 20 ? '+20' : `x${num}`;
-            badge = `<span class="watch-count-badge">${displayNum}</span>`;
+            badgeText = num > 20 ? '+20' : `x${num}`;
+            badgeHtml = `<span class="watch-count-badge">${badgeText}</span>`;
+        }
+
+        // === BADGE DEL OJO FLOTANTE ===
+        const badgeElement = document.getElementById('watch-count-badge');
+        if (badgeElement) {
+            if (window.estadoMediaActual.veces_vista > 1) {
+                badgeElement.textContent = badgeText;
+                badgeElement.style.display = 'block';
+            } else {
+                badgeElement.style.display = 'none';
+            }
         }
 
         // TEXTO ESTÁTICO (en detalles técnicos)
-        watchStatus.innerHTML = `Vista ${badge}`;
+        let badgeStatic = window.estadoMediaActual.veces_vista > 1 ? ` <span class="watch-count-badge">${badgeText}</span>` : '';
+        watchStatus.innerHTML = `Vista ${badgeStatic}`;
         if (iconStatusText) {
             iconStatusText.className = 'fas fa-eye';
             iconStatusText.style.color = 'var(--primary)';
@@ -3520,6 +3534,12 @@ window.actualizarUIMediaPersonal = function (data) {
     } else {
         // Reset a NO VISTO
         watchDate.textContent = '--';
+
+        // === OCULTAR BADGE ===
+        const badgeElement = document.getElementById('watch-count-badge');
+        if (badgeElement) {
+            badgeElement.style.display = 'none';
+        }
 
         // TEXTO ESTÁTICO
         watchStatus.textContent = 'No vista';

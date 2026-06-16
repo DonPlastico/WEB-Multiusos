@@ -3622,8 +3622,8 @@ span.flatpickr-weekday {
     top: 265px;
     right: 20px;
     z-index: 100;
-    background: rgba(10, 10, 15, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--text-muted);
     backdrop-filter: blur(5px);
     width: 45px;
     height: 45px;
@@ -3631,11 +3631,13 @@ span.flatpickr-weekday {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-main);
+    color: var(--text-muted);
     font-size: 1.3rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    /* <-- Necesario para el badge */
 }
 
 #btn-watch-toggle:hover {
@@ -3646,14 +3648,19 @@ span.flatpickr-weekday {
     box-shadow: 0 0 20px var(--primary-soft);
 }
 
+/* Estado VISTO (verde) */
 #btn-watch-toggle.watched {
     border-color: var(--success);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
 }
 
 #btn-watch-toggle.watched:hover {
     background: var(--success);
+    color: white;
     border-color: var(--success);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
 }
 
 /* Estado "No visto" - Ojo tachado (default) */
@@ -3713,7 +3720,35 @@ span.flatpickr-weekday {
     margin: 6px 0;
 }
 
+/* Badge de veces vistas (x2, x3, +20) */
+#btn-watch-toggle .watch-count-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    z-index: 101;
+    background: var(--primary);
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    min-width: 18px;
+    text-align: center;
+    font-family: var(--font-cyber);
+    border: 1px solid var(--bg-main);
+    display: none;
+    /* Oculto por defecto, se muestra con JS */
+    animation: pulse-badge 2s infinite;
+}
 
+/* Cuando el botón está en estado "VISTO" (verde) */
+#btn-watch-toggle.watched .watch-count-badge {
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
 
 
 
@@ -4487,5 +4522,20 @@ span.flatpickr-weekday {
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+/* Animación sutil del badge */
+@keyframes pulse-badge {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
     }
 }
