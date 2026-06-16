@@ -1088,7 +1088,7 @@
                             <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
                         </div>
 
-                        <div class="detail-desc-col glass-panel">
+                        <div class="detail-desc-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Sinopsis</h3>
                             <div class="desc-scroll-area">
                                 <p id="media-detail-description" class="game-desc-text">Cargando datos del servidor...
@@ -1096,7 +1096,7 @@
                             </div>
                         </div>
 
-                        <div class="detail-tech-col glass-panel">
+                        <div class="detail-tech-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Detalles Técnicos</h3>
                             <div class="tech-info-content">
                                 <div class="tech-item"><i class="fas fa-clock"></i> <span
@@ -1114,14 +1114,29 @@
                         </div>
                     </div>
 
-                    <div class="media-where-to-watch glass-panel">
+                    <div class="media-where-to-watch glass-panel padded-panel">
                         <h3 class="detail-section-title">Dónde verlo</h3>
-                        <div id="media-detail-platforms" class="streaming-platforms-grid">
+
+                        <div class="providers-3col-grid">
+                            <div class="provider-col">
+                                <h4 class="provider-col-title">Retransmisión</h4>
+                                <div id="providers-flatrate" class="streaming-platforms-grid"></div>
+                            </div>
+
+                            <div class="provider-col">
+                                <h4 class="provider-col-title">Alquiler</h4>
+                                <div id="providers-rent" class="streaming-platforms-grid"></div>
+                            </div>
+
+                            <div class="provider-col">
+                                <h4 class="provider-col-title">Compra</h4>
+                                <div id="providers-buy" class="streaming-platforms-grid"></div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="media-bottom-grid">
-                        <div class="media-trailer-col glass-panel">
+                        <div class="media-trailer-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Tráiler</h3>
                             <div class="trailer-content">
                                 <div class="trailer-thumbnail-container">
@@ -1134,15 +1149,14 @@
                             </div>
                         </div>
 
-                        <div class="media-rating-col glass-panel">
+                        <div class="media-rating-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Valoración Global</h3>
                             <div class="rating-content">
                                 <div class="rating-score">
                                     <span id="media-detail-rating-value" class="score-big">0.0</span><span
                                         class="score-max">/10</span>
                                 </div>
-                                <div class="rating-stars" id="media-detail-rating-stars">
-                                </div>
+                                <div class="rating-stars" id="media-detail-rating-stars"></div>
                                 <div id="media-detail-rating-count" class="rating-count">-- valoraciones</div>
                             </div>
                         </div>
