@@ -3461,8 +3461,14 @@ window.actualizarUIMediaPersonal = function (data) {
     const personalStars = document.getElementById('media-detail-personal-stars');
     const personalText = document.getElementById('media-detail-personal-text');
     const watchDate = document.getElementById('media-detail-watch-date');
+
+    // === NUEVOS ELEMENTOS PARA EL ESTADO DE VISIONADO (TEXTO ESTÁTICO) ===
     const watchStatus = document.getElementById('media-detail-watch-status');
-    const iconStatus = document.getElementById('icon-watched-status');
+    const iconStatusText = document.getElementById('icon-watch-status-text');
+
+    // === ELEMENTOS DEL BOTÓN FLOTANTE ===
+    const iconWatchStatus = document.getElementById('icon-watch-status');
+    const btnWatchToggle = document.getElementById('btn-watch-toggle');
 
     if (window.estadoMediaActual.visto) {
         watchDate.textContent = window.estadoMediaActual.fecha_vista || '--';
@@ -3473,9 +3479,22 @@ window.actualizarUIMediaPersonal = function (data) {
             let displayNum = num > 20 ? '+20' : `x${num}`;
             badge = `<span class="watch-count-badge">${displayNum}</span>`;
         }
+
+        // TEXTO ESTÁTICO (en detalles técnicos)
         watchStatus.innerHTML = `Vista ${badge}`;
-        iconStatus.className = 'fas fa-eye';
-        iconStatus.style.color = 'var(--primary)';
+        if (iconStatusText) {
+            iconStatusText.className = 'fas fa-eye';
+            iconStatusText.style.color = 'var(--primary)';
+        }
+
+        // BOTÓN FLOTANTE (el ojo)
+        if (iconWatchStatus) {
+            iconWatchStatus.className = 'fas fa-eye';
+            iconWatchStatus.style.color = 'var(--primary)';
+        }
+        if (btnWatchToggle) {
+            btnWatchToggle.classList.add('watched');
+        }
 
         // Pintar Nota Personal
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
@@ -3484,7 +3503,6 @@ window.actualizarUIMediaPersonal = function (data) {
             personalText.textContent = "Tu nota personal";
             personalStars.classList.add('voted');
 
-            // Llenar estrellas
             const notaSobre5 = nota / 2;
             let str = '';
             for (let i = 1; i <= 5; i++) {
@@ -3502,9 +3520,22 @@ window.actualizarUIMediaPersonal = function (data) {
     } else {
         // Reset a NO VISTO
         watchDate.textContent = '--';
+
+        // TEXTO ESTÁTICO
         watchStatus.textContent = 'No vista';
-        iconStatus.className = 'fas fa-eye-slash';
-        iconStatus.style.color = 'var(--text-muted)';
+        if (iconStatusText) {
+            iconStatusText.className = 'fas fa-eye-slash';
+            iconStatusText.style.color = 'var(--text-muted)';
+        }
+
+        // BOTÓN FLOTANTE
+        if (iconWatchStatus) {
+            iconWatchStatus.className = 'fas fa-eye-slash';
+            iconWatchStatus.style.color = 'var(--text-muted)';
+        }
+        if (btnWatchToggle) {
+            btnWatchToggle.classList.remove('watched');
+        }
 
         personalValue.textContent = '?';
         personalText.textContent = "Debes marcarla como vista";
@@ -3564,8 +3595,8 @@ async function guardarInteraccionMedia(updates) {
 }
 
 // 3. EVENTOS (Clics en Ojo y Valoración)
-const btnToggleWatched = document.getElementById('btn-toggle-watched');
-const contextMenuWatched = document.getElementById('watched-context-menu');
+const btnToggleWatched = document.getElementById('btn-watch-toggle');
+const contextMenuWatched = document.getElementById('watch-context-menu');
 
 // CLIC PRINCIPAL (Izquierdo en PC o Toque en Móvil)
 btnToggleWatched?.addEventListener('click', (e) => {
