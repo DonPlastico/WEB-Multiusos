@@ -2507,6 +2507,22 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             castContainer.innerHTML = '<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">No hay información del reparto en el Nexus.</div>';
         }
 
+        // 11. OBTENER ESTADO PERSONAL DEL USUARIO (Mi Nota y Visto)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            const { data: userMedia } = await supabase
+                .from('user_media')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .eq('media_id', id.toString())
+                .eq('tipo', tipo)
+                .maybeSingle();
+
+            actualizarUIMediaPersonal(userMedia);
+        } else {
+            actualizarUIMediaPersonal(null);
+        }
+
     } catch (err) {
         console.error(err);
         document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
@@ -3430,3 +3446,186 @@ window.irAPerfilDesdeLista = function (usernameTarget) {
     cerrarListaSocial(); // Cerramos el modal
     cambiarVista('profile', true, usernameTarget); // Usamos tu router para ir a su perfil
 };
+
+// ==========================================================================
+//   SISTEMA DE VISIONADO Y NOTA PERSONAL (Estilo TV Time / Letterboxd)
+// ==========================================================================
+
+window.estadoMediaActual = null; // Guardará en RAM el estado del modal abierto
+
+// 1. DIBUJAR INTERFAZ: Esta función pinta las estrellas, el ojo y el badge según los datos
+window.actualizarUIMediaPersonal = function (data) {
+    window.estadoMediaActual = data || { visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null };
+
+    const personalValue = document.getElementById('media-detail-personal-value');
+    const personalStars = document.getElementById('media-detail-personal-stars');
+    const personalText = document.getElementById('media-detail-personal-text');
+    const watchDate = document.getElementById('media-detail-watch-date');
+    const watchStatus = document.getElementById('media-detail-watch-status');
+    const iconStatus = document.getElementById('icon-watched-status');
+
+    if (window.estadoMediaActual.visto) {
+        watchDate.textContent = window.estadoMediaActual.fecha_vista || '--';
+
+        let badge = '';
+        if (window.estadoMediaActual.veces_vista > 1) {
+            let num = window.estadoMediaActual.veces_vista;
+            let displayNum = num > 20 ? '+20' : `x${num}`;
+            badge = `<span class="watch-count-badge">${displayNum}</span>`;
+        }
+        watchStatus.innerHTML = `Vista ${badge}`;
+        iconStatus.className = 'fas fa-eye';
+        iconStatus.style.color = 'var(--primary)';
+
+        // Pintar Nota Personal
+        if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
+            const nota = parseFloat(window.estadoMediaActual.nota_personal);
+            personalValue.textContent = nota.toFixed(1);
+            personalText.textContent = "Tu nota personal";
+            personalStars.classList.add('voted');
+
+            // Llenar estrellas
+            const notaSobre5 = nota / 2;
+            let str = '';
+            for (let i = 1; i <= 5; i++) {
+                if (notaSobre5 >= i) str += '<i class="fas fa-star"></i>';
+                else if (notaSobre5 >= i - 0.5) str += '<i class="fas fa-star-half-alt"></i>';
+                else str += '<i class="far fa-star"></i>';
+            }
+            personalStars.innerHTML = str;
+        } else {
+            personalValue.textContent = '?';
+            personalText.textContent = "Haz clic para puntuar";
+            personalStars.classList.remove('voted');
+            personalStars.innerHTML = '<i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>';
+        }
+    } else {
+        // Reset a NO VISTO
+        watchDate.textContent = '--';
+        watchStatus.textContent = 'No vista';
+        iconStatus.className = 'fas fa-eye-slash';
+        iconStatus.style.color = 'var(--text-muted)';
+
+        personalValue.textContent = '?';
+        personalText.textContent = "Debes marcarla como vista";
+        personalStars.classList.remove('voted');
+        personalStars.innerHTML = '<i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>';
+    }
+};
+
+// 2. SINCRONIZAR CON BASE DE DATOS
+async function guardarInteraccionMedia(updates) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        showToast('error', 'Acceso denegado', 'Inicia sesión para guardar tu progreso.');
+        return;
+    }
+
+    const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
+    if (!memoInfo.id || !memoInfo.tipo) return;
+
+    // Fusionamos los datos actuales con los nuevos
+    window.estadoMediaActual = { ...window.estadoMediaActual, ...updates };
+    actualizarUIMediaPersonal(window.estadoMediaActual); // Actualiza la UI instantáneamente (sensación de rapidez)
+
+    try {
+        // Buscamos si ya existe el registro
+        const { data: exist } = await supabase
+            .from('user_media')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .eq('media_id', memoInfo.id.toString())
+            .eq('tipo', memoInfo.tipo)
+            .maybeSingle();
+
+        if (exist) {
+            await supabase.from('user_media').update({
+                visto: window.estadoMediaActual.visto,
+                veces_vista: window.estadoMediaActual.veces_vista,
+                fecha_vista: window.estadoMediaActual.fecha_vista,
+                nota_personal: window.estadoMediaActual.nota_personal
+            }).eq('id', exist.id);
+        } else {
+            await supabase.from('user_media').insert({
+                user_id: session.user.id,
+                media_id: memoInfo.id.toString(),
+                tipo: memoInfo.tipo,
+                visto: window.estadoMediaActual.visto,
+                veces_vista: window.estadoMediaActual.veces_vista,
+                fecha_vista: window.estadoMediaActual.fecha_vista,
+                nota_personal: window.estadoMediaActual.nota_personal
+            });
+        }
+        showToast('success', 'Guardado', 'Sincronizado con el Nexus correctamente.');
+    } catch (e) {
+        console.error(e);
+        showToast('error', 'Error', 'Fallo al sincronizar con la base de datos.');
+    }
+}
+
+// 3. EVENTOS (Clics en Ojo y Valoración)
+const btnToggleWatched = document.getElementById('btn-toggle-watched');
+const contextMenuWatched = document.getElementById('watched-context-menu');
+
+// CLIC IZQUIERDO (Marcar como vista la 1ª vez)
+btnToggleWatched?.addEventListener('click', () => {
+    if (!window.estadoMediaActual) return;
+
+    if (window.estadoMediaActual.visto) {
+        showToast('info', 'Ya vista', 'Haz clic derecho sobre el ojo para ver más opciones (x2, No vista).');
+        return;
+    }
+
+    // Al ser la primera vez, generamos la fecha actual formato "25 oct 2024"
+    const fechaHoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    guardarInteraccionMedia({ visto: true, veces_vista: 1, fecha_vista: fechaHoy });
+});
+
+// CLIC DERECHO (Menú Opciones)
+btnToggleWatched?.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (!window.estadoMediaActual || !window.estadoMediaActual.visto) return; // Si no la ha visto, no hay opciones extra
+    contextMenuWatched.classList.toggle('show');
+});
+
+// Clic fuera cierra el menú derecho
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#btn-toggle-watched') && !e.target.closest('#watched-context-menu')) {
+        contextMenuWatched?.classList.remove('show');
+    }
+});
+
+// Botón "Vista de nuevo" (Suma x2, x3...)
+document.getElementById('btn-context-rewatch')?.addEventListener('click', () => {
+    contextMenuWatched.classList.remove('show');
+    if (!window.estadoMediaActual) return;
+    let veces = (window.estadoMediaActual.veces_vista || 1) + 1;
+    guardarInteraccionMedia({ veces_vista: veces }); // Nota: No modificamos la fecha inicial
+});
+
+// Botón "Cambiar a NO VISTA" (Resetea todo)
+document.getElementById('btn-context-unwatch')?.addEventListener('click', () => {
+    contextMenuWatched.classList.remove('show');
+    guardarInteraccionMedia({ visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null });
+});
+
+// CLIC EN EL PANEL DE VALORACIÓN (Para poner nota)
+document.getElementById('btn-personal-rating')?.addEventListener('click', () => {
+    if (!window.estadoMediaActual || !window.estadoMediaActual.visto) {
+        showToast('error', 'Acción denegada', 'Debes marcar la película/serie como vista antes de poder valorarla.');
+        return;
+    }
+
+    let notaActual = window.estadoMediaActual.nota_personal ? window.estadoMediaActual.nota_personal : "";
+    let notaStr = prompt("Introduce tu nota del 0 al 10 (se permiten decimales, ej: 8.5):", notaActual);
+
+    if (notaStr === null) return; // Si le da a cancelar
+
+    let nota = parseFloat(notaStr.replace(',', '.')); // Por si ponen coma en vez de punto
+    if (isNaN(nota) || nota < 0 || nota > 10) {
+        showToast('error', 'Nota inválida', 'Debes introducir un número válido entre 0 y 10.');
+        return;
+    }
+
+    guardarInteraccionMedia({ nota_personal: nota });
+});
