@@ -2437,10 +2437,23 @@ async function abrirModalMedia(id, tipo) {
         inyectarPlataformas(data.compra, 'providers-buy');
 
         // 8. Tráiler
-        const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
-        const urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
+        let urlTrailer = '';
+        if (data.trailer_id) {
+            // Si tenemos el ID oficial, vamos directo al vídeo
+            urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
+            document.getElementById('media-detail-trailer-duration').textContent = "OFICIAL";
+
+            // BONUS: Ponemos la miniatura real del vídeo directo desde los servidores de YouTube
+            document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
+        } else {
+            // Fallback: Si la peli es rara y no tiene tráiler en TMDB, hacemos la búsqueda
+            const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
+            urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
+            document.getElementById('media-detail-trailer-duration').textContent = "BÚSQUEDA";
+            document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
+        }
+
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
-        document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
 
         // 9. Valoración
         const notaNum = parseFloat(data.nota || 0);

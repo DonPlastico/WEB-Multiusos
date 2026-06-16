@@ -18,15 +18,21 @@ export default async function handler(req, res) {
         // DETALLES DE UN SOLO ITEM
         // =========================================================
         if (id) {
-            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&append_to_response=watch/providers`, { headers });
+            // 1. AÑADIMOS "videos" y los idiomas es/en a la petición
+            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos`, { headers });
             const data = await resDetalle.json();
 
             const providersES = data['watch/providers']?.results?.ES;
 
-            // EXTRAEMOS LAS 3 CATEGORÍAS EN FORMATO ARRAY
             const suscripcion = providersES?.flatrate ? providersES.flatrate.map(p => p.provider_name) : [];
             const alquiler = providersES?.rent ? providersES.rent.map(p => p.provider_name) : [];
             const compra = providersES?.buy ? providersES.buy.map(p => p.provider_name) : [];
+
+            // 2. BUSCAMOS EL TRÁILER (Priorizamos YouTube)
+            const videos = data.videos?.results || [];
+            let trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer');
+            if (!trailer) trailer = videos.find(v => v.site === 'YouTube'); // Fallback a cualquier vídeo oficial
+            const trailerId = trailer ? trailer.key : null;
 
             return res.status(200).json({
                 id: data.id,
@@ -42,6 +48,7 @@ export default async function handler(req, res) {
                 suscripcion: suscripcion,
                 alquiler: alquiler,
                 compra: compra,
+                trailer_id: trailerId,
                 temporadas: data.number_of_seasons,
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
             });
