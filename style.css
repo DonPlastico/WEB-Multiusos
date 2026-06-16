@@ -3529,7 +3529,87 @@ span.flatpickr-weekday {
     letter-spacing: 0.5px;
 }
 
+/* ==========================================================================
+   MI VALORACIÓN PERSONAL Y ESTADO DE VISIONADO
+   ========================================================================== */
 
+/* Panel de "Mi Valoración" */
+.personal-rating-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px;
+    background: rgba(99, 102, 241, 0.05);
+    /* Un fondo muy suave del color primario */
+    border: 1px dashed var(--primary-soft);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.personal-rating-content:hover {
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.personal-score-box .score-big {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+/* Estrellas personales (Apagadas por defecto) */
+.personal-stars {
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    transition: color 0.3s;
+}
+
+/* Cuando el usuario haya votado, se encenderán */
+.personal-stars.voted {
+    color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* Reducimos el panel Global para darle protagonismo al Personal */
+.global-rating-mini {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    gap: 2px !important;
+}
+
+/* Botón interactivo del Ojo (Visto) */
+#btn-toggle-watched {
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+    margin-left: -10px;
+    /* Alineación perfecta con el icono de fecha */
+}
+
+#btn-toggle-watched:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+/* Badge de las veces vistas (el x2, x3...) */
+.watch-count-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-left: 6px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px var(--primary-soft);
+    letter-spacing: 0.5px;
+}
 
 
 
