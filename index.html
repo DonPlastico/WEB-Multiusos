@@ -1068,6 +1068,44 @@
             </div>
         </div>
 
+        <!-- modal de detalles de peliculas/series -->
+        <div id="media-details-modal" class="cyber-modal">
+            <div class="modal-content glass-panel game-details-panel">
+                <button id="close-media-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="game-hero-section" id="media-detail-hero-bg">
+                    <div class="hero-overlay-gradient"></div>
+                    <div class="hero-content-centered">
+                        <h1 id="media-detail-title" class="glitch-text" style="font-size: 3.5rem;">Título</h1>
+                        <div id="media-detail-info" class="detail-platforms-badges"></div>
+                    </div>
+                </div>
+
+                <div class="game-detail-body">
+                    <div class="game-detail-grid">
+                        <div class="detail-cover-col">
+                            <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
+                        </div>
+                        <div class="detail-desc-col glass-panel">
+                            <h3 class="detail-section-title">Sinopsis</h3>
+                            <div class="desc-scroll-area">
+                                <p id="media-detail-description" class="game-desc-text">Cargando datos del servidor...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-advanced-info glass-panel">
+                        <h3 class="detail-section-title">Detalles Técnicos</h3>
+                        <div class="advanced-grid" id="media-detail-advanced">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- modal pa buscar y agregar amigos -->
         <div id="add-friend-modal" class="cyber-modal">
             <div class="modal-content glass-panel add-friend-panel">

@@ -2281,6 +2281,82 @@ async function llamarDetallesJuego(idJuego, titulo) {
 }
 
 // ==========================================================================
+//   MODAL DE DETALLES PELÍCULAS/SERIES
+// ==========================================================================
+const modalMedia = document.getElementById('media-details-modal');
+const btnCerrarMedia = document.getElementById('close-media-modal');
+
+// Escuchador genérico para ambas grillas
+document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.game-card');
+        if (!card) return;
+
+        // Extraer info de la tarjeta (asegúrate de que tus tarjetas TMDB tengan estos data attributes)
+        const id = card.getAttribute('data-id');
+        const tipo = card.getAttribute('data-type'); // 'movie' o 'tv'
+
+        abrirModalMedia(id, tipo);
+    });
+});
+
+async function abrirModalMedia(id, tipo) {
+    // 1. Resetear UI del modal
+    document.getElementById('media-detail-title').textContent = "Cargando...";
+    document.getElementById('media-detail-description').textContent = "Estableciendo conexión con el Nexus...";
+    document.getElementById('media-detail-advanced').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    // 2. Abrir Modal
+    modalMedia.classList.add('show');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+
+    // 3. Llamar a la API (implementaremos esto en el siguiente paso)
+    cargarDetallesTMDB(id, tipo);
+}
+
+// Cierre del modal
+function cerrarModalMedia() {
+    modalMedia.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+}
+
+btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
+modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
+
+async function cargarDetallesTMDB(id, tipo) {
+    try {
+        // Necesitaremos crear este endpoint en tu server o usar una query específica en tmdb.js
+        const url = `/api/tmdb?id=${id}&tipo=${tipo}&detalles=true`;
+        const respuesta = await fetch(url);
+        const data = await respuesta.json();
+
+        // Actualizar UI
+        document.getElementById('media-detail-title').textContent = data.titulo;
+        document.getElementById('media-detail-description').textContent = data.sinopsis;
+        document.getElementById('media-detail-cover-img').src = data.poster;
+        document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
+
+        // Inyectar Detalles Técnicos dinámicos
+        let htmlInfo = `
+            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-calendar"></i></span><span class="adv-label">Estreno:</span><span class="adv-value">${data.fecha}</span></div>
+            <div class="advanced-item"><span class="adv-icon"><i class="fas fa-star"></i></span><span class="adv-label">Nota:</span><span class="adv-value">${data.nota}</span></div>
+        `;
+
+        if (tipo === 'tv') {
+            htmlInfo += `<div class="advanced-item"><span class="adv-icon"><i class="fas fa-tv"></i></span><span class="adv-label">Temporadas:</span><span class="adv-value">${data.temporadas}</span></div>`;
+        }
+
+        document.getElementById('media-detail-advanced').innerHTML = htmlInfo;
+
+    } catch (error) {
+        console.error("Error al cargar detalles media:", error);
+        document.getElementById('media-detail-description').textContent = "Error al conectar con la base de datos.";
+    }
+}
+
+// ==========================================================================
 //   CARGA DINÁMICA DE PERFILES PÚBLICOS
 // ==========================================================================
 async function cargarPerfilPublico(usernameTarget) {

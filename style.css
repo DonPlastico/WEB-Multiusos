@@ -9,8 +9,6 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-
-
 *::-webkit-scrollbar {
     width: 4px;
 }
@@ -3125,6 +3123,62 @@ span.flatpickr-weekday {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
     transform: scale(1.05);
 }
+
+/* ==========================================================================
+   MODAL DE DETALLES PELIS/SERIES (REPLICA ESTILO PLAYNITE)
+   ========================================================================== */
+
+/* Reutilizamos las clases existentes de game-details-panel para consistencia */
+#media-details-modal .modal-content {
+    width: 90vw !important;
+    height: 90vh !important;
+    max-width: 1920px !important;
+    max-height: 1080px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-main) !important;
+}
+
+#media-detail-hero-bg {
+    position: relative;
+    height: 45vh;
+    min-height: 350px;
+    background-size: cover;
+    background-position: top center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 50px;
+    flex-shrink: 0;
+}
+
+#media-detail-info {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
