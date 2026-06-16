@@ -18,8 +18,8 @@ export default async function handler(req, res) {
         // DETALLES DE UN SOLO ITEM
         // =========================================================
         if (id) {
-            // 1. AÑADIMOS "videos" y los idiomas es/en a la petición
-            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos`, { headers });
+            // 1. AÑADIMOS "credits" a la petición para traernos a los actores
+            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits`, { headers });
             const data = await resDetalle.json();
 
             const providersES = data['watch/providers']?.results?.ES;
@@ -33,6 +33,17 @@ export default async function handler(req, res) {
             let trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer');
             if (!trailer) trailer = videos.find(v => v.site === 'YouTube'); // Fallback a cualquier vídeo oficial
             const trailerId = trailer ? trailer.key : null;
+
+            // 3. EXTRAEMOS EL REPARTO (Cogeremos los 15 primeros actores para el carrusel)
+            const actoresBruto = data.credits?.cast || [];
+            const repartoFormateado = actoresBruto.slice(0, 15).map(actor => {
+                return {
+                    nombre: actor.name,
+                    personaje: actor.character,
+                    // Usamos w185 que es un tamaño ideal para las tarjetas pequeñas, carga súper rápido
+                    foto: actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : null
+                };
+            });
 
             return res.status(200).json({
                 id: data.id,
@@ -49,6 +60,7 @@ export default async function handler(req, res) {
                 alquiler: alquiler,
                 compra: compra,
                 trailer_id: trailerId,
+                reparto: repartoFormateado, // <--- ENVIAMOS EL REPARTO AL FRONTEND
                 temporadas: data.number_of_seasons,
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
             });
@@ -83,7 +95,7 @@ export default async function handler(req, res) {
                 providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
             }
 
-            // OBTENER CERTIFICACIÓN POR EDAD (Arreglado el error de sintaxis y soporte para series)
+            // OBTENER CERTIFICACIÓN POR EDAD 
             let releaseDates = '';
             if (tipo === 'movie') {
                 releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||

@@ -2369,6 +2369,7 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
 async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
+    // 1. Resetear y preparar UI
     document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
     document.getElementById('media-detail-description').textContent = "Descargando datos...";
     document.getElementById('media-detail-duration').textContent = "--";
@@ -2384,10 +2385,15 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('media-detail-rating-stars').innerHTML = '';
     document.getElementById('media-detail-rating-count').textContent = "-- valoraciones";
 
+    // Reseteamos el panel de actores con un loader
+    document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; width: 100%;"><i class="fas fa-circle-notch fa-spin"></i> Cargando actores...</div>';
+
+    // 2. Abrir Modal
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
+    // 3. Llamada al servidor
     try {
         const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
         const data = await respuesta.json();
@@ -2417,17 +2423,24 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             textoDuracion = `${data.temporadas} Temporada(s)`;
         }
         document.getElementById('media-detail-duration').textContent = textoDuracion;
+
         document.getElementById('media-detail-genres').textContent = data.generos || 'N/A';
 
+        // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
         function inyectarPlataformas(lista, contenedorId) {
             const contenedor = document.getElementById(contenedorId);
             contenedor.innerHTML = '';
+
             if (lista && lista.length > 0) {
-                const unicos = [...new Set(lista)];
+                const unicos = [...new Set(lista)]; // Evitamos duplicados
                 unicos.forEach(plat => {
                     const infoPlat = obtenerEstiloPlataforma(plat);
                     const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
-                    contenedor.innerHTML += `<a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()"><i class="fas fa-play-circle"></i> ${plat.toUpperCase()}</a>`;
+                    contenedor.innerHTML += `
+                        <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
+                            <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
+                        </a>
+                    `;
                 });
             } else {
                 contenedor.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 5px; text-align:center; display:block;">No disponible</span>';
@@ -2438,6 +2451,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         inyectarPlataformas(data.alquiler, 'providers-rent');
         inyectarPlataformas(data.compra, 'providers-buy');
 
+        // 8. Tráiler
         let urlTrailer = '';
         if (data.trailer_id) {
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
@@ -2451,23 +2465,52 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
 
+        // 9. Valoración
         const notaNum = parseFloat(data.nota || 0);
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
+
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
         document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} valoraciones`;
 
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
         for (let i = 1; i <= 5; i++) {
-            if (notaSobre5 >= i) estrellasHtml += '<i class="fas fa-star"></i>';
-            else if (notaSobre5 >= i - 0.5) estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
-            else estrellasHtml += '<i class="far fa-star"></i>';
+            if (notaSobre5 >= i) {
+                estrellasHtml += '<i class="fas fa-star"></i>';
+            } else if (notaSobre5 >= i - 0.5) {
+                estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
+            } else {
+                estrellasHtml += '<i class="far fa-star"></i>';
+            }
         }
         document.getElementById('media-detail-rating-stars').innerHTML = estrellasHtml;
+
+        // 10. REPARTO (CARRUSEL DE ACTORES)
+        const castContainer = document.getElementById('media-detail-cast');
+        if (data.reparto && data.reparto.length > 0) {
+            let castHtml = '';
+            // Recorremos la lista de actores que nos envíe el backend
+            data.reparto.forEach(actor => {
+                const fotoSrc = actor.foto ? actor.foto : 'https://placehold.co/105x158/1a1a24/6b6b7a?text=NO+FOTO';
+                castHtml += `
+                    <div class="cast-card">
+                        <img src="${fotoSrc}" alt="${actor.nombre}" class="cast-img" loading="lazy">
+                        <div class="cast-info">
+                            <span class="cast-name" title="${actor.nombre}">${actor.nombre}</span>
+                            <span class="cast-character" title="${actor.personaje}">${actor.personaje}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            castContainer.innerHTML = castHtml;
+        } else {
+            castContainer.innerHTML = '<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">No hay información del reparto en el Nexus.</div>';
+        }
 
     } catch (err) {
         console.error(err);
         document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
+        document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
     }
 }
 
