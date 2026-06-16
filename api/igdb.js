@@ -108,7 +108,7 @@ export default async function handler(req, res) {
         // 6. Fusión Final
         const jsonFinal = juegosIGDB.map(juego => {
             const matchITAD = resultadosITAD.find(r => r.igdbId === juego.id);
-            let infoPrecio = { precio: null, stores: 'none' };
+            let infoPrecio = { precio: null, stores: 'none', url: '' }; // <-- Añadimos url vacío por defecto
 
             if (matchITAD && mapaPrecios[matchITAD.itadId] && mapaPrecios[matchITAD.itadId].length > 0) {
                 const deals = mapaPrecios[matchITAD.itadId].sort((a, b) => a.price.amount - b.price.amount);
@@ -116,7 +116,8 @@ export default async function handler(req, res) {
                 infoPrecio = {
                     precio: mejor.price.amount,
                     voucher: mejor.voucher || null,
-                    stores: deals.map(d => d.shop.name.toLowerCase()).join(',')
+                    stores: deals.map(d => d.shop.name.toLowerCase()).join(','),
+                    url: mejor.url
                 };
             }
 

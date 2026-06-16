@@ -2129,35 +2129,31 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
     // LÓGICA DE PRECIO Y TIENDA (CON ENLACE) ---
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
-        // Quitamos la limitación de espacio para que el botón se expanda bien
-        detailPriceEl.style.overflow = 'visible';
-
         if (priceBadge) {
             if (storesRaw && storesRaw !== 'none') {
-                // Diccionario para que los nombres de las tiendas se vean profesionales
+                // He añadido wingamestore a tu diccionario para que quede perfecto
                 const storeMap = {
                     'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG',
                     'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect',
                     'gamivo': 'Gamivo', 'instant gaming': 'Instant Gaming',
-                    'eneba': 'Eneba', 'cdkeys': 'CDKeys'
+                    'eneba': 'Eneba', 'cdkeys': 'CDKeys', 'wingamestore': 'WinGameStore'
                 };
 
                 let primeraTienda = storesRaw.split(',')[0].trim().toLowerCase();
                 let tiendaBonita = storeMap[primeraTienda] || (primeraTienda.charAt(0).toUpperCase() + primeraTienda.slice(1));
 
-                // Si tenemos la URL, creamos un BOTÓN ENTERO clicable
+                // Si tenemos la URL, creamos un enlace limpio que imita al Sitio Oficial pero en verde
                 if (storeUrlRaw && storeUrlRaw !== 'undefined' && storeUrlRaw !== '') {
                     detailPriceEl.innerHTML = `
-                        <a href="${storeUrlRaw}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); text-decoration: none; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(16, 185, 129, 0.2)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(0)';">
-                            <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;">${priceBadge.textContent}</span>
-                            <span style="color: var(--text-muted); font-size: 0.85rem;">en <span style="color: var(--neon-white); font-weight: 600;">${tiendaBonita}</span> <i class="fas fa-external-link-alt" style="font-size: 0.75rem; color: var(--secondary); margin-left: 2px;"></i></span>
+                        <a href="${storeUrlRaw}" target="_blank" rel="noopener noreferrer" style="color: var(--success); text-decoration: none; font-weight: bold; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                            ${priceBadge.textContent} <span style="color: var(--text-muted); font-weight: normal;">en ${tiendaBonita}</span> <i class="fas fa-external-link-alt" style="font-size: 0.8rem; margin-left: 4px;"></i>
                         </a>
                     `;
                 } else {
-                    // Texto normal si no hay enlace
+                    // Texto normal si por algún motivo no llega el enlace
                     detailPriceEl.innerHTML = `
-                        <span style="color: var(--success); font-weight: bold; font-size: 1.1rem;">${priceBadge.textContent}</span>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 6px;">en ${tiendaBonita}</span>
+                        <span style="color: var(--success); font-weight: bold;">${priceBadge.textContent}</span>
+                        <span style="color: var(--text-muted);">en ${tiendaBonita}</span>
                     `;
                 }
             } else {
