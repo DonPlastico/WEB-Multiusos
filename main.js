@@ -3462,27 +3462,20 @@ window.actualizarUIMediaPersonal = function (data) {
     const personalText = document.getElementById('media-detail-personal-text');
     const watchDate = document.getElementById('media-detail-watch-date');
 
-    // === NUEVOS ELEMENTOS PARA EL ESTADO DE VISIONADO (TEXTO ESTÁTICO) ===
     const watchStatus = document.getElementById('media-detail-watch-status');
     const iconStatusText = document.getElementById('icon-watch-status-text');
-
-    // === ELEMENTOS DEL BOTÓN FLOTANTE ===
     const iconWatchStatus = document.getElementById('icon-watch-status');
     const btnWatchToggle = document.getElementById('btn-watch-toggle');
 
     if (window.estadoMediaActual.visto) {
         watchDate.textContent = window.estadoMediaActual.fecha_vista || '--';
 
-        // Calcular badge de veces vista
         let badgeText = '';
-        let badgeHtml = '';
         if (window.estadoMediaActual.veces_vista > 1) {
             let num = window.estadoMediaActual.veces_vista;
             badgeText = num > 20 ? '+20' : `x${num}`;
-            badgeHtml = `<span class="watch-count-badge">${badgeText}</span>`;
         }
 
-        // === BADGE DEL OJO FLOTANTE ===
         const badgeElement = document.getElementById('watch-count-badge');
         if (badgeElement) {
             if (window.estadoMediaActual.veces_vista > 1) {
@@ -3493,7 +3486,6 @@ window.actualizarUIMediaPersonal = function (data) {
             }
         }
 
-        // TEXTO ESTÁTICO (en detalles técnicos)
         let badgeStatic = window.estadoMediaActual.veces_vista > 1 ? ` <span class="watch-count-badge">${badgeText}</span>` : '';
         watchStatus.innerHTML = `Vista ${badgeStatic}`;
         if (iconStatusText) {
@@ -3501,7 +3493,6 @@ window.actualizarUIMediaPersonal = function (data) {
             iconStatusText.style.color = 'var(--primary)';
         }
 
-        // BOTÓN FLOTANTE (el ojo)
         if (iconWatchStatus) {
             iconWatchStatus.className = 'fas fa-eye';
             iconWatchStatus.style.color = 'var(--primary)';
@@ -3510,45 +3501,27 @@ window.actualizarUIMediaPersonal = function (data) {
             btnWatchToggle.classList.add('watched');
         }
 
-        // Pintar Nota Personal
+        // Actualizar texto de valoración (SOLO TEXTO, las estrellas las pinta resetearEstrellasPersonal)
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
-            const nota = parseFloat(window.estadoMediaActual.nota_personal);
-            personalValue.textContent = nota.toFixed(1);
             personalText.textContent = "Tu nota personal";
-            personalStars.classList.add('voted');
-
-            const notaSobre5 = nota / 2;
-            let str = '';
-            for (let i = 1; i <= 5; i++) {
-                if (notaSobre5 >= i) str += '<i class="fas fa-star"></i>';
-                else if (notaSobre5 >= i - 0.5) str += '<i class="fas fa-star-half-alt"></i>';
-                else str += '<i class="far fa-star"></i>';
-            }
-            personalStars.innerHTML = str;
         } else {
-            personalValue.textContent = '?';
             personalText.textContent = "Haz clic para puntuar";
-            personalStars.classList.remove('voted');
-            personalStars.innerHTML = '<i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>';
         }
+
     } else {
-        // Reset a NO VISTO
         watchDate.textContent = '--';
 
-        // === OCULTAR BADGE ===
         const badgeElement = document.getElementById('watch-count-badge');
         if (badgeElement) {
             badgeElement.style.display = 'none';
         }
 
-        // TEXTO ESTÁTICO
         watchStatus.textContent = 'No vista';
         if (iconStatusText) {
             iconStatusText.className = 'fas fa-eye-slash';
             iconStatusText.style.color = 'var(--text-muted)';
         }
 
-        // BOTÓN FLOTANTE
         if (iconWatchStatus) {
             iconWatchStatus.className = 'fas fa-eye-slash';
             iconWatchStatus.style.color = 'var(--text-muted)';
@@ -3557,11 +3530,11 @@ window.actualizarUIMediaPersonal = function (data) {
             btnWatchToggle.classList.remove('watched');
         }
 
-        personalValue.textContent = '?';
         personalText.textContent = "Debes marcarla como vista";
-        personalStars.classList.remove('voted');
-        personalStars.innerHTML = '<i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>';
     }
+
+    // Resetear las estrellas según el estado actual (NUEVO)
+    resetearEstrellasPersonal();
 };
 
 // 2. SINCRONIZAR CON BASE DE DATOS
@@ -3662,23 +3635,91 @@ document.getElementById('btn-context-unwatch')?.addEventListener('click', () => 
     guardarInteraccionMedia({ visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null });
 });
 
-// CLIC EN EL PANEL DE VALORACIÓN (Para poner nota)
-document.getElementById('btn-personal-rating')?.addEventListener('click', () => {
+// ==========================================================================
+//   ESTRELLAS INTERACTIVAS (HOVER Y CLICK PARA VALORAR) - 5 ESTRELLAS
+// ==========================================================================
+
+// Función para resetear las estrellas al estado guardado (para 5 estrellas)
+function resetearEstrellasPersonal() {
+    const stars = document.querySelectorAll('#media-detail-personal-stars i');
+    const starsContainer = document.getElementById('media-detail-personal-stars');
+    const personalText = document.getElementById('media-detail-personal-text');
+    const notaActual = window.estadoMediaActual?.nota_personal || null;
+
+    if (notaActual !== null && notaActual !== undefined) {
+        // Pintar las estrellas según la nota (0-10 -> 0-5)
+        const notaSobre5 = notaActual / 2;
+        stars.forEach((star, index) => {
+            const starValue = index + 1;
+            if (notaSobre5 >= starValue) {
+                star.className = 'fas fa-star';
+            } else if (notaSobre5 >= starValue - 0.5) {
+                star.className = 'fas fa-star-half-alt';
+            } else {
+                star.className = 'far fa-star';
+            }
+        });
+        starsContainer.classList.add('voted');
+        personalText.textContent = 'Tu nota personal';
+    } else {
+        stars.forEach(star => star.className = 'far fa-star');
+        starsContainer.classList.remove('voted');
+        if (window.estadoMediaActual?.visto) {
+            personalText.textContent = 'Haz clic para puntuar';
+        } else {
+            personalText.textContent = 'Debes marcarla como vista';
+        }
+    }
+}
+
+// EVENTO: Hover sobre las estrellas (se iluminan)
+document.addEventListener('mouseover', (e) => {
+    const star = e.target.closest('#media-detail-personal-stars i');
+    if (!star) return;
+
+    const starsContainer = document.getElementById('media-detail-personal-stars');
+    if (starsContainer.classList.contains('voted')) return;
+
+    const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
+    const stars = starsContainer.querySelectorAll('i');
+
+    stars.forEach((s, index) => {
+        if (index <= starIndex) {
+            s.className = 'fas fa-star';
+            s.style.color = 'gold';
+        } else {
+            s.className = 'far fa-star';
+            s.style.color = '';
+        }
+    });
+
+    // Mostrar nota temporal (0.5 * (index + 1) * 2 = index + 1)
+    const nota = (starIndex + 1) * 2;
+    document.getElementById('media-detail-personal-text').textContent = `${nota.toFixed(1)} / 10`;
+});
+
+// EVENTO: Salir del hover (resetear)
+document.addEventListener('mouseout', (e) => {
+    const starsContainer = document.getElementById('media-detail-personal-stars');
+    if (!e.target.closest('#media-detail-personal-stars') && !e.target.closest('#media-detail-personal-text')) {
+        resetearEstrellasPersonal();
+    }
+});
+
+// EVENTO: Click en estrella (guardar nota)
+document.addEventListener('click', (e) => {
+    const star = e.target.closest('#media-detail-personal-stars i');
+    if (!star) return;
+
     if (!window.estadoMediaActual || !window.estadoMediaActual.visto) {
         showToast('error', 'Acción denegada', 'Debes marcar la película/serie como vista antes de poder valorarla.');
+        resetearEstrellasPersonal();
         return;
     }
 
-    let notaActual = window.estadoMediaActual.nota_personal ? window.estadoMediaActual.nota_personal : "";
-    let notaStr = prompt("Introduce tu nota del 0 al 10 (se permiten decimales, ej: 8.5):", notaActual);
-
-    if (notaStr === null) return; // Si le da a cancelar
-
-    let nota = parseFloat(notaStr.replace(',', '.')); // Por si ponen coma en vez de punto
-    if (isNaN(nota) || nota < 0 || nota > 10) {
-        showToast('error', 'Nota inválida', 'Debes introducir un número válido entre 0 y 10.');
-        return;
-    }
+    const starsContainer = document.getElementById('media-detail-personal-stars');
+    const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
+    const nota = (starIndex + 1) * 2; // 1 estrella = 2, 2 estrellas = 4, etc.
 
     guardarInteraccionMedia({ nota_personal: nota });
 });
