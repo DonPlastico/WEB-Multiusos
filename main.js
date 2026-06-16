@@ -2177,14 +2177,14 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 
         // 3. INYECTAMOS TODO EN EL CONTENEDOR
         detailPriceEl.innerHTML = `
-            <div>${htmlPrecioOficial}</div>
+            <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
             
-            <div style="display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap;">
-                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
-                    <i class="fas fa-fire"></i> Buscar en AllKeyShop
+            <div style="display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <a href="${urlAllKeyShop}" target="_blank" rel="noopener noreferrer" style="background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.3); color: #ff9900; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255, 153, 0, 0.2)'" onmouseout="this.style.background='rgba(255, 153, 0, 0.1)'">
+                    <i class="fas fa-fire"></i> AllKeyShop
                 </a>
-                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
-                    <i class="fas fa-key"></i> Buscar en CDKeys
+                <a href="${urlCDKeys}" target="_blank" rel="noopener noreferrer" style="background: rgba(0, 153, 255, 0.1); border: 1px solid rgba(0, 153, 255, 0.3); color: #0099ff; padding: 4px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(0, 153, 255, 0.2)'" onmouseout="this.style.background='rgba(0, 153, 255, 0.1)'">
+                    <i class="fas fa-key"></i> CDKeys
                 </a>
             </div>
         `;

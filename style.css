@@ -2162,9 +2162,17 @@ span.flatpickr-weekday {
 
 .advanced-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     font-size: 0.9rem;
+}
+
+.advanced-item .adv-value {
+    white-space: normal !important;
+    word-wrap: break-word;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.4;
 }
 
 .adv-icon {
