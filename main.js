@@ -3594,17 +3594,17 @@ async function guardarInteraccionMedia(updates) {
     }
 }
 
-// 3. EVENTOS (Clics en Ojo y Valoración)
+// 3. EVENTOS (Clics en Ojo y Valoración) - CON LOS NUEVOS IDs
 const btnToggleWatched = document.getElementById('btn-watch-toggle');
 const contextMenuWatched = document.getElementById('watch-context-menu');
 
 // CLIC PRINCIPAL (Izquierdo en PC o Toque en Móvil)
 btnToggleWatched?.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evitamos que el clic se propague al documento y lo cierre
     if (!window.estadoMediaActual) return;
 
     if (window.estadoMediaActual.visto) {
         // Si YA está vista, el toque abre el menú directamente
-        e.stopPropagation(); // Evitamos que el clic se propague al documento y lo cierre
         contextMenuWatched.classList.toggle('show');
     } else {
         // Si NO está vista, la marca como vista la 1ª vez
@@ -3623,7 +3623,7 @@ btnToggleWatched?.addEventListener('contextmenu', (e) => {
 
 // Clic fuera cierra el menú derecho
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('#btn-toggle-watched') && !e.target.closest('#watched-context-menu')) {
+    if (!e.target.closest('#btn-watch-toggle') && !e.target.closest('#watch-context-menu')) {
         contextMenuWatched?.classList.remove('show');
     }
 });
@@ -3633,7 +3633,7 @@ document.getElementById('btn-context-rewatch')?.addEventListener('click', () => 
     contextMenuWatched.classList.remove('show');
     if (!window.estadoMediaActual) return;
     let veces = (window.estadoMediaActual.veces_vista || 1) + 1;
-    guardarInteraccionMedia({ veces_vista: veces }); // Nota: No modificamos la fecha inicial
+    guardarInteraccionMedia({ veces_vista: veces });
 });
 
 // Botón "Cambiar a NO VISTA" (Resetea todo)
