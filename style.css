@@ -4547,6 +4547,14 @@ span.flatpickr-weekday {
     #social-list-grid {
         grid-template-columns: 1fr;
     }
+
+    .chatbox-container.collapsed {
+        height: 31px;
+    }
+
+    .chatbox-tabs {
+        height: 30px;
+    }
 }
 
 /* Animaciones sutiles para móvil */
