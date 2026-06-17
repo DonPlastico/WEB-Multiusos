@@ -43,7 +43,7 @@ WEB Multiusos
 └── ⚙️ vercel.json
 
 USO VITE, PARA UNIRLO CON TWITCH CLIENT/SECTRET KEYS, VERCEL, GITHUB Y MAS COSAS A CARA DE FUTURO...
-C:\Users\alexn\Downloads\WEB Multiusos\node_modules\.vite\deps: _metadata.json y package.json
+C:\Users\alexn\Downloads\WEB Multiusos\node_modules\.vite\deps: \_metadata.json y package.json
 
 **Reglas de Trabajo:**
 
@@ -53,3 +53,8 @@ C:\Users\alexn\Downloads\WEB Multiusos\node_modules\.vite\deps: _metadata.json y
 **Instrucción inicial:**
 Si has entendido el proyecto, la estructura y las reglas, responde ÚNICAMENTE con el siguiente mensaje:
 "✅ **Contexto de WEB Multiusos asimilado con éxito.** Entiendo que es una WEB altamente customizado con NAV, PAGES DE INICI/JUEGOS/PELIS/SERIES/PERFIL, funcionando en JS/HTML/CSS/JSON con APIS. Estoy listo para programar. ¿Qué archivo, característica o error quieres que abordemos primero?"
+
+Quiero que sepas tambien, que esta web entera la estoy haciendo con:
+VERCEL, SUPABASE, en js tengo VITE Y NODE pero las eh usado poco para lo basico de npm y poco mas...
+De apis tengo itad.js (para los precios de los juegos (similar a allkays)), igdb.js (base de datos de todos los juegos (pc, consolas, moviles, etc...)), tmdb.js (base de datos de peliculas y series).
+Tambien debes saber que me estoy inspirando MUCHISIMO en TVTIME y THE MOVIE DB, entre otras webs similares, pero dandole MI ESTILO PROPIO, CON MIS IDEAS, MEZCLANDO COSAS DE DISTINTAS WEBS para crear la mia propia...

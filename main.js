@@ -2369,6 +2369,9 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
 async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
+    // Guardar el tipo en el modal para futuras referencias
+    modalMedia.setAttribute('data-current-type', tipo);
+
     // 1. Resetear y preparar UI
     document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
     document.getElementById('media-detail-description').textContent = "Descargando datos...";
@@ -2392,6 +2395,95 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
+
+    // APLICAR OCULTAMIENTOS SEGÚN EL TIPO (ANTES DE CARGAR DATOS)
+    if (tipo === 'tv') {
+        // 🔹 SERIES: Ocultamos lo que no toca
+        const ratingCol = document.querySelector('.media-rating-col');
+        if (ratingCol) ratingCol.style.display = 'none';
+
+        // Ocultar Alquiler y Compra (solo dejar Retransmisión)
+        const providerCols = document.querySelectorAll('.provider-col');
+        providerCols.forEach((col, index) => {
+            if (index === 0) {
+                // Retransmisión: ocupa el 100%
+                col.style.flex = '1';
+                col.style.maxWidth = '100%';
+            } else {
+                // Alquiler y Compra: ocultos
+                col.style.display = 'none';
+            }
+        });
+
+        // Detalles Técnicos: ocultar divider, fecha y estado
+        const techDivider = document.querySelector('.tech-divider');
+        const watchDate = document.getElementById('media-detail-watch-date')?.closest('.tech-item');
+        const watchStatus = document.getElementById('media-detail-watch-status')?.closest('.tech-item');
+
+        if (techDivider) techDivider.style.display = 'none';
+        if (watchDate) watchDate.style.display = 'none';
+        if (watchStatus) watchStatus.style.display = 'none';
+
+        // Añadir bloque de episodios (si no existe)
+        const whereToWatch = document.querySelector('.media-where-to-watch');
+        const bottomGrid = document.querySelector('.media-bottom-grid');
+
+        if (!document.querySelector('.media-episodes-block')) {
+            const episodesBlock = document.createElement('div');
+            episodesBlock.className = 'media-episodes-block glass-panel padded-panel';
+            episodesBlock.style.cssText = 'height: 80px; display: flex; align-items: center; justify-content: center; margin-top: 10px;';
+            episodesBlock.innerHTML = `
+                <h3 class="detail-section-title" style="margin: 0; color: var(--text-muted);">
+                    <i class="fas fa-list-ul" style="margin-right: 10px;"></i> Todos los episodios
+                </h3>
+            `;
+            if (whereToWatch && bottomGrid) {
+                whereToWatch.parentNode.insertBefore(episodesBlock, bottomGrid);
+            }
+        }
+
+        // Ajustar media-bottom-grid a 2 columnas (Tráiler + Reparto)
+        const bottomGridContainer = document.querySelector('.media-bottom-grid');
+        if (bottomGridContainer) {
+            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr';
+        }
+
+    } else {
+        // 🔹 PELÍCULAS: Mostrar todo (estado por defecto)
+        const ratingCol = document.querySelector('.media-rating-col');
+        if (ratingCol) ratingCol.style.display = 'flex';
+
+        const providerCols = document.querySelectorAll('.provider-col');
+        providerCols.forEach((col) => {
+            col.style.display = '';
+            col.style.flex = '';
+            col.style.maxWidth = '';
+        });
+        // Restaurar grid a 3 columnas
+        const providersGrid = document.querySelector('.providers-3col-grid');
+        if (providersGrid) {
+            providersGrid.style.gridTemplateColumns = '1fr 1fr 1fr';
+        }
+
+        // Mostrar tech divider y fechas
+        const techDivider = document.querySelector('.tech-divider');
+        const watchDate = document.getElementById('media-detail-watch-date')?.closest('.tech-item');
+        const watchStatus = document.getElementById('media-detail-watch-status')?.closest('.tech-item');
+
+        if (techDivider) techDivider.style.display = '';
+        if (watchDate) watchDate.style.display = '';
+        if (watchStatus) watchStatus.style.display = '';
+
+        // Eliminar bloque de episodios si existe
+        const episodesBlock = document.querySelector('.media-episodes-block');
+        if (episodesBlock) episodesBlock.remove();
+
+        // Restaurar media-bottom-grid a 3 columnas
+        const bottomGridContainer = document.querySelector('.media-bottom-grid');
+        if (bottomGridContainer) {
+            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+        }
+    }
 
     // 3. Llamada al servidor
     try {
@@ -2540,6 +2632,36 @@ function cerrarModalMedia() {
     localStorage.removeItem('modalMediaAbierto');
     const vista = vistaActualGlobal === 'series' ? '/series' : '/peliculas';
     history.pushState({ vista: vistaActualGlobal }, '', vista);
+
+    // LIMPIAR ESTILOS AL CERRAR (para que no se queden pegados)
+    const ratingCol = document.querySelector('.media-rating-col');
+    if (ratingCol) ratingCol.style.display = 'flex';
+
+    const providerCols = document.querySelectorAll('.provider-col');
+    providerCols.forEach((col) => {
+        col.style.display = '';
+        col.style.flex = '';
+        col.style.maxWidth = '';
+    });
+    const providersGrid = document.querySelector('.providers-3col-grid');
+    if (providersGrid) {
+        providersGrid.style.gridTemplateColumns = '1fr 1fr 1fr';
+    }
+
+    const techDivider = document.querySelector('.tech-divider');
+    const watchDate = document.getElementById('media-detail-watch-date')?.closest('.tech-item');
+    const watchStatus = document.getElementById('media-detail-watch-status')?.closest('.tech-item');
+    if (techDivider) techDivider.style.display = '';
+    if (watchDate) watchDate.style.display = '';
+    if (watchStatus) watchStatus.style.display = '';
+
+    const episodesBlock = document.querySelector('.media-episodes-block');
+    if (episodesBlock) episodesBlock.remove();
+
+    const bottomGridContainer = document.querySelector('.media-bottom-grid');
+    if (bottomGridContainer) {
+        bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+    }
 }
 
 btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
