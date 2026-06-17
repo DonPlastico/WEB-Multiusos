@@ -2396,19 +2396,24 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // APLICAR OCULTAMIENTOS SEGÚN EL TIPO (ANTES DE CARGAR DATOS)
     if (tipo === 'tv') {
         // 🔹 SERIES: Ocultamos lo que no toca
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'none';
 
-        // Ocultar Alquiler y Compra (solo dejar Retransmisión)
+        // 1️⃣ RETRANSMISIÓN: Ocupa el 100% del espacio (el div entero)
         const providerCols = document.querySelectorAll('.provider-col');
+        const providersGrid = document.querySelector('.providers-3col-grid');
+        if (providersGrid) {
+            providersGrid.style.gridTemplateColumns = '1fr';
+        }
         providerCols.forEach((col, index) => {
+            col.style.display = ''; // Lo mostramos todos
+            col.style.flex = '';
+            col.style.maxWidth = '';
             if (index === 0) {
-                // Retransmisión: ocupa el 100%
-                col.style.flex = '1';
-                col.style.maxWidth = '100%';
+                // Retransmisión: ocupa todo
+                col.style.gridColumn = '1 / -1';
             } else {
                 // Alquiler y Compra: ocultos
                 col.style.display = 'none';
@@ -2433,17 +2438,31 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             episodesBlock.className = 'media-episodes-block glass-panel padded-panel';
             episodesBlock.style.cssText = 'height: 80px; display: flex; align-items: center; justify-content: center; margin-top: 10px;';
             episodesBlock.innerHTML = `
-                <h3 class="detail-section-title" style="margin: 0; color: var(--text-muted);">
-                    <i class="fas fa-list-ul" style="margin-right: 10px;"></i> Todos los episodios
-                </h3>
-            `;
+            <h3 class="detail-section-title" style="margin: 0; color: var(--text-muted);">
+                <i class="fas fa-list-ul" style="margin-right: 10px;"></i> Todos los episodios
+            </h3>
+        `;
             if (whereToWatch && bottomGrid) {
                 whereToWatch.parentNode.insertBefore(episodesBlock, bottomGrid);
             }
         }
 
-        // Ajustar media-bottom-grid a 2 columnas (Tráiler + Reparto)
+        // 2️⃣ TRÁILER, REPARTO Y VALORACIÓN: 3 columnas (pero valoración oculta)
         const bottomGridContainer = document.querySelector('.media-bottom-grid');
+        if (bottomGridContainer) {
+            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+        }
+
+        // Ocultamos la columna de valoración (ya está oculta con ratingCol display:none)
+        // Pero el espacio lo ocupan Tráiler y Reparto (2 columnas de 3)
+        // Así que forzamos que Tráiler y Reparto ocupen 1.5fr cada uno
+        const trailerCol = document.querySelector('.media-trailer-col');
+        const castCol = document.querySelector('.media-cast-col');
+        if (trailerCol) trailerCol.style.gridColumn = 'span 1';
+        if (castCol) castCol.style.gridColumn = 'span 1';
+
+        // Y la columna de valoración está oculta, pero ocupará su espacio en el grid
+        // Para que no quede hueco, ponemos el grid con 2 columnas
         if (bottomGridContainer) {
             bottomGridContainer.style.gridTemplateColumns = '1fr 1fr';
         }
@@ -2454,16 +2473,16 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (ratingCol) ratingCol.style.display = 'flex';
 
         const providerCols = document.querySelectorAll('.provider-col');
-        providerCols.forEach((col) => {
-            col.style.display = '';
-            col.style.flex = '';
-            col.style.maxWidth = '';
-        });
-        // Restaurar grid a 3 columnas
         const providersGrid = document.querySelector('.providers-3col-grid');
         if (providersGrid) {
             providersGrid.style.gridTemplateColumns = '1fr 1fr 1fr';
         }
+        providerCols.forEach((col) => {
+            col.style.display = '';
+            col.style.flex = '';
+            col.style.maxWidth = '';
+            col.style.gridColumn = '';
+        });
 
         // Mostrar tech divider y fechas
         const techDivider = document.querySelector('.tech-divider');
@@ -2483,6 +2502,10 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (bottomGridContainer) {
             bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
         }
+        const trailerCol = document.querySelector('.media-trailer-col');
+        const castCol = document.querySelector('.media-cast-col');
+        if (trailerCol) trailerCol.style.gridColumn = '';
+        if (castCol) castCol.style.gridColumn = '';
     }
 
     // 3. Llamada al servidor
@@ -2642,6 +2665,7 @@ function cerrarModalMedia() {
         col.style.display = '';
         col.style.flex = '';
         col.style.maxWidth = '';
+        col.style.gridColumn = '';
     });
     const providersGrid = document.querySelector('.providers-3col-grid');
     if (providersGrid) {
@@ -2662,6 +2686,10 @@ function cerrarModalMedia() {
     if (bottomGridContainer) {
         bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
     }
+    const trailerCol = document.querySelector('.media-trailer-col');
+    const castCol = document.querySelector('.media-cast-col');
+    if (trailerCol) trailerCol.style.gridColumn = '';
+    if (castCol) castCol.style.gridColumn = '';
 }
 
 btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
