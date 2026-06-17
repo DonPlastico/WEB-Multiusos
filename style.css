@@ -4332,6 +4332,234 @@ span.flatpickr-weekday {
     .media-bottom-grid {
         grid-template-columns: 1fr;
     }
+
+    /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
+
+    /* Botón del ojo - más pequeño y más arriba */
+    #btn-watch-toggle {
+        margin-top: 130px !important;
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* Menú contextual del ojo - más arriba también */
+    #watch-context-menu {
+        top: 160px !important;
+    }
+
+    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
+    .providers-3col-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    /* Las columnas de proveedores se apilan verticalmente */
+    .provider-col {
+        padding: 10px !important;
+    }
+
+    /* Los botones de plataformas se vuelven más pequeños en móvil */
+    .platform-btn {
+        font-size: 0.75rem !important;
+        padding: 6px 8px !important;
+        white-space: normal !important;
+    }
+}
+
+/* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
+@media (max-width: 768px) {
+    .cyber-container {
+        margin-top: 105px;
+    }
+
+    .hero-section {
+        padding: 50px 20px;
+    }
+
+    .glitch-text {
+        font-size: 2.2rem !important;
+    }
+
+    .glitch-text span {
+        font-size: 1.8rem !important;
+    }
+
+    .subtitle-hero {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+    }
+
+    /* Menú superior */
+    .nav-links {
+        gap: 15px;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+
+    .nav-links a {
+        font-size: 0.85rem;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .nav-right {
+        gap: 12px;
+    }
+
+    /* PERFIL RESPONSIVE */
+    .profile-banner {
+        height: 220px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        font-size: 2.5rem;
+        border-width: 4px;
+    }
+
+    .profile-header-info {
+        bottom: -35px;
+        left: 20px;
+        gap: 15px;
+    }
+
+    .profile-username {
+        font-size: 1.5rem;
+    }
+
+    /* Modales de personalización */
+    .modal-grid.banner-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .modal-grid.avatar-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Estadísticas Detalladas */
+    .stats-cards-wrapper {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stats-main-divider {
+        width: 100%;
+        height: 2px;
+        margin: 5px 0;
+    }
+
+    .game-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .detail-cover-col {
+        display: none;
+    }
+
+    .game-detail-body {
+        border-top: 1px solid var(--border-color);
+        padding: 0 20px 20px 20px;
+    }
+
+    .advanced-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .advanced-item {
+        align-items: flex-start;
+    }
+
+    .adv-value {
+        white-space: normal;
+        word-break: break-word;
+        overflow: visible;
+    }
+
+    /* ADMIN PANEL */
+    .hero-section.glass-panel {
+        padding: 25px 20px !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .admin-section-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .admin-search {
+        width: 100%;
+    }
+
+    .admin-search input {
+        width: 100% !important;
+    }
+
+    .admin-table-panel,
+    .admin-actions-panel,
+    .admin-logs-panel {
+        padding: 15px !important;
+    }
+
+    .metric-card {
+        padding: 20px !important;
+    }
+
+    .metric-value {
+        font-size: 2.5rem !important;
+    }
+
+    .media-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .media-bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
+
+    /* Botón del ojo - más pequeño y más arriba */
+    #btn-watch-toggle {
+        margin-top: 130px !important;
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* Menú contextual del ojo - más arriba también */
+    #watch-context-menu {
+        top: 160px !important;
+    }
+
+    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
+    .providers-3col-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    /* Las columnas de proveedores se apilan verticalmente */
+    .provider-col {
+        padding: 10px !important;
+    }
+
+    /* Los botones de plataformas se vuelven más pequeños en móvil */
+    .platform-btn {
+        font-size: 0.75rem !important;
+        padding: 6px 8px !important;
+        white-space: normal !important;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
@@ -4349,9 +4577,7 @@ span.flatpickr-weekday {
     /* Stats debajo de la portada */
     .profile-stats-wrapper {
         margin-top: 50px;
-        /* CRUCIAL: Lo bajamos para que el avatar no pise a las estadísticas */
         flex-direction: column-reverse;
-        /* El botón de añadir amigo pasa abajo o se alinea */
         align-items: flex-end;
         gap: 10px;
     }
@@ -4360,7 +4586,6 @@ span.flatpickr-weekday {
         padding: 0 10px;
     }
 
-    /* Apretamos los números para que quepan */
     .stat-num {
         font-size: 1rem;
     }
@@ -4369,7 +4594,7 @@ span.flatpickr-weekday {
         font-size: 0.65rem;
     }
 
-    /* Modales a 1 y 2 columnas para no verse microscópicos */
+    /* Modales */
     .modal-content {
         width: 95%;
         padding: 10px;
@@ -4379,39 +4604,32 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
-    /* Banners ocupan todo el ancho */
     .modal-grid.avatar-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .cyber-grid {
         grid-template-columns: repeat(2, 1fr);
-        /* Fuerza siempre 2 columnas */
         gap: 12px;
-        /* Reducimos el hueco entre tarjetas para aprovechar pantalla */
     }
 
     .game-info {
         padding: 10px;
-        /* Reducimos los márgenes internos */
     }
 
     .game-title {
         font-size: 0.85rem;
-        /* Título un poco más pequeño */
         margin-bottom: 4px;
     }
 
     .game-release-info {
         font-size: 0.65rem;
-        /* Texto de fecha más pequeño */
         gap: 4px;
     }
 
     .top-platform-tag {
         font-size: 0.6rem;
         padding: 3px 6px;
-        /* Etiqueta de plataforma más compacta */
         top: 8px;
         left: 8px;
     }
@@ -4424,7 +4642,6 @@ span.flatpickr-weekday {
     /* DRAWER DE FILTROS */
     .filters-overlay {
         display: none;
-        /* Oculto de base */
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.7);
@@ -4434,7 +4651,6 @@ span.flatpickr-weekday {
 
     .filters-overlay.active {
         display: block;
-        /* Aparece de golpe y se difumina */
         animation: fadeOverlay 0.3s ease forwards;
         pointer-events: all;
     }
@@ -4479,7 +4695,7 @@ span.flatpickr-weekday {
 
     #btn-close-filters-drawer:hover,
     #btn-close-movies-mobile:hover,
-    #btn-close-series-mobile:hoverS {
+    #btn-close-series-mobile:hover {
         border-color: var(--primary);
         color: var(--primary);
     }
@@ -4498,20 +4714,16 @@ span.flatpickr-weekday {
 
     .search-box {
         padding: 10px;
-        /* Menos relleno exterior */
         gap: 8px;
-        /* Menos hueco entre la caja y los botones */
     }
 
     .search-box input {
         padding: 10px 12px;
         min-width: 0;
-        /* Permite que la barra de texto se encoja lo necesario */
     }
 
     .search-box button:not(.btn-mobile-filters) {
         padding: 0 16px;
-        /* Hacemos el botón de la lupa más fino */
     }
 
     .add-friend-panel {
@@ -4543,8 +4755,8 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
     }
 
-    .chatbox-nav-bar{
-    height: 30px;
+    .chatbox-nav-bar {
+        height: 30px;
     }
 
     .chatbox-container.collapsed {
@@ -4553,19 +4765,6 @@ span.flatpickr-weekday {
 
     .chatbox-tabs {
         height: 30px;
-    }
-}
-
-/* Animaciones sutiles para móvil */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: none;
     }
 }
 
