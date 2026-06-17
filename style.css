@@ -4539,13 +4539,17 @@ span.flatpickr-weekday {
         z-index: 10000;
         border-radius: 0;
         width: 100%;
-        height: 100%;
+        height: 87.5%;
         bottom: 0;
         right: 0;
     }
 
     #social-list-grid {
         grid-template-columns: 1fr;
+    }
+
+    .chatbox-nav-bar{
+    height: 30px;
     }
 
     .chatbox-container.collapsed {
