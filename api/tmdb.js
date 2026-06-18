@@ -55,16 +55,18 @@ export default async function handler(req, res) {
                 };
             });
 
-            // NUEVO: EXTRAEMOS INFORMACIÓN BÁSICA DE LAS TEMPORADAS (Solo si es una serie)
+            // EXTRAEMOS INFORMACIÓN BÁSICA DE LAS TEMPORADAS (Solo si es una serie)
             let temporadasInfo = [];
             if (tipo === 'tv' && data.seasons) {
-                temporadasInfo = data.seasons.map(s => {
-                    return {
-                        season_number: s.season_number,
-                        episode_count: s.episode_count,
-                        name: s.name
-                    };
-                });
+                temporadasInfo = data.seasons
+                    .filter(s => s.season_number > 0) // <-- Ignoramos la temporada 0 (Especiales)
+                    .map(s => {
+                        return {
+                            season_number: s.season_number,
+                            episode_count: s.episode_count,
+                            name: s.name
+                        };
+                    });
             }
 
             return res.status(200).json({
