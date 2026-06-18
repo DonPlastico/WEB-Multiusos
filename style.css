@@ -4069,53 +4069,7 @@ span.flatpickr-weekday {
     margin: 0;
 }
 
-/* ==========================================================================
-   SECCIÓN MEDIA (DÓNDE VERLO + EPISODIOS LADO A LADO)
-   ========================================================================== */
-.media-middle-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    /* 1 columna por defecto para pelis */
-    gap: 15px;
-    margin-top: 15px;
-    align-items: stretch;
-    /* Obliga a que ambas columnas tengan la misma altura */
-}
 
-/* Quitamos el margen superior que tenía Dónde Verlo porque lo gestiona el Grid */
-.media-middle-grid .media-where-to-watch {
-    margin-top: 0;
-}
-
-/* Contenedor de las temporadas con Scroll */
-#media-detail-seasons {
-    margin-top: 0 !important;
-    /* El grid se encarga del espacio */
-    max-height: 320px;
-    /* Alto límite para que se active el scroll y coincida aprox con Dónde Verlo */
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Scrollbar fina para las temporadas */
-#media-detail-seasons::-webkit-scrollbar {
-    width: 6px;
-}
-
-#media-detail-seasons::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-}
-
-#media-detail-seasons::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-#media-detail-seasons::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-soft);
-}
 
 
 
@@ -4599,17 +4553,6 @@ span.flatpickr-weekday {
         width: 100%;
         max-width: 280px;
         margin: 0 auto;
-    }
-
-    /* Ajustes para la sección media en móviles */
-    .media-middle-grid {
-        grid-template-columns: 1fr !important;
-        /* Forzamos a 1 columna debajo de la otra */
-    }
-
-    #media-detail-seasons {
-        max-height: 400px;
-        /* En móvil le damos un poco más de alto libre */
     }
 }
 
