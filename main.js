@@ -2380,6 +2380,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('media-detail-watch-date').textContent = "--";
     document.getElementById('media-detail-watch-status').textContent = "No vista";
 
+    const seasonsContainer = document.getElementById('media-detail-seasons');
+    if (seasonsContainer) {
+        seasonsContainer.innerHTML = '';
+        seasonsContainer.style.display = 'none';
+    }
+
     document.getElementById('providers-flatrate').innerHTML = '';
     document.getElementById('providers-rent').innerHTML = '';
     document.getElementById('providers-buy').innerHTML = '';
@@ -2614,6 +2620,120 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             castContainer.innerHTML = castHtml;
         } else {
             castContainer.innerHTML = '<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">No hay información del reparto en el Nexus.</div>';
+        }
+
+        // 10.5 TEMPORADAS Y EPISODIOS (SOLO PARA SERIES)
+        if (seasonsContainer) {
+            if (tipo === 'tv' && data.temporadas_info && data.temporadas_info.length > 0) {
+                seasonsContainer.style.display = 'block';
+                let seasonsHtml = '<div class="seasons-accordion">';
+
+                // 1. Creamos las cabeceras de cada temporada
+                data.temporadas_info.forEach(temp => {
+                    const isEspecial = temp.season_number === 0;
+                    const title = isEspecial ? 'Especiales' : `Temporada ${temp.season_number}`;
+
+                    seasonsHtml += `
+                        <div class="season-item">
+                            <div class="season-header" data-season="${temp.season_number}">
+                                <div class="season-header-info">
+                                    <h4 class="season-title">${title}</h4>
+                                    <span class="episode-count">${temp.episode_count} episodios</span>
+                                </div>
+                                <i class="fas fa-chevron-down chevron-icon"></i>
+                            </div>
+                            <div class="season-content" id="season-content-${temp.season_number}">
+                                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                                    <i class="fas fa-circle-notch fa-spin"></i> Desencriptando episodios...
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                seasonsHtml += '</div>';
+                seasonsContainer.innerHTML = `<h3 class="detail-section-title" style="margin-top: 15px;">Todos los episodios</h3>` + seasonsHtml;
+
+                // 2. Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
+                const headers = seasonsContainer.querySelectorAll('.season-header');
+                headers.forEach(header => {
+                    header.addEventListener('click', async function () {
+                        const seasonItem = this.parentElement;
+                        const seasonNumber = this.getAttribute('data-season');
+                        const contentDiv = document.getElementById(`season-content-${seasonNumber}`);
+                        const isActive = seasonItem.classList.contains('active');
+
+                        // Cerrar todas las demás que estén abiertas
+                        document.querySelectorAll('.season-item').forEach(item => {
+                            item.classList.remove('active');
+                            const content = item.querySelector('.season-content');
+                            content.style.maxHeight = null;
+                        });
+
+                        // Si la que he clicado no estaba abierta, la abro
+                        if (!isActive) {
+                            seasonItem.classList.add('active');
+
+                            // Si es la primera vez que la abro, pido los datos a TMDB
+                            if (!contentDiv.hasAttribute('data-loaded')) {
+                                contentDiv.style.maxHeight = "100px"; // Alto temporal mientras carga
+
+                                try {
+                                    // Pedimos los datos específicos de esta temporada a nuestro tmdb.js
+                                    const res = await fetch(`/api/tmdb?id=${id}&tipo=tv_season&season=${seasonNumber}`);
+                                    const seasonData = await res.json();
+
+                                    let episodesHtml = '<div class="episodes-list">';
+                                    seasonData.episodes.forEach(ep => {
+                                        const epImg = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://placehold.co/300x170/1a1a24/6b6b7a?text=NO+FOTO';
+                                        const fecha = ep.air_date ? new Date(ep.air_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
+                                        const nota = ep.vote_average ? ep.vote_average.toFixed(1) : '0.0';
+
+                                        episodesHtml += `
+                                            <div class="episode-card glass-panel">
+                                                <div class="ep-img-container">
+                                                    <img src="${epImg}" alt="Ep ${ep.episode_number}" loading="lazy">
+                                                    <span class="ep-number">E${ep.episode_number}</span>
+                                                </div>
+                                                <div class="ep-info">
+                                                    <h5 class="ep-title">${ep.name}</h5>
+                                                    <div class="ep-meta">
+                                                        <span><i class="fas fa-calendar-alt"></i> ${fecha}</span>
+                                                        <span><i class="fas fa-star" style="color: gold;"></i> ${nota}</span>
+                                                    </div>
+                                                    <p class="ep-overview">${ep.overview || 'Sin descripción del episodio disponible.'}</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                    episodesHtml += '</div>';
+                                    contentDiv.innerHTML = episodesHtml;
+                                    contentDiv.setAttribute('data-loaded', 'true');
+
+                                    // Ajustar el alto de la animación al contenido real tras descargar
+                                    contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
+                                } catch (e) {
+                                    console.error(e);
+                                    contentDiv.innerHTML = '<div style="color: var(--error); padding: 15px; text-align: center;">Error de conexión con el servidor.</div>';
+                                }
+                            } else {
+                                // Si ya lo habíamos descargado antes, solo animamos la apertura
+                                contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
+                            }
+
+                            // Tras terminar la animación, pasamos a height dinámico por si cambian de tamaño
+                            setTimeout(() => {
+                                if (seasonItem.classList.contains('active')) {
+                                    contentDiv.style.maxHeight = "none";
+                                }
+                            }, 300);
+                        }
+                    });
+                });
+
+            } else {
+                seasonsContainer.style.display = 'none';
+                seasonsContainer.innerHTML = '';
+            }
         }
 
         // 11. OBTENER ESTADO PERSONAL DEL USUARIO (Mi Nota y Visto)

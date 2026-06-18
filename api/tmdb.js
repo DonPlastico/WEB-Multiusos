@@ -15,10 +15,21 @@ export default async function handler(req, res) {
 
     try {
         // =========================================================
+        // NUEVO: LAZY LOAD DE EPISODIOS (Para el Acordeón)
+        // =========================================================
+        if (tipo === 'tv_season' && id && req.query.season) {
+            const seasonNum = req.query.season;
+            // Pedimos a la API directamente los detalles de esta temporada en concreto
+            const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=es-ES`, { headers });
+            const seasonData = await resSeason.json();
+            return res.status(200).json(seasonData);
+        }
+
+        // =========================================================
         // DETALLES DE UN SOLO ITEM
         // =========================================================
         if (id) {
-            // 1. AÑADIMOS "credits" a la petición para traernos a los actores
+            // AÑADIMOS "credits" a la petición para traernos a los actores
             const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits`, { headers });
             const data = await resDetalle.json();
 
@@ -28,22 +39,33 @@ export default async function handler(req, res) {
             const alquiler = providersES?.rent ? providersES.rent.map(p => p.provider_name) : [];
             const compra = providersES?.buy ? providersES.buy.map(p => p.provider_name) : [];
 
-            // 2. BUSCAMOS EL TRÁILER (Priorizamos YouTube)
+            // BUSCAMOS EL TRÁILER (Priorizamos YouTube)
             const videos = data.videos?.results || [];
             let trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer');
             if (!trailer) trailer = videos.find(v => v.site === 'YouTube'); // Fallback a cualquier vídeo oficial
             const trailerId = trailer ? trailer.key : null;
 
-            // 3. EXTRAEMOS EL REPARTO (Cogeremos los 15 primeros actores para el carrusel)
+            // EXTRAEMOS EL REPARTO (Cogeremos los 15 primeros actores para el carrusel)
             const actoresBruto = data.credits?.cast || [];
             const repartoFormateado = actoresBruto.slice(0, 15).map(actor => {
                 return {
                     nombre: actor.name,
                     personaje: actor.character,
-                    // Usamos w185 que es un tamaño ideal para las tarjetas pequeñas, carga súper rápido
                     foto: actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : null
                 };
             });
+
+            // NUEVO: EXTRAEMOS INFORMACIÓN BÁSICA DE LAS TEMPORADAS (Solo si es una serie)
+            let temporadasInfo = [];
+            if (tipo === 'tv' && data.seasons) {
+                temporadasInfo = data.seasons.map(s => {
+                    return {
+                        season_number: s.season_number,
+                        episode_count: s.episode_count,
+                        name: s.name
+                    };
+                });
+            }
 
             return res.status(200).json({
                 id: data.id,
@@ -60,8 +82,9 @@ export default async function handler(req, res) {
                 alquiler: alquiler,
                 compra: compra,
                 trailer_id: trailerId,
-                reparto: repartoFormateado, // <--- ENVIAMOS EL REPARTO AL FRONTEND
+                reparto: repartoFormateado,
                 temporadas: data.number_of_seasons,
+                temporadas_info: temporadasInfo, // <--- ENVIAMOS EL MAPA DE TEMPORADAS AL FRONTEND
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
             });
         }
@@ -80,7 +103,6 @@ export default async function handler(req, res) {
 
         const promesasDetalles = listData.results.map(async (item) => {
             try {
-                // Añadimos content_ratings para las series y release_dates para las pelis
                 const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
                 return await detailRes.json();
             } catch (e) { return null; }
