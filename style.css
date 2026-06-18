@@ -2119,8 +2119,8 @@ span.flatpickr-weekday {
     text-transform: uppercase;
     letter-spacing: 1.5px;
     border-bottom: 1px solid var(--border-light);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
 }
 
 /* Cian */
@@ -3285,7 +3285,7 @@ span.flatpickr-weekday {
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
 }
 
 .provider-col-title {

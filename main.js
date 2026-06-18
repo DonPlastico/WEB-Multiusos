@@ -2461,12 +2461,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (trailerCol) trailerCol.style.gridColumn = 'span 1';
         if (castCol) castCol.style.gridColumn = 'span 1';
 
-        // Y la columna de valoración está oculta, pero ocupará su espacio en el grid
-        // Para que no quede hueco, ponemos el grid con 2 columnas
-        if (bottomGridContainer) {
-            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr';
-        }
-
     } else {
         // 🔹 PELÍCULAS: Mostrar todo (estado por defecto)
         const ratingCol = document.querySelector('.media-rating-col');
