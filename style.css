@@ -3890,7 +3890,183 @@ span.flatpickr-weekday {
     gap: 5px !important;
 }
 
+/* ==========================================================================
+   TEMPORADAS Y EPISODIOS (ACORDEÓN PARA SERIES)
+   ========================================================================== */
 
+.seasons-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Contenedor de la temporada completa */
+.season-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.season-item.active {
+    border-color: var(--primary-soft);
+}
+
+/* Cabecera clicable (Botón de la temporada) */
+.season-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.season-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.season-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.season-title {
+    font-family: var(--font-cyber);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.episode-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.season-header .chevron-icon {
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+}
+
+.season-item.active .chevron-icon {
+    transform: rotate(180deg);
+    color: var(--primary);
+}
+
+/* Contenedor expandible (Cuerpo del acordeón) */
+.season-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    /* Animación super suave */
+    background: var(--bg-main);
+}
+
+.episodes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+}
+
+/* Tarjeta individual de Episodio */
+.episode-card {
+    display: flex;
+    gap: 15px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 10px;
+    align-items: flex-start;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.episode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ep-img-container {
+    position: relative;
+    width: 140px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+.ep-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* El E1, E2, E3... que sale sobre la foto */
+.ep-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--neon-white);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--primary-soft);
+    z-index: 2;
+}
+
+.ep-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.ep-title {
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ep-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.ep-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* La sinopsis del episodio cortada a 2 líneas */
+.ep-overview {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
 
 
 
@@ -4365,200 +4541,17 @@ span.flatpickr-weekday {
         padding: 6px 8px !important;
         white-space: normal !important;
     }
-}
 
-/* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
-@media (max-width: 768px) {
-    .cyber-container {
-        margin-top: 105px;
-    }
-
-    .hero-section {
-        padding: 50px 20px;
-    }
-
-    .glitch-text {
-        font-size: 2.2rem !important;
-    }
-
-    .glitch-text span {
-        font-size: 1.8rem !important;
-    }
-
-    .subtitle-hero {
-        font-size: 1rem;
-    }
-
-    .section-title {
-        font-size: 1.2rem;
-    }
-
-    /* Menú superior */
-    .nav-links {
-        gap: 15px;
-        padding: 8px 12px;
-        flex-wrap: wrap;
-    }
-
-    .nav-links a {
-        font-size: 0.85rem;
-    }
-
-    .icon-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1.1rem;
-    }
-
-    .nav-right {
-        gap: 12px;
-    }
-
-    /* PERFIL RESPONSIVE */
-    .profile-banner {
-        height: 220px;
-    }
-
-    .profile-avatar {
-        width: 90px;
-        height: 90px;
-        font-size: 2.5rem;
-        border-width: 4px;
-    }
-
-    .profile-header-info {
-        bottom: -35px;
-        left: 20px;
-        gap: 15px;
-    }
-
-    .profile-username {
-        font-size: 1.5rem;
-    }
-
-    /* Modales de personalización */
-    .modal-grid.banner-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .modal-grid.avatar-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    /* Estadísticas Detalladas */
-    .stats-cards-wrapper {
+    /* Ajuste episodios en móvil */
+    .episode-card {
         flex-direction: column;
-        gap: 15px;
+        padding: 15px;
     }
 
-    .stats-main-divider {
+    .ep-img-container {
         width: 100%;
-        height: 2px;
-        margin: 5px 0;
-    }
-
-    .game-detail-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .detail-cover-col {
-        display: none;
-    }
-
-    .game-detail-body {
-        border-top: 1px solid var(--border-color);
-        padding: 0 20px 20px 20px;
-    }
-
-    .advanced-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .advanced-item {
-        align-items: flex-start;
-    }
-
-    .adv-value {
-        white-space: normal;
-        word-break: break-word;
-        overflow: visible;
-    }
-
-    /* ADMIN PANEL */
-    .hero-section.glass-panel {
-        padding: 25px 20px !important;
-        flex-direction: column;
-        align-items: flex-start !important;
-    }
-
-    .admin-section-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 15px;
-    }
-
-    .admin-search {
-        width: 100%;
-    }
-
-    .admin-search input {
-        width: 100% !important;
-    }
-
-    .admin-table-panel,
-    .admin-actions-panel,
-    .admin-logs-panel {
-        padding: 15px !important;
-    }
-
-    .metric-card {
-        padding: 20px !important;
-    }
-
-    .metric-value {
-        font-size: 2.5rem !important;
-    }
-
-    .media-top-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .media-bottom-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
-
-    /* Botón del ojo - más pequeño y más arriba */
-    #btn-watch-toggle {
-        margin-top: 130px !important;
-        width: 35px !important;
-        height: 35px !important;
-        font-size: 1.1rem !important;
-    }
-
-    /* Menú contextual del ojo - más arriba también */
-    #watch-context-menu {
-        top: 160px !important;
-    }
-
-    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
-    .providers-3col-grid {
-        grid-template-columns: 1fr !important;
-        gap: 10px !important;
-    }
-
-    /* Las columnas de proveedores se apilan verticalmente */
-    .provider-col {
-        padding: 10px !important;
-    }
-
-    /* Los botones de plataformas se vuelven más pequeños en móvil */
-    .platform-btn {
-        font-size: 0.75rem !important;
-        padding: 6px 8px !important;
-        white-space: normal !important;
+        max-width: 280px;
+        margin: 0 auto;
     }
 }
 
