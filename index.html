@@ -1070,14 +1070,11 @@
         <!-- modal de detalles de peliculas/series -->
         <div id="media-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
-                <!-- Botón de Cerrar -->
                 <button id="close-media-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- Contenedor del ojo y menú contextual -->
                 <div style="position: absolute; top: 75px; right: 20px; z-index: 100;">
-                    <!-- Botón de OJO (estado de vista) - Flotante a la derecha -->
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
                         style="position: relative; top: 0; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
@@ -1085,7 +1082,6 @@
                         <span id="watch-count-badge" class="watch-count-badge"></span>
                     </button>
 
-                    <!-- Menú contextual para el ojo (flotante) -->
                     <div id="watch-context-menu" class="theme-menu user-menu-panel"
                         style="position: absolute; top: 50px; right: 0; min-width: 180px; z-index: 100;">
                         <button class="theme-option" id="btn-context-rewatch">
@@ -1131,11 +1127,9 @@
 
                                 <div class="tech-divider"></div>
 
-                                <!-- Fecha de primer visionado -->
                                 <div class="tech-item"><i class="fas fa-calendar-alt"></i> <span
                                         id="media-detail-watch-date">--</span></div>
 
-                                <!-- Estado de visionado (SOLO TEXTO, sin interacción) -->
                                 <div class="tech-item"
                                     style="display: flex; align-items: center; gap: 12px; opacity: 0.7;">
                                     <i id="icon-watch-status-text" class="fas fa-eye-slash"
@@ -1146,33 +1140,34 @@
                         </div>
                     </div>
 
-                    <div class="media-where-to-watch glass-panel padded-panel">
-                        <h3 class="detail-section-title">Dónde verlo</h3>
-                        <div class="providers-3col-grid">
-                            <div class="provider-col">
-                                <h4 class="provider-col-title">Retransmisión</h4>
-                                <div id="providers-flatrate" class="streaming-platforms-grid"></div>
-                            </div>
+                    <div id="media-middle-container" class="media-middle-grid">
 
-                            <div class="provider-col">
-                                <h4 class="provider-col-title">Alquiler</h4>
-                                <div id="providers-rent" class="streaming-platforms-grid"></div>
-                            </div>
+                        <div class="media-where-to-watch glass-panel padded-panel">
+                            <h3 class="detail-section-title">Dónde verlo</h3>
+                            <div class="providers-3col-grid">
+                                <div class="provider-col">
+                                    <h4 class="provider-col-title">Retransmisión</h4>
+                                    <div id="providers-flatrate" class="streaming-platforms-grid"></div>
+                                </div>
 
-                            <div class="provider-col">
-                                <h4 class="provider-col-title">Compra</h4>
-                                <div id="providers-buy" class="streaming-platforms-grid"></div>
+                                <div class="provider-col">
+                                    <h4 class="provider-col-title">Alquiler</h4>
+                                    <div id="providers-rent" class="streaming-platforms-grid"></div>
+                                </div>
+
+                                <div class="provider-col">
+                                    <h4 class="provider-col-title">Compra</h4>
+                                    <div id="providers-buy" class="streaming-platforms-grid"></div>
+                                </div>
                             </div>
                         </div>
+
+                        <div id="media-detail-seasons" class="glass-panel padded-panel" style="display: none;">
+                        </div>
+
                     </div>
 
-                    <div id="media-detail-seasons" class="glass-panel padded-panel"
-                        style="display: none; margin-top: 15px;">
-                    </div>
-
-                    <!-- FILA 3: TRÁILER, REPARTO Y VALORACIÓN (3 Columnas) -->
                     <div class="media-bottom-grid">
-                        <!-- Columna Izquierda: Tráiler -->
                         <div class="media-trailer-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Tráiler</h3>
                             <div class="trailer-content">
@@ -1186,7 +1181,6 @@
                             </div>
                         </div>
 
-                        <!-- Columna Central: Reparto Principal -->
                         <div class="media-cast-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Reparto Principal</h3>
                             <div class="cast-carousel" id="media-detail-cast">
@@ -1197,28 +1191,23 @@
                             </div>
                         </div>
 
-                        <!-- Columna 3: Valoración y Estado -->
                         <div class="media-rating-col glass-panel padded-panel"
                             style="display: flex; flex-direction: column; gap: 15px;">
-                            <!-- Mi Valoración Personal (DIV 1) -->
                             <div class="personal-rating-section"
                                 style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Mi Valoración</h3>
                                 <div class="personal-rating-content" id="btn-personal-rating" style="flex: 1;">
-                                    <!-- 5 estrellas (cada entera = 2 puntos, media = 1 punto) -->
                                     <div class="rating-stars personal-stars" id="media-detail-personal-stars">
-                                        <i class="far fa-star" data-value="1"></i> <!-- 1 punto -->
-                                        <i class="far fa-star" data-value="2"></i> <!-- 2 puntos -->
-                                        <i class="far fa-star" data-value="3"></i> <!-- 3 puntos -->
-                                        <i class="far fa-star" data-value="4"></i> <!-- 4 puntos -->
-                                        <i class="far fa-star" data-value="5"></i> <!-- 5 puntos -->
+                                        <i class="far fa-star" data-value="1"></i> <i class="far fa-star"
+                                            data-value="2"></i> <i class="far fa-star" data-value="3"></i> <i
+                                            class="far fa-star" data-value="4"></i> <i class="far fa-star"
+                                            data-value="5"></i>
                                     </div>
                                     <div id="media-detail-personal-text" class="rating-count">Debes marcarla como vista
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Valoración Global (DIV 2) -->
                             <div class="global-rating-section" style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Valoración Global</h3>
                                 <div class="rating-content global-rating-mini"

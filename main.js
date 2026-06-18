@@ -2402,12 +2402,19 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
+    const middleGridContainer = document.getElementById('media-middle-container');
+
     if (tipo === 'tv') {
         // 🔹 SERIES: Ocultamos lo que no toca
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'none';
 
-        // 1️⃣ RETRANSMISIÓN: Ocupa el 100% del espacio (el div entero)
+        // 1️⃣ RETRANSMISIÓN Y EPISODIOS LADO A LADO
+        if (middleGridContainer) {
+            // Le damos un pelín más de espacio a los episodios (1.3fr) que a retransmisión (1fr)
+            middleGridContainer.style.gridTemplateColumns = '1fr 1.3fr';
+        }
+
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
         if (providersGrid) {
@@ -2418,7 +2425,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             col.style.flex = '';
             col.style.maxWidth = '';
             if (index === 0) {
-                // Retransmisión: ocupa todo
+                // Retransmisión: ocupa todo dentro de su caja
                 col.style.gridColumn = '1 / -1';
             } else {
                 // Alquiler y Compra: ocultos
@@ -2441,9 +2448,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
         }
 
-        // Ocultamos la columna de valoración (ya está oculta con ratingCol display:none)
-        // Pero el espacio lo ocupan Tráiler y Reparto (2 columnas de 3)
-        // Así que forzamos que Tráiler y Reparto ocupen 1.5fr cada uno
         const trailerCol = document.querySelector('.media-trailer-col');
         const castCol = document.querySelector('.media-cast-col');
         if (trailerCol) trailerCol.style.gridColumn = 'span 1';
@@ -2453,6 +2457,11 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // 🔹 PELÍCULAS: Mostrar todo (estado por defecto)
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'flex';
+
+        // RESTAURAR LA SECCIÓN MEDIA A 1 COLUMNA
+        if (middleGridContainer) {
+            middleGridContainer.style.gridTemplateColumns = '1fr';
+        }
 
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
@@ -2604,7 +2613,8 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (seasonsContainer) {
             if (tipo === 'tv' && data.temporadas_info && data.temporadas_info.length > 0) {
                 seasonsContainer.style.display = 'block';
-                let seasonsHtml = '<div class="seasons-accordion">';
+                let seasonsHtml = `<h3 class="detail-section-title" style="margin-top: 0;">Todos los episodios</h3>`;
+                seasonsHtml += '<div class="seasons-accordion" style="flex: 1; overflow-y: auto; padding-right: 5px;">';
 
                 // 1. Creamos las cabeceras de cada temporada
                 data.temporadas_info.forEach(temp => {
@@ -2629,7 +2639,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     `;
                 });
                 seasonsHtml += '</div>';
-                seasonsContainer.innerHTML = `<h3 class="detail-section-title" style="margin-top: 15px;">Todos los episodios</h3>` + seasonsHtml;
+                seasonsContainer.innerHTML = seasonsHtml;
 
                 // 2. Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
                 const headers = seasonsContainer.querySelectorAll('.season-header');
@@ -2751,6 +2761,12 @@ function cerrarModalMedia() {
     // LIMPIAR ESTILOS AL CERRAR (para que no se queden pegados)
     const ratingCol = document.querySelector('.media-rating-col');
     if (ratingCol) ratingCol.style.display = 'flex';
+
+    // LIMPIAR LA CUADRÍCULA MEDIA (DÓNDE VERLO + EPISODIOS)
+    const middleGridContainer = document.getElementById('media-middle-container');
+    if (middleGridContainer) {
+        middleGridContainer.style.gridTemplateColumns = '1fr';
+    }
 
     const providerCols = document.querySelectorAll('.provider-col');
     providerCols.forEach((col) => {
