@@ -3916,14 +3916,15 @@ span.flatpickr-weekday {
 
 /* Cabecera clicable (Botón de la temporada) */
 .season-header {
-    display: flex;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    background: #ffffff05;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.02);
-    transition: background 0.2s;
-    user-select: none;
+    padding: 5px 10px;
+    transition: background .2s;
+    display: flex;
 }
 
 .season-header:hover {
@@ -3971,8 +3972,8 @@ span.flatpickr-weekday {
 .episodes-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 15px;
+    gap: 7.5px;
+    padding: 10px;
 }
 
 /* Tarjeta individual de Episodio */
@@ -3996,7 +3997,7 @@ span.flatpickr-weekday {
 
 .ep-img-container {
     position: relative;
-    width: 140px;
+    width: 120px;
     flex-shrink: 0;
     border-radius: 6px;
     overflow: hidden;

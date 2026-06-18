@@ -2435,24 +2435,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (watchDate) watchDate.style.display = 'none';
         if (watchStatus) watchStatus.style.display = 'none';
 
-        // Añadir bloque de episodios (si no existe)
-        const whereToWatch = document.querySelector('.media-where-to-watch');
-        const bottomGrid = document.querySelector('.media-bottom-grid');
-
-        if (!document.querySelector('.media-episodes-block')) {
-            const episodesBlock = document.createElement('div');
-            episodesBlock.className = 'media-episodes-block glass-panel padded-panel';
-            episodesBlock.style.cssText = 'height: 80px; display: flex; align-items: center; justify-content: center; margin-top: 10px;';
-            episodesBlock.innerHTML = `
-            <h3 class="detail-section-title" style="margin: 0; color: var(--text-muted);">
-                <i class="fas fa-list-ul" style="margin-right: 10px;"></i> Todos los episodios
-            </h3>
-        `;
-            if (whereToWatch && bottomGrid) {
-                whereToWatch.parentNode.insertBefore(episodesBlock, bottomGrid);
-            }
-        }
-
         // 2️⃣ TRÁILER, REPARTO Y VALORACIÓN: 3 columnas (pero valoración oculta)
         const bottomGridContainer = document.querySelector('.media-bottom-grid');
         if (bottomGridContainer) {
@@ -2492,10 +2474,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (techDivider) techDivider.style.display = '';
         if (watchDate) watchDate.style.display = '';
         if (watchStatus) watchStatus.style.display = '';
-
-        // Eliminar bloque de episodios si existe
-        const episodesBlock = document.querySelector('.media-episodes-block');
-        if (episodesBlock) episodesBlock.remove();
 
         // Restaurar media-bottom-grid a 3 columnas
         const bottomGridContainer = document.querySelector('.media-bottom-grid');
