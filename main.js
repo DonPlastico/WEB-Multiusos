@@ -2810,6 +2810,39 @@ function cerrarModalMedia() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
+    // ACTUALIZACIÓN VISUAL INMEDIATA EN LA TARJETA
+    try {
+        const memoInfoStr = localStorage.getItem('modalMediaAbierto');
+        if (memoInfoStr && window.estadoMediaActual) {
+            const memoInfo = JSON.parse(memoInfoStr);
+            const card = document.querySelector(`.game-card[data-id="${memoInfo.id}"][data-type="${memoInfo.tipo}"]`);
+
+            if (card) {
+                let badgeBtn = card.querySelector('.btn-card-watched-status');
+
+                if (window.estadoMediaActual.visto) {
+                    const veces = window.estadoMediaActual.veces_vista || 1;
+                    const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
+
+                    if (!badgeBtn) {
+                        const coverContainer = card.querySelector('.game-cover-container');
+                        coverContainer.insertAdjacentHTML('afterbegin', `
+                            <button class="btn-card-watched-status" data-id="${memoInfo.id}" data-tipo="${memoInfo.tipo}" data-db-id="" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
+                                <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
+                                ${badgeExtra}
+                            </button>
+                        `);
+                    } else {
+                        badgeBtn.setAttribute('data-veces', veces);
+                        badgeBtn.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>${badgeExtra}`;
+                    }
+                } else {
+                    if (badgeBtn) badgeBtn.remove();
+                }
+            }
+        }
+    } catch (e) { console.error("Error sincronizando tarjeta:", e); }
+
     localStorage.removeItem('modalMediaAbierto');
     const vista = vistaActualGlobal === 'series' ? '/series' : '/peliculas';
     history.pushState({ vista: vistaActualGlobal }, '', vista);
@@ -4357,7 +4390,7 @@ document.addEventListener('click', async (e) => {
 const cardMenu = document.createElement('div');
 cardMenu.className = 'theme-menu user-menu-panel';
 cardMenu.id = 'card-watch-menu';
-cardMenu.style.cssText = 'position: absolute; display: none; z-index: 9999; min-width: 180px; box-shadow: 0px 8px 20px rgba(0,0,0,0.5);';
+cardMenu.style.cssText = 'position: absolute; display: none; z-index: 9999; min-width: 180px; width: max-content; max-width: 250px; white-space: nowrap; box-shadow: 0px 8px 20px rgba(0,0,0,0.5);';
 cardMenu.innerHTML = `
     <button class="theme-option" id="btn-card-rewatch">
         <i class="fas fa-redo"></i><span>Vista de nuevo</span>
@@ -4420,17 +4453,24 @@ document.getElementById('btn-card-rewatch')?.addEventListener('click', async (e)
     const nuevaVez = targetCardData.veces + 1;
     targetCardData.btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    const { error } = await supabase.from('user_media').update({ veces_vista: nuevaVez }).eq('id', targetCardData.dbId);
+    // BLINDAJE: Si el botón es recién inyectado (no tiene dbId), lo busca por tu ID
+    let query = supabase.from('user_media').update({ veces_vista: nuevaVez });
+    if (targetCardData.dbId) {
+        query = query.eq('id', targetCardData.dbId);
+    } else {
+        query = query.eq('user_id', session.user.id).eq('media_id', targetCardData.id).eq('tipo', targetCardData.tipo);
+    }
+
+    const { error } = await query;
 
     if (!error) {
-        // Actualizamos UI en tiempo real
         targetCardData.btnElement.setAttribute('data-veces', nuevaVez);
         const badgeExtra = nuevaVez > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${nuevaVez > 20 ? '+20' : 'x' + nuevaVez}</span>` : '';
         targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>${badgeExtra}`;
         showToast('success', 'Actualizado', 'Añadido un nuevo visionado.');
     } else {
         showToast('error', 'Error BD', 'No se pudo guardar.');
-        targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`; // Restaurar visual
+        targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`;
     }
 });
 
@@ -4447,11 +4487,17 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
 
     targetCardData.btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-    // 1. Borramos la entidad base (Película o Serie Global)
-    const { error } = await supabase.from('user_media').delete().eq('id', targetCardData.dbId);
+    // BLINDAJE: Lo mismo para el borrado
+    let query = supabase.from('user_media').delete();
+    if (targetCardData.dbId) {
+        query = query.eq('id', targetCardData.dbId);
+    } else {
+        query = query.eq('user_id', session.user.id).eq('media_id', targetCardData.id).eq('tipo', targetCardData.tipo);
+    }
+
+    const { error } = await query;
 
     if (!error) {
-        // 2. MAGIA: Si es serie, purgamos todos sus episodios en cascada igual que en el modal
         if (targetCardData.tipo === 'tv') {
             await supabase.from('user_media')
                 .delete()
@@ -4460,7 +4506,6 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
                 .like('media_id', `${targetCardData.id}_T%`);
         }
 
-        // 3. Destruimos el botón visual de la tarjeta
         targetCardData.btnElement.remove();
         showToast('success', 'Eliminado', 'Se ha marcado como NO vista.');
     } else {
