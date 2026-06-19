@@ -981,14 +981,17 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         ? '<i class="fas fa-times-circle" style="color:var(--error);"></i>'
         : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
 
-    // === NUEVO: LÓGICA DEL BOTÓN DE VISTO EN LA TARJETA ===
+    // LÓGICA DEL BOTÓN DE VISTO EN LA TARJETA
     let badgeVistoHtml = '';
     if (userMediaInfo) {
         const veces = userMediaInfo.veces_vista || 1;
         const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
+        // Si es contenido para adultos, bajamos el botón del ojo para que no pise el +18
+        const topPos = esContenidoAdulto ? '48px' : '10px';
+
         badgeVistoHtml = `
-            <button class="btn-card-watched-status" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
+            <button class="btn-card-watched-status" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: ${topPos}; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
                 <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
                 ${badgeExtra}
             </button>
@@ -2825,9 +2828,13 @@ function cerrarModalMedia() {
                     const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
                     if (!badgeBtn) {
+                        // Verificamos si la tarjeta tiene el tag +18 para inyectarlo más abajo
+                        const hasNsfw = card.querySelector('.nsfw-tag') !== null;
+                        const topPos = hasNsfw ? '48px' : '10px';
+
                         const coverContainer = card.querySelector('.game-cover-container');
                         coverContainer.insertAdjacentHTML('afterbegin', `
-                            <button class="btn-card-watched-status" data-id="${memoInfo.id}" data-tipo="${memoInfo.tipo}" data-db-id="" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
+                            <button class="btn-card-watched-status" data-id="${memoInfo.id}" data-tipo="${memoInfo.tipo}" data-db-id="" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: ${topPos}; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
                                 <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
                                 ${badgeExtra}
                             </button>
