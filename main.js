@@ -1018,11 +1018,11 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <span class="date">${fechaFormat}</span>
                     ${extraInfo ? `<span class="dot">•</span>${extraInfo}` : ''}
                 </div>
-                <div class="game-price" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                <div class="game-price" style="font-size: 0.8rem; color: var(--text-muted);">
                     ${iconoPlataforma} <strong>${textoPlataforma}</strong>
                 </div>
                 
-                <div style="display: flex; gap: 5px; width: 100%; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
                     <button class="btn-add-list" title="Añadir a lista" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -2492,12 +2492,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // Mostrar tiempo restante
         document.getElementById('row-remaining-time').style.display = 'flex';
 
-        // Ajustar media-bottom-grid a 2 columnas (Tráiler + Reparto)
-        const bottomGridContainer = document.querySelector('.media-bottom-grid');
-        if (bottomGridContainer) {
-            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr';
-        }
-
     } else {
         // PELÍCULAS: Mostrar todo (estado por defecto)
         const ratingCol = document.querySelector('.media-rating-col');
@@ -2670,9 +2664,28 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 const unicos = Array.from(new Map(lista.map(item => [item.name, item])).values());
 
                 unicos.forEach(plat => {
-                    // Recortamos el nombre para que quede bonito debajo del icono (ej: "Amazon Prime Video" -> "Amazon")
-                    let nombreCorto = plat.name.replace(' Video', '').replace(' Plus', '+').replace(' (with Ads)', '').split(' ')[0];
-                    if (nombreCorto.length > 8) nombreCorto = nombreCorto.substring(0, 8) + '..';
+                    // LIMPIEZA INTELIGENTE DE NOMBRES DE JUSTWATCH
+                    let nombreCorto = plat.name
+                        .replace(' Amazon Channel', '') // Quita la coletilla de los canales de Amazon
+                        .replace(' (with Ads)', '')     // Quita lo de "con anuncios"
+                        .replace(' Plus', '+')
+                        .replace(' Video', '');
+
+                    // Ajustes manuales comunes para que queden perfectos debajo del icono
+                    if (nombreCorto === 'Amazon Prime') nombreCorto = 'Amazon';
+                    if (nombreCorto === 'Apple TV+') nombreCorto = 'Apple TV';
+                    if (nombreCorto === 'Google Play Movies') nombreCorto = 'Google';
+                    if (nombreCorto === 'Microsoft Store') nombreCorto = 'Microsoft';
+                    if (nombreCorto.includes('Movistar')) nombreCorto = 'Movistar';
+                    if (nombreCorto === 'HBO Max') nombreCorto = 'Max'; // Actualización de marca
+
+                    // Si aún así el nombre es larguísimo, lo cortamos por el primer espacio
+                    if (nombreCorto.length > 10) {
+                        nombreCorto = nombreCorto.split(' ')[0];
+                        if (nombreCorto.length > 10) {
+                            nombreCorto = nombreCorto.substring(0, 8) + '..';
+                        }
+                    }
 
                     contenedor.innerHTML += `
                         <div class="provider-item" title="${plat.name}" onclick="event.preventDefault()">
