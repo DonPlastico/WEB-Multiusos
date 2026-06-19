@@ -4148,11 +4148,15 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     if (modo === 'marcar' && nuevosVistos.length > 0) {
         await supabase.from('user_media').insert(nuevosVistos);
     } else if (modo === 'desmarcar' && aBorrarKeys.length > 0) {
-        await supabase.from('user_media')
-            .delete()
-            .eq('user_id', miId)
-            .eq('tipo', 'tv_episode')
-            .in('media_id', aBorrarKeys); // .in() soporta arrays de UUIDs sin problemas
+        // Cortamos la orden de borrado masivo en lotes de 50 para no colapsar el límite de longitud de URL de la API de Supabase.
+        for (let i = 0; i < aBorrarKeys.length; i += 50) {
+            const bloqueIds = aBorrarKeys.slice(i, i + 50);
+            await supabase.from('user_media')
+                .delete()
+                .eq('user_id', miId)
+                .eq('tipo', 'tv_episode')
+                .in('media_id', bloqueIds);
+        }
     }
 
     window.refrescarUIEpisodiosYTemporadas();
