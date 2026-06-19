@@ -2949,13 +2949,39 @@ async function cargarPerfilPublico(usernameTarget) {
             // ============================================
             // SISTEMA MATEMÁTICO DE TIEMPO (PELIS Y SERIES)
             // ============================================
-            // 1. Obtenemos todo lo que ha visto el usuario de golpe
-            const { data: mediaVisto } = await supabase
-                .from('user_media')
-                .select('tipo, veces_vista')
-                .eq('user_id', targetId);
+            // 1. Obtenemos todo lo que ha visto el usuario (Bypasseando el límite de 1000 de Supabase)
+            let mediaVisto = [];
+            let keepFetching = true;
+            let currentOffset = 0;
+            const fetchLimit = 1000;
 
-            if (mediaVisto) {
+            while (keepFetching) {
+                const { data, error } = await supabase
+                    .from('user_media')
+                    .select('tipo, veces_vista')
+                    .eq('user_id', targetId)
+                    .range(currentOffset, currentOffset + fetchLimit - 1);
+
+                if (error) {
+                    console.error("Error extrayendo estadísticas:", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    mediaVisto.push(...data);
+                    currentOffset += fetchLimit; // Preparamos el salto para la siguiente página
+
+                    // Si Supabase nos devuelve menos de 1000 de golpe, significa que ya no hay más páginas
+                    if (data.length < fetchLimit) {
+                        keepFetching = false;
+                    }
+                } else {
+                    keepFetching = false;
+                }
+            }
+
+            // 2. Si hay datos, procesamos las matemáticas con el array completo
+            if (mediaVisto.length > 0) {
                 let totalPelis = 0;
                 let totalEpisodios = 0;
 
@@ -2966,11 +2992,11 @@ async function cargarPerfilPublico(usernameTarget) {
                     if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
                 });
 
-                // 2. Calculamos los minutos totales (Medias: Pelis 120m, Episodios 45m)
+                // 3. Calculamos los minutos totales (Medias estandarizadas: Pelis 120m, Episodios 45m)
                 const minTotalesPelis = totalPelis * 120;
                 const minTotalesSeries = totalEpisodios * 45;
 
-                // 3. Conversor mágico a Meses, Días y Horas
+                // 4. Conversor mágico a Meses, Días y Horas
                 const calcularTiempoFormato = (mins) => {
                     const meses = Math.floor(mins / 43200); // 30 días * 24h * 60m
                     let resto = mins % 43200;
@@ -2983,14 +3009,14 @@ async function cargarPerfilPublico(usernameTarget) {
                 const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
                 const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
 
-                // 4. Inyectamos los cálculos en tu HTML
-                // SERIES
+                // 5. Inyectamos los cálculos en tu HTML
+                // --- SERIES ---
                 document.getElementById('stat-series-episodes').textContent = totalEpisodios.toLocaleString('es-ES');
                 document.getElementById('stat-series-months').textContent = tiempoSeries.meses;
                 document.getElementById('stat-series-days').textContent = tiempoSeries.dias;
                 document.getElementById('stat-series-hours').textContent = tiempoSeries.horas;
 
-                // PELÍCULAS
+                // --- PELÍCULAS ---
                 document.getElementById('stat-movies-count').textContent = totalPelis.toLocaleString('es-ES');
                 document.getElementById('stat-movies-months').textContent = tiempoPelis.meses;
                 document.getElementById('stat-movies-days').textContent = tiempoPelis.dias;
