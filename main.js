@@ -2407,6 +2407,15 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('media-detail-watch-date').textContent = "--";
     document.getElementById('media-detail-watch-status').textContent = "No vista";
 
+    // Resetear nuevos campos
+    document.getElementById('media-detail-original-title').textContent = "--";
+    document.getElementById('media-detail-release-date').textContent = "--";
+    document.getElementById('media-detail-status').textContent = "--";
+    document.getElementById('media-detail-budget').textContent = "--";
+    document.getElementById('media-detail-seasons-count').textContent = "--";
+    document.getElementById('media-detail-episodes-count').textContent = "--";
+    document.getElementById('media-detail-remaining-time').textContent = "--";
+
     const seasonsContainer = document.getElementById('media-detail-seasons');
     if (seasonsContainer) {
         seasonsContainer.innerHTML = '';
@@ -2429,6 +2438,9 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
+    // ==========================================
+    // APLICAR OCULTAMIENTOS SEGÚN EL TIPO
+    // ==========================================
     if (tipo === 'tv') {
         // SERIES: Ocultamos lo que no toca
         const ratingCol = document.querySelector('.media-rating-col');
@@ -2453,36 +2465,33 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             }
         });
 
-        // Detalles Técnicos: ocultar divider, fecha y estado
-        const techDivider = document.querySelector('.tech-divider');
-        const watchDate = document.getElementById('media-detail-watch-date')?.closest('.tech-item');
-        const watchStatus = document.getElementById('media-detail-watch-status')?.closest('.tech-item');
+        // Detalles Técnicos: ocultar ciertas filas para series
+        // Ocultar presupuesto en series (no aplica)
+        document.getElementById('row-budget').style.display = 'none';
+        // Ocultar divider-1
+        document.getElementById('divider-tech-1').style.display = 'none';
 
-        if (techDivider) techDivider.style.display = 'none';
-        if (watchDate) watchDate.style.display = 'none';
-        if (watchStatus) watchStatus.style.display = 'none';
+        // Mostrar temporadas y episodios
+        document.getElementById('row-seasons').style.display = 'flex';
+        document.getElementById('row-episodes').style.display = 'flex';
 
-        // 2️⃣ TRÁILER, REPARTO Y VALORACIÓN: 3 columnas (pero valoración oculta)
+        // Ocultar watch-date y watch-status en series (se muestran en otro lado)
+        document.getElementById('row-watch-date').style.display = 'none';
+        document.getElementById('row-watch-status').style.display = 'none';
+
+        // Mostrar tiempo restante
+        document.getElementById('row-remaining-time').style.display = 'flex';
+
+        // Ajustar media-bottom-grid a 2 columnas (Tráiler + Reparto)
         const bottomGridContainer = document.querySelector('.media-bottom-grid');
         if (bottomGridContainer) {
-            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+            bottomGridContainer.style.gridTemplateColumns = '1fr 1fr';
         }
-
-        // Ocultamos la columna de valoración (ya está oculta con ratingCol display:none)
-        // Pero el espacio lo ocupan Tráiler y Reparto (2 columnas de 3)
-        // Así que forzamos que Tráiler y Reparto ocupen 1.5fr cada uno
-        const trailerCol = document.querySelector('.media-trailer-col');
-        const castCol = document.querySelector('.media-cast-col');
-        if (trailerCol) trailerCol.style.gridColumn = 'span 1';
-        if (castCol) castCol.style.gridColumn = 'span 1';
 
     } else {
         // PELÍCULAS: Mostrar todo (estado por defecto)
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'flex';
-
-        const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
-        if (btnWatchToggleMod) btnWatchToggleMod.style.display = '';
 
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
@@ -2496,24 +2505,26 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             col.style.gridColumn = '';
         });
 
-        // Mostrar tech divider y fechas
-        const techDivider = document.querySelector('.tech-divider');
-        const watchDate = document.getElementById('media-detail-watch-date')?.closest('.tech-item');
-        const watchStatus = document.getElementById('media-detail-watch-status')?.closest('.tech-item');
+        // Mostrar presupuesto para películas
+        document.getElementById('row-budget').style.display = 'flex';
+        document.getElementById('divider-tech-1').style.display = 'flex';
 
-        if (techDivider) techDivider.style.display = '';
-        if (watchDate) watchDate.style.display = '';
-        if (watchStatus) watchStatus.style.display = '';
+        // Ocultar temporadas y episodios en películas
+        document.getElementById('row-seasons').style.display = 'none';
+        document.getElementById('row-episodes').style.display = 'none';
+
+        // Mostrar watch-date y watch-status en películas
+        document.getElementById('row-watch-date').style.display = 'flex';
+        document.getElementById('row-watch-status').style.display = 'flex';
+
+        // Ocultar tiempo restante en películas
+        document.getElementById('row-remaining-time').style.display = 'none';
 
         // Restaurar media-bottom-grid a 3 columnas
         const bottomGridContainer = document.querySelector('.media-bottom-grid');
         if (bottomGridContainer) {
             bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
         }
-        const trailerCol = document.querySelector('.media-trailer-col');
-        const castCol = document.querySelector('.media-cast-col');
-        if (trailerCol) trailerCol.style.gridColumn = '';
-        if (castCol) castCol.style.gridColumn = '';
     }
 
     // 3. Llamada al servidor
@@ -2532,22 +2543,83 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
         localStorage.setItem('modalMediaAbierto', JSON.stringify({ id, tipo, urlAmigable }));
 
+        // ==========================================
+        // RELLENAR DATOS PRINCIPALES
+        // ==========================================
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-description').textContent = data.sinopsis;
         document.getElementById('media-detail-cover-img').src = data.poster;
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
 
-        let textoDuracion = '--';
-        if (data.duracion) {
-            const horas = Math.floor(data.duracion / 60);
-            const mins = data.duracion % 60;
-            textoDuracion = horas > 0 ? `${horas} h ${mins} min` : `${mins} min`;
-        } else if (tipo === 'tv' && data.temporadas) {
-            textoDuracion = `${data.temporadas} Temporada(s)`;
-        }
-        document.getElementById('media-detail-duration').textContent = textoDuracion;
+        // ==========================================
+        // CARGA DE DATOS TÉCNICOS (NUEVO FORMATO)
+        // ==========================================
+        // Título original
+        document.getElementById('media-detail-original-title').textContent = data.original_title || data.titulo;
 
+        // Fecha de lanzamiento
+        document.getElementById('media-detail-release-date').textContent = data.fecha || 'No disponible';
+
+        // Estado (Mapeo de estados de TMDB)
+        const estadoMap = {
+            'Returning Series': 'En emisión',
+            'Ended': 'Finalizada',
+            'Released': 'Estrenada',
+            'Planned': 'Próximamente',
+            'In Production': 'En producción',
+            'Post Production': 'En post-producción'
+        };
+        document.getElementById('media-detail-status').textContent = estadoMap[data.status] || data.status || 'Desconocido';
+
+        // Presupuesto (SOLO PARA PELÍCULAS)
+        const budgetEl = document.getElementById('media-detail-budget');
+        if (data.budget && data.budget > 0) {
+            budgetEl.textContent = `$${data.budget.toLocaleString()}`;
+            document.getElementById('row-budget').style.display = 'flex';
+        } else {
+            document.getElementById('row-budget').style.display = 'none';
+        }
+
+        // Géneros
         document.getElementById('media-detail-genres').textContent = data.generos || 'N/A';
+
+        // ==========================================
+        // BLOQUE 2: SERIES VS PELÍCULAS (DURACIÓN Y TEMPORADAS)
+        // ==========================================
+        if (tipo === 'tv') {
+            // Mostrar temporadas y episodios
+            document.getElementById('media-detail-seasons-count').textContent = `${data.temporadas || '--'} Temporadas`;
+            document.getElementById('media-detail-episodes-count').textContent = `${data.episodios || '--'} Episodios`;
+
+            // Cálculo total tiempo serie: Episodios * Duración media (45min por defecto)
+            const totalMins = (data.episodios || 0) * (data.duracion || 45);
+            document.getElementById('media-detail-duration').textContent = `Total: ${formatearTiempo(totalMins)}`;
+
+            // ==========================================
+            // TIEMPO RESTANTE (PARA SERIES)
+            // ==========================================
+            // Calculamos cuántos episodios ha visto el usuario de esta serie
+            if (window.episodiosVistosActuales) {
+                const totalEpisodios = data.episodios || 0;
+                const vistos = window.episodiosVistosActuales.size || 0;
+                const restantes = Math.max(0, totalEpisodios - vistos);
+
+                // Tiempo restante en minutos (45min por episodio)
+                const tiempoRestanteMin = restantes * (data.duracion || 45);
+                document.getElementById('media-detail-remaining-time').textContent = formatearTiempo(tiempoRestanteMin);
+
+                // Si no hay tiempo restante, mostrar "¡Completada!"
+                if (restantes === 0 && totalEpisodios > 0) {
+                    document.getElementById('media-detail-remaining-time').textContent = '✅ ¡Completada!';
+                }
+            } else {
+                document.getElementById('media-detail-remaining-time').textContent = '--';
+            }
+
+        } else {
+            // PELÍCULAS
+            document.getElementById('media-detail-duration').textContent = `${data.duracion || '--'} min`;
+        }
 
         // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
         function inyectarPlataformas(lista, contenedorId) {
@@ -2612,7 +2684,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         const castContainer = document.getElementById('media-detail-cast');
         if (data.reparto && data.reparto.length > 0) {
             let castHtml = '';
-            // Recorremos la lista de actores que nos envíe el backend
             data.reparto.forEach(actor => {
                 const fotoSrc = actor.foto ? actor.foto : 'https://placehold.co/105x158/1a1a24/6b6b7a?text=NO+FOTO';
                 castHtml += `
@@ -2636,7 +2707,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 seasonsContainer.style.display = 'block';
                 let seasonsHtml = '<div class="seasons-accordion">';
 
-                // 1. Creamos las cabeceras de cada temporada
                 data.temporadas_info.forEach(temp => {
                     const isEspecial = temp.season_number === 0;
                     const title = isEspecial ? 'Especiales' : `Temporada ${temp.season_number}`;
@@ -2662,7 +2732,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 seasonsHtml += '</div>';
                 seasonsContainer.innerHTML = `<h3 class="detail-section-title" style="margin-top: 15px;">Todos los episodios</h3>` + seasonsHtml;
 
-                // 2. Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
+                // Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
                 const headers = seasonsContainer.querySelectorAll('.season-header');
                 headers.forEach(header => {
                     header.addEventListener('click', async function () {
@@ -2671,23 +2741,19 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         const contentDiv = document.getElementById(`season-content-${seasonNumber}`);
                         const isActive = seasonItem.classList.contains('active');
 
-                        // Cerrar todas las demás que estén abiertas
                         document.querySelectorAll('.season-item').forEach(item => {
                             item.classList.remove('active');
                             const content = item.querySelector('.season-content');
                             content.style.maxHeight = null;
                         });
 
-                        // Si la que he clicado no estaba abierta, la abro
                         if (!isActive) {
                             seasonItem.classList.add('active');
 
-                            // Si es la primera vez que la abro, pido los datos a TMDB
                             if (!contentDiv.hasAttribute('data-loaded')) {
-                                contentDiv.style.maxHeight = "100px"; // Alto temporal mientras carga
+                                contentDiv.style.maxHeight = "100px";
 
                                 try {
-                                    // Pedimos los datos específicos de esta temporada a nuestro tmdb.js
                                     const res = await fetch(`/api/tmdb?id=${id}&tipo=tv_season&season=${seasonNumber}`);
                                     const seasonData = await res.json();
 
@@ -2697,7 +2763,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                         const fecha = ep.air_date ? new Date(ep.air_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
                                         const nota = ep.vote_average ? ep.vote_average.toFixed(1) : '0.0';
 
-                                        // Lógica del botón de visionado
                                         const isWatched = window.episodiosVistosActuales.has(`${seasonNumber}_${ep.episode_number}`);
                                         const colorBtn = isWatched ? 'var(--success)' : 'var(--text-muted)';
                                         const iconClass = isWatched ? 'fas fa-eye' : 'fas fa-eye-slash';
@@ -2727,18 +2792,15 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                     contentDiv.innerHTML = episodesHtml;
                                     contentDiv.setAttribute('data-loaded', 'true');
 
-                                    // Ajustar el alto de la animación al contenido real tras descargar
                                     contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
                                 } catch (e) {
                                     console.error(e);
                                     contentDiv.innerHTML = '<div style="color: var(--error); padding: 15px; text-align: center;">Error de conexión con el servidor.</div>';
                                 }
                             } else {
-                                // Si ya lo habíamos descargado antes, solo animamos la apertura
                                 contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
                             }
 
-                            // Tras terminar la animación, pasamos a height dinámico por si cambian de tamaño
                             setTimeout(() => {
                                 if (seasonItem.classList.contains('active')) {
                                     contentDiv.style.maxHeight = "none";
@@ -2762,18 +2824,16 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-            // Descargar historial de episodios vistos de ESTA serie
             if (tipo === 'tv') {
                 const { data: epVistos } = await supabase
                     .from('user_media')
                     .select('media_id')
                     .eq('user_id', session.user.id)
                     .eq('tipo', 'tv_episode')
-                    .like('media_id', `${id}_T%`); // Filtramos por el ID de esta serie
+                    .like('media_id', `${id}_T%`);
 
                 if (epVistos) {
                     epVistos.forEach(row => {
-                        // El string es tipo: "12345_T1_E5" -> extraemos "1_5"
                         const partes = row.media_id.split('_');
                         if (partes.length >= 3) {
                             const t = partes[1].replace('T', '');
@@ -2782,7 +2842,26 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         }
                     });
 
-                    setTimeout(() => window.refrescarUIEpisodiosYTemporadas && window.refrescarUIEpisodiosYTemporadas(), 150);
+                    setTimeout(() => {
+                        if (window.refrescarUIEpisodiosYTemporadas) {
+                            window.refrescarUIEpisodiosYTemporadas();
+                        }
+                        // Actualizar tiempo restante después de cargar episodios vistos
+                        if (tipo === 'tv' && data) {
+                            const totalEpisodios = data.episodios || 0;
+                            const vistos = window.episodiosVistosActuales.size || 0;
+                            const restantes = Math.max(0, totalEpisodios - vistos);
+                            const tiempoRestanteMin = restantes * (data.duracion || 45);
+                            const remainingEl = document.getElementById('media-detail-remaining-time');
+                            if (remainingEl) {
+                                if (restantes === 0 && totalEpisodios > 0) {
+                                    remainingEl.textContent = '✅ ¡Completada!';
+                                } else {
+                                    remainingEl.textContent = formatearTiempo(tiempoRestanteMin);
+                                }
+                            }
+                        }
+                    }, 300);
                 }
             }
 
@@ -4520,3 +4599,21 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
         targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`;
     }
 });
+
+// ==========================================================================
+//   UTILIDAD: FORMATEAR TIEMPO EN DÍAS/HORAS/MINUTOS
+// ==========================================================================
+function formatearTiempo(minutos) {
+    if (!minutos || minutos === 0) return "--";
+
+    const dias = Math.floor(minutos / 1440);
+    const horas = Math.floor((minutos % 1440) / 60);
+    const mins = minutos % 60;
+
+    let texto = "";
+    if (dias > 0) texto += `${dias}d `;
+    if (horas > 0) texto += `${horas}h `;
+    if (mins > 0) texto += `${mins}m`;
+
+    return texto.trim() || "--";
+}

@@ -73,6 +73,16 @@ export default async function handler(req, res) {
                 id: data.id,
                 adult: data.adult,
                 titulo: tipo === 'movie' ? data.title : data.name,
+
+                // === NUEVOS DATOS TÉCNICOS EXTRAÍDOS ===
+                original_title: tipo === 'movie' ? data.original_title : data.original_name,
+                status: data.status,
+                budget: tipo === 'movie' ? data.budget : null,
+                last_air_date: tipo === 'tv' ? data.last_air_date : null,
+                in_production: tipo === 'tv' ? data.in_production : null,
+                episodios: tipo === 'tv' ? data.number_of_episodes : null,
+                // =======================================
+
                 sinopsis: data.overview || 'Sin descripción disponible.',
                 poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
                 backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
@@ -87,7 +97,7 @@ export default async function handler(req, res) {
                 reparto: repartoFormateado,
                 temporadas: data.number_of_seasons,
                 temporadas_info: temporadasInfo,
-                duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
+                duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 45) // Ajustado fallback a 45 mins
             });
         }
 
