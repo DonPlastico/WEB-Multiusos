@@ -4151,11 +4151,17 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
         // Cortamos la orden de borrado masivo en lotes de 50 para no colapsar el límite de longitud de URL de la API de Supabase.
         for (let i = 0; i < aBorrarKeys.length; i += 50) {
             const bloqueIds = aBorrarKeys.slice(i, i + 50);
-            await supabase.from('user_media')
+            const { error } = await supabase.from('user_media')
                 .delete()
                 .eq('user_id', miId)
                 .eq('tipo', 'tv_episode')
                 .in('media_id', bloqueIds);
+
+            // Control de colisiones de permisos
+            if (error) {
+                console.error("❌ SUPABASE RECHAZA EL BORRADO:", error);
+                showToast('error', 'Error BD', 'Supabase bloqueó el borrado. Revisa las políticas RLS.');
+            }
         }
     }
 
