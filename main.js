@@ -2764,7 +2764,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     `;
                 });
                 seasonsHtml += '</div>';
-                seasonsContainer.innerHTML = `<h3 class="detail-section-title" style="margin-top: 15px;">Todos los episodios</h3>` + seasonsHtml;
+                seasonsContainer.innerHTML = `<h3 class="detail-section-title">Todos los episodios</h3>` + seasonsHtml;
 
                 // Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
                 const headers = seasonsContainer.querySelectorAll('.season-header');
