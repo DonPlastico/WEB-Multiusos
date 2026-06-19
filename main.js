@@ -313,10 +313,10 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('.theme-option').forEach(option => {
     option.addEventListener('click', (e) => {
         const theme = option.getAttribute('data-theme');
-        
+
         // Si el botón no tiene un tema (porque es del menú de usuario o del ojo), ignoramos esta función
-        if (!theme) return; 
-        
+        if (!theme) return;
+
         setTheme(theme);
         themeMenu.classList.remove('show');
         menuOpen = false;
@@ -2945,10 +2945,61 @@ async function cargarPerfilPublico(usernameTarget) {
                 statNums[0].textContent = siguiendoCount || 0;
                 statNums[1].textContent = seguidoresCount || 0;
             }
-        } catch (err) {
-            console.error("Error al extraer telemetría de amistades:", err);
-        }
 
+            // ============================================
+            // SISTEMA MATEMÁTICO DE TIEMPO (PELIS Y SERIES)
+            // ============================================
+            // 1. Obtenemos todo lo que ha visto el usuario de golpe
+            const { data: mediaVisto } = await supabase
+                .from('user_media')
+                .select('tipo, veces_vista')
+                .eq('user_id', targetId);
+
+            if (mediaVisto) {
+                let totalPelis = 0;
+                let totalEpisodios = 0;
+
+                // Contamos unidades sumando si las han visto más de 1 vez
+                mediaVisto.forEach(item => {
+                    const cantidad = item.veces_vista || 1;
+                    if (item.tipo === 'movie') totalPelis += cantidad;
+                    if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
+                });
+
+                // 2. Calculamos los minutos totales (Medias: Pelis 120m, Episodios 45m)
+                const minTotalesPelis = totalPelis * 120;
+                const minTotalesSeries = totalEpisodios * 45;
+
+                // 3. Conversor mágico a Meses, Días y Horas
+                const calcularTiempoFormato = (mins) => {
+                    const meses = Math.floor(mins / 43200); // 30 días * 24h * 60m
+                    let resto = mins % 43200;
+                    const dias = Math.floor(resto / 1440);  // 24h * 60m
+                    resto = resto % 1440;
+                    const horas = Math.floor(resto / 60);
+                    return { meses, dias, horas };
+                };
+
+                const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
+                const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
+
+                // 4. Inyectamos los cálculos en tu HTML
+                // SERIES
+                document.getElementById('stat-series-episodes').textContent = totalEpisodios.toLocaleString('es-ES');
+                document.getElementById('stat-series-months').textContent = tiempoSeries.meses;
+                document.getElementById('stat-series-days').textContent = tiempoSeries.dias;
+                document.getElementById('stat-series-hours').textContent = tiempoSeries.horas;
+
+                // PELÍCULAS
+                document.getElementById('stat-movies-count').textContent = totalPelis.toLocaleString('es-ES');
+                document.getElementById('stat-movies-months').textContent = tiempoPelis.meses;
+                document.getElementById('stat-movies-days').textContent = tiempoPelis.dias;
+                document.getElementById('stat-movies-hours').textContent = tiempoPelis.horas;
+            }
+
+        } catch (err) {
+            console.error("Error al extraer telemetría de amistades o medios:", err);
+        }
 
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
         const overlayBanner = document.querySelector('.edit-overlay');
