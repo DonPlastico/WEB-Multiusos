@@ -41,7 +41,7 @@ export default async function handler(req, res) {
             // 1. Si hay keywords, las añadimos como contexto adicional
             if (data.keywords && data.keywords.keywords && data.keywords.keywords.length > 0) {
                 const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
-                sinopsisExtendida += `\n\nGéneros y temas: ${keywordsList}.`;
+                sinopsisExtendida += `\n\nTemas: ${keywordsList}.`;
             }
 
             // 2. Buscar traducciones en español que puedan tener una sinopsis más larga

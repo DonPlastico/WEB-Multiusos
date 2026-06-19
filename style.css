@@ -3194,7 +3194,7 @@ span.flatpickr-weekday {
 /* --- TOP GRID: Portada, Sinopsis, Detalles --- */
 .media-top-grid {
     display: grid;
-    grid-template-columns: 224px 1fr 300px;
+    grid-template-columns: 224px 1fr 400px;
     gap: 15px;
     margin-top: 10px;
     position: relative;
@@ -3207,10 +3207,9 @@ span.flatpickr-weekday {
 }
 
 .tech-info-content {
-    display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding-right: 10px;
+    gap: 5px;
+    display: flex;
 }
 
 .tech-item {
