@@ -2547,9 +2547,38 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // RELLENAR DATOS PRINCIPALES
         // ==========================================
         document.getElementById('media-detail-title').textContent = data.titulo;
-        document.getElementById('media-detail-description').textContent = data.sinopsis;
         document.getElementById('media-detail-cover-img').src = data.poster;
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
+
+        // ==========================================
+        // CONSTRUIR SINOPSIS COMPLETA (TAGLINE + OVERVIEW)
+        // ==========================================
+        let sinopsisCompleta = '';
+
+        // 1. Si hay tagline (frase promocional), la añadimos primero
+        if (data.tagline && data.tagline.trim() !== '') {
+            sinopsisCompleta += `"${data.tagline}"\n\n`;
+        }
+
+        // 2. Añadimos la descripción principal
+        if (data.sinopsis && data.sinopsis.trim() !== '') {
+            sinopsisCompleta += data.sinopsis;
+        }
+
+        // 3. Si la sinopsis sigue siendo muy corta (< 100 caracteres), intentamos buscar más
+        if (sinopsisCompleta.length < 100) {
+            // Intentamos obtener datos alternativos (si el backend los devuelve)
+            if (data.sinopsis_alternativa && data.sinopsis_alternativa.trim() !== '') {
+                sinopsisCompleta += '\n\n' + data.sinopsis_alternativa;
+            }
+        }
+
+        // 4. Si sigue vacía, mensaje por defecto
+        if (sinopsisCompleta.trim() === '') {
+            sinopsisCompleta = 'No hay sinopsis disponible para este título en el Nexus.';
+        }
+
+        document.getElementById('media-detail-description').textContent = sinopsisCompleta;
 
         // ==========================================
         // CARGA DE DATOS TÉCNICOS (NUEVO FORMATO)
