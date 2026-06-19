@@ -30,8 +30,58 @@ export default async function handler(req, res) {
         // =========================================================
         if (id) {
             // AÑADIMOS "credits" a la petición para traernos a los actores
-            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits`, { headers });
+            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`, { headers });
             const data = await resDetalle.json();
+
+            // ==========================================
+            // CONSTRUIR SINOPSIS EXTENDIDA
+            // ==========================================
+            let sinopsisExtendida = data.overview || '';
+
+            // 1. Si hay keywords, las añadimos como contexto adicional
+            if (data.keywords && data.keywords.keywords && data.keywords.keywords.length > 0) {
+                const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
+                sinopsisExtendida += `\n\nGéneros y temas: ${keywordsList}.`;
+            }
+
+            // 2. Buscar traducciones en español que puedan tener una sinopsis más larga
+            if (data.translations && data.translations.translations) {
+                const spanishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'es');
+                if (spanishTranslation && spanishTranslation.data && spanishTranslation.data.overview) {
+                    const spanishOverview = spanishTranslation.data.overview;
+                    if (spanishOverview.length > sinopsisExtendida.length) {
+                        sinopsisExtendida = spanishOverview;
+                    }
+                }
+            }
+
+            // 3. Si la sinopsis sigue siendo corta (< 150 caracteres), intentamos usar traducciones en inglés
+            if (sinopsisExtendida.length < 150 && data.translations) {
+                const englishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'en');
+                if (englishTranslation && englishTranslation.data && englishTranslation.data.overview) {
+                    const englishOverview = englishTranslation.data.overview;
+                    if (englishOverview.length > sinopsisExtendida.length) {
+                        sinopsisExtendida = englishOverview;
+                    }
+                }
+            }
+
+            // 4. Si aún así es muy corta, combinamos tagline + overview + keywords
+            if (sinopsisExtendida.length < 100) {
+                let combined = '';
+                if (data.tagline) combined += `"${data.tagline}" `;
+                if (data.overview) combined += data.overview;
+                if (data.keywords && data.keywords.keywords) {
+                    const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
+                    combined += `\n\nTemas principales: ${keywordsList}.`;
+                }
+                sinopsisExtendida = combined;
+            }
+
+            // Fallback final
+            if (!sinopsisExtendida || sinopsisExtendida.trim() === '') {
+                sinopsisExtendida = 'No hay sinopsis disponible para este título en el Nexus.';
+            }
 
             const providersES = data['watch/providers']?.results?.ES;
 
@@ -74,8 +124,8 @@ export default async function handler(req, res) {
                 adult: data.adult,
                 titulo: tipo === 'movie' ? data.title : data.name,
                 original_title: tipo === 'movie' ? data.original_title : data.original_name,
-                tagline: data.tagline || '', // <--- NUEVO CAMPO
-                sinopsis: data.overview || 'Sin descripción disponible.',
+                tagline: data.tagline || '',
+                sinopsis: sinopsisExtendida,
                 status: data.status,
                 budget: tipo === 'movie' ? data.budget : null,
                 last_air_date: tipo === 'tv' ? data.last_air_date : null,
