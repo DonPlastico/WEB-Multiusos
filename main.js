@@ -2403,11 +2403,14 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.documentElement.classList.add('no-scroll');
 
     if (tipo === 'tv') {
-        // 🔹 SERIES: Ocultamos lo que no toca
+        // SERIES: Ocultamos lo que no toca
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'none';
 
-        // 1️⃣ RETRANSMISIÓN: Ocupa el 100% del espacio (el div entero)
+        const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
+        if (btnWatchToggleMod) btnWatchToggleMod.style.display = 'none';
+
+        // RETRANSMISIÓN: Ocupa el 100% del espacio (el div entero)
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
         if (providersGrid) {
@@ -2450,9 +2453,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (castCol) castCol.style.gridColumn = 'span 1';
 
     } else {
-        // 🔹 PELÍCULAS: Mostrar todo (estado por defecto)
+        // PELÍCULAS: Mostrar todo (estado por defecto)
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'flex';
+
+        const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
+        if (btnWatchToggleMod) btnWatchToggleMod.style.display = '';
 
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
@@ -2751,6 +2757,9 @@ function cerrarModalMedia() {
     // LIMPIAR ESTILOS AL CERRAR (para que no se queden pegados)
     const ratingCol = document.querySelector('.media-rating-col');
     if (ratingCol) ratingCol.style.display = 'flex';
+
+    const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
+    if (btnWatchToggleMod) btnWatchToggleMod.style.display = '';
 
     const providerCols = document.querySelectorAll('.provider-col');
     providerCols.forEach((col) => {
