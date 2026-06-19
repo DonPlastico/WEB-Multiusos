@@ -4496,8 +4496,7 @@ span.flatpickr-weekday {
 
     .game-detail-body {
         border-top: 1px solid var(--border-color);
-        /* Le ponemos 80px de relleno abajo para que el chatbox no tape el texto/episodios */
-        padding: 0 20px 80px 20px !important;
+        padding: 0 20px 20px 20px;
     }
 
     .advanced-grid {
