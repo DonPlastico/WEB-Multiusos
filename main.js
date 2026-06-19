@@ -313,6 +313,10 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('.theme-option').forEach(option => {
     option.addEventListener('click', (e) => {
         const theme = option.getAttribute('data-theme');
+        
+        // Si el botón no tiene un tema (porque es del menú de usuario o del ojo), ignoramos esta función
+        if (!theme) return; 
+        
         setTheme(theme);
         themeMenu.classList.remove('show');
         menuOpen = false;
