@@ -584,7 +584,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .game-info {
-    padding: 18px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -593,7 +593,6 @@ input[type=number]::-webkit-outer-spin-button {
 .game-title {
     font-size: 1rem;
     color: var(--neon-white);
-    margin-bottom: 8px;
     font-weight: 600;
     line-height: 1.3;
     display: -webkit-box;
@@ -609,7 +608,7 @@ input[type=number]::-webkit-outer-spin-button {
     margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     flex-wrap: wrap;
 }
 

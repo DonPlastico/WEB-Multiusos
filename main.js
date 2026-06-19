@@ -1018,11 +1018,11 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <span class="date">${fechaFormat}</span>
                     ${extraInfo ? `<span class="dot">•</span>${extraInfo}` : ''}
                 </div>
-                <div class="game-price" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+                <div class="game-price" style="font-size: 0.8rem;color: var(--text-muted);">
                     ${iconoPlataforma} <strong>${textoPlataforma}</strong>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <div style="display: flex;justify-content: space-between;align-items: center;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
                     <button class="btn-add-list" title="Añadir a lista" style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
