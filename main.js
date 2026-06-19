@@ -2618,16 +2618,17 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         <div class="season-item">
                             <div class="season-header" data-season="${temp.season_number}">
                                 <div class="season-header-info">
-                                <h4 class="season-title">${title}</h4>
-                                <span class="episode-count">${temp.episode_count} episodios</span>
+                                    <h4 class="season-title">${title}</h4>
+                                    <span class="episode-count">${temp.episode_count} episodios</span>
+                                </div>
+                                <div class="season-actions" style="display: flex; align-items: center; gap: 15px;">
+                                    <button class="btn-watch-season" data-season="${temp.season_number}" data-episodes="${temp.episode_count}" style="background: transparent; border: 2px solid var(--text-muted); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem; cursor: pointer; transition: 0.2s;" title="Marcar temporada completa">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                    <i class="fas fa-chevron-down chevron-icon"></i>
+                                </div>
                             </div>
-                            
-                            <div class="season-actions" style="display: flex; align-items: center; gap: 15px;">
-                                <button class="btn-watch-season" data-season="${temp.season_number}" data-episodes="${temp.episode_count}" style="background: transparent; border: 2px solid var(--text-muted); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem; cursor: pointer; transition: 0.2s;" title="Marcar temporada completa">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
-                                <i class="fas fa-chevron-down chevron-icon"></i>
-                            </div>
+                            <div class="season-content" id="season-content-${temp.season_number}"></div>
                         </div>
                     `;
                 });
