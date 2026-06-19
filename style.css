@@ -4389,6 +4389,11 @@ span.flatpickr-weekday {
     #social-list-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .media-bottom-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
@@ -4556,10 +4561,6 @@ span.flatpickr-weekday {
     }
 
     .media-top-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .media-bottom-grid {
         grid-template-columns: 1fr;
     }
 

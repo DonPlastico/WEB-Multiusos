@@ -3026,7 +3026,7 @@ function cerrarModalMedia() {
 
     const bottomGridContainer = document.querySelector('.media-bottom-grid');
     if (bottomGridContainer) {
-        bottomGridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+        bottomGridContainer.style.gridTemplateColumns = '';
     }
     const trailerCol = document.querySelector('.media-trailer-col');
     const castCol = document.querySelector('.media-cast-col');
