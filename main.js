@@ -984,14 +984,14 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         ? '<i class="fas fa-times-circle" style="color:var(--error);"></i>'
         : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
 
-    // LÓGICA DE LOS BOTONES INFERIORES
+    // === NUEVO: LÓGICA DE LOS BOTONES INFERIORES ===
     let btnVistoHtml = '';
     if (userMediaInfo) {
         const veces = userMediaInfo.veces_vista || 1;
-        const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -8px; right: -8px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
+        const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -6px; right: -6px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
         btnVistoHtml = `
-            <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative;background: rgba(16, 185, 129, 0.15);border: 1px solid var(--success);color: var(--success);width: 80px;height: 40px;border-radius: 8px;display: flex;align-items: center;justify-content: center;cursor: pointer;transition: 0.2s;" onmouseover="this.style.background='var(--success)'; this.style.color='white';" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='var(--success)';" onclick="abrirMenuTarjeta(event, this)">
+            <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative; flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--success)'; this.style.color='white';" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='var(--success)';" onclick="abrirMenuTarjeta(event, this)">
                 <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
                 ${badgeExtra}
             </button>
@@ -999,7 +999,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     } else {
         // Al no estar vista, le ponemos el ojo tachado en gris
         btnVistoHtml = `
-            <button class="btn-watch-indicator not-watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="" data-veces="0" title="No vista. Abre para marcar." style="position: relative; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--neon-white)'; this.style.borderColor='var(--text-muted)';" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';">
+            <button class="btn-watch-indicator not-watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="" data-veces="0" title="No vista. Abre para marcar." style="position: relative; flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--neon-white)'; this.style.borderColor='var(--text-muted)';" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';">
                 <i class="fas fa-eye-slash" style="font-size: 0.9rem;"></i>
             </button>
         `;
@@ -1018,12 +1018,12 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <span class="date">${fechaFormat}</span>
                     ${extraInfo ? `<span class="dot">•</span>${extraInfo}` : ''}
                 </div>
-                <div class="game-price" style="font-size: 0.8rem;color: var(--text-muted);">
+                <div class="game-price" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
                     ${iconoPlataforma} <strong>${textoPlataforma}</strong>
                 </div>
                 
-                <div style="display: flex;justify-content: space-between;align-items: center;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="Añadir a lista" style="background: rgba(245, 158, 11, 0.15);border: 1px solid var(--warning);color: var(--warning);width: 135px;height: 40px;border-radius: 8px;display: flex;align-items: center;justify-content: center;cursor: pointer;transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                <div style="display: flex; gap: 5px; width: 100%; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <button class="btn-add-list" title="Añadir a lista" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                     ${btnVistoHtml}
@@ -1032,7 +1032,6 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         </div>
     `;
 }
-
 async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     if (cargandoTMDB) return;
     cargandoTMDB = true;
@@ -2951,14 +2950,14 @@ function cerrarModalMedia() {
                 if (badgeBtn) {
                     if (window.estadoMediaActual.visto) {
                         const veces = window.estadoMediaActual.veces_vista || 1;
-                        const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -8px; right: -8px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
+                        const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -6px; right: -6px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
                         // Lo convertimos en botón VERDE de visto
                         badgeBtn.className = 'btn-card-watched-status watched';
                         badgeBtn.setAttribute('data-veces', veces);
                         badgeBtn.setAttribute('data-db-id', window.estadoMediaActual.id || '');
                         badgeBtn.title = 'Vista. Clic para opciones';
-                        badgeBtn.style.cssText = "position: relative; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
+                        badgeBtn.style.cssText = "position: relative; flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
                         badgeBtn.setAttribute('onclick', 'abrirMenuTarjeta(event, this)');
                         badgeBtn.onmouseover = function () { this.style.background = 'var(--success)'; this.style.color = 'white'; };
                         badgeBtn.onmouseout = function () { this.style.background = 'rgba(16, 185, 129, 0.15)'; this.style.color = 'var(--success)'; };
@@ -2970,7 +2969,7 @@ function cerrarModalMedia() {
                         badgeBtn.setAttribute('data-veces', '0');
                         badgeBtn.setAttribute('data-db-id', '');
                         badgeBtn.title = 'No vista. Abre para marcar.';
-                        badgeBtn.style.cssText = "position: relative; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
+                        badgeBtn.style.cssText = "position: relative; flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
                         badgeBtn.removeAttribute('onclick');
                         badgeBtn.onmouseover = function () { this.style.color = 'var(--neon-white)'; this.style.borderColor = 'var(--text-muted)'; };
                         badgeBtn.onmouseout = function () { this.style.color = 'var(--text-muted)'; this.style.borderColor = 'var(--border-color)'; };
@@ -4650,7 +4649,7 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
         targetCardData.btnElement.setAttribute('data-veces', '0');
         targetCardData.btnElement.setAttribute('data-db-id', '');
         targetCardData.btnElement.title = 'No vista. Abre para marcar.';
-        targetCardData.btnElement.style.cssText = "position: relative; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
+        targetCardData.btnElement.style.cssText = "position: relative; flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
         targetCardData.btnElement.removeAttribute('onclick');
         targetCardData.btnElement.onmouseover = function () { this.style.color = 'var(--neon-white)'; this.style.borderColor = 'var(--text-muted)'; };
         targetCardData.btnElement.onmouseout = function () { this.style.color = 'var(--text-muted)'; this.style.borderColor = 'var(--border-color)'; };
