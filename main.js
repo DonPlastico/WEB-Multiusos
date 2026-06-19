@@ -961,7 +961,7 @@ let pageSeries = 1;
 let searchSeriesActual = '';
 let cargandoTMDB = false;
 
-function crearTarjetaTMDB(media, tipo) {
+function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
     const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
 
@@ -981,9 +981,24 @@ function crearTarjetaTMDB(media, tipo) {
         ? '<i class="fas fa-times-circle" style="color:var(--error);"></i>'
         : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
 
+    // === NUEVO: LÓGICA DEL BOTÓN DE VISTO EN LA TARJETA ===
+    let badgeVistoHtml = '';
+    if (userMediaInfo) {
+        const veces = userMediaInfo.veces_vista || 1;
+        const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
+
+        badgeVistoHtml = `
+            <button class="btn-card-watched-status" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: absolute; top: 10px; right: 10px; z-index: 10; background: rgba(16, 185, 129, 0.85); border: 2px solid var(--success); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.15)'; this.style.background='var(--success)';" onmouseout="this.style.transform='scale(1)'; this.style.background='rgba(16, 185, 129, 0.85)';" onclick="abrirMenuTarjeta(event, this)">
+                <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
+                ${badgeExtra}
+            </button>
+        `;
+    }
+
     return `
         <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
+                ${badgeVistoHtml}
                 <div class="top-platform-tag"><i class="fas fa-star" style="color:gold;"></i> ${media.nota}</div>
                 ${nsfwTag} 
                 <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
@@ -1066,6 +1081,24 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         if (resetear) grid.innerHTML = '';
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
 
+        // CRUCE DE DATOS CON SUPABASE PARA VER QUÉ HEMOS VISTO DE LA LISTA
+        const { data: { session } } = await supabase.auth.getSession();
+        let vistosMap = {};
+
+        if (session && datos && datos.length > 0) {
+            const idsTMDB = datos.map(d => d.id.toString());
+            const { data: vistosData } = await supabase
+                .from('user_media')
+                .select('media_id, veces_vista, id')
+                .eq('user_id', session.user.id)
+                .eq('tipo', tipo)
+                .in('media_id', idsTMDB); // Pide solo los que están en pantalla de golpe
+
+            if (vistosData) {
+                vistosData.forEach(v => vistosMap[v.media_id] = v);
+            }
+        }
+
         datos.forEach(item => {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
@@ -1075,7 +1108,9 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
 
             if (esContenidoAdulto && !isAdultFilterActive) return;
 
-            grid.innerHTML += crearTarjetaTMDB(item, tipo);
+            // Pasamos la variable de si está vista a la función  
+            const userMediaInfo = vistosMap[item.id.toString()];
+            grid.innerHTML += crearTarjetaTMDB(item, tipo, userMediaInfo);
         });
 
         if (datos.length > 0) {
@@ -4311,5 +4346,125 @@ document.addEventListener('click', async (e) => {
             window.refrescarUIEpisodiosYTemporadas();
             showToast('success', 'Progreso guardado', `Visto hasta T${season} - E${episode}`);
         }
+    }
+});
+
+// ==========================================================================
+//   MENÚ CONTEXTUAL FLOTANTE PARA LAS TARJETAS (PELÍCULAS/SERIES)
+// ==========================================================================
+
+// Fabricamos el menú HTML dinámico
+const cardMenu = document.createElement('div');
+cardMenu.className = 'theme-menu user-menu-panel';
+cardMenu.id = 'card-watch-menu';
+cardMenu.style.cssText = 'position: absolute; display: none; z-index: 9999; min-width: 180px; box-shadow: 0px 8px 20px rgba(0,0,0,0.5);';
+cardMenu.innerHTML = `
+    <button class="theme-option" id="btn-card-rewatch">
+        <i class="fas fa-redo"></i><span>Vista de nuevo</span>
+    </button>
+    <div class="dropdown-divider"></div>
+    <button class="theme-option" id="btn-card-unwatch">
+        <i class="fas fa-eye-slash" style="color: var(--error);"></i>
+        <span style="color: var(--error);">Cambiar a NO VISTA</span>
+    </button>
+`;
+document.body.appendChild(cardMenu);
+
+let targetCardData = null; // Guardará a qué tarjeta hemos clicado
+
+window.abrirMenuTarjeta = function (e, btn) {
+    e.stopPropagation(); // Evita que al hacer clic se abra el modal gigante de la peli
+
+    targetCardData = {
+        id: btn.getAttribute('data-id'),
+        tipo: btn.getAttribute('data-tipo'),
+        dbId: btn.getAttribute('data-db-id'), // Su ID en tu tabla user_media
+        veces: parseInt(btn.getAttribute('data-veces')),
+        btnElement: btn
+    };
+
+    // Posicionamiento inteligente del menú junto al botón
+    const rect = btn.getBoundingClientRect();
+    cardMenu.style.top = `${rect.bottom + window.scrollY + 8}px`;
+
+    const menuWidth = 180;
+    if (rect.right + menuWidth > window.innerWidth) {
+        cardMenu.style.left = `${rect.right - menuWidth + window.scrollX}px`; // No salirse por la derecha
+    } else {
+        cardMenu.style.left = `${rect.left + window.scrollX - 40}px`; // Centrado
+    }
+
+    cardMenu.classList.add('show');
+    cardMenu.style.display = 'block';
+};
+
+// Si hacemos click fuera, ocultamos el menú
+document.addEventListener('click', (e) => {
+    if (!cardMenu.contains(e.target) && !e.target.closest('.btn-card-watched-status')) {
+        cardMenu.classList.remove('show');
+        setTimeout(() => { if (!cardMenu.classList.contains('show')) cardMenu.style.display = 'none'; }, 200);
+    }
+});
+
+// === ACCIÓN 1: Ver de Nuevo (x2, x3...) ===
+document.getElementById('btn-card-rewatch')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!targetCardData) return;
+
+    cardMenu.classList.remove('show');
+    setTimeout(() => cardMenu.style.display = 'none', 200);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const nuevaVez = targetCardData.veces + 1;
+    targetCardData.btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    const { error } = await supabase.from('user_media').update({ veces_vista: nuevaVez }).eq('id', targetCardData.dbId);
+
+    if (!error) {
+        // Actualizamos UI en tiempo real
+        targetCardData.btnElement.setAttribute('data-veces', nuevaVez);
+        const badgeExtra = nuevaVez > 1 ? `<span style="position: absolute; top: -5px; right: -5px; background: var(--primary); font-size: 0.65rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-elevated);">${nuevaVez > 20 ? '+20' : 'x' + nuevaVez}</span>` : '';
+        targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>${badgeExtra}`;
+        showToast('success', 'Actualizado', 'Añadido un nuevo visionado.');
+    } else {
+        showToast('error', 'Error BD', 'No se pudo guardar.');
+        targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`; // Restaurar visual
+    }
+});
+
+// === ACCIÓN 2: Desmarcar Todo ===
+document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!targetCardData) return;
+
+    cardMenu.classList.remove('show');
+    setTimeout(() => cardMenu.style.display = 'none', 200);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    targetCardData.btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+    // 1. Borramos la entidad base (Película o Serie Global)
+    const { error } = await supabase.from('user_media').delete().eq('id', targetCardData.dbId);
+
+    if (!error) {
+        // 2. MAGIA: Si es serie, purgamos todos sus episodios en cascada igual que en el modal
+        if (targetCardData.tipo === 'tv') {
+            await supabase.from('user_media')
+                .delete()
+                .eq('user_id', session.user.id)
+                .eq('tipo', 'tv_episode')
+                .like('media_id', `${targetCardData.id}_T%`);
+        }
+
+        // 3. Destruimos el botón visual de la tarjeta
+        targetCardData.btnElement.remove();
+        showToast('success', 'Eliminado', 'Se ha marcado como NO vista.');
+    } else {
+        showToast('error', 'Error BD', 'No se pudo eliminar de la base de datos.');
+        targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`;
     }
 });
