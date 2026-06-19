@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
     try {
         // =========================================================
-        // NUEVO: LAZY LOAD DE EPISODIOS (Para el Acordeón)
+        // LAZY LOAD DE EPISODIOS (Para el Acordeón)
         // =========================================================
         if (tipo === 'tv_season' && id && req.query.season) {
             const seasonNum = req.query.season;
@@ -85,9 +85,16 @@ export default async function handler(req, res) {
 
             const providersES = data['watch/providers']?.results?.ES;
 
-            const suscripcion = providersES?.flatrate ? providersES.flatrate.map(p => p.provider_name) : [];
-            const alquiler = providersES?.rent ? providersES.rent.map(p => p.provider_name) : [];
-            const compra = providersES?.buy ? providersES.buy.map(p => p.provider_name) : [];
+            // === NUEVO: FORMATO DE PROVEEDORES CON LOGOS ===
+            const formatProvider = (p) => ({
+                name: p.provider_name,
+                logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : 'https://placehold.co/92x92/14141c/6366f1?text=PLAY'
+            });
+
+            const suscripcion = providersES?.flatrate ? providersES.flatrate.map(formatProvider) : [];
+            const alquiler = providersES?.rent ? providersES.rent.map(formatProvider) : [];
+            const compra = providersES?.buy ? providersES.buy.map(formatProvider) : [];
+            // ===============================================
 
             // BUSCAMOS EL TRÁILER (Priorizamos YouTube)
             const videos = data.videos?.results || [];

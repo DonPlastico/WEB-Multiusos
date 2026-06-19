@@ -3299,12 +3299,6 @@ span.flatpickr-weekday {
     margin-bottom: 5px;
 }
 
-.streaming-platforms-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 .platform-btn {
     display: flex;
     align-items: center;
@@ -4068,7 +4062,66 @@ span.flatpickr-weekday {
     margin: 0;
 }
 
+/* ==========================================================================
+   NUEVO SISTEMA DE PROVEEDORES STREAMING (ICONOS TIPO JUSTWATCH)
+   ========================================================================== */
+.providers-icon-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 5px;
+}
 
+.provider-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 55px;
+    /* Ancho fijo para alinear textos debajo */
+    cursor: pointer;
+}
+
+.provider-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    /* Borde redondeado suave */
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.provider-item:hover .provider-logo {
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+    /* Brillo morado suave */
+    border-color: var(--primary);
+}
+
+.provider-price {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* Ajuste para el texto de "No disponible" */
+.providers-icon-grid .no-providers {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 5px 0;
+    width: 100%;
+}
 
 
 

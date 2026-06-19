@@ -2656,18 +2656,23 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             contenedor.innerHTML = '';
 
             if (lista && lista.length > 0) {
-                const unicos = [...new Set(lista)]; // Evitamos duplicados
+                // Filtramos duplicados basándonos en el nombre de la plataforma
+                const unicos = Array.from(new Map(lista.map(item => [item.name, item])).values());
+
                 unicos.forEach(plat => {
-                    const infoPlat = obtenerEstiloPlataforma(plat);
-                    const textColor = infoPlat.textoOscuro ? '#000' : '#fff';
+                    // Recortamos el nombre para que quede bonito debajo del icono (ej: "Amazon Prime Video" -> "Amazon")
+                    let nombreCorto = plat.name.replace(' Video', '').replace(' Plus', '+').replace(' (with Ads)', '').split(' ')[0];
+                    if (nombreCorto.length > 8) nombreCorto = nombreCorto.substring(0, 8) + '..';
+
                     contenedor.innerHTML += `
-                        <a href="#" class="platform-btn" style="background-color: ${infoPlat.color}; color: ${textColor};" onclick="event.preventDefault()">
-                            <i class="fas fa-play-circle"></i> ${plat.toUpperCase()}
-                        </a>
+                        <div class="provider-item" title="${plat.name}" onclick="event.preventDefault()">
+                            <img src="${plat.logo}" alt="${plat.name}" class="provider-logo" loading="lazy">
+                            <span class="provider-price">${nombreCorto}</span>
+                        </div>
                     `;
                 });
             } else {
-                contenedor.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem; padding: 5px; text-align:center; display:block;">No disponible</span>';
+                contenedor.innerHTML = '<span class="no-providers">No disponible</span>';
             }
         }
 
