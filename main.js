@@ -2407,9 +2407,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'none';
 
-        const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
-        if (btnWatchToggleMod) btnWatchToggleMod.style.display = 'none';
-
         // RETRANSMISIÓN: Ocupa el 100% del espacio (el div entero)
         const providerCols = document.querySelectorAll('.provider-col');
         const providersGrid = document.querySelector('.providers-3col-grid');
@@ -2621,15 +2618,15 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         <div class="season-item">
                             <div class="season-header" data-season="${temp.season_number}">
                                 <div class="season-header-info">
-                                    <h4 class="season-title">${title}</h4>
-                                    <span class="episode-count">${temp.episode_count} episodios</span>
-                                </div>
-                                <i class="fas fa-chevron-down chevron-icon"></i>
+                                <h4 class="season-title">${title}</h4>
+                                <span class="episode-count">${temp.episode_count} episodios</span>
                             </div>
-                            <div class="season-content" id="season-content-${temp.season_number}">
-                                <div style="text-align: center; padding: 20px; color: var(--text-muted);">
-                                    <i class="fas fa-circle-notch fa-spin"></i> Desencriptando episodios...
-                                </div>
+                            
+                            <div class="season-actions" style="display: flex; align-items: center; gap: 15px;">
+                                <button class="btn-watch-season" data-season="${temp.season_number}" data-episodes="${temp.episode_count}" style="background: transparent; border: 2px solid var(--text-muted); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem; cursor: pointer; transition: 0.2s;" title="Marcar temporada completa">
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                <i class="fas fa-chevron-down chevron-icon"></i>
                             </div>
                         </div>
                     `;
@@ -2675,7 +2672,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                         // Lógica del botón de visionado
                                         const isWatched = window.episodiosVistosActuales.has(`${seasonNumber}_${ep.episode_number}`);
                                         const colorBtn = isWatched ? 'var(--success)' : 'var(--text-muted)';
-                                        const iconClass = isWatched ? 'fas fa-check-circle' : 'far fa-check-circle';
+                                        const iconClass = isWatched ? 'fas fa-eye' : 'fas fa-eye-slash';
 
                                         episodesHtml += `
                                             <div class="episode-card glass-panel" style="position: relative; padding-right: 50px;">
@@ -2692,7 +2689,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                                     <p class="ep-overview">${ep.overview || 'Sin descripción del episodio disponible.'}</p>
                                                 </div>
                                                 
-                                                <button class="btn-watch-episode" data-season="${seasonNumber}" data-episode="${ep.episode_number}" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: ${colorBtn}; font-size: 1.8rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
+                                                <button class="btn-watch-episode" data-season="${seasonNumber}" data-episode="${ep.episode_number}" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: 2px solid ${colorBtn}; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: ${colorBtn}; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
                                                     <i class="${iconClass}"></i>
                                                 </button>
                                             </div>
@@ -2756,6 +2753,8 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                             window.episodiosVistosActuales.add(`${t}_${e}`);
                         }
                     });
+
+                    setTimeout(() => window.refrescarUIEpisodiosYTemporadas && window.refrescarUIEpisodiosYTemporadas(), 150);
                 }
             }
 
@@ -2793,9 +2792,6 @@ function cerrarModalMedia() {
     // LIMPIAR ESTILOS AL CERRAR (para que no se queden pegados)
     const ratingCol = document.querySelector('.media-rating-col');
     if (ratingCol) ratingCol.style.display = 'flex';
-
-    const btnWatchToggleMod = document.getElementById('btn-watch-toggle');
-    if (btnWatchToggleMod) btnWatchToggleMod.style.display = '';
 
     const providerCols = document.querySelectorAll('.provider-col');
     providerCols.forEach((col) => {
@@ -3890,6 +3886,12 @@ btnToggleWatched?.addEventListener('click', (e) => {
     } else {
         const fechaHoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         guardarInteraccionMedia({ visto: true, veces_vista: 1, fecha_vista: fechaHoy });
+
+        // Si es serie, marca todos los episodios de golpe
+        const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
+        if (memoInfo.tipo === 'tv' && window.gestionarBloqueEpisodios) {
+            window.gestionarBloqueEpisodios('marcar', null);
+        }
     }
 });
 
@@ -3920,6 +3922,12 @@ document.getElementById('btn-context-rewatch')?.addEventListener('click', () => 
 document.getElementById('btn-context-unwatch')?.addEventListener('click', () => {
     contextMenuWatched.classList.remove('show');
     guardarInteraccionMedia({ visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null });
+
+    // Si es serie, desmarca todos los episodios de golpe
+    const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
+    if (memoInfo.tipo === 'tv' && window.gestionarBloqueEpisodios) {
+        window.gestionarBloqueEpisodios('desmarcar', null);
+    }
 });
 
 // ==========================================================================
@@ -4051,99 +4059,180 @@ document.addEventListener('click', (e) => {
 });
 
 // ==========================================================================
-//   SISTEMA DE EPISODIOS INDIVIDUALES
+//   SISTEMA DE VISIONADO AVANZADO (EPISODIOS, TEMPORADAS Y SERIES)
 // ==========================================================================
-document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.btn-watch-episode');
-    if (!btn) return;
 
-    // Verificar login
+// 1. DIBUJAR LOS BOTONES (Sincroniza la UI con la RAM)
+window.refrescarUIEpisodiosYTemporadas = function () {
+    if (!window.serieInfoActual) return;
+
+    // Refrescar Temporadas
+    document.querySelectorAll('.btn-watch-season').forEach(btn => {
+        const s = parseInt(btn.getAttribute('data-season'));
+        const totalEp = parseInt(btn.getAttribute('data-episodes'));
+
+        let vistosDeEstaTemp = 0;
+        for (let i = 1; i <= totalEp; i++) {
+            if (window.episodiosVistosActuales.has(`${s}_${i}`)) vistosDeEstaTemp++;
+        }
+
+        if (vistosDeEstaTemp === totalEp && totalEp > 0) {
+            btn.style.color = 'var(--success)';
+            btn.style.borderColor = 'var(--success)';
+            btn.innerHTML = '<i class="fas fa-eye"></i>';
+        } else {
+            btn.style.color = 'var(--text-muted)';
+            btn.style.borderColor = 'var(--text-muted)';
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        }
+    });
+
+    // Refrescar Episodios cargados
+    document.querySelectorAll('.btn-watch-episode').forEach(btn => {
+        const s = parseInt(btn.getAttribute('data-season'));
+        const e = parseInt(btn.getAttribute('data-episode'));
+
+        if (window.episodiosVistosActuales.has(`${s}_${e}`)) {
+            btn.style.color = 'var(--success)';
+            btn.style.borderColor = 'var(--success)';
+            btn.innerHTML = '<i class="fas fa-eye"></i>';
+        } else {
+            btn.style.color = 'var(--text-muted)';
+            btn.style.borderColor = 'var(--text-muted)';
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        }
+    });
+};
+
+// 2. FUNCIÓN MAESTRA DE INYECCIÓN (Sirve para 1 Temporada o TODA la serie)
+window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-        showToast('error', 'Acceso denegado', 'Debes iniciar sesión para marcar episodios.');
+    if (!session) return;
+
+    const miId = session.user.id;
+    const serieId = window.serieInfoActual.id;
+    const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    let nuevosVistos = [];
+    let aBorrarKeys = [];
+
+    window.serieInfoActual.temporadas.forEach(temp => {
+        const s = temp.season_number;
+        if (s === 0) return; // Saltamos especiales
+
+        // Si mandamos un target (ej: season 2), ignoramos las demás
+        if (seasonTarget !== null && s !== seasonTarget) return;
+
+        for (let epNum = 1; epNum <= temp.episode_count; epNum++) {
+            const epKey = `${s}_${epNum}`;
+            const mediaId = `${serieId}_T${s}_E${epNum}`;
+
+            if (modo === 'marcar') {
+                if (!window.episodiosVistosActuales.has(epKey)) {
+                    nuevosVistos.push({
+                        user_id: miId, media_id: mediaId, tipo: 'tv_episode', visto: true, veces_vista: 1, fecha_vista: hoy
+                    });
+                    window.episodiosVistosActuales.add(epKey);
+                }
+            } else {
+                if (window.episodiosVistosActuales.has(epKey)) {
+                    aBorrarKeys.push(mediaId);
+                    window.episodiosVistosActuales.delete(epKey);
+                }
+            }
+        }
+    });
+
+    // Mandar a Supabase
+    if (modo === 'marcar' && nuevosVistos.length > 0) {
+        await supabase.from('user_media').insert(nuevosVistos);
+    } else if (modo === 'desmarcar' && aBorrarKeys.length > 0) {
+        await supabase.from('user_media')
+            .delete()
+            .eq('user_id', miId)
+            .eq('tipo', 'tv_episode')
+            .in('media_id', aBorrarKeys); // .in() soporta arrays de UUIDs sin problemas
+    }
+
+    window.refrescarUIEpisodiosYTemporadas();
+};
+
+// 3. LISTENERS GLOBALES (Clics de UI)
+document.addEventListener('click', async (e) => {
+
+    // A. CLIC EN BOTÓN DE TEMPORADA
+    const btnSeason = e.target.closest('.btn-watch-season');
+    if (btnSeason) {
+        e.stopPropagation(); // Evitamos que el acordeón se abra/cierre
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { showToast('error', 'Acceso denegado', 'Inicia sesión.'); return; }
+
+        const season = parseInt(btnSeason.getAttribute('data-season'));
+        const totalEp = parseInt(btnSeason.getAttribute('data-episodes'));
+
+        // Comprobamos si la temporada ya estaba completa
+        let vistos = 0;
+        for (let i = 1; i <= totalEp; i++) {
+            if (window.episodiosVistosActuales.has(`${season}_${i}`)) vistos++;
+        }
+
+        btnSeason.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        if (vistos === totalEp) {
+            await window.gestionarBloqueEpisodios('desmarcar', season);
+            showToast('warning', 'Desmarcada', `Temporada ${season} no vista.`);
+        } else {
+            await window.gestionarBloqueEpisodios('marcar', season);
+            showToast('success', 'Completada', `Temporada ${season} marcada.`);
+        }
         return;
     }
 
-    const season = parseInt(btn.getAttribute('data-season'));
-    const episode = parseInt(btn.getAttribute('data-episode'));
-    const serieId = window.serieInfoActual.id;
-    const miId = session.user.id;
-    const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    // B. CLIC EN EPISODIO SUELTO
+    const btnEp = e.target.closest('.btn-watch-episode');
+    if (btnEp) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { showToast('error', 'Acceso denegado', 'Inicia sesión.'); return; }
 
-    const isWatched = window.episodiosVistosActuales.has(`${season}_${episode}`);
+        const season = parseInt(btnEp.getAttribute('data-season'));
+        const episode = parseInt(btnEp.getAttribute('data-episode'));
+        const isWatched = window.episodiosVistosActuales.has(`${season}_${episode}`);
 
-    if (isWatched) {
-        // DESMARCAR SOLO ESTE EPISODIO
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        const mediaId = `${serieId}_T${season}_E${episode}`;
+        btnEp.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-        const { error } = await supabase.from('user_media')
-            .delete()
-            .eq('user_id', miId)
-            .eq('media_id', mediaId)
-            .eq('tipo', 'tv_episode');
-
-        if (!error) {
+        if (isWatched) {
+            // Desmarcar solo ESTE episodio
+            const mediaId = `${window.serieInfoActual.id}_T${season}_E${episode}`;
+            await supabase.from('user_media').delete().eq('user_id', session.user.id).eq('media_id', mediaId).eq('tipo', 'tv_episode');
             window.episodiosVistosActuales.delete(`${season}_${episode}`);
-            btn.style.color = 'var(--text-muted)';
-            btn.innerHTML = '<i class="far fa-check-circle"></i>';
+            window.refrescarUIEpisodiosYTemporadas();
         } else {
-            showToast('error', 'Error', 'No se pudo desmarcar el episodio.');
-            btn.innerHTML = '<i class="fas fa-check-circle"></i>'; // Restaurar visualmente
-        }
+            // Marcar este y TODOS LOS ANTERIORES (Magia cascada)
+            const miId = session.user.id;
+            const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+            let nuevosVistos = [];
 
-    } else {
-        // MARCAR ESTE Y TODOS LOS ANTERIORES EN MASA
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        const nuevosVistos = [];
+            window.serieInfoActual.temporadas.forEach(temp => {
+                const s = temp.season_number;
+                if (s === 0 || s > season) return;
 
-        window.serieInfoActual.temporadas.forEach(temp => {
-            const s = temp.season_number;
-
-            // Ignoramos la temporada 0 (Especiales) y las temporadas posteriores a la cliqueada
-            if (s === 0 || s > season) return;
-
-            // Si es la misma temporada limitamos al episodio, sino cogemos todos los episodios
-            const maxEp = (s === season) ? episode : temp.episode_count;
-
-            for (let epNum = 1; epNum <= maxEp; epNum++) {
-                if (!window.episodiosVistosActuales.has(`${s}_${epNum}`)) {
-                    nuevosVistos.push({
-                        user_id: miId,
-                        media_id: `${serieId}_T${s}_E${epNum}`,
-                        tipo: 'tv_episode',
-                        visto: true,
-                        veces_vista: 1,
-                        fecha_vista: hoy
-                    });
-                    // Guardar en la memoria RAM de inmediato
-                    window.episodiosVistosActuales.add(`${s}_${epNum}`);
+                const maxEp = (s === season) ? episode : temp.episode_count;
+                for (let epNum = 1; epNum <= maxEp; epNum++) {
+                    if (!window.episodiosVistosActuales.has(`${s}_${epNum}`)) {
+                        nuevosVistos.push({
+                            user_id: miId, media_id: `${window.serieInfoActual.id}_T${s}_E${epNum}`, tipo: 'tv_episode', visto: true, veces_vista: 1, fecha_vista: hoy
+                        });
+                        window.episodiosVistosActuales.add(`${s}_${epNum}`);
+                    }
                 }
-            }
-        });
+            });
 
-        if (nuevosVistos.length > 0) {
-            // Mandamos todos los episodios de golpe a Supabase
-            const { error } = await supabase.from('user_media').insert(nuevosVistos);
-            if (error) {
-                console.error("Error guardando episodios:", error);
-                showToast('error', 'Error de red', 'Fallo al guardar tu progreso.');
-                btn.innerHTML = '<i class="far fa-check-circle"></i>';
-                return;
+            if (nuevosVistos.length > 0) {
+                await supabase.from('user_media').insert(nuevosVistos);
             }
+            window.refrescarUIEpisodiosYTemporadas();
+            showToast('success', 'Progreso guardado', `Visto hasta T${season} - E${episode}`);
         }
-
-        // ACTUALIZAR VISUALMENTE TODOS LOS BOTONES CARGADOS
-        document.querySelectorAll('.btn-watch-episode').forEach(boton => {
-            const bS = parseInt(boton.getAttribute('data-season'));
-            const bE = parseInt(boton.getAttribute('data-episode'));
-
-            if (window.episodiosVistosActuales.has(`${bS}_${bE}`)) {
-                boton.style.color = 'var(--success)';
-                boton.innerHTML = '<i class="fas fa-check-circle"></i>';
-            }
-        });
-
-        showToast('success', 'Progreso guardado', `Marcado todo hasta la T${season} - E${episode}`);
     }
 });
