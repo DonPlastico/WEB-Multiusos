@@ -965,14 +965,8 @@ function crearTarjetaTMDB(media, tipo) {
     const isMovie = tipo === 'movie';
     const fechaFormat = media.fecha ? media.fecha.split('-')[0] : 'TBA';
 
-    // === MISMA LÓGICA QUE EL FILTRO ===
-    const PALABRAS_ADULTO = ['sex', 'porn'];
-    const esContenidoAdulto = media.adult ||
-        media.certification === '18' ||
-        media.certification === 'R' ||
-        media.certification === 'NC-17' ||
-        PALABRAS_ADULTO.some(palabra => media.titulo.toLowerCase().includes(palabra.toLowerCase()));
-
+    // Filtro nativo de TMDB para mostrar etiqueta NSFW
+    const esContenidoAdulto = media.adult;
     const nsfwTag = esContenidoAdulto ? '<span class="nsfw-tag">+18</span>' : '';
 
     // info extra segun si es peli o serie
@@ -1076,17 +1070,8 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
-            // Detecta TODO tipo de contenido adulto
-            // 1. adult: true (pornografía explícita)
-            // 2. certification: 18, R, NC-17 (clasificación por edades)
-            // 3. keywords en el título (para películas sin certificación)
-            const PALABRAS_ADULTO = ['sex', 'porn', 'erotic', 'erotica', 'sensual', 'xxx', 'desnudo', 'hotel erotica', 'carnal'];
-
-            const esContenidoAdulto = item.adult ||
-                item.certification === '18' ||
-                item.certification === 'R' ||
-                item.certification === 'NC-17' ||
-                PALABRAS_ADULTO.some(palabra => item.titulo.toLowerCase().includes(palabra.toLowerCase()));
+            // Bloquea ÚNICAMENTE si TMDB lo clasifica oficialmente como contenido para adultos
+            const esContenidoAdulto = item.adult;
 
             if (esContenidoAdulto && !isAdultFilterActive) return;
 
@@ -3010,13 +2995,13 @@ async function cargarPerfilPublico(usernameTarget) {
                 const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
 
                 // 5. Inyectamos los cálculos en tu HTML
-                // --- SERIES ---
+                // SERIES
                 document.getElementById('stat-series-episodes').textContent = totalEpisodios.toLocaleString('es-ES');
                 document.getElementById('stat-series-months').textContent = tiempoSeries.meses;
                 document.getElementById('stat-series-days').textContent = tiempoSeries.dias;
                 document.getElementById('stat-series-hours').textContent = tiempoSeries.horas;
 
-                // --- PELÍCULAS ---
+                // PELÍCULAS
                 document.getElementById('stat-movies-count').textContent = totalPelis.toLocaleString('es-ES');
                 document.getElementById('stat-movies-months').textContent = tiempoPelis.meses;
                 document.getElementById('stat-movies-days').textContent = tiempoPelis.dias;
