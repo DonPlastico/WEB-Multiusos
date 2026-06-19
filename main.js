@@ -991,7 +991,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -8px; right: -8px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
         btnVistoHtml = `
-            <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--success)'; this.style.color='white';" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='var(--success)';" onclick="abrirMenuTarjeta(event, this)">
+            <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative;background: rgba(16, 185, 129, 0.15);border: 1px solid var(--success);color: var(--success);width: 80px;height: 40px;border-radius: 8px;display: flex;align-items: center;justify-content: center;cursor: pointer;transition: 0.2s;" onmouseover="this.style.background='var(--success)'; this.style.color='white';" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='var(--success)';" onclick="abrirMenuTarjeta(event, this)">
                 <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
                 ${badgeExtra}
             </button>
@@ -1023,7 +1023,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                 </div>
                 
                 <div style="display: flex;justify-content: space-between;align-items: center;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="Añadir a lista" style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                    <button class="btn-add-list" title="Añadir a lista" style="background: rgba(245, 158, 11, 0.15);border: 1px solid var(--warning);color: var(--warning);width: 135px;height: 40px;border-radius: 8px;display: flex;align-items: center;justify-content: center;cursor: pointer;transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                     ${btnVistoHtml}
