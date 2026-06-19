@@ -86,7 +86,7 @@ export default async function handler(req, res) {
                 trailer_id: trailerId,
                 reparto: repartoFormateado,
                 temporadas: data.number_of_seasons,
-                temporadas_info: temporadasInfo, // <--- ENVIAMOS EL MAPA DE TEMPORADAS AL FRONTEND
+                temporadas_info: temporadasInfo,
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0)
             });
         }
