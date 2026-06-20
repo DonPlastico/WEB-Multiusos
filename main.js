@@ -5668,7 +5668,7 @@ setTimeout(() => {
 // ==========================================================================
 //   MÓDULO: WATCHLIST ESTILO TV TIME (CONTINUE WATCHING)
 // ==========================================================================
-window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
+window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
     const section = document.getElementById('profile-watchlist-section');
     const grid = document.getElementById('profile-watchlist-grid');
 
@@ -5681,7 +5681,7 @@ window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
         // Pedimos 'id' para ordenar cronológicamente de forma nativa en Supabase (de más nuevo a más antiguo)
         const { data: watchedEps, error } = await supabase
             .from('user_media')
-            .select('id, media_id') 
+            .select('id, media_id')
             .eq('user_id', targetId)
             .eq('tipo', 'tv_episode')
             .order('id', { ascending: false });
@@ -5753,7 +5753,7 @@ window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
 
                     const bgImage = nextEpInfo.still_path ? `https://image.tmdb.org/t/p/w780${nextEpInfo.still_path}` : showData.backdrop;
                     const epTitle = nextEpInfo.name || `Episodio ${nextE}`;
-                    
+
                     const btnMarcar = esMiPerfil ? `
                         <button title="Marcar como visto" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; min-width: 45px; height: 45px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; z-index: 2;" onclick="event.stopPropagation(); marcarSiguienteEpisodio('${progreso.id}', ${nextS}, ${nextE}, this)" onmouseover="this.style.background='var(--success)'; this.style.color='white'; this.style.borderColor='var(--success)';" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';">
                             <i class="fas fa-check"></i>
@@ -5767,7 +5767,7 @@ window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
                                 <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
                                 <div style="flex: 1; min-width: 0;">
                                     <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
-                                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0'+nextS : nextS} | E${nextE < 10 ? '0'+nextE : nextE}</p>
+                                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0' + nextS : nextS} | E${nextE < 10 ? '0' + nextE : nextE}</p>
                                     <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
                                 </div>
                                 ${btnMarcar}
@@ -5797,7 +5797,7 @@ window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
     }
 };
 
-window.marcarSiguienteEpisodio = async function(serieId, season, episode, btn) {
+window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.style.pointerEvents = 'none';
 
@@ -5819,7 +5819,7 @@ window.marcarSiguienteEpisodio = async function(serieId, season, episode, btn) {
         });
 
         if (error) throw error;
-        showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0'+season : season} | E${episode < 10 ? '0'+episode : episode}`);
+        showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0' + season : season} | E${episode < 10 ? '0' + episode : episode}`);
 
         // === MAGIA: AISLAMOS Y RECARGAMOS SOLO LA TARJETA AL NUEVO EPISODIO ===
         const card = btn.closest('.glass-panel');
@@ -5877,7 +5877,7 @@ window.marcarSiguienteEpisodio = async function(serieId, season, episode, btn) {
                 <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
                 <div style="flex: 1; min-width: 0;">
                     <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
-                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0'+nextS : nextS} | E${nextE < 10 ? '0'+nextE : nextE}</p>
+                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0' + nextS : nextS} | E${nextE < 10 ? '0' + nextE : nextE}</p>
                     <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
                 </div>
                 ${btnMarcarHtml}
@@ -5892,7 +5892,7 @@ window.marcarSiguienteEpisodio = async function(serieId, season, episode, btn) {
         showToast('error', 'Error BD', 'No se pudo guardar el episodio.');
         btn.innerHTML = '<i class="fas fa-check"></i>';
         btn.style.pointerEvents = 'auto';
-        
+
         const card = btn.closest('.glass-panel');
         if (card) {
             card.style.opacity = '1';
