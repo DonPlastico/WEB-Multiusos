@@ -4736,6 +4736,7 @@ span.flatpickr-weekday {
     background: var(--text-muted);
 }
 
+/* --- HEADER --- */
 .search-history-header {
     display: flex;
     justify-content: space-between;
@@ -4743,25 +4744,28 @@ span.flatpickr-weekday {
     padding: 8px 16px;
     border-bottom: 1px solid var(--border-color);
     font-size: 0.7rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
 
-.search-history-header i {
-    color: var(--primary);
-    opacity: 0.6;
-    margin-right: 6px;
+.search-history-header span {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
+/* --- BOTÓN LIMPIAR TODO (VERSIÓN CLARA) --- */
 .search-history-clear-all {
     display: flex;
     align-items: center;
     gap: 6px;
     background: transparent;
     border: 1px solid var(--border-color);
-    color: var(--text-muted);
+    color: var(--text-secondary) !important;
+    /* FORZADO: texto claro */
     cursor: pointer;
     font-size: 0.6rem;
     font-weight: 700;
@@ -4775,28 +4779,40 @@ span.flatpickr-weekday {
 
 .search-history-clear-all i {
     font-size: 0.6rem;
-    opacity: 0.4;
+    color: var(--text-secondary) !important;
+    /* FORZADO: icono claro */
+    opacity: 0.7;
     transition: all 0.25s ease;
+}
+
+.search-history-clear-all span {
+    color: var(--text-secondary) !important;
+    /* FORZADO: texto claro */
 }
 
 .search-history-clear-all:hover {
     border-color: var(--error);
-    color: var(--error);
+    color: var(--error) !important;
     background: rgba(239, 68, 68, 0.06);
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 0 20px rgba(239, 68, 68, 0.02);
     transform: translateY(-1px);
 }
 
 .search-history-clear-all:hover i {
+    color: var(--error) !important;
     opacity: 1;
-    color: var(--error);
     transform: scale(1.1);
+}
+
+.search-history-clear-all:hover span {
+    color: var(--error) !important;
 }
 
 .search-history-clear-all:active {
     transform: scale(0.95);
 }
 
+/* --- ITEMS DEL HISTORIAL --- */
 .search-history-item {
     display: flex;
     justify-content: space-between;
@@ -4825,21 +4841,23 @@ span.flatpickr-weekday {
     display: flex;
     align-items: center;
     gap: 8px;
+    color: var(--text-secondary);
 }
 
 .search-history-item span i {
     color: var(--text-muted);
-    opacity: 0.3;
+    opacity: 0.5;
     font-size: 0.7rem;
     flex-shrink: 0;
     transition: opacity 0.2s, color 0.2s;
 }
 
 .search-history-item:hover span i {
-    opacity: 0.7;
+    opacity: 0.8;
     color: var(--primary);
 }
 
+/* --- BOTÓN ELIMINAR (X) --- */
 .search-history-delete {
     background: transparent;
     border: none;
@@ -4850,7 +4868,7 @@ span.flatpickr-weekday {
     transition: all 0.15s ease;
     font-size: 0.7rem;
     flex-shrink: 0;
-    opacity: 0;
+    opacity: 0.4;
 }
 
 .search-history-item:hover .search-history-delete {
@@ -4860,9 +4878,19 @@ span.flatpickr-weekday {
 .search-history-delete:hover {
     background: rgba(239, 68, 68, 0.08);
     color: var(--error);
+    opacity: 1;
 }
 
-/* --- BADGE DE BÚSQUEDA RECIENTE (Opcional, activar desde JS) --- */
+.search-history-delete i {
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.search-history-delete:hover i {
+    color: var(--error);
+}
+
+/* --- BADGE DE BÚSQUEDA RECIENTE (Opcional) --- */
 .search-history-item .badge-recent {
     font-size: 0.5rem;
     font-weight: 700;
@@ -4878,27 +4906,28 @@ span.flatpickr-weekday {
     flex-shrink: 0;
 }
 
-/* --- ANIMACIÓN --- */
-@keyframes minimalSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* --- MODO CLARO AJUSTES FINOS --- */
-:root[data-theme="light"] .search-box:focus-within {
-    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(0, 0, 0, 0.04);
-}
-
 :root[data-theme="light"] .search-history-dropdown {
     backdrop-filter: blur(8px);
     background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="light"] .search-history-clear-all {
+    color: var(--text-secondary) !important;
+    border-color: var(--border-color);
+}
+
+:root[data-theme="light"] .search-history-clear-all i {
+    color: var(--text-secondary) !important;
+}
+
+:root[data-theme="light"] .search-history-clear-all:hover {
+    color: var(--error) !important;
+    border-color: var(--error);
+}
+
+:root[data-theme="light"] .search-history-clear-all:hover i {
+    color: var(--error) !important;
 }
 
 
@@ -5865,5 +5894,17 @@ span.flatpickr-weekday {
 
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes minimalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
