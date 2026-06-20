@@ -5686,17 +5686,21 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         return;
     }
 
-    // 2. Agrupamos por serie (tmdb_id) y sacamos qué temporadas/eps tiene vistas
-    //    media_id formato: "253905_T1_E6"
-    const seriesMap = new Map(); // tmdb_id -> Set de "T#_E#" vistos
+    // 2. Agrupamos por serie (tmdb_id) y sacamos qué temporadas/eps tiene vistas, media_id formato: "253905_T1_E6"
+    const seriesMap = new Map(); // tmdb_id -> { epVistos: Set, ultimaFecha: string }
 
     todosLosEp.forEach(item => {
-        const partes = item.media_id.split('_'); // ["253905", "T1", "E6"]
+        const partes = item.media_id.split('_');
         if (partes.length < 3) return;
         const tmdbId = partes[0];
-        const codEp = `${partes[1]}_${partes[2]}`; // "T1_E6"
-        if (!seriesMap.has(tmdbId)) seriesMap.set(tmdbId, new Set());
-        seriesMap.get(tmdbId).add(codEp);
+        const codEp = `${partes[1]}_${partes[2]}`;
+        if (!seriesMap.has(tmdbId)) seriesMap.set(tmdbId, { epVistos: new Set(), ultimaFecha: '' });
+        const entry = seriesMap.get(tmdbId);
+        entry.epVistos.add(codEp);
+        // Guardamos la fecha más reciente de esta serie
+        if (item.fecha_vista && item.fecha_vista > entry.ultimaFecha) {
+            entry.ultimaFecha = item.fecha_vista;
+        }
     });
 
     // 3. Para cada serie, preguntamos a TMDB cuántos eps totales tiene (sin T0)
@@ -5708,15 +5712,17 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const CHUNK = 5;
     for (let i = 0; i < entries.length; i += CHUNK) {
         const chunk = entries.slice(i, i + CHUNK);
-        await Promise.all(chunk.map(async ([tmdbId, epVistos]) => {
+        await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
             try {
-                // Usamos nuestro proxy igual que el resto del main.js
                 const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv`);
                 if (!res.ok) return;
                 const data = await res.json();
 
                 const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
                 const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+
+                const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
+                const totalVistosUsuario = epVistosReales.length;
 
                 const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
                 const totalVistosUsuario = epVistosReales.length;
@@ -5773,7 +5779,8 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     epPoster,
                     pendientes: totalPendientes - 1,
                     esPremiere,
-                    popularity: data.popularidad || 0
+                    ultimaFecha,
+                    epVistos
                 });
 
             } catch (_) { }
@@ -5786,7 +5793,12 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     }
 
     // 4. Ordenamos por popularidad (las más populares/activas arriba)
-    seriesEnProgreso.sort((a, b) => b.popularity - a.popularity);
+    seriesEnProgreso.sort((a, b) => {
+        if (b.ultimaFecha && a.ultimaFecha) return b.ultimaFecha.localeCompare(a.ultimaFecha);
+        if (b.ultimaFecha) return 1;
+        if (a.ultimaFecha) return -1;
+        return 0;
+    });
 
     // 5. Pintamos el HTML
     seccion.style.display = 'block';
@@ -5834,15 +5846,19 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
         });
 
-        // Clic en el check → marcar episodio como visto y refrescar
+        // Clic en el check → marcar episodio como visto y actualizar in-place
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
             const btn = e.currentTarget;
-            btn.classList.add('checked');
-            btn.innerHTML = '<i class="fas fa-check"></i>';
+
+            // Deshabilitar mientras procesamos
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
 
             const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
+
             try {
+                // 1. Guardar en Supabase
                 await supabase.from('user_media').upsert({
                     user_id: userId,
                     media_id: mediaId,
@@ -5852,22 +5868,104 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     fecha_vista: new Date().toISOString().split('T')[0]
                 }, { onConflict: 'user_id,media_id' });
 
-                // Animar y refrescar la watchlist
-                const itemEl = btn.closest('.watchlist-item');
-                itemEl.style.opacity = '0';
-                itemEl.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => {
-                    itemEl.remove();
-                    // Si ya no quedan items, ocultamos la sección
-                    if (lista.querySelectorAll('.watchlist-item').length === 0) {
-                        seccion.style.display = 'none';
+                // 2. Actualizar el Set local con el ep recién visto
+                serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
+
+                // 3. Calcular el siguiente episodio pendiente
+                const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv`);
+                const dataTV = await resTV.json();
+                const temporadasReales = (dataTV.temporadas_info || []).filter(s => s.season_number > 0);
+                const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+                const epVistosReales = [...serie.epVistos].filter(c => !c.startsWith('T0_'));
+
+                // Si ya terminó la serie → eliminar el item
+                if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) {
+                    const itemEl = btn.closest('.watchlist-item');
+                    itemEl.style.opacity = '0';
+                    itemEl.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => {
+                        itemEl.remove();
+                        if (lista.querySelectorAll('.watchlist-item').length === 0) {
+                            seccion.style.display = 'none';
+                        }
+                    }, 300);
+                    return;
+                }
+
+                // 4. Buscar el siguiente ep no visto
+                let siguienteEp = null;
+                let totalPendientes = 0;
+                for (const temp of temporadasReales) {
+                    for (let ep = 1; ep <= temp.episode_count; ep++) {
+                        const cod = `T${temp.season_number}_E${ep}`;
+                        if (!serie.epVistos.has(cod)) {
+                            totalPendientes++;
+                            if (!siguienteEp) siguienteEp = { temporada: temp.season_number, episodio: ep };
+                        }
                     }
-                }, 300);
+                }
+
+                if (!siguienteEp) {
+                    btn.closest('.watchlist-item').remove();
+                    return;
+                }
+
+                // 5. Fetch del nuevo episodio
+                let nuevoNombre = '';
+                let nuevoPoster = '';
+                try {
+                    const resEp = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}`);
+                    if (resEp.ok) {
+                        const epData = await resEp.json();
+                        const epInfo = epData.episodes?.find(e => e.episode_number === siguienteEp.episodio);
+                        nuevoNombre = epInfo?.name || '';
+                        nuevoPoster = epInfo?.still_path ? `https://image.tmdb.org/t/p/w300${epInfo.still_path}` : '';
+                    }
+                } catch (_) { }
+
+                // 6. Actualizar datos de la serie in-place
+                serie.temporada = siguienteEp.temporada;
+                serie.episodio = siguienteEp.episodio;
+                serie.epNombre = nuevoNombre;
+                serie.pendientes = totalPendientes - 1;
+                serie.esPremiere = siguienteEp.episodio === 1;
+                serie.ultimaFecha = new Date().toISOString().split('T')[0];
+
+                // 7. Actualizar el DOM del item
+                const itemEl = btn.closest('.watchlist-item');
+                const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
+                const thumbHtml = nuevoPoster
+                    ? `<img src="${nuevoPoster}" alt="${nuevoNombre}" loading="lazy">`
+                    : (serie.poster ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">` : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
+                const badgeHtml = serie.esPremiere ? `<span class="watchlist-badge">PREMIERE</span>` : '';
+
+                itemEl.querySelector('.watchlist-thumb').innerHTML = thumbHtml;
+                itemEl.querySelector('.watchlist-ep-code').innerHTML = `T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}`;
+                itemEl.querySelector('.watchlist-ep-name').textContent = nuevoNombre;
+
+                // Badge: actualizar o quitar
+                const badgeExistente = itemEl.querySelector('.watchlist-badge');
+                if (serie.esPremiere && !badgeExistente) {
+                    itemEl.querySelector('.watchlist-info').insertAdjacentHTML('beforeend', badgeHtml);
+                } else if (!serie.esPremiere && badgeExistente) {
+                    badgeExistente.remove();
+                }
+
+                // 8. Mover este item al top de la lista (es el más reciente ahora)
+                lista.prepend(itemEl);
+
+                // 9. Flash verde de confirmación y volver al estado normal
+                itemEl.style.transition = 'background 0.3s ease';
+                itemEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                setTimeout(() => { itemEl.style.background = ''; }, 800);
+
+                btn.disabled = false;
+                btn.style.opacity = '1';
 
             } catch (err) {
                 console.error('Error marcando episodio:', err);
-                btn.classList.remove('checked');
-                btn.innerHTML = '<i class="fas fa-check"></i>';
+                btn.disabled = false;
+                btn.style.opacity = '1';
             }
         });
 
