@@ -5479,8 +5479,16 @@ function mostrarHistorial(tipo) {
         container = document.createElement('div');
         container.id = `history-container-${tipo}`;
         container.className = 'search-history-dropdown';
-        input.parentNode.style.position = 'relative';
-        input.parentNode.appendChild(container);
+        // Buscar el .search-box que contiene el input
+        const searchBox = input.closest('.search-box');
+        if (searchBox) {
+            searchBox.style.position = 'relative';
+            searchBox.appendChild(container);
+        } else {
+            // Fallback: usar el parentNode
+            input.parentNode.style.position = 'relative';
+            input.parentNode.appendChild(container);
+        }
     }
 
     if (historial.length === 0) {
