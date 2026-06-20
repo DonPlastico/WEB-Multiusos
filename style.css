@@ -1183,7 +1183,7 @@ body.auth-mode .nav-links {
 
 .auth-btn.primary:hover {
     background: color-mix(in srgb, var(--primary) 85%, white);
-    box-shadow: 0 6px 28px  var(--primary-soft);
+    box-shadow: 0 6px 28px var(--primary-soft);
     transform: translateY(-2px);
 }
 
@@ -1642,10 +1642,6 @@ span.flatpickr-weekday {
     font-weight: bold;
 }
 
-.edit-profile-admin-divider {
-    color: var(--text-muted);
-}
-
 .edit-profile-admin-nexus {
     color: var(--primary);
 }
@@ -1834,7 +1830,7 @@ span.flatpickr-weekday {
 
 .edit-profile-admin-divider {
     height: 1px;
-    background: var(--border-color);
+    color: var(--text-muted);
     margin: 6px 0;
 }
 
