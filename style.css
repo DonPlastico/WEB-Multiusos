@@ -4688,7 +4688,7 @@ span.flatpickr-weekday {
     border-radius: 10px;
     padding: 8px 0;
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
+    z-index: 99999;
     max-height: 250px;
     overflow-y: auto;
     backdrop-filter: blur(12px);
