@@ -5473,20 +5473,26 @@ function mostrarHistorial(tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    // Crear o obtener el contenedor del historial
     let container = document.getElementById(`history-container-${tipo}`);
     if (!container) {
         container = document.createElement('div');
         container.id = `history-container-${tipo}`;
         container.className = 'search-history-dropdown';
-        // Buscar el .search-box que contiene el input
+
+        // Forzar z-index desde JS
+        container.style.zIndex = '999999';
+        container.style.position = 'absolute';
+
         const searchBox = input.closest('.search-box');
         if (searchBox) {
             searchBox.style.position = 'relative';
+            searchBox.style.zIndex = '99999';
+            searchBox.style.overflow = 'visible'; // ¡CRÍTICO!
             searchBox.appendChild(container);
         } else {
-            // Fallback: usar el parentNode
             input.parentNode.style.position = 'relative';
+            input.parentNode.style.zIndex = '99999';
+            input.parentNode.style.overflow = 'visible';
             input.parentNode.appendChild(container);
         }
     }
@@ -5547,6 +5553,12 @@ window.limpiarHistorialCompleto = function (tipo) {
 function configurarHistorialInput(inputId, tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
+
+    // Desactivar autocompletado nativo
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('spellcheck', 'false');
 
     // Mostrar historial al hacer focus
     input.addEventListener('focus', () => {
