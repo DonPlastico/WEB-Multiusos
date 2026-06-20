@@ -4864,12 +4864,30 @@ async function cargarDatosPerfil() {
         // Actualizar contador de caracteres
         actualizarContadorCaracteres();
 
-        // ===== NUEVO: Actualizar panel de información =====
+        // ===== Actualizar panel de información =====
         const infoUsername = document.getElementById('edit-profile-username-display');
-        const infoEmail = document.getElementById('edit-profile-email-display');
+        const infoJoined = document.getElementById('edit-profile-joined-display');
+        const infoColorText = document.getElementById('edit-profile-color-text');
+        const infoColorDot = document.getElementById('edit-profile-color-dot');
 
         if (infoUsername) infoUsername.textContent = perfil?.username || '--';
-        if (infoEmail) infoEmail.textContent = session.user.email || '--';
+
+        // Fecha de registro
+        if (infoJoined && perfil?.created_at) {
+            const fecha = new Date(perfil.created_at);
+            infoJoined.textContent = fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } else if (infoJoined) {
+            infoJoined.textContent = '--';
+        }
+
+        // Color destacado
+        const color = perfil?.color_destacado || '#6366f1';
+        if (infoColorText) infoColorText.textContent = color;
+        if (infoColorDot) infoColorDot.style.background = color;
 
     } catch (error) {
         console.error('Error cargando perfil:', error);
@@ -5046,7 +5064,6 @@ function limpiarVistaEditarPerfil() {
 }
 
 // === INICIALIZACIÓN DE LISTENERS ===
-// Esta función se ejecutará cuando se cargue la vista 'edit-profile'
 function inicializarEditProfile() {
     // Cargar datos
     cargarDatosPerfil();
@@ -5090,12 +5107,70 @@ function inicializarEditProfile() {
         btn.removeEventListener('click', handleColorPresetClick);
         btn.addEventListener('click', handleColorPresetClick);
     });
+
+    // ===== NUEVO: Selector de Sexo =====
+    const genderTrigger = document.getElementById('gender-select-trigger');
+    const genderDropdown = document.getElementById('gender-select-dropdown');
+    const genderLabel = document.getElementById('gender-select-label');
+    const genderInput = document.getElementById('edit-gender');
+    const genderWrapper = document.getElementById('gender-select-wrapper');
+
+    if (genderTrigger && genderDropdown) {
+        // Abrir/cerrar el dropdown
+        genderTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            genderWrapper.classList.toggle('open');
+        });
+
+        // Seleccionar opción
+        genderDropdown.querySelectorAll('.cyber-select-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const value = opt.dataset.value;
+                const label = opt.textContent.trim();
+
+                // Actualizar label y input oculto
+                genderLabel.textContent = label;
+                genderInput.value = value;
+
+                // Marcar como seleccionado
+                genderDropdown.querySelectorAll('.cyber-select-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+
+                // Cerrar dropdown
+                genderWrapper.classList.remove('open');
+            });
+        });
+
+        // Cerrar al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!genderWrapper.contains(e.target)) {
+                genderWrapper.classList.remove('open');
+            }
+        });
+    }
 }
 
-// === HANDLERS PARA EVENTOS ===
 function handleColorChange(e) {
     const color = e.target.value;
-    actualizarVistaPreviaColor(color);
+    const hexDisplay = document.getElementById('edit-color-hex-display');
+    const colorPicker = document.getElementById('edit-color-picker');
+
+    // Actualizar el hex display
+    if (hexDisplay) hexDisplay.textContent = color;
+
+    // Actualizar la vista previa del color (si la quieres mantener)
+    const preview = document.getElementById('edit-color-preview');
+    if (preview) {
+        preview.style.backgroundColor = color;
+        preview.style.borderColor = color;
+    }
+
+    // Actualizar el dot del panel de información
+    const infoDot = document.getElementById('edit-profile-color-dot');
+    if (infoDot) infoDot.style.background = color;
+
+    const infoText = document.getElementById('edit-profile-color-text');
+    if (infoText) infoText.textContent = color;
 }
 
 function handleColorPresetClick(e) {

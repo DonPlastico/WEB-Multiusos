@@ -1098,38 +1098,60 @@
                                 <input type="hidden" id="edit-gender" value="--">
                             </div>
 
-                            <!-- COLOR DESTACADO -->
+                            <!-- COLOR DESTACADO (Selector de colores) -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-palette"></i> Color destacado</label>
-                                <div class="color-picker-container">
-                                    <div class="color-picker-row">
-                                        <input type="color" id="edit-color-picker" value="#6366f1">
-                                        <div id="edit-color-preview" class="color-preview"></div>
+
+                                <!-- FILA 1: Selector RGB Custom -->
+                                <div class="color-picker-row">
+                                    <div class="color-picker-custom">
+                                        <label class="color-picker-sub-label">🎨 RGB Custom</label>
+                                        <div class="color-picker-custom-inner">
+                                            <input type="color" id="edit-color-picker" value="#6366f1">
+                                            <span class="color-picker-hex" id="edit-color-hex-display">#6366f1</span>
+                                        </div>
                                     </div>
-                                    <div class="color-presets">
-                                        <button type="button" class="color-preset-btn" data-color="#000000"
-                                            style="background: #000000;" title="Negro"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#ffffff"
-                                            style="background: #ffffff; border: 1px solid #333;"
-                                            title="Blanco"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#ef4444"
-                                            style="background: #ef4444;" title="Rojo"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#3b82f6"
-                                            style="background: #3b82f6;" title="Azul"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#22c55e"
-                                            style="background: #22c55e;" title="Verde"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#ec4899"
-                                            style="background: #ec4899;" title="Rosa"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#8b5cf6"
-                                            style="background: #8b5cf6;" title="Morado"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#6b7280"
-                                            style="background: #6b7280;" title="Gris"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#eab308"
-                                            style="background: #eab308;" title="Amarillo"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#f97316"
-                                            style="background: #f97316;" title="Naranja"></button>
-                                        <button type="button" class="color-preset-btn" data-color="#6366f1"
-                                            style="background: #6366f1;" title="Primary (Nexus)"></button>
+
+                                    <div class="color-picker-divider"></div>
+
+                                    <!-- FILA 2: Colores Preseleccionados -->
+                                    <div class="color-picker-presets">
+                                        <label class="color-picker-sub-label">⚡ Preseleccionados</label>
+                                        <div class="color-presets">
+                                            <button type="button" class="color-preset-btn" data-color="#000000"
+                                                style="background: #000000;" title="Negro">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#ffffff"
+                                                style="background: #ffffff; border: 1px solid #333;" title="Blanco">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#ef4444"
+                                                style="background: #ef4444;" title="Rojo">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#3b82f6"
+                                                style="background: #3b82f6;" title="Azul">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#22c55e"
+                                                style="background: #22c55e;" title="Verde">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#ec4899"
+                                                style="background: #ec4899;" title="Rosa">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#8b5cf6"
+                                                style="background: #8b5cf6;" title="Morado">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#6b7280"
+                                                style="background: #6b7280;" title="Gris">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#eab308"
+                                                style="background: #eab308;" title="Amarillo">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#f97316"
+                                                style="background: #f97316;" title="Naranja">
+                                            </button>
+                                            <button type="button" class="color-preset-btn" data-color="#6366f1"
+                                                style="background: #6366f1;" title="Primary (Nexus)">
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1189,8 +1211,17 @@
                                     <span id="edit-profile-username-display">--</span>
                                 </div>
                                 <div class="edit-profile-admin-info-item">
-                                    <span>Correo</span>
-                                    <span id="edit-profile-email-display">--</span>
+                                    <span>Miembro desde</span>
+                                    <span id="edit-profile-joined-display">--</span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Color destacado</span>
+                                    <span id="edit-profile-color-display"
+                                        style="display: flex; align-items: center; gap: 8px;">
+                                        <span id="edit-profile-color-dot"
+                                            style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--primary);"></span>
+                                        <span id="edit-profile-color-text">#6366f1</span>
+                                    </span>
                                 </div>
                                 <div class="edit-profile-admin-info-item">
                                     <span>Estado</span>
