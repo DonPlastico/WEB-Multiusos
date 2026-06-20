@@ -1595,53 +1595,280 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   EDITAR PERFIL - ESTILOS COMPLETOS
+   EDITAR PERFIL - ESTILO ADMIN
    ========================================================================== */
 
-.edit-profile-container {
-    max-width: 1400px;
-    margin: 0 auto;
+.edit-profile-admin-container {
+    max-width: 96%;
     width: 100%;
+    margin: 0 auto;
+    padding: 20px 0;
 }
 
-.edit-profile-header {
-    padding: 40px 40px 30px;
-    margin-bottom: 30px;
-    text-align: center;
-    border-top: 3px solid var(--primary);
+/* --- HEADER --- */
+.edit-profile-admin-header {
+    padding: 25px;
+    margin-bottom: 7.5px;
+    display: flex;
+    gap: 7.5px;
+    text-align: left;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
 }
 
-.edit-profile-header::before {
+.edit-profile-admin-header::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    opacity: 0.6;
+    height: 4px;
+    background: var(--gradient-primary);
 }
 
-.edit-profile-grid {
+.edit-profile-admin-header-left h1 {
+    color: var(--text-main);
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-family: var(--font-cyber);
+    font-weight: bold;
+}
+
+.edit-profile-admin-divider {
+    color: var(--text-muted);
+}
+
+.edit-profile-admin-nexus {
+    color: var(--primary);
+}
+
+.edit-profile-admin-header-left p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    max-width: 1000px;
+    line-height: 1.6;
+}
+
+.edit-profile-admin-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(99, 102, 241, 0.05);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    flex-shrink: 0;
+}
+
+.edit-profile-admin-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--primary);
+    animation: pulse 2s infinite;
+}
+
+.edit-profile-admin-status span {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* --- GRID PRINCIPAL --- */
+.edit-profile-admin-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 30px;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 7.5px;
     align-items: start;
 }
 
 /* --- COLUMNA IZQUIERDA: FORMULARIO --- */
-.edit-profile-form {
-    padding: 30px;
-    border-top: 2px solid var(--primary-soft);
+.edit-profile-admin-form {
+    padding: 15px;
+    overflow-y: auto;
+    height: 100%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
 }
 
-.edit-profile-form .auth-form {
-    gap: 18px;
+.edit-profile-admin-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.edit-profile-admin-section-header h2 {
+    font-size: 1.2rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-profile-admin-section-header h2 i {
+    color: var(--text-secondary);
+}
+
+.edit-profile-admin-section-header span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.edit-profile-admin-section-header span i {
+    color: var(--success);
 }
 
 /* --- CORREO BORROSO --- */
+.edit-profile-reveal-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.edit-profile-email-info {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+/* --- BOTONES SIDE PANEL --- */
+.edit-profile-admin-side {
+    display: flex;
+    flex-direction: column;
+    gap: 7.5px;
+}
+
+.edit-profile-admin-side-panel {
+    padding: 15px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+}
+
+.edit-profile-admin-side-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.edit-profile-admin-side-header h2 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-profile-admin-side-header h2 i {
+    color: var(--text-secondary);
+}
+
+.edit-profile-admin-side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-profile-admin-side-actions .auth-btn.secondary {
+    width: 100%;
+    justify-content: flex-start;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 24px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+.edit-profile-admin-side-actions .auth-btn.secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+}
+
+.edit-profile-admin-side-actions .auth-btn.secondary i {
+    width: 25px;
+}
+
+.edit-profile-badge-coming {
+    font-size: 0.6rem;
+    opacity: 0.5;
+    margin-left: auto;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.edit-profile-admin-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+}
+
+/* --- INFO LIST --- */
+.edit-profile-admin-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.edit-profile-admin-info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.edit-profile-admin-info-item:last-child {
+    border-bottom: none;
+}
+
+.edit-profile-admin-info-item span:last-child {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.edit-profile-admin-info-item span:last-child i {
+    color: var(--success);
+}
+
+/* ==========================================================================
+   CORREO BORROSO (reutilizado de los estilos viejos)
+   ========================================================================== */
 .email-blurred-container {
     padding: 12px 16px;
     background: var(--bg-secondary);
@@ -1682,7 +1909,9 @@ span.flatpickr-weekday {
     font-weight: 600;
 }
 
-/* --- SELECTOR DE COLOR (CUSTOM) --- */
+/* ==========================================================================
+   SELECTOR DE COLOR (reutilizado)
+   ========================================================================== */
 .color-picker-container {
     display: flex;
     flex-direction: column;
@@ -1760,7 +1989,9 @@ span.flatpickr-weekday {
     border-color: var(--primary);
 }
 
-/* --- TEXTAREA DESCRIPCIÓN --- */
+/* ==========================================================================
+   TEXTAREA DESCRIPCIÓN (reutilizado)
+   ========================================================================== */
 .textarea-wrapper {
     position: relative;
 }
@@ -1809,70 +2040,6 @@ span.flatpickr-weekday {
 .char-counter.error {
     color: var(--error);
     border-color: var(--error);
-}
-
-/* --- COLUMNA DERECHA: ACCIONES --- */
-.edit-profile-actions {
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    border-top: 2px solid var(--primary-soft);
-    position: sticky;
-    top: 120px;
-}
-
-.action-buttons-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.action-big-btn {
-    padding: 20px !important;
-    font-size: 1rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    align-items: center !important;
-    text-align: center !important;
-    height: auto !important;
-    border: 1px solid var(--border-color) !important;
-    background: var(--bg-secondary) !important;
-    transition: all 0.3s ease !important;
-    border-radius: 12px !important;
-    box-shadow: var(--shadow-sm);
-}
-
-.action-big-btn:hover {
-    border-color: var(--primary) !important;
-    background: var(--bg-elevated) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: var(--shadow-md);
-}
-
-.action-big-btn i {
-    font-size: 2rem !important;
-}
-
-.action-big-btn .btn-sub {
-    font-size: 0.75rem !important;
-    opacity: 0.6;
-    font-weight: 400;
-}
-
-/* --- BOTÓN VOLVER AL PERFIL --- */
-#btn-back-to-profile {
-    margin-top: 10px;
-    border: 1px solid var(--border-color);
-    background: transparent;
-    transition: all 0.3s ease;
-}
-
-#btn-back-to-profile:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--primary-soft);
 }
 
 /* ==========================================================================
@@ -4676,14 +4843,9 @@ span.flatpickr-weekday {
     }
 
     /* ===== EDITAR PERFIL (Tablets) ===== */
-    .edit-profile-grid {
+    .edit-profile-admin-grid {
         grid-template-columns: 1fr;
         gap: 20px;
-    }
-
-    .edit-profile-actions {
-        position: static;
-        top: auto;
     }
 }
 
@@ -4901,20 +5063,27 @@ span.flatpickr-weekday {
     }
 
     /* ===== EDITAR PERFIL (Móviles grandes) ===== */
-    .edit-profile-header {
-        padding: 25px 20px;
+    .edit-profile-admin-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        padding: 25px 20px !important;
     }
 
-    .edit-profile-header h1 {
+    .edit-profile-admin-header-left h1 {
         font-size: 1.6rem !important;
     }
 
-    .edit-profile-form {
-        padding: 20px;
+    .edit-profile-admin-form {
+        padding: 15px !important;
     }
 
-    .edit-profile-actions {
-        padding: 20px;
+    .edit-profile-admin-side-panel {
+        padding: 15px !important;
+    }
+
+    .edit-profile-admin-status {
+        width: 100%;
+        justify-content: center;
     }
 
     .color-presets {
@@ -4948,18 +5117,6 @@ span.flatpickr-weekday {
 
     .email-text {
         font-size: 0.85rem;
-    }
-
-    .action-big-btn {
-        padding: 15px !important;
-    }
-
-    .action-big-btn i {
-        font-size: 1.5rem !important;
-    }
-
-    .action-big-btn span {
-        font-size: 0.9rem !important;
     }
 }
 
@@ -5169,15 +5326,15 @@ span.flatpickr-weekday {
     }
 
     /* ===== EDITAR PERFIL (Móviles pequeños) ===== */
-    .edit-profile-form {
-        padding: 15px;
+    .edit-profile-admin-form {
+        padding: 10px !important;
     }
 
-    .edit-profile-actions {
-        padding: 15px;
+    .edit-profile-admin-side-panel {
+        padding: 10px !important;
     }
 
-    .edit-profile-header h1 {
+    .edit-profile-admin-header-left h1 {
         font-size: 1.3rem !important;
     }
 

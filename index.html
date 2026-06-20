@@ -987,35 +987,52 @@
         </section>
 
         <!-- ============================================================ -->
-        <!-- VISTA: EDITAR PERFIL                                          -->
+        <!-- VISTA: EDITAR PERFIL (ESTILO ADMIN)                          -->
         <!-- ============================================================ -->
         <section id="edit-profile" class="view">
-            <div class="edit-profile-container">
-                <div class="edit-profile-header glass-panel">
-                    <h1 class="glitch-text" style="font-size: 2.2rem;">
-                        <i class="fas fa-user-edit" style="color: var(--primary);"></i> EDITAR PERFIL
-                    </h1>
-                    <p class="subtitle-hero" style="font-size: 1rem; opacity: 0.7;">
-                        Configura tu identidad en el Nexus
-                    </p>
+            <div class="edit-profile-admin-container">
+                <!-- HEADER como el de admin -->
+                <div class="edit-profile-admin-header glass-panel">
+                    <div class="edit-profile-admin-header-left">
+                        <h1>
+                            EDITAR PERFIL <span class="edit-profile-admin-divider">//</span> <span
+                                class="edit-profile-admin-nexus">NEXUS</span>
+                        </h1>
+                        <p>
+                            Configura tu identidad en el Nexus. Desde aquí puedes personalizar tu perfil, cambiar tu
+                            información personal y gestionar tus datos.
+                        </p>
+                    </div>
+                    <div class="edit-profile-admin-status">
+                        <div class="edit-profile-admin-dot"></div>
+                        <span>PERFIL ACTIVO</span>
+                    </div>
                 </div>
 
-                <div class="edit-profile-grid">
-                    <!-- COLUMNA IZQUIERDA: DATOS PERSONALES -->
-                    <div class="edit-profile-form glass-panel">
+                <!-- GRID PRINCIPAL como el admin-dashboard-layout -->
+                <div class="edit-profile-admin-grid">
+
+                    <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+                    <div class="edit-profile-admin-form glass-panel">
+                        <div class="edit-profile-admin-section-header">
+                            <h2>
+                                <i class="fas fa-id-card"></i> DATOS PERSONALES
+                            </h2>
+                            <span><i class="fas fa-lock"></i> Seguro</span>
+                        </div>
+
                         <form id="form-edit-profile" class="auth-form">
+
                             <!-- Correo electrónico (BORROSO) -->
                             <div class="field-group">
                                 <label class="field-label">
                                     <i class="fas fa-envelope"></i> Correo electrónico
-                                    <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: normal;">
-                                        (clic para revelar)
-                                    </span>
+                                    <span class="edit-profile-reveal-hint">(clic para revelar)</span>
                                 </label>
                                 <div id="edit-email-container" class="email-blurred-container blurred">
                                     <span id="edit-email-display" class="email-text">correo@ejemplo.com</span>
                                 </div>
-                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px;">
+                                <p class="edit-profile-email-info">
                                     <i class="fas fa-info-circle"></i> El correo se oculta automáticamente tras 5
                                     minutos o al salir.
                                 </p>
@@ -1081,15 +1098,13 @@
                                 <input type="hidden" id="edit-gender" value="--">
                             </div>
 
-                            <!-- COLOR DESTACADO (Selector de colores) -->
+                            <!-- COLOR DESTACADO -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-palette"></i> Color destacado</label>
                                 <div class="color-picker-container">
                                     <div class="color-picker-row">
                                         <input type="color" id="edit-color-picker" value="#6366f1">
-                                        <div id="edit-color-preview" class="color-preview"
-                                            style="background-color: #6366f1; border-color: #6366f1;">
-                                        </div>
+                                        <div id="edit-color-preview" class="color-preview"></div>
                                     </div>
                                     <div class="color-presets">
                                         <button type="button" class="color-preset-btn" data-color="#000000"
@@ -1119,7 +1134,7 @@
                                 </div>
                             </div>
 
-                            <!-- Descripción (textarea grande) -->
+                            <!-- Descripción -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
                                 <div class="textarea-wrapper">
@@ -1137,38 +1152,52 @@
                         </form>
                     </div>
 
-                    <!-- COLUMNA DERECHA: ACCIONES RÁPIDAS (Botones grandes) -->
-                    <div class="edit-profile-actions glass-panel">
-                        <h3
-                            style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 20px; text-align: center; letter-spacing: 1px;">
-                            <i class="fas fa-cog" style="color: var(--primary);"></i> ACCIONES DE SEGURIDAD
-                        </h3>
+                    <!-- COLUMNA DERECHA: ACCIONES (como el side panel del admin) -->
+                    <div class="edit-profile-admin-side">
+                        <div class="glass-panel edit-profile-admin-side-panel">
+                            <div class="edit-profile-admin-side-header">
+                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
+                            </div>
 
-                        <div class="action-buttons-grid">
-                            <button class="auth-btn secondary action-big-btn" id="btn-change-password"
-                                style="padding: 20px; font-size: 1rem; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; height: auto; border: 1px solid var(--border-color); background: var(--bg-secondary); transition: 0.3s;"
-                                onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--bg-elevated)';"
-                                onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)';">
-                                <i class="fas fa-key" style="font-size: 2rem; color: var(--warning);"></i>
-                                <span style="font-weight: 700; font-size: 1.1rem;">Cambiar Contraseña</span>
-                                <span style="font-size: 0.75rem; opacity: 0.6;">Próximamente</span>
-                            </button>
+                            <div class="edit-profile-admin-side-actions">
+                                <button class="auth-btn secondary" id="btn-change-password">
+                                    <i class="fas fa-key"></i> Cambiar Contraseña
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
+                                </button>
 
-                            <button class="auth-btn secondary action-big-btn" id="btn-change-email"
-                                style="padding: 20px; font-size: 1rem; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; height: auto; border: 1px solid var(--border-color); background: var(--bg-secondary); transition: 0.3s;"
-                                onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--bg-elevated)';"
-                                onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)';">
-                                <i class="fas fa-envelope" style="font-size: 2rem; color: var(--primary);"></i>
-                                <span style="font-weight: 700; font-size: 1.1rem;">Cambiar Correo</span>
-                                <span style="font-size: 0.75rem; opacity: 0.6;">Próximamente</span>
-                            </button>
+                                <button class="auth-btn secondary" id="btn-change-email">
+                                    <i class="fas fa-envelope"></i> Cambiar Correo
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
+                                </button>
+
+                                <div class="edit-profile-admin-divider"></div>
+
+                                <button class="auth-btn secondary" id="btn-back-to-profile">
+                                    <i class="fas fa-arrow-left"></i> Volver al Perfil
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Botón volver al perfil -->
-                        <button class="auth-btn secondary" id="btn-back-to-profile"
-                            style="width: 100%; margin-top: 15px; border: 1px solid var(--border-color);">
-                            <i class="fas fa-arrow-left"></i> VOLVER AL PERFIL
-                        </button>
+                        <!-- Panel de información adicional -->
+                        <div class="glass-panel edit-profile-admin-side-panel">
+                            <div class="edit-profile-admin-side-header">
+                                <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
+                            </div>
+                            <div class="edit-profile-admin-info-list">
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Usuario</span>
+                                    <span id="edit-profile-username-display">--</span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Correo</span>
+                                    <span id="edit-profile-email-display">--</span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Estado</span>
+                                    <span><i class="fas fa-check-circle"></i> Verificado</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
