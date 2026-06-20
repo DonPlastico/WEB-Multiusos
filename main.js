@@ -5678,7 +5678,6 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><span style="display:inline-block; margin-top:10px; letter-spacing:1px;">Escaneando todo tu historial...</span></div>';
 
     try {
-        // Pedimos 'id' para ordenar cronológicamente de forma nativa en Supabase (de más nuevo a más antiguo)
         const { data: watchedEps, error } = await supabase
             .from('user_media')
             .select('id, media_id')
@@ -5691,8 +5690,7 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
             return;
         }
 
-        // 2. Agrupar por serie y encontrar el último episodio.
-        // Como vienen ordenados de más reciente a más antiguo, guardamos el orden.
+        // 2. Agrupar por serie, buscar el último episodio y CONTAR cuántos llevas
         const seriesProgress = {};
         const orderedSeriesIds = [];
 
@@ -5704,20 +5702,25 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
             const e = parseInt(partes[2].replace('E', ''));
 
             if (!seriesProgress[serieId]) {
-                seriesProgress[serieId] = { maxS: s, maxE: e };
-                orderedSeriesIds.push(serieId); // Registra el orden de actividad
-            } else {
-                if (s > seriesProgress[serieId].maxS || (s === seriesProgress[serieId].maxS && e > seriesProgress[serieId].maxE)) {
-                    seriesProgress[serieId].maxS = s;
-                    seriesProgress[serieId].maxE = e;
-                }
+                seriesProgress[serieId] = { maxS: s, maxE: e, countVistos: 0 };
+                orderedSeriesIds.push(serieId);
+            }
+
+            // Sumamos a tu contador solo si NO es un episodio especial (T0)
+            if (s > 0) {
+                seriesProgress[serieId].countVistos++;
+            }
+
+            // Actualizamos la marca máxima
+            if (s > seriesProgress[serieId].maxS || (s === seriesProgress[serieId].maxS && e > seriesProgress[serieId].maxE)) {
+                seriesProgress[serieId].maxS = s;
+                seriesProgress[serieId].maxE = e;
             }
         });
 
-        // 3. Tomar TODAS las series en el orden correcto (sin cortarlas)
         const seriesPrioritarias = orderedSeriesIds.map(id => ({ id, ...seriesProgress[id] }));
 
-        // 4. Consultar TMDB en LOTES DE 10 para no saturar la API ni Vercel
+        // 4. Consultar TMDB en LOTES DE 10 para no saturar
         const tarjetasValidas = [];
         const chunkSize = 10;
 
@@ -5730,17 +5733,27 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
                     if (!resSerie.ok) return null;
                     const showData = await resSerie.json();
 
+                    // === CORTAFUEGOS MATEMÁTICO DE TERMINACIÓN ===
+                    // Calculamos el total real de episodios emitidos (sin extras ni especiales)
+                    const totalEpisodiosReales = showData.temporadas_info
+                        ?.filter(t => t.season_number > 0)
+                        .reduce((acc, t) => acc + t.episode_count, 0) || 0;
+
+                    // Si has visto todos los episodios existentes, la serie está terminada. ¡Ni la procesamos!
+                    if (totalEpisodiosReales > 0 && progreso.countVistos >= totalEpisodiosReales) {
+                        return null;
+                    }
+
+                    // Lógica para saltar de temporada
                     let nextS = progreso.maxS;
                     let nextE = progreso.maxE + 1;
 
-                    // Si pasamos del límite de episodios, saltamos a la siguiente temporada
                     const currentSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
                     if (currentSeasonInfo && nextE > currentSeasonInfo.episode_count) {
                         nextS++;
                         nextE = 1;
                     }
 
-                    // Si ya no hay temporada o no tiene episodios, la serie está terminada
                     const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
                     if (!nextSeasonInfo || nextSeasonInfo.episode_count === 0) return null;
 
@@ -5780,7 +5793,6 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
                 }
             });
 
-            // Esperamos que acabe este bloque de 10 antes de hacer el siguiente
             const resultadosChunk = await Promise.all(promesas);
             tarjetasValidas.push(...resultadosChunk.filter(r => r !== null));
         }
@@ -5808,7 +5820,6 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         const mediaId = `${serieId}_T${season}_E${episode}`;
 
-        // 1. Guardar en BD
         const { error } = await supabase.from('user_media').insert({
             user_id: session.user.id,
             media_id: mediaId,
@@ -5821,7 +5832,6 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         if (error) throw error;
         showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0' + season : season} | E${episode < 10 ? '0' + episode : episode}`);
 
-        // === MAGIA: AISLAMOS Y RECARGAMOS SOLO LA TARJETA AL NUEVO EPISODIO ===
         const card = btn.closest('.glass-panel');
         if (!card) return;
 
@@ -5835,7 +5845,12 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         if (!resSerie.ok) throw new Error("Fallo API Serie");
         const showData = await resSerie.json();
 
-        // Calculamos el salto exacto de temporada
+        // Control dinámico post-guardado (Si este era el último, ¡destruimos la tarjeta!)
+        const totalEpisodiosReales = showData.temporadas_info
+            ?.filter(t => t.season_number > 0)
+            .reduce((acc, t) => acc + t.episode_count, 0) || 0;
+
+        // Comprobamos en TMDB si el capítulo superaba el total de la temporada actual
         const currentSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
         if (currentSeasonInfo && nextE > currentSeasonInfo.episode_count) {
             nextS++;
@@ -5843,8 +5858,9 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         }
 
         const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
+
+        // Si no hay más temporadas, o no tiene episodios, desaparece con estilo.
         if (!nextSeasonInfo || nextSeasonInfo.episode_count === 0) {
-            // Si ya no quedan más, se borra sola con animación
             card.style.transform = 'scale(0.8)';
             card.style.opacity = '0';
             setTimeout(() => card.remove(), 300);
