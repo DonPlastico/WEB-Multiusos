@@ -5237,7 +5237,7 @@ function aplicarColorDinamico(colorHex) {
     document.documentElement.style.setProperty('--primary', colorHex);
 
     // 2. CAMBIAR EL GRADIENTE PRINCIPAL (--gradient-primary)
-    const colorSecundario = '#2dd4bf'; // Tu color secundario (puedes cambiarlo)
+    const colorSecundario = '#2dd4bf'; // Tu color secundario
     document.documentElement.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${colorHex}, ${colorSecundario})`);
 
     // 3. ACTUALIZAR COLORES DERIVADOS (soft, hover, glow)
@@ -5246,17 +5246,32 @@ function aplicarColorDinamico(colorHex) {
         document.documentElement.style.setProperty('--primary-soft', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`);
         document.documentElement.style.setProperty('--neon-glow', `0 0 12px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4), 0 0 8px rgba(45, 212, 191, 0.2)`);
 
-        // Actualizar también el shadow de los botones primarios
+        // ===== NUEVO: ACTUALIZAR BOX-SHADOW DE BOTONES =====
+        // Botón primario (auth-btn.primary)
         const btnPrimary = document.querySelector('.auth-btn.primary');
         if (btnPrimary) {
             btnPrimary.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
         }
+
+        // Botón guardar (btn-save-profile)
+        const btnSave = document.getElementById('btn-save-profile');
+        if (btnSave) {
+            btnSave.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+        }
+
+        // Botón de anuncios (btn-admin-announce)
+        const btnAnnounce = document.getElementById('btn-admin-announce');
+        if (btnAnnounce) {
+            btnAnnounce.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+        }
+
+        // Cualquier otro botón con clase .auth-btn.primary
+        document.querySelectorAll('.auth-btn.primary').forEach(btn => {
+            btn.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+        });
     }
 
-    // 4. ACTUALIZAR ELEMENTOS QUE USAN --primary EN EL CSS
-    // (Los estilos se actualizan automáticamente porque usan var(--primary))
-
-    // 5. ACTUALIZAR EL COLOR PICKER Y PREVIEW
+    // 4. ACTUALIZAR EL COLOR PICKER Y PREVIEW
     const colorPicker = document.getElementById('edit-color-picker');
     const colorPreview = document.getElementById('edit-color-preview');
     const hexDisplay = document.getElementById('edit-color-hex-display');
@@ -5272,36 +5287,49 @@ function aplicarColorDinamico(colorHex) {
     if (colorDot) colorDot.style.background = colorHex;
     if (colorText) colorText.textContent = colorHex;
 
-    // 6. ACTUALIZAR EL ICONO DEL MENÚ DE USUARIO (si tiene el color)
+    // 5. ACTUALIZAR EL ICONO DEL MENÚ DE USUARIO
     const userIcon = document.querySelector('#user-profile i, #user-profile img');
     if (userIcon && userIcon.tagName === 'I') {
         userIcon.style.color = colorHex;
     }
 
-    // 7. ACTUALIZAR EL BORDE DEL HEADER DE EDITAR PERFIL
+    // 6. ACTUALIZAR EL BORDE DEL HEADER DE EDITAR PERFIL
     const editHeader = document.querySelector('.edit-profile-admin-header');
     if (editHeader) {
         editHeader.style.borderTopColor = colorHex;
     }
 
-    // 8. ACTUALIZAR EL BORDE DE LOS MODALES DE ANUNCIOS
+    // 7. ACTUALIZAR EL BORDE DE LOS MODALES
     document.querySelectorAll('.announce-panel, .add-friend-panel, .social-list-panel').forEach(el => {
         el.style.borderTopColor = colorHex;
     });
 
-    // 9. ACTUALIZAR EL PUNTO DE ESTADO "PERFIL ACTIVO"
+    // 8. ACTUALIZAR EL PUNTO DE ESTADO "PERFIL ACTIVO"
     const statusDot = document.querySelector('.edit-profile-admin-dot');
     if (statusDot) {
         statusDot.style.background = colorHex;
         statusDot.style.boxShadow = `0 0 10px ${colorHex}`;
     }
 
-    // 10. ACTUALIZAR EL BORDE DEL ESTADO "PERFIL ACTIVO"
+    // 9. ACTUALIZAR EL BORDE DEL ESTADO "PERFIL ACTIVO"
     const statusBox = document.querySelector('.edit-profile-admin-status');
-    if (statusBox) {
-        statusBox.style.borderColor = `rgba(${rgb?.r || 99}, ${rgb?.g || 102}, ${rgb?.b || 241}, 0.2)`;
-        statusBox.style.background = `rgba(${rgb?.r || 99}, ${rgb?.g || 102}, ${rgb?.b || 241}, 0.05)`;
+    if (statusBox && rgb) {
+        statusBox.style.borderColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
+        statusBox.style.background = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`;
     }
+
+    // 10. ACTUALIZAR EL SCROLLBAR
+    const style = document.createElement('style');
+    style.id = 'dynamic-scrollbar-style';
+    style.textContent = `
+        *::-webkit-scrollbar-thumb {
+            background: ${colorHex} !important;
+        }
+    `;
+    // Eliminar el anterior si existe
+    const oldStyle = document.getElementById('dynamic-scrollbar-style');
+    if (oldStyle) oldStyle.remove();
+    document.head.appendChild(style);
 
     console.log(`🎨 Color dinámico aplicado: ${colorHex}`);
 }
