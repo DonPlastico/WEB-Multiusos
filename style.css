@@ -3868,6 +3868,10 @@ span.flatpickr-weekday {
     align-items: stretch;
 }
 
+cast-carousel::-webkit-scrollbar {
+    height: 4px;
+}
+
 /* Tarjeta individual del Actor */
 .cast-card {
     min-width: 105px;
@@ -4093,21 +4097,6 @@ span.flatpickr-weekday {
     color: var(--text-main) !important;
     border-color: var(--success);
     box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
-}
-
-/* Efecto hover en los checks de Temporada y Episodios */
-.btn-watch-season:hover, 
-.btn-watch-episode:hover {
-    border-color: var(--primary) !important;
-    color: var(--primary) !important;
-}
-
-/* Watchlist TV Time: Botón de check y estado Activo/Visto */
-.watchlist-check-btn:hover,
-.watchlist-check-btn.checked {
-    border-color: var(--primary) !important;
-    color: var(--primary) !important;
-    background: var(--primary-soft) !important;
 }
 
 /* Estado "No visto" - Ojo tachado (default) */
@@ -4560,15 +4549,21 @@ span.flatpickr-weekday {
 }
 
 .provider-price {
-    font-size: 0.65rem;
-    color: var(--text-muted);
+    background-color: var(--primary-soft) !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    font-weight: bold !important;
+    font-size: 0.8rem !important;
     text-align: center;
-    font-weight: 600;
-    white-space: nowrap;
-    background: var(--bg-secondary);
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.provider-item:hover .provider-price {
+    background-color: var(--primary) !important;
+    color: white !important;
+    box-shadow: 0 0 10px var(--primary-soft);
 }
 
 /* Ajuste para el texto de "No disponible" */
@@ -4674,25 +4669,6 @@ span.flatpickr-weekday {
     box-sizing: border-box;
     animation: minimalSlideDown 0.15s ease forwards;
     backdrop-filter: blur(12px);
-}
-
-.search-history-dropdown::-webkit-scrollbar {
-    width: 4px;
-}
-
-.search-history-dropdown::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 4px;
-}
-
-.search-history-dropdown::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-    transition: background 0.3s;
-}
-
-.search-history-dropdown::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
 }
 
 /* --- HEADER --- */
@@ -5220,6 +5196,20 @@ span.flatpickr-weekday {
     letter-spacing: 1px;
 }
 
+/* Efecto hover en los checks de Temporada y Episodios */
+.btn-watch-season:hover,
+.btn-watch-episode:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+/* Watchlist TV Time: Botón de check y estado Activo/Visto */
+.watchlist-check-btn:hover,
+.watchlist-check-btn.checked {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    background: var(--primary-soft) !important;
+}
 
 
 

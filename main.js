@@ -3119,24 +3119,6 @@ btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
 modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalMedia(); });
 
-// Helper para asignar los colores corporativos de cada plataforma
-function obtenerEstiloPlataforma(nombre) {
-    const n = nombre.toLowerCase();
-    if (n.includes('netflix')) return { color: '#E50914' };
-    if (n.includes('amazon') || n.includes('prime')) return { color: '#00A8E1' };
-    if (n.includes('disney')) return { color: '#113CCF' };
-    if (n.includes('hbo') || n.includes('max')) return { color: '#5822B4' };
-    if (n.includes('apple')) return { color: '#000000' };
-    if (n.includes('youtube')) return { color: '#FF0000' };
-    if (n.includes('rakuten')) return { color: '#FFE300', textoOscuro: true };
-    if (n.includes('orange')) return { color: '#FF7900' };
-    if (n.includes('movistar')) return { color: '#019DF4' };
-    if (n.includes('filmin')) return { color: '#00D573' };
-    if (n.includes('crunchyroll')) return { color: '#F47521' };
-    if (n.includes('atres')) return { color: '#E51C24' };
-    return { color: 'var(--primary)' }; // Por defecto usa tu morado/azul del Nexus
-}
-
 // ==========================================================================
 //   CARGA DINÁMICA DE PERFILES PÚBLICOS
 // ==========================================================================
