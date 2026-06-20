@@ -5644,20 +5644,6 @@ configurarHistorialInput('search-juegos', 'games');
 configurarHistorialInput('search-movies', 'movies');
 configurarHistorialInput('search-series', 'tv');
 
-// Para juegos - modifica cargarJuegosIGDB
-// Añade esta línea al principio de la función:
-// if (resetear && busqueda) {
-//     localStorage.setItem('last_search_games', busqueda);
-// }
-
-// Para películas - modifica cargarTMDB
-// Añade esta línea cuando se hace una búsqueda:
-// localStorage.setItem('last_search_movies', busqueda);
-
-// Para series - modifica cargarTMDB
-// Añade esta línea cuando se hace una búsqueda:
-// localStorage.setItem('last_search_tv', busqueda);
-
 // === CARGAR BÚSQUEDAS GUARDADAS AL INICIAR ===
 setTimeout(() => {
     cargarBusquedaGuardada('games');
@@ -5665,3 +5651,245 @@ setTimeout(() => {
     cargarBusquedaGuardada('tv');
 }, 500);
 
+// ==========================================================================
+//   WATCHLIST TVTIME — Episodios pendientes de series en progreso
+// ==========================================================================
+
+async function cargarWatchlistTVTime(userId, esMiPerfil) {
+    const seccion = document.getElementById('watchlist-section');
+    const lista = document.getElementById('watchlist-list');
+    if (!seccion || !lista) return;
+
+    // 1. Traemos TODOS los episodios de tv marcados por este usuario
+    let todosLosEp = [];
+    let keepFetching = true;
+    let offset = 0;
+    const LIMIT = 1000;
+
+    while (keepFetching) {
+        const { data, error } = await supabase
+            .from('user_media')
+            .select('media_id, visto, fecha_vista')
+            .eq('user_id', userId)
+            .eq('tipo', 'tv_episode')
+            .eq('visto', true)
+            .range(offset, offset + LIMIT - 1);
+
+        if (error || !data || data.length === 0) { keepFetching = false; break; }
+        todosLosEp.push(...data);
+        offset += LIMIT;
+        if (data.length < LIMIT) keepFetching = false;
+    }
+
+    if (todosLosEp.length === 0) {
+        seccion.style.display = 'none';
+        return;
+    }
+
+    // 2. Agrupamos por serie (tmdb_id) y sacamos qué temporadas/eps tiene vistas
+    //    media_id formato: "253905_T1_E6"
+    const seriesMap = new Map(); // tmdb_id -> Set de "T#_E#" vistos
+
+    todosLosEp.forEach(item => {
+        const partes = item.media_id.split('_'); // ["253905", "T1", "E6"]
+        if (partes.length < 3) return;
+        const tmdbId = partes[0];
+        const codEp = `${partes[1]}_${partes[2]}`; // "T1_E6"
+        if (!seriesMap.has(tmdbId)) seriesMap.set(tmdbId, new Set());
+        seriesMap.get(tmdbId).add(codEp);
+    });
+
+    // 3. Para cada serie, preguntamos a TMDB cuántos eps totales tiene (sin T0)
+    //    y filtramos las que NO están al 100%
+    const seriesEnProgreso = [];
+
+    const TMDB_KEY = import.meta.env.VITE_TMDB_KEY;
+
+    await Promise.all([...seriesMap.entries()].map(async ([tmdbId, epVistos]) => {
+        try {
+            const res = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_KEY}&language=es-ES`);
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // Contamos solo temporadas reales (sin la T0 = specials)
+            const temporadasReales = (data.seasons || []).filter(s => s.season_number > 0);
+            const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+
+            // Episodios vistos de esta serie (sin contar T0)
+            const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
+            const totalVistosUsuario = epVistosReales.length;
+
+            // Si ha visto TODOS → terminada → no aparece en watchlist
+            if (totalVistosUsuario >= totalEpsSerie && totalEpsSerie > 0) return;
+
+            // Sacamos el episodio pendiente: el siguiente que NO tiene visto
+            // Construimos la lista de todos los eps posibles en orden T1E1, T1E2...
+            let siguienteEp = null;
+            let totalPendientes = 0;
+
+            for (const temp of temporadasReales) {
+                for (let e = 1; e <= temp.episode_count; e++) {
+                    const cod = `T${temp.season_number}_E${e}`;
+                    if (!epVistos.has(cod)) {
+                        totalPendientes++;
+                        if (!siguienteEp) {
+                            siguienteEp = {
+                                temporada: temp.season_number,
+                                episodio: e,
+                                totalTemp: temp.episode_count
+                            };
+                        }
+                    }
+                }
+            }
+
+            if (!siguienteEp) return;
+
+            // Buscamos los detalles del episodio pendiente para mostrar su nombre
+            let epNombre = '';
+            let epPoster = '';
+            let esPremiere = siguienteEp.episodio === 1;
+
+            try {
+                const resEp = await fetch(
+                    `https://api.themoviedb.org/3/tv/${tmdbId}/season/${siguienteEp.temporada}/episode/${siguienteEp.episodio}?api_key=${TMDB_KEY}&language=es-ES`
+                );
+                if (resEp.ok) {
+                    const epData = await resEp.json();
+                    epNombre = epData.name || '';
+                    epPoster = epData.still_path
+                        ? `https://image.tmdb.org/t/p/w300${epData.still_path}`
+                        : '';
+                }
+            } catch (_) { }
+
+            seriesEnProgreso.push({
+                tmdbId,
+                nombre: data.name || data.original_name || '',
+                poster: data.poster_path ? `https://image.tmdb.org/t/p/w92${data.poster_path}` : '',
+                temporada: siguienteEp.temporada,
+                episodio: siguienteEp.episodio,
+                epNombre,
+                epPoster,
+                pendientes: totalPendientes - 1, // los que quedan DESPUÉS de este
+                esPremiere,
+                popularity: data.popularity || 0
+            });
+
+        } catch (_) { }
+    }));
+
+    if (seriesEnProgreso.length === 0) {
+        seccion.style.display = 'none';
+        return;
+    }
+
+    // 4. Ordenamos por popularidad (las más populares/activas arriba)
+    seriesEnProgreso.sort((a, b) => b.popularity - a.popularity);
+
+    // 5. Pintamos el HTML
+    seccion.style.display = 'block';
+    lista.innerHTML = '';
+
+    seriesEnProgreso.forEach((serie) => {
+        const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
+        const thumbHtml = serie.epPoster
+            ? `<img src="${serie.epPoster}" alt="${serie.epNombre}" loading="lazy">`
+            : (serie.poster
+                ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">`
+                : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
+
+        const badgeHtml = serie.esPremiere
+            ? `<span class="watchlist-badge">PREMIERE</span>`
+            : '';
+
+        const item = document.createElement('div');
+        item.className = 'watchlist-item';
+        item.dataset.tmdbId = serie.tmdbId;
+        item.innerHTML = `
+            <div class="watchlist-thumb">${thumbHtml}</div>
+            <div class="watchlist-info">
+                <span class="watchlist-show-name">
+                    ${serie.nombre.toUpperCase()} <i class="fas fa-chevron-right"></i>
+                </span>
+                <div class="watchlist-ep-title">
+                    <span class="watchlist-ep-code">T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}</span>
+                </div>
+                <div class="watchlist-ep-name">${serie.epNombre}</div>
+                ${badgeHtml}
+            </div>
+            <button class="watchlist-check-btn" title="Marcar episodio como visto"
+                data-tmdb="${serie.tmdbId}"
+                data-season="${serie.temporada}"
+                data-episode="${serie.episodio}"
+                data-user="${userId}">
+                <i class="fas fa-check"></i>
+            </button>
+        `;
+
+        // Clic en el nombre de la serie → abre modal de la serie
+        item.querySelector('.watchlist-show-name').addEventListener('click', (e) => {
+            e.stopPropagation();
+            abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
+        });
+
+        // Clic en el check → marcar episodio como visto y refrescar
+        item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const btn = e.currentTarget;
+            btn.classList.add('checked');
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+
+            const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
+            try {
+                await supabase.from('user_media').upsert({
+                    user_id: userId,
+                    media_id: mediaId,
+                    tipo: 'tv_episode',
+                    visto: true,
+                    veces_vista: 1,
+                    fecha_vista: new Date().toISOString().split('T')[0]
+                }, { onConflict: 'user_id,media_id' });
+
+                // Animar y refrescar la watchlist
+                const itemEl = btn.closest('.watchlist-item');
+                itemEl.style.opacity = '0';
+                itemEl.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    itemEl.remove();
+                    // Si ya no quedan items, ocultamos la sección
+                    if (lista.querySelectorAll('.watchlist-item').length === 0) {
+                        seccion.style.display = 'none';
+                    }
+                }, 300);
+
+            } catch (err) {
+                console.error('Error marcando episodio:', err);
+                btn.classList.remove('checked');
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        });
+
+        lista.appendChild(item);
+    });
+
+    // 6. Tabs: LISTA PENDIENTE / PRÓXIMAMENTE
+    document.querySelectorAll('.watchlist-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.watchlist-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            // TODO: lógica de "próximamente" cuando se implemente
+        });
+    });
+
+    // 7. Botón VER A CONTINUACIÓN → scroll al primer item
+    document.getElementById('btn-watchlist-ver-siguiente')?.addEventListener('click', () => {
+        const primerItem = lista.querySelector('.watchlist-item');
+        if (primerItem) primerItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // 8. Botón toggle grid (futuro: vista cuadrícula)
+    document.getElementById('btn-watchlist-toggle-grid')?.addEventListener('click', () => {
+        lista.classList.toggle('watchlist-grid-mode');
+    });
+}

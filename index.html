@@ -979,9 +979,31 @@
                     </div>
                 </div>
 
-                <!-- esto lo dejo pa luego q lo construya -->
-                <div style="margin-top: 80px; text-align: center; color: var(--text-muted);">
-                    <p><i class="fas fa-tools"></i> Modulos de datos en construccion...</p>
+                <!-- WATCHLIST: episodios pendientes de ver (estilo TV Time) -->
+                <div id="watchlist-section" class="watchlist-section">
+                    <!-- Tabs -->
+                    <div class="watchlist-tabs">
+                        <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
+                        <button class="watchlist-tab" data-tab="proximamente">PRÓXIMAMENTE</button>
+                    </div>
+
+                    <!-- Controles superiores -->
+                    <div class="watchlist-controls">
+                        <button class="watchlist-btn-secondary" id="btn-watchlist-ver-siguiente">
+                            VER A CONTINUACIÓN
+                        </button>
+                        <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                    </div>
+
+                    <!-- Lista de episodios -->
+                    <div id="watchlist-list" class="watchlist-list">
+                        <!-- se genera dinámicamente desde main.js -->
+                        <div class="watchlist-loading">
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

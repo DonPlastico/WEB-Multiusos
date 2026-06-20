@@ -4930,7 +4930,308 @@ span.flatpickr-weekday {
     color: var(--error) !important;
 }
 
+/* ==========================================================================
+   WATCHLIST (Estilo TV Time) — Sección perfil
+   ========================================================================== */
 
+.watchlist-section {
+    margin-top: 40px;
+}
+
+/* Tabs: LISTA PENDIENTE / PRÓXIMAMENTE */
+.watchlist-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 16px;
+}
+
+.watchlist-tab {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 12px 24px;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.watchlist-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--text-main);
+    transition: width 0.2s ease;
+}
+
+.watchlist-tab.active {
+    color: var(--text-main);
+}
+
+.watchlist-tab.active::after {
+    width: 100%;
+}
+
+.watchlist-tab:hover {
+    color: var(--text-secondary);
+}
+
+/* Controles superiores (VER A CONTINUACIÓN + botón grid) */
+.watchlist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 10px;
+}
+
+.watchlist-btn-secondary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.watchlist-btn-secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.watchlist-btn-icon {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.watchlist-btn-icon:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Loading spinner */
+.watchlist-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+}
+
+/* Separador de sección dentro de la lista */
+.watchlist-divider {
+    text-align: center;
+    margin: 8px 0;
+}
+
+.watchlist-divider span {
+    display: inline-block;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 16px;
+    border-radius: 20px;
+}
+
+/* Tarjeta de episodio */
+.watchlist-item {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.15s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.watchlist-item:hover {
+    background: var(--bg-hover);
+}
+
+/* Thumbnail izquierda */
+.watchlist-thumb {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.watchlist-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.watchlist-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+}
+
+/* Contenido central */
+.watchlist-info {
+    flex: 1;
+    padding: 12px 14px;
+    min-width: 0;
+}
+
+.watchlist-show-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 3px 10px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.watchlist-show-name:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.watchlist-show-name i {
+    font-size: 0.6rem;
+}
+
+.watchlist-ep-title {
+    font-family: var(--font-cyber);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.watchlist-ep-code {
+    color: var(--text-main);
+}
+
+.watchlist-ep-extra {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+.watchlist-ep-name {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Badge PREMIERE */
+.watchlist-badge {
+    display: inline-block;
+    font-family: var(--font-cyber);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: var(--primary);
+}
+
+/* Botón check derecha */
+.watchlist-check-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border-light);
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-right: 16px;
+    transition: all 0.2s ease;
+}
+
+.watchlist-check-btn:hover {
+    border-color: var(--success);
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.watchlist-check-btn.checked {
+    border-color: var(--success);
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* Estado vacío */
+.watchlist-empty {
+    margin-top: 80px;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px 0;
+}
+
+.watchlist-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.4;
+    display: block;
+}
+
+.watchlist-empty p {
+    font-size: 0.9rem;
+    font-family: var(--font-cyber);
+    letter-spacing: 1px;
+}
 
 
 
@@ -5508,6 +5809,33 @@ span.flatpickr-weekday {
     .search-history-header {
         font-size: 0.7rem;
         padding: 6px 12px;
+    }
+
+
+    .watchlist-tab {
+        font-size: 0.8rem;
+        padding: 10px 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .watchlist-thumb {
+        width: 65px;
+        height: 65px;
+    }
+
+    .watchlist-ep-title {
+        font-size: 0.92rem;
+    }
+
+    .watchlist-check-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.85rem;
+        margin-right: 10px;
+    }
+
+    .watchlist-controls {
+        flex-wrap: wrap;
     }
 }
 
