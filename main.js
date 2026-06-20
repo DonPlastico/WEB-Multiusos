@@ -5507,7 +5507,8 @@ function mostrarHistorial(tipo) {
         <div class="search-history-header">
             <span>📜 Búsquedas recientes</span>
             <button class="search-history-clear-all" onclick="limpiarHistorialCompleto('${tipo}')">
-                <i class="fas fa-trash-alt"></i> Limpiar todo
+                <i class="fas fa-trash-alt"></i>
+                <span>Limpiar todo</span>
             </button>
         </div>
         ${historial.map(item => `
