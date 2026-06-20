@@ -3345,6 +3345,10 @@ async function cargarPerfilPublico(usernameTarget) {
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
 
+        // Elementos disparadores de Modals (Para bloquear sus clics)
+        const triggerBanner = document.getElementById('banner-edit-trigger');
+        const triggerAvatar = document.getElementById('avatar-edit-trigger');
+
         // Elementos privados
         const btnAddFriend = document.getElementById('btn-add-friend');
 
@@ -3352,6 +3356,11 @@ async function cargarPerfilPublico(usernameTarget) {
             // === ES MI PROPIO PERFIL ===
             if (overlayBanner) overlayBanner.style.display = 'flex';
             if (overlayAvatar) overlayAvatar.style.display = 'flex';
+
+            // Habilitar clics
+            if (triggerBanner) triggerBanner.style.pointerEvents = 'auto';
+            if (triggerAvatar) triggerAvatar.style.pointerEvents = 'auto';
+
             document.querySelector('.profile-banner').style.cursor = 'pointer';
             document.querySelector('.profile-avatar').style.cursor = 'pointer';
 
@@ -3362,6 +3371,11 @@ async function cargarPerfilPublico(usernameTarget) {
             // === ES EL PERFIL DE OTRA PERSONA ===
             if (overlayBanner) overlayBanner.style.display = 'none';
             if (overlayAvatar) overlayAvatar.style.display = 'none';
+
+            // Bloqueo absoluto de clics e interacciones
+            if (triggerBanner) triggerBanner.style.pointerEvents = 'none';
+            if (triggerAvatar) triggerAvatar.style.pointerEvents = 'none';
+
             document.querySelector('.profile-banner').style.cursor = 'default';
             document.querySelector('.profile-avatar').style.cursor = 'default';
 
