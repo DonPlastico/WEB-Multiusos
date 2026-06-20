@@ -4624,14 +4624,12 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   VISTA DE JUEGOS MEJORADA & HISTORIAL DE BÚSQUEDA
+   VISTA DE JUEGOS MEJORADA & HISTORIAL DE BÚSQUEDA - ESTILO 1: GLASSMORPHISM
    ========================================================================== */
 
 /* --- SEARCH BOX --- */
 .search-box {
-    position: relative !important;
-    z-index: 99999 !important;
-    overflow: visible !important;
+    position: relative;
     background: var(--glass-bg);
     border: 1px solid var(--border-color);
     border-radius: 16px;
@@ -4644,7 +4642,6 @@ span.flatpickr-weekday {
 .search-box input {
     flex: 1;
     min-width: 0;
-    /* Evita que el input se desborde */
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     padding: 14px 20px;
@@ -4685,31 +4682,32 @@ span.flatpickr-weekday {
     right: 0;
     width: 100%;
     background: rgba(20, 20, 28, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 16px;
     padding: 4px 0;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.08);
     z-index: 999999 !important;
-    max-height: 250px;
+    max-height: 280px;
     overflow-y: auto;
-    backdrop-filter: blur(20px);
     display: none;
     min-width: 0;
     box-sizing: border-box;
+    animation: historySlideDown 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .search-history-dropdown::-webkit-scrollbar {
-    width: 4px;
+    width: 3px;
 }
 
 .search-history-dropdown::-webkit-scrollbar-track {
-    background: var(--border-color);
-    border-radius: 4px;
+    background: transparent;
 }
 
 .search-history-dropdown::-webkit-scrollbar-thumb {
     background: var(--primary);
-    border-radius: 4px;
+    border-radius: 10px;
 }
 
 .search-history-header {
@@ -4719,26 +4717,31 @@ span.flatpickr-weekday {
     padding: 12px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     font-size: 0.7rem;
-    text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 600;
     letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 .search-history-clear-all {
-    padding: 10px 20px;
-    width: 100%;
-    justify-content: center;
-    gap: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    font-size: 0.75rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     color: var(--text-muted);
-    transition: color 0.2s;
+    cursor: pointer;
+    font-size: 0.6rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
 }
 
 .search-history-clear-all:hover {
+    border-color: var(--error);
     color: var(--error);
-    background: rgba(239, 68, 68, 0.05);
+    background: rgba(239, 68, 68, 0.08);
 }
 
 .search-history-item {
@@ -4749,16 +4752,16 @@ span.flatpickr-weekday {
     cursor: pointer;
     transition: all 0.15s ease;
     color: var(--text-secondary);
-    border-left: 2px solid transparent;
     font-size: 0.9rem;
-    gap: 12px;
+    gap: 8px;
+    border-left: 2px solid transparent;
 }
 
 .search-history-item:hover {
-    background: rgba(99, 102, 241, 0.08);
+    background: rgba(99, 102, 241, 0.06);
+    color: var(--text-main);
     border-left-color: var(--primary);
     padding-left: 18px;
-    /* Efecto de desplazamiento sutil */
 }
 
 .search-history-item span {
@@ -4766,13 +4769,15 @@ span.flatpickr-weekday {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .search-history-item span i {
     color: var(--text-muted);
-    opacity: 0.5;
+    opacity: 0.4;
     font-size: 0.7rem;
-    margin-right: 12px;
     flex-shrink: 0;
 }
 
@@ -4782,23 +4787,37 @@ span.flatpickr-weekday {
     color: var(--text-muted);
     cursor: pointer;
     padding: 4px 6px;
-    border-radius: 4px;
+    border-radius: 50%;
     transition: all 0.2s;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     opacity: 0;
-    transition: opacity 0.2s;
 }
 
 .search-history-item:hover .search-history-delete {
     opacity: 1;
 }
 
-
-
 .search-history-delete:hover {
-    background: rgba(239, 68, 68, 0.15);
+    background: rgba(239, 68, 68, 0.12);
     color: var(--error);
+}
+
+@keyframes historySlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 
