@@ -5856,7 +5856,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
             try {
                 // 1. Guardar en Supabase
-                await supabase.from('user_media').upsert({
+                const { error: upsertError } = await supabase.from('user_media').upsert({
                     user_id: userId,
                     media_id: mediaId,
                     tipo: 'tv_episode',
@@ -5864,6 +5864,11 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     veces_vista: 1,
                     fecha_vista: new Date().toISOString().split('T')[0]
                 }, { onConflict: 'user_id,media_id' });
+
+                if (upsertError) {
+                    console.error("Error exacto de Supabase:", upsertError);
+                    throw new Error(upsertError.message);
+                }
 
                 // 2. Actualizar el Set local con el ep recién visto
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
