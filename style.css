@@ -5043,6 +5043,28 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Personalizamos la barra de scroll solo para esta lista (Estilo Cyber/Moderno) */
+.watchlist-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.watchlist-list::-webkit-scrollbar-track {
+    background: var(--bg-elevated, #1a1a24);
+    border-radius: 4px;
+}
+
+.watchlist-list::-webkit-scrollbar-thumb {
+    background: var(--primary, #6366f1);
+    border-radius: 4px;
+}
+
+.watchlist-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover, #4f46e5);
 }
 
 /* Modo Cuadrícula (se activa por JS con el botón de la derecha) */
@@ -5515,6 +5537,8 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
         gap: 20px;
     }
+
+
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
@@ -5846,6 +5870,16 @@ span.flatpickr-weekday {
 
     .watchlist-controls {
         flex-wrap: wrap;
+    }
+
+    /* ===== WATCHLIST RESPONSIVE (Ocultar Grid en móvil) ===== */
+    #btn-watchlist-toggle-grid {
+        display: none !important;
+    }
+
+    .watchlist-list.watchlist-grid-mode {
+        display: flex !important;
+        flex-direction: column !important;
     }
 }
 
