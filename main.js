@@ -3155,81 +3155,99 @@ async function cargarPerfilPublico(usernameTarget) {
             }
 
             // ============================================
-            // SISTEMA MATEMÁTICO DE TIEMPO (PELIS Y SERIES)
+            // SISTEMA MATEMÁTICO DE TIEMPO (CACHÉ INTELIGENTE SWR)
             // ============================================
-            // 1. Obtenemos todo lo que ha visto el usuario (Bypasseando el límite de 1000 de Supabase)
-            let mediaVisto = [];
-            let keepFetching = true;
-            let currentOffset = 0;
-            const fetchLimit = 1000;
+            const cacheKey = `nexus_stats_${targetId}`;
+            const statsGuardadas = localStorage.getItem(cacheKey);
 
-            while (keepFetching) {
-                const { data, error } = await supabase
-                    .from('user_media')
-                    .select('tipo, veces_vista')
-                    .eq('user_id', targetId)
-                    .range(currentOffset, currentOffset + fetchLimit - 1);
+            // Función interna para pintar los números en pantalla
+            const pintarEstadisticas = (totalEp, tiempoSer, totalPel, tiempoPel) => {
+                document.getElementById('stat-series-episodes').textContent = totalEp.toLocaleString('es-ES');
+                document.getElementById('stat-series-months').textContent = tiempoSer.meses;
+                document.getElementById('stat-series-days').textContent = tiempoSer.dias;
+                document.getElementById('stat-series-hours').textContent = tiempoSer.horas;
 
-                if (error) {
-                    console.error("Error extrayendo estadísticas:", error);
-                    break;
-                }
+                document.getElementById('stat-movies-count').textContent = totalPel.toLocaleString('es-ES');
+                document.getElementById('stat-movies-months').textContent = tiempoPel.meses;
+                document.getElementById('stat-movies-days').textContent = tiempoPel.dias;
+                document.getElementById('stat-movies-hours').textContent = tiempoPel.horas;
+            };
 
-                if (data && data.length > 0) {
-                    mediaVisto.push(...data);
-                    currentOffset += fetchLimit; // Preparamos el salto para la siguiente página
+            // 1. CARGA INSTANTÁNEA (0.01s): Si hay memoria caché, la pintamos de golpe
+            if (statsGuardadas) {
+                const stats = JSON.parse(statsGuardadas);
+                pintarEstadisticas(stats.totalEpisodios, stats.tiempoSeries, stats.totalPelis, stats.tiempoPelis);
+            } else {
+                // Si es la primera vez en la vida que entra, ponemos un texto temporal
+                document.getElementById('stat-series-episodes').textContent = "...";
+                document.getElementById('stat-movies-count').textContent = "...";
+            }
 
-                    // Si Supabase nos devuelve menos de 1000 de golpe, significa que ya no hay más páginas
-                    if (data.length < fetchLimit) {
+            // 2. SINCRONIZACIÓN FANTASMA: Pedimos los datos reales a Supabase sin bloquear la web
+            setTimeout(async () => {
+                let mediaVisto = [];
+                let keepFetching = true;
+                let currentOffset = 0;
+                const fetchLimit = 1000;
+
+                while (keepFetching) {
+                    const { data, error } = await supabase
+                        .from('user_media')
+                        .select('tipo, veces_vista')
+                        .eq('user_id', targetId)
+                        .range(currentOffset, currentOffset + fetchLimit - 1);
+
+                    if (error) break;
+
+                    if (data && data.length > 0) {
+                        mediaVisto.push(...data);
+                        currentOffset += fetchLimit;
+                        if (data.length < fetchLimit) keepFetching = false;
+                    } else {
                         keepFetching = false;
                     }
-                } else {
-                    keepFetching = false;
                 }
-            }
 
-            // 2. Si hay datos, procesamos las matemáticas con el array completo
-            if (mediaVisto.length > 0) {
-                let totalPelis = 0;
-                let totalEpisodios = 0;
+                if (mediaVisto.length > 0) {
+                    let totalPelis = 0;
+                    let totalEpisodios = 0;
 
-                // Contamos unidades sumando si las han visto más de 1 vez
-                mediaVisto.forEach(item => {
-                    const cantidad = item.veces_vista || 1;
-                    if (item.tipo === 'movie') totalPelis += cantidad;
-                    if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
-                });
+                    mediaVisto.forEach(item => {
+                        const cantidad = item.veces_vista || 1;
+                        if (item.tipo === 'movie') totalPelis += cantidad;
+                        if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
+                    });
 
-                // 3. Calculamos los minutos totales (Medias estandarizadas: Pelis 120m, Episodios 45m)
-                const minTotalesPelis = totalPelis * 120;
-                const minTotalesSeries = totalEpisodios * 45;
+                    const minTotalesPelis = totalPelis * 120;
+                    const minTotalesSeries = totalEpisodios * 45;
 
-                // 4. Conversor mágico a Meses, Días y Horas
-                const calcularTiempoFormato = (mins) => {
-                    const meses = Math.floor(mins / 43200); // 30 días * 24h * 60m
-                    let resto = mins % 43200;
-                    const dias = Math.floor(resto / 1440);  // 24h * 60m
-                    resto = resto % 1440;
-                    const horas = Math.floor(resto / 60);
-                    return { meses, dias, horas };
-                };
+                    const calcularTiempoFormato = (mins) => {
+                        const meses = Math.floor(mins / 43200);
+                        let resto = mins % 43200;
+                        const dias = Math.floor(resto / 1440);
+                        resto = resto % 1440;
+                        const horas = Math.floor(resto / 60);
+                        return { meses, dias, horas };
+                    };
 
-                const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
-                const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
+                    const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
+                    const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
 
-                // 5. Inyectamos los cálculos en tu HTML
-                // SERIES
-                document.getElementById('stat-series-episodes').textContent = totalEpisodios.toLocaleString('es-ES');
-                document.getElementById('stat-series-months').textContent = tiempoSeries.meses;
-                document.getElementById('stat-series-days').textContent = tiempoSeries.dias;
-                document.getElementById('stat-series-hours').textContent = tiempoSeries.horas;
+                    const nuevasStats = {
+                        totalEpisodios: totalEpisodios,
+                        tiempoSeries: tiempoSeries,
+                        totalPelis: totalPelis,
+                        tiempoPelis: tiempoPelis
+                    };
 
-                // PELÍCULAS
-                document.getElementById('stat-movies-count').textContent = totalPelis.toLocaleString('es-ES');
-                document.getElementById('stat-movies-months').textContent = tiempoPelis.meses;
-                document.getElementById('stat-movies-days').textContent = tiempoPelis.dias;
-                document.getElementById('stat-movies-hours').textContent = tiempoPelis.horas;
-            }
+                    // 3. ACTUALIZACIÓN EN VIVO: Si los datos de Supabase son diferentes a la caché (has visto algo nuevo), actualizamos
+                    const nuevasStatsString = JSON.stringify(nuevasStats);
+                    if (statsGuardadas !== nuevasStatsString) {
+                        localStorage.setItem(cacheKey, nuevasStatsString); // Actualizamos la memoria
+                        pintarEstadisticas(totalEpisodios, tiempoSeries, totalPelis, tiempoPelis); // Actualizamos la pantalla en vivo
+                    }
+                }
+            }, 50); // Le damos 50 milisegundos a la web para que pinte todo lo demás tranquilamente
 
         } catch (err) {
             console.error("Error al extraer telemetría de amistades o medios:", err);
