@@ -4889,10 +4889,29 @@ async function cargarDatosPerfil() {
         const descriptionInput = document.getElementById('edit-description');
         if (descriptionInput) descriptionInput.value = perfil?.descripcion || '';
 
+        // Asignar sexo correctamente
         const genderSelect = document.getElementById('edit-gender');
-        if (genderSelect) genderSelect.value = perfil?.sexo || '--';
+        if (genderSelect) {
+            const sexo = perfil?.sexo || '--';
+            genderSelect.value = sexo;
 
-        // EL COLOR NO SE GUARDA AQUÍ (lo hace inicializarEditProfile)
+            // ACTUALIZAR EL LABEL DEL SELECTOR PERSONALIZADO
+            const genderLabel = document.getElementById('gender-select-label');
+            const genderInput = document.getElementById('edit-gender');
+            if (genderLabel && genderInput) {
+                // Buscar la opción que coincide con el valor
+                const options = document.querySelectorAll('#gender-select-dropdown .cyber-select-option');
+                options.forEach(opt => {
+                    if (opt.dataset.value === sexo) {
+                        genderLabel.textContent = opt.textContent.trim();
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+                genderInput.value = sexo;
+            }
+        }
 
         // Correo borroso
         const emailContainer = document.getElementById('edit-email-container');
@@ -5001,6 +5020,8 @@ async function guardarCambiosPerfil(e) {
     const nombre = document.getElementById('edit-firstname').value.trim();
     const apellidos = document.getElementById('edit-lastname').value.trim();
     const descripcion = document.getElementById('edit-description').value.trim();
+
+    // RECOGER EL SEXO DEL INPUT OCULTO (NO del select)
     const sexo = document.getElementById('edit-gender').value;
 
     // RECOGER EL COLOR ACTUAL (del picker)
@@ -5026,7 +5047,7 @@ async function guardarCambiosPerfil(e) {
     btnGuardar.disabled = true;
 
     try {
-        // 🔥 GUARDAR TODO EN SUPABASE
+        // GUARDAR TODO EN SUPABASE
         const { error } = await supabase
             .from('usuarios')
             .update({
@@ -5052,7 +5073,7 @@ async function guardarCambiosPerfil(e) {
                 .eq('email', session.user.email);
         }
 
-        // 🔥 GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
+        // GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp'); // Limpiar temporal
 
@@ -5086,7 +5107,6 @@ async function guardarCambiosPerfil(e) {
     }
 }
 
-// === FUNCIÓN: Limpiar al salir de la vista ===
 function limpiarVistaEditarPerfil() {
     // Ocultar correo automáticamente
     const emailContainer = document.getElementById('edit-email-container');
@@ -5099,6 +5119,15 @@ function limpiarVistaEditarPerfil() {
         clearTimeout(timeoutOcultarCorreo);
         timeoutOcultarCorreo = null;
     }
+
+    // RESTAURAR EL COLOR GUARDADO DEL USUARIO
+    const colorGuardado = localStorage.getItem('dp_user_color') || '#6366f1';
+    aplicarColorDinamico(colorGuardado);
+
+    // Limpiar el color temporal
+    localStorage.removeItem('dp_user_color_temp');
+
+    console.log('🔄 Color restaurado al guardado:', colorGuardado);
 }
 
 // === INICIALIZACIÓN DE LISTENERS ===
@@ -5148,7 +5177,7 @@ function inicializarEditProfile() {
         btn.addEventListener('click', handleColorPresetClick);
     });
 
-    // ===== NUEVO: Selector de Sexo =====
+    // ===== Selector de Sexo =====
     const genderTrigger = document.getElementById('gender-select-trigger');
     const genderDropdown = document.getElementById('gender-select-dropdown');
     const genderLabel = document.getElementById('gender-select-label');
