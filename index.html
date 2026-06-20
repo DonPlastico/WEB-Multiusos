@@ -980,8 +980,15 @@
                 </div>
 
                 <!-- esto lo dejo pa luego q lo construya -->
-                <div style="margin-top: 80px; text-align: center; color: var(--text-muted);">
-                    <p><i class="fas fa-tools"></i> Modulos de datos en construccion...</p>
+                <div id="profile-watchlist-section" class="profile-detailed-stats"
+                    style="margin-top: 40px; display: none;">
+                    <div class="stats-header">
+                        <h2><i class="fas fa-clock"></i> Pendientes por ver</h2>
+                    </div>
+
+                    <div class="watchlist-cards-wrapper" id="profile-watchlist-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 15px;">
+                    </div>
                 </div>
             </div>
         </section>
