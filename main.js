@@ -4871,7 +4871,6 @@ async function cargarDatosPerfil() {
 
         if (error) throw error;
 
-        // Guardamos en memoria global
         perfilDataActual = perfil || {};
 
         // Rellenar campos del formulario
@@ -4893,33 +4892,18 @@ async function cargarDatosPerfil() {
         const genderSelect = document.getElementById('edit-gender');
         if (genderSelect) genderSelect.value = perfil?.sexo || '--';
 
-        // Cargar color del perfil
-        const colorPicker = document.getElementById('edit-color-picker');
-        if (colorPicker) {
-            const color = perfil?.color_destacado || '#6366f1';
-            colorPicker.value = color;
+        // EL COLOR NO SE GUARDA AQUÍ (lo hace inicializarEditProfile)
 
-            // Aplicar color dinámico en TODA la web
-            aplicarColorDinamico(color);
-        }
-
-        // Restaurar estado del correo borroso - POR DEFECTO OCULTO (blurred)
+        // Correo borroso
         const emailContainer = document.getElementById('edit-email-container');
         if (emailContainer) {
-            // Por defecto siempre blurred (oculto) al cargar
             emailContainer.classList.add('blurred');
         }
 
-        // Guardar vista anterior para volver después
-        const vistaGuardada = localStorage.getItem('vista_anterior_editar');
-        if (vistaGuardada && vistaGuardada !== 'edit-profile') {
-            vistaAnteriorAlEditar = vistaGuardada;
-        }
-
-        // Actualizar contador de caracteres
+        // Actualizar contador
         actualizarContadorCaracteres();
 
-        // ===== Actualizar panel de información =====
+        // Panel de información
         const infoUsername = document.getElementById('edit-profile-username-display');
         const infoJoined = document.getElementById('edit-profile-joined-display');
         const infoColorText = document.getElementById('edit-profile-color-text');
@@ -4927,7 +4911,6 @@ async function cargarDatosPerfil() {
 
         if (infoUsername) infoUsername.textContent = perfil?.username || '--';
 
-        // Fecha de registro
         if (infoJoined && perfil?.created_at) {
             const fecha = new Date(perfil.created_at);
             infoJoined.textContent = fecha.toLocaleDateString('es-ES', {
@@ -4939,7 +4922,6 @@ async function cargarDatosPerfil() {
             infoJoined.textContent = '--';
         }
 
-        // Color destacado
         const color = perfil?.color_destacado || '#6366f1';
         if (infoColorText) infoColorText.textContent = color;
         if (infoColorDot) infoColorDot.style.background = color;
@@ -5014,18 +4996,18 @@ async function guardarCambiosPerfil(e) {
         return;
     }
 
-    // Recoger datos del formulario
+    // RECOGER TODOS LOS DATOS DEL FORMULARIO
     const username = document.getElementById('edit-username').value.trim();
     const nombre = document.getElementById('edit-firstname').value.trim();
     const apellidos = document.getElementById('edit-lastname').value.trim();
     const descripcion = document.getElementById('edit-description').value.trim();
     const sexo = document.getElementById('edit-gender').value;
 
-    // RECOGER EL COLOR ACTUAL (del picker o del localStorage temporal)
+    // RECOGER EL COLOR ACTUAL (del picker)
     const colorPicker = document.getElementById('edit-color-picker');
-    const colorHex = colorPicker ? colorPicker.value : localStorage.getItem('dp_user_color_temp') || '#6366f1';
+    const colorHex = colorPicker ? colorPicker.value : '#6366f1';
 
-    // Validaciones
+    // VALIDACIONES
     if (!username || username.length < 3) {
         showToast('error', 'Error', 'El nombre de usuario debe tener al menos 3 caracteres.');
         return;
@@ -5044,7 +5026,7 @@ async function guardarCambiosPerfil(e) {
     btnGuardar.disabled = true;
 
     try {
-        // GUARDAR TODO (INCLUYENDO EL COLOR)
+        // 🔥 GUARDAR TODO EN SUPABASE
         const { error } = await supabase
             .from('usuarios')
             .update({
@@ -5053,14 +5035,14 @@ async function guardarCambiosPerfil(e) {
                 apellidos: apellidos,
                 descripcion: descripcion,
                 sexo: sexo,
-                color_destacado: colorHex, // EL COLOR SE GUARDA AQUÍ
+                color_destacado: colorHex,
                 updated_at: new Date().toISOString()
             })
             .eq('email', session.user.email);
 
         if (error) throw error;
 
-        // Guardar el estado del correo
+        // Guardar estado del correo (si existe)
         const emailContainer = document.getElementById('edit-email-container');
         if (emailContainer) {
             const isBlurred = emailContainer.classList.contains('blurred');
@@ -5070,7 +5052,7 @@ async function guardarCambiosPerfil(e) {
                 .eq('email', session.user.email);
         }
 
-        // GUARDAR EN LOCALSTORAGE PERMANENTE
+        // 🔥 GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp'); // Limpiar temporal
 
@@ -5079,7 +5061,7 @@ async function guardarCambiosPerfil(e) {
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
 
-        // Actualizar el nombre en el menú
+        // Actualizar nombre en el menú
         const dropdownUsername = document.getElementById('dropdown-username');
         if (dropdownUsername) dropdownUsername.textContent = username;
 
@@ -5121,7 +5103,7 @@ function limpiarVistaEditarPerfil() {
 
 // === INICIALIZACIÓN DE LISTENERS ===
 function inicializarEditProfile() {
-    // Cargar datos
+    // Cargar datos del perfil (rellena los inputs)
     cargarDatosPerfil();
 
     // Guardar la vista anterior
@@ -5130,7 +5112,7 @@ function inicializarEditProfile() {
         localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
     }
 
-    // 🔥 Cargar el color GUARDADO (no el temporal)
+    // Cargar el color GUARDADO (no el temporal)
     const colorGuardado = localStorage.getItem('dp_user_color') || '#6366f1';
     const colorPicker = document.getElementById('edit-color-picker');
     if (colorPicker) {
@@ -5210,8 +5192,7 @@ function inicializarEditProfile() {
 
 function handleColorChange(e) {
     const color = e.target.value;
-
-    // SOLO APLICAR EN PANTALLA, NO GUARDAR EN SUPABASE
+    // SOLO APLICAR EN PANTALLA, NUNCA GUARDAR
     aplicarColorDinamicoLocal(color);
 }
 
@@ -5264,28 +5245,9 @@ function aplicarColorDinamicoLocal(colorHex) {
     console.log(`🎨 Color aplicado en pantalla (sin guardar): ${colorHex}`);
 }
 
-// === Guardar solo el color en Supabase ===
-async function guardarColorEnSupabase(color) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    try {
-        const { error } = await supabase
-            .from('usuarios')
-            .update({ color_destacado: color })
-            .eq('email', session.user.email);
-
-        if (error) throw error;
-        console.log('✅ Color guardado en Supabase:', color);
-    } catch (error) {
-        console.error('❌ Error guardando color:', error);
-    }
-}
-
 function handleColorPresetClick(e) {
     const color = e.target.dataset.color;
     if (!color) return;
-
     // SOLO APLICAR EN PANTALLA (sin guardar)
     aplicarColorDinamicoLocal(color);
 }
