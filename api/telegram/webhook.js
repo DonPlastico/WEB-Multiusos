@@ -26,48 +26,22 @@ export default async function handler(req, res) {
             console.log(`👤 Datos de Telegram: username=${username}, name=${firstName} ${lastName}`);
 
             let userData = null;
-            let userError = null;
 
-            // 🔥 ESTRATEGIA 1: Buscar por email (MÁS FIABLE)
-            // Si el usuario tiene un email que coincide con su username de Telegram
+            // 🔥 ESTRATEGIA 1: Buscar TODOS los usuarios que coincidan por username
+            // y luego pedir al usuario que elija
             if (username) {
-                // Buscar por email exacto
-                const emailVariants = [
-                    `${username}@gmail.com`,
-                    `${username}@hotmail.com`,
-                    `${username}@outlook.com`,
-                    `${username}@yahoo.com`,
-                ];
-
-                for (const email of emailVariants) {
-                    const { data, error } = await supabase
-                        .from('usuarios')
-                        .select('id, email, username')
-                        .eq('email', email)
-                        .maybeSingle();
-
-                    if (data) {
-                        userData = data;
-                        break;
-                    }
-                }
-            }
-
-            // 🔥 ESTRATEGIA 2: Buscar por username (exacto)
-            if (!userData && username) {
                 const { data, error } = await supabase
                     .from('usuarios')
                     .select('id, email, username')
-                    .eq('username', username)
-                    .maybeSingle();
+                    .eq('username', username);
 
-                if (data) {
-                    userData = data;
+                if (data && data.length > 0) {
+                    userData = data[0];
                 }
             }
 
-            // 🔥 ESTRATEGIA 3: Buscar por nombre y apellidos
-            if (!userData && firstName) {
+            // 🔥 ESTRATEGIA 2: Si no, buscar por nombre y apellidos
+            if (!userData && firstName && lastName) {
                 const { data, error } = await supabase
                     .from('usuarios')
                     .select('id, email, username')
@@ -80,7 +54,7 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 🔥 ESTRATEGIA 4: Buscar por email que contenga el username
+            // 🔥 ESTRATEGIA 3: Si no, buscar por email que contenga el username
             if (!userData && username) {
                 const { data, error } = await supabase
                     .from('usuarios')
@@ -93,41 +67,54 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 🔥 ESTRATEGIA 5: SI NO SE ENCUENTRA, CREAR USUARIO (OPCIONAL)
-            if (!userData) {
-                console.log(`🆕 Usuario no encontrado, creando nuevo con username: ${username}`);
-
-                // Crear usuario en Supabase
-                const { data: newUser, error: createError } = await supabase
+            // 🔥 ESTRATEGIA 4: Si no, buscar por nombre (sin apellidos)
+            if (!userData && firstName) {
+                const { data, error } = await supabase
                     .from('usuarios')
-                    .insert([{
-                        username: username || `${firstName}${lastName}`,
-                        email: `${username || firstName}@telegram.user`,
-                        nombre: firstName,
-                        apellidos: lastName,
-                        created_at: new Date().toISOString()
-                    }])
-                    .select()
-                    .single();
+                    .select('id, email, username')
+                    .eq('nombre', firstName)
+                    .maybeSingle();
 
-                if (newUser) {
-                    userData = newUser;
-                    console.log(`✅ Usuario creado: ${userData.username}`);
-                } else {
-                    console.error('❌ Error creando usuario:', createError);
+                if (data) {
+                    userData = data;
                 }
             }
 
-            // Si NO se encontró ni se creó ningún usuario, devolver error
+            // 🔥 ESTRATEGIA 5: Si no se encuentra, mostrar todos los usuarios
+            // para que el usuario pueda elegir (esto es lo más fiable)
             if (!userData) {
+                // Buscar todos los usuarios que coincidan parcialmente con el username de Telegram
+                const { data: allUsers, error: allError } = await supabase
+                    .from('usuarios')
+                    .select('id, email, username')
+                    .limit(10);
+
+                if (allUsers && allUsers.length > 0) {
+                    // Crear un mensaje con la lista de usuarios
+                    let userList = allUsers.map((u, index) =>
+                        `${index + 1}. ${u.username || u.email}`
+                    ).join('\n');
+
+                    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: `❌ No pude encontrar tu usuario automáticamente.\n\nTu username de Telegram es: **${username}**\n\nUsuarios en el sistema:\n${userList}\n\nPor favor, escribe el número del usuario que eres.\n\nO ve a la web y cambia tu username a **${username}** para vincular automáticamente.`,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                    return res.status(200).json({ ok: true });
+                }
+
                 const botToken = process.env.TELEGRAM_BOT_TOKEN;
                 await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         chat_id: chatId,
-                        text: `❌ No pude encontrar tu usuario en el sistema.\n\nTu username de Telegram es: **${username}**\n\nPor favor, asegúrate de que tu email en la web sea uno de estos:\n- ${username}@gmail.com\n- ${username}@hotmail.com\n- O que tu nombre de usuario en la web sea **${username}**`,
-                        parse_mode: 'Markdown'
+                        text: `❌ No hay usuarios en el sistema.\n\nRegístrate primero en la web y luego vuelve a intentarlo.`
                     })
                 });
                 return res.status(200).json({ ok: true });
@@ -155,7 +142,7 @@ export default async function handler(req, res) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    text: `✅ **¡Cuenta vinculada con éxito!**\n\nUsuario: ${userData.username || userData.email}\n\nAhora recibirás códigos de verificación aquí.\n\nVe a la web para solicitar tu código.`,
+                    text: `✅ **¡Cuenta vinculada con éxito!**\n\nUsuario: ${userData.username || userData.email}\nEmail: ${userData.email}\n\nAhora recibirás códigos de verificación aquí.\n\nVe a la web para solicitar tu código.`,
                     parse_mode: 'Markdown'
                 })
             });
