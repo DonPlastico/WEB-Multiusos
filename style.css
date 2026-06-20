@@ -1594,6 +1594,286 @@ span.flatpickr-weekday {
     opacity: 1;
 }
 
+/* ==========================================================================
+   EDITAR PERFIL - ESTILOS COMPLETOS
+   ========================================================================== */
+
+.edit-profile-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.edit-profile-header {
+    padding: 40px 40px 30px;
+    margin-bottom: 30px;
+    text-align: center;
+    border-top: 3px solid var(--primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    opacity: 0.6;
+}
+
+.edit-profile-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* --- COLUMNA IZQUIERDA: FORMULARIO --- */
+.edit-profile-form {
+    padding: 30px;
+    border-top: 2px solid var(--primary-soft);
+}
+
+.edit-profile-form .auth-form {
+    gap: 18px;
+}
+
+/* --- CORREO BORROSO --- */
+.email-blurred-container {
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    position: relative;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.email-blurred-container.blurred {
+    filter: blur(8px);
+    background: var(--bg-card);
+    border-color: var(--border-light);
+}
+
+.email-blurred-container.blurred:hover {
+    filter: blur(4px);
+    border-color: var(--primary-soft);
+}
+
+.email-blurred-container:not(.blurred) {
+    filter: blur(0);
+    background: var(--bg-secondary);
+    border-color: var(--success);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+}
+
+.email-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* --- SELECTOR DE COLOR (CUSTOM) --- */
+.color-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#edit-color-picker {
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 2px;
+    background: var(--bg-secondary);
+    transition: border-color 0.2s;
+}
+
+#edit-color-picker:hover {
+    border-color: var(--primary);
+}
+
+#edit-color-picker::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+#edit-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+}
+
+.color-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.color-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 5px 0;
+}
+
+.color-preset-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.color-preset-btn:hover {
+    transform: scale(1.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.color-preset-btn[data-color="#ffffff"] {
+    border: 2px solid var(--border-color);
+}
+
+.color-preset-btn[data-color="#ffffff"]:hover {
+    border-color: var(--primary);
+}
+
+/* --- TEXTAREA DESCRIPCIÓN --- */
+.textarea-wrapper {
+    position: relative;
+}
+
+.edit-description-textarea {
+    width: 100%;
+    min-height: 140px;
+    resize: vertical;
+    font-family: var(--font-cyber);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-main);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.edit-description-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+    outline: none;
+}
+
+.edit-description-textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.char-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 14px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: var(--bg-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    transition: color 0.3s;
+}
+
+.char-counter.error {
+    color: var(--error);
+    border-color: var(--error);
+}
+
+/* --- COLUMNA DERECHA: ACCIONES --- */
+.edit-profile-actions {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border-top: 2px solid var(--primary-soft);
+    position: sticky;
+    top: 120px;
+}
+
+.action-buttons-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-big-btn {
+    padding: 20px !important;
+    font-size: 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: center !important;
+    text-align: center !important;
+    height: auto !important;
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-secondary) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.action-big-btn:hover {
+    border-color: var(--primary) !important;
+    background: var(--bg-elevated) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: var(--shadow-md);
+}
+
+.action-big-btn i {
+    font-size: 2rem !important;
+}
+
+.action-big-btn .btn-sub {
+    font-size: 0.75rem !important;
+    opacity: 0.6;
+    font-weight: 400;
+}
+
+/* --- BOTÓN VOLVER AL PERFIL --- */
+#btn-back-to-profile {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+#btn-back-to-profile:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-soft);
+}
 
 /* ==========================================================================
    MODAL DE PERSONALIZACIÓN Y CARDS
@@ -4394,6 +4674,17 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
         gap: 20px;
     }
+
+    /* ===== EDITAR PERFIL (Tablets) ===== */
+    .edit-profile-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .edit-profile-actions {
+        position: static;
+        top: auto;
+    }
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
@@ -4608,6 +4899,68 @@ span.flatpickr-weekday {
         max-width: 280px;
         margin: 0 auto;
     }
+
+    /* ===== EDITAR PERFIL (Móviles grandes) ===== */
+    .edit-profile-header {
+        padding: 25px 20px;
+    }
+
+    .edit-profile-header h1 {
+        font-size: 1.6rem !important;
+    }
+
+    .edit-profile-form {
+        padding: 20px;
+    }
+
+    .edit-profile-actions {
+        padding: 20px;
+    }
+
+    .color-presets {
+        gap: 6px;
+    }
+
+    .color-preset-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    #edit-color-picker {
+        width: 40px;
+        height: 40px;
+    }
+
+    .color-preview {
+        width: 40px;
+        height: 40px;
+    }
+
+    .edit-description-textarea {
+        min-height: 100px;
+        font-size: 0.85rem;
+    }
+
+    .email-blurred-container {
+        min-height: 40px;
+        padding: 10px 14px;
+    }
+
+    .email-text {
+        font-size: 0.85rem;
+    }
+
+    .action-big-btn {
+        padding: 15px !important;
+    }
+
+    .action-big-btn i {
+        font-size: 1.5rem !important;
+    }
+
+    .action-big-btn span {
+        font-size: 0.9rem !important;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
@@ -4813,6 +5166,44 @@ span.flatpickr-weekday {
 
     .chatbox-tabs {
         height: 30px;
+    }
+
+    /* ===== EDITAR PERFIL (Móviles pequeños) ===== */
+    .edit-profile-form {
+        padding: 15px;
+    }
+
+    .edit-profile-actions {
+        padding: 15px;
+    }
+
+    .edit-profile-header h1 {
+        font-size: 1.3rem !important;
+    }
+
+    .color-preset-btn {
+        width: 24px;
+        height: 24px;
+    }
+
+    #edit-color-picker {
+        width: 34px;
+        height: 34px;
+    }
+
+    .color-preview {
+        width: 34px;
+        height: 34px;
+    }
+
+    .edit-description-textarea {
+        min-height: 80px;
+        font-size: 0.8rem;
+        padding: 10px 12px;
+    }
+
+    .email-text {
+        font-size: 0.75rem;
     }
 }
 

@@ -23,6 +23,7 @@ const mapaRutas = {
     'movies': '/peliculas',
     'series': '/series',
     'profile': '/perfil',
+    'edit-profile': '/editar-perfil',
     'admin-panel': '/admin',
     'login': '/login',
     'register': '/registro',
@@ -86,6 +87,8 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
         cargarPerfilPublico(usernameUrl);
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
+    } else if (target === 'edit-profile') {
+        inicializarEditProfile();
     }
 
     // cambio la url sin recargar
@@ -140,7 +143,12 @@ window.addEventListener('popstate', (evento) => {
         modalJuego.classList.remove('show');
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
-        return; // Cortamos aquí para que no navegue a otra página
+        return;
+    }
+
+    // Limpiar vista de editar perfil
+    if (vistaActualGlobal === 'edit-profile') {
+        limpiarVistaEditarPerfil();
     }
 
     if (evento.state && evento.state.vista) {
@@ -1216,7 +1224,7 @@ userMenu.innerHTML = `
     <div class="dropdown-divider"></div>
     
     <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
-    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Lista de seguimiento</span></button>
+    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Listas de seguimientos</span></button>
     
     <div class="dropdown-divider"></div>
     
@@ -1332,6 +1340,22 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
             icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
     });
+});
+
+// ==========================================================================
+//   EDITAR PERFIL - LISTENER DEL MENÚ
+// ==========================================================================
+
+// Añadir este código DESPUÉS de la creación del userMenu (línea ~580)
+document.querySelector('#user-menu .theme-option .fa-user-edit')?.closest('.theme-option')?.addEventListener('click', () => {
+    // Guardar la vista actual para volver después
+    vistaAnteriorAlEditar = vistaActualGlobal;
+    localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
+
+    // Cambiar a la vista de editar perfil
+    cambiarVista('edit-profile');
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
 });
 
 // ==========================================================================
@@ -4759,3 +4783,315 @@ window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
         btn.innerHTML = `<i class="fas fa-eye-slash" style="font-size: 0.9rem;"></i>`;
     }
 };
+
+// ==========================================================================
+//   EDITAR PERFIL - LÓGICA COMPLETA
+// ==========================================================================
+
+// Variables globales para el perfil
+let perfilDataActual = {};
+let timeoutOcultarCorreo = null;
+let vistaAnteriorAlEditar = 'profile';
+
+// === FUNCIÓN: Cargar datos del perfil en el formulario ===
+async function cargarDatosPerfil() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        showToast('error', 'Acceso denegado', 'Debes iniciar sesión.');
+        return;
+    }
+
+    try {
+        const { data: perfil, error } = await supabase
+            .from('usuarios')
+            .select('*')
+            .eq('email', session.user.email)
+            .single();
+
+        if (error) throw error;
+
+        // Guardamos en memoria global
+        perfilDataActual = perfil || {};
+
+        // Rellenar campos del formulario
+        const emailDisplay = document.getElementById('edit-email-display');
+        if (emailDisplay) emailDisplay.textContent = session.user.email;
+
+        const usernameInput = document.getElementById('edit-username');
+        if (usernameInput) usernameInput.value = perfil?.username || '';
+
+        const firstnameInput = document.getElementById('edit-firstname');
+        if (firstnameInput) firstnameInput.value = perfil?.nombre || '';
+
+        const lastnameInput = document.getElementById('edit-lastname');
+        if (lastnameInput) lastnameInput.value = perfil?.apellidos || '';
+
+        const descriptionInput = document.getElementById('edit-description');
+        if (descriptionInput) descriptionInput.value = perfil?.descripcion || '';
+
+        const genderSelect = document.getElementById('edit-gender');
+        if (genderSelect) genderSelect.value = perfil?.sexo || '--';
+
+        const colorPicker = document.getElementById('edit-color-picker');
+        if (colorPicker) {
+            const color = perfil?.color_destacado || '#6366f1';
+            colorPicker.value = color;
+            actualizarVistaPreviaColor(color);
+        }
+
+        // Restaurar estado del correo borroso
+        const emailContainer = document.getElementById('edit-email-container');
+        if (emailContainer) {
+            if (perfil?.mostrar_correo === false) {
+                emailContainer.classList.add('blurred');
+            } else {
+                emailContainer.classList.remove('blurred');
+            }
+        }
+
+        // Guardar vista anterior para volver después
+        const vistaGuardada = localStorage.getItem('vista_anterior_editar');
+        if (vistaGuardada && vistaGuardada !== 'edit-profile') {
+            vistaAnteriorAlEditar = vistaGuardada;
+        }
+
+        // Actualizar contador de caracteres
+        actualizarContadorCaracteres();
+
+    } catch (error) {
+        console.error('Error cargando perfil:', error);
+        showToast('error', 'Error', 'No se pudieron cargar los datos del perfil.');
+    }
+}
+
+// === FUNCIÓN: Actualizar contador de caracteres ===
+function actualizarContadorCaracteres() {
+    const descInput = document.getElementById('edit-description');
+    const counter = document.getElementById('edit-char-counter');
+    if (descInput && counter) {
+        const current = descInput.value.length;
+        counter.textContent = `${current}/1500`;
+        if (current > 1500) {
+            counter.style.color = 'var(--error)';
+        } else {
+            counter.style.color = 'var(--text-muted)';
+        }
+    }
+}
+
+// === FUNCIÓN: Actualizar vista previa del color ===
+function actualizarVistaPreviaColor(color) {
+    const preview = document.getElementById('edit-color-preview');
+    if (preview) {
+        preview.style.backgroundColor = color;
+        preview.style.borderColor = color;
+    }
+}
+
+// === FUNCIÓN: Manejar el correo borroso ===
+function toggleCorreoVisibility() {
+    const container = document.getElementById('edit-email-container');
+    if (!container) return;
+
+    const isBlurred = container.classList.contains('blurred');
+
+    if (isBlurred) {
+        // Revelar correo
+        container.classList.remove('blurred');
+
+        // Limpiar timeout anterior
+        if (timeoutOcultarCorreo) {
+            clearTimeout(timeoutOcultarCorreo);
+        }
+
+        // Programar ocultamiento automático en 5 minutos
+        timeoutOcultarCorreo = setTimeout(() => {
+            container.classList.add('blurred');
+        }, 5 * 60 * 1000); // 5 minutos
+    } else {
+        // Ocultar manualmente (click en el correo ya visible)
+        container.classList.add('blurred');
+        if (timeoutOcultarCorreo) {
+            clearTimeout(timeoutOcultarCorreo);
+            timeoutOcultarCorreo = null;
+        }
+    }
+}
+
+// === FUNCIÓN: Guardar cambios del perfil ===
+async function guardarCambiosPerfil(e) {
+    if (e) e.preventDefault();
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        showToast('error', 'Acceso denegado', 'Debes iniciar sesión.');
+        return;
+    }
+
+    // Recoger datos del formulario
+    const username = document.getElementById('edit-username').value.trim();
+    const nombre = document.getElementById('edit-firstname').value.trim();
+    const apellidos = document.getElementById('edit-lastname').value.trim();
+    const descripcion = document.getElementById('edit-description').value.trim();
+    const sexo = document.getElementById('edit-gender').value;
+    const color_destacado = document.getElementById('edit-color-picker').value;
+
+    // Validaciones básicas
+    if (!username || username.length < 3) {
+        showToast('error', 'Error', 'El nombre de usuario debe tener al menos 3 caracteres.');
+        return;
+    }
+
+    if (descripcion && descripcion.length > 1500) {
+        showToast('error', 'Error', 'La descripción no puede exceder los 1500 caracteres.');
+        return;
+    }
+
+    // Mostrar estado de guardado
+    const btnGuardar = document.getElementById('btn-save-profile');
+    if (!btnGuardar) return;
+
+    const textoOriginal = btnGuardar.innerHTML;
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+    btnGuardar.disabled = true;
+
+    try {
+        // Actualizar en Supabase
+        const { error } = await supabase
+            .from('usuarios')
+            .update({
+                username: username,
+                nombre: nombre,
+                apellidos: apellidos,
+                descripcion: descripcion,
+                sexo: sexo,
+                color_destacado: color_destacado,
+                updated_at: new Date().toISOString()
+            })
+            .eq('email', session.user.email);
+
+        if (error) throw error;
+
+        // Guardar el estado del correo en memoria (para la próxima carga)
+        const emailContainer = document.getElementById('edit-email-container');
+        if (emailContainer) {
+            const isBlurred = emailContainer.classList.contains('blurred');
+            await supabase
+                .from('usuarios')
+                .update({ mostrar_correo: !isBlurred })
+                .eq('email', session.user.email);
+        }
+
+        showToast('success', '¡Guardado!', 'Los cambios se han aplicado correctamente.');
+
+        // Restaurar botón
+        btnGuardar.innerHTML = textoOriginal;
+        btnGuardar.disabled = false;
+
+        // Actualizar el nombre en el menú desplegable
+        const dropdownUsername = document.getElementById('dropdown-username');
+        if (dropdownUsername) dropdownUsername.textContent = username;
+
+        // Volver a la vista anterior
+        setTimeout(() => {
+            // Si la vista anterior es 'edit-profile', ir a 'profile'
+            const destino = vistaAnteriorAlEditar === 'edit-profile' ? 'profile' : vistaAnteriorAlEditar;
+            cambiarVista(destino, true);
+
+            // Recargar datos del perfil público si es necesario
+            if (destino === 'profile') {
+                const usernameDisplay = document.getElementById('main-profile-username');
+                if (usernameDisplay) {
+                    cargarPerfilPublico(usernameDisplay.textContent);
+                }
+            }
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error guardando perfil:', error);
+        showToast('error', 'Error', 'No se pudieron guardar los cambios.');
+
+        // Restaurar botón
+        btnGuardar.innerHTML = textoOriginal;
+        btnGuardar.disabled = false;
+    }
+}
+
+// === FUNCIÓN: Limpiar al salir de la vista ===
+function limpiarVistaEditarPerfil() {
+    // Ocultar correo automáticamente
+    const emailContainer = document.getElementById('edit-email-container');
+    if (emailContainer) {
+        emailContainer.classList.add('blurred');
+    }
+
+    // Limpiar timeout
+    if (timeoutOcultarCorreo) {
+        clearTimeout(timeoutOcultarCorreo);
+        timeoutOcultarCorreo = null;
+    }
+}
+
+// === INICIALIZACIÓN DE LISTENERS ===
+// Esta función se ejecutará cuando se cargue la vista 'edit-profile'
+function inicializarEditProfile() {
+    // Cargar datos
+    cargarDatosPerfil();
+
+    // Guardar la vista anterior (si no es edit-profile)
+    if (vistaActualGlobal !== 'edit-profile') {
+        vistaAnteriorAlEditar = vistaActualGlobal;
+        localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
+    }
+
+    // Color picker
+    const colorPicker = document.getElementById('edit-color-picker');
+    if (colorPicker) {
+        colorPicker.removeEventListener('input', handleColorChange);
+        colorPicker.addEventListener('input', handleColorChange);
+    }
+
+    // Click en el correo para revelar/ocultar
+    const emailContainer = document.getElementById('edit-email-container');
+    if (emailContainer) {
+        emailContainer.removeEventListener('click', toggleCorreoVisibility);
+        emailContainer.addEventListener('click', toggleCorreoVisibility);
+    }
+
+    // Botón guardar
+    const btnGuardar = document.getElementById('btn-save-profile');
+    if (btnGuardar) {
+        btnGuardar.removeEventListener('click', guardarCambiosPerfil);
+        btnGuardar.addEventListener('click', guardarCambiosPerfil);
+    }
+
+    // Contador de caracteres en tiempo real
+    const descInput = document.getElementById('edit-description');
+    if (descInput) {
+        descInput.removeEventListener('input', actualizarContadorCaracteres);
+        descInput.addEventListener('input', actualizarContadorCaracteres);
+    }
+
+    // Botones de colores predefinidos
+    document.querySelectorAll('.color-preset-btn').forEach(btn => {
+        btn.removeEventListener('click', handleColorPresetClick);
+        btn.addEventListener('click', handleColorPresetClick);
+    });
+}
+
+// === HANDLERS PARA EVENTOS ===
+function handleColorChange(e) {
+    const color = e.target.value;
+    actualizarVistaPreviaColor(color);
+}
+
+function handleColorPresetClick(e) {
+    const color = e.target.dataset.color;
+    if (!color) return;
+
+    const colorPicker = document.getElementById('edit-color-picker');
+    if (colorPicker) {
+        colorPicker.value = color;
+        actualizarVistaPreviaColor(color);
+    }
+}
