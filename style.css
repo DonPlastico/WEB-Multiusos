@@ -4647,7 +4647,7 @@ span.flatpickr-weekday {
     /* Evita que el input se desborde */
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    padding: 14px 20px; 
+    padding: 14px 20px;
     border-radius: 12px;
     color: var(--text-main);
     font-family: var(--font-cyber);
@@ -4684,15 +4684,15 @@ span.flatpickr-weekday {
     left: 0;
     right: 0;
     width: 100%;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 8px 0;
-    box-shadow: var(--shadow-lg);
+    background: rgba(20, 20, 28, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 4px 0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.1);
     z-index: 999999 !important;
     max-height: 250px;
     overflow-y: auto;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px);
     display: none;
     min-width: 0;
     box-sizing: border-box;
@@ -4716,45 +4716,49 @@ span.flatpickr-weekday {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.75rem;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.7rem;
+    text-transform: uppercase;
     color: var(--text-muted);
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 2px;
 }
 
 .search-history-clear-all {
-    background: transparent;
-    border: none;
+    padding: 10px 20px;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.75rem;
     color: var(--text-muted);
-    cursor: pointer;
-    font-size: 0.7rem;
     transition: color 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
 }
 
 .search-history-clear-all:hover {
     color: var(--error);
+    background: rgba(239, 68, 68, 0.05);
 }
 
 .search-history-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
+    padding: 10px 20px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.15s ease;
     color: var(--text-secondary);
+    border-left: 2px solid transparent;
     font-size: 0.9rem;
-    gap: 8px;
+    gap: 12px;
 }
 
 .search-history-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-main);
+    background: rgba(99, 102, 241, 0.08);
+    border-left-color: var(--primary);
+    padding-left: 18px;
+    /* Efecto de desplazamiento sutil */
 }
 
 .search-history-item span {
@@ -4765,9 +4769,10 @@ span.flatpickr-weekday {
 }
 
 .search-history-item span i {
-    margin-right: 10px;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    opacity: 0.5;
+    font-size: 0.7rem;
+    margin-right: 12px;
     flex-shrink: 0;
 }
 
@@ -4781,7 +4786,15 @@ span.flatpickr-weekday {
     transition: all 0.2s;
     font-size: 0.75rem;
     flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
+
+.search-history-item:hover .search-history-delete {
+    opacity: 1;
+}
+
+
 
 .search-history-delete:hover {
     background: rgba(239, 68, 68, 0.15);
