@@ -5668,32 +5668,35 @@ setTimeout(() => {
 // ==========================================================================
 //   MÓDULO: WATCHLIST ESTILO TV TIME (CONTINUE WATCHING)
 // ==========================================================================
-window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
+window.cargarWatchlistTVTime = async function(targetId, esMiPerfil) {
     const section = document.getElementById('profile-watchlist-section');
     const grid = document.getElementById('profile-watchlist-grid');
 
     if (!section || !grid) return;
 
     section.style.display = 'block';
-    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><span style="display:inline-block; margin-top:10px; letter-spacing:1px;">Sincronizando Watchlist...</span></div>';
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><span style="display:inline-block; margin-top:10px; letter-spacing:1px;">Escaneando todo tu historial...</span></div>';
 
     try {
-        // SOLUCIÓN AL 400: Pedimos EXCLUSIVAMENTE 'media_id'. 
-        // 0% posibilidades de que Supabase devuelva error 400.
+        // Pedimos 'id' para ordenar cronológicamente de forma nativa en Supabase (de más nuevo a más antiguo)
         const { data: watchedEps, error } = await supabase
             .from('user_media')
-            .select('media_id')
+            .select('id, media_id') 
             .eq('user_id', targetId)
-            .eq('tipo', 'tv_episode');
+            .eq('tipo', 'tv_episode')
+            .order('id', { ascending: false });
 
         if (error || !watchedEps || watchedEps.length === 0) {
             section.style.display = 'none';
             return;
         }
 
-        // 2. Agrupar para saber en qué S y E se quedó de cada serie
+        // 2. Agrupar por serie y encontrar el último episodio.
+        // Como vienen ordenados de más reciente a más antiguo, guardamos el orden.
         const seriesProgress = {};
-        watchedEps.forEach((ep, index) => {
+        const orderedSeriesIds = [];
+
+        watchedEps.forEach((ep) => {
             const partes = ep.media_id.split('_'); // ej: 1408_T8_E3
             if (partes.length < 3) return;
             const serieId = partes[0];
@@ -5701,80 +5704,86 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
             const e = parseInt(partes[2].replace('E', ''));
 
             if (!seriesProgress[serieId]) {
-                // Usamos el index nativo del array como timestamp improvisado
-                seriesProgress[serieId] = { maxS: s, maxE: e, ordenIndex: index };
+                seriesProgress[serieId] = { maxS: s, maxE: e };
+                orderedSeriesIds.push(serieId); // Registra el orden de actividad
             } else {
                 if (s > seriesProgress[serieId].maxS || (s === seriesProgress[serieId].maxS && e > seriesProgress[serieId].maxE)) {
                     seriesProgress[serieId].maxS = s;
                     seriesProgress[serieId].maxE = e;
                 }
-                seriesProgress[serieId].ordenIndex = index; // Actualiza su posición al más reciente
             }
         });
 
-        // 3. Ordenar por orden natural y limitar a 12
-        const seriesPrioritarias = Object.keys(seriesProgress)
-            .map(id => ({ id, ...seriesProgress[id] }))
-            .sort((a, b) => b.ordenIndex - a.ordenIndex)
-            .slice(0, 12);
+        // 3. Tomar TODAS las series en el orden correcto (sin cortarlas)
+        const seriesPrioritarias = orderedSeriesIds.map(id => ({ id, ...seriesProgress[id] }));
 
-        // 4. Consultar las APIs de TMDB en paralelo
-        const promesas = seriesPrioritarias.map(async (progreso) => {
-            try {
-                const resSerie = await fetch(`/api/tmdb?id=${progreso.id}&tipo=tv`);
-                if (!resSerie.ok) return null;
-                const showData = await resSerie.json();
+        // 4. Consultar TMDB en LOTES DE 10 para no saturar la API ni Vercel
+        const tarjetasValidas = [];
+        const chunkSize = 10;
 
-                let nextS = progreso.maxS;
-                let nextE = progreso.maxE + 1;
+        for (let i = 0; i < seriesPrioritarias.length; i += chunkSize) {
+            const chunk = seriesPrioritarias.slice(i, i + chunkSize);
 
-                const currentSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
-                if (currentSeasonInfo && nextE > currentSeasonInfo.episode_count) {
-                    nextS++;
-                    nextE = 1;
-                }
+            const promesas = chunk.map(async (progreso) => {
+                try {
+                    const resSerie = await fetch(`/api/tmdb?id=${progreso.id}&tipo=tv`);
+                    if (!resSerie.ok) return null;
+                    const showData = await resSerie.json();
 
-                const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
-                if (!nextSeasonInfo) return null;
+                    let nextS = progreso.maxS;
+                    let nextE = progreso.maxE + 1;
 
-                const resSeason = await fetch(`/api/tmdb?id=${progreso.id}&tipo=tv_season&season=${nextS}`);
-                if (!resSeason.ok) return null;
-                const seasonData = await resSeason.json();
-                const nextEpInfo = seasonData.episodes?.find(ep => ep.episode_number === nextE);
+                    // Si pasamos del límite de episodios, saltamos a la siguiente temporada
+                    const currentSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
+                    if (currentSeasonInfo && nextE > currentSeasonInfo.episode_count) {
+                        nextS++;
+                        nextE = 1;
+                    }
 
-                if (!nextEpInfo) return null;
+                    // Si ya no hay temporada o no tiene episodios, la serie está terminada
+                    const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
+                    if (!nextSeasonInfo || nextSeasonInfo.episode_count === 0) return null;
 
-                const bgImage = nextEpInfo.still_path ? `https://image.tmdb.org/t/p/w780${nextEpInfo.still_path}` : showData.backdrop;
-                const epTitle = nextEpInfo.name || `Episodio ${nextE}`;
+                    const resSeason = await fetch(`/api/tmdb?id=${progreso.id}&tipo=tv_season&season=${nextS}`);
+                    if (!resSeason.ok) return null;
+                    const seasonData = await resSeason.json();
+                    const nextEpInfo = seasonData.episodes?.find(ep => ep.episode_number === nextE);
 
-                const btnMarcar = esMiPerfil ? `
-                    <button title="Marcar como visto" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; min-width: 45px; height: 45px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; z-index: 2;" onclick="event.stopPropagation(); marcarSiguienteEpisodio('${progreso.id}', ${nextS}, ${nextE}, this)" onmouseover="this.style.background='var(--success)'; this.style.color='white'; this.style.borderColor='var(--success)';" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';">
-                        <i class="fas fa-check"></i>
-                    </button>
-                ` : '';
+                    if (!nextEpInfo) return null;
 
-                return `
-                    <div class="glass-panel" style="position: relative; overflow: hidden; border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; display: flex; flex-direction: column;" onclick="abrirModalMedia('${progreso.id}', 'tv')" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('${bgImage}') center/cover; opacity: 0.3; z-index: 0; filter: blur(1px) brightness(0.6); transition: background 0.5s;"></div>
-                        <div style="position: relative; z-index: 1; padding: 15px; display: flex; gap: 15px; align-items: center; height: 100%;">
-                            <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
-                            <div style="flex: 1; min-width: 0;">
-                                <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
-                                <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0' + nextS : nextS} | E${nextE < 10 ? '0' + nextE : nextE}</p>
-                                <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
+                    const bgImage = nextEpInfo.still_path ? `https://image.tmdb.org/t/p/w780${nextEpInfo.still_path}` : showData.backdrop;
+                    const epTitle = nextEpInfo.name || `Episodio ${nextE}`;
+                    
+                    const btnMarcar = esMiPerfil ? `
+                        <button title="Marcar como visto" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 50%; min-width: 45px; height: 45px; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; z-index: 2;" onclick="event.stopPropagation(); marcarSiguienteEpisodio('${progreso.id}', ${nextS}, ${nextE}, this)" onmouseover="this.style.background='var(--success)'; this.style.color='white'; this.style.borderColor='var(--success)';" onmouseout="this.style.background='var(--bg-secondary)'; this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    ` : '';
+
+                    return `
+                        <div class="glass-panel" style="position: relative; overflow: hidden; border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; display: flex; flex-direction: column;" onclick="abrirModalMedia('${progreso.id}', 'tv')" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('${bgImage}') center/cover; opacity: 0.3; z-index: 0; filter: blur(1px) brightness(0.6); transition: background 0.5s;"></div>
+                            <div style="position: relative; z-index: 1; padding: 15px; display: flex; gap: 15px; align-items: center; height: 100%;">
+                                <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
+                                <div style="flex: 1; min-width: 0;">
+                                    <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
+                                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0'+nextS : nextS} | E${nextE < 10 ? '0'+nextE : nextE}</p>
+                                    <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
+                                </div>
+                                ${btnMarcar}
                             </div>
-                            ${btnMarcar}
                         </div>
-                    </div>
-                `;
-            } catch (e) {
-                console.error("Fallo al extraer episodio pendiente:", progreso.id, e);
-                return null;
-            }
-        });
+                    `;
+                } catch (e) {
+                    console.error("Fallo al extraer episodio:", progreso.id, e);
+                    return null;
+                }
+            });
 
-        const resultados = await Promise.all(promesas);
-        const tarjetasValidas = resultados.filter(r => r !== null);
+            // Esperamos que acabe este bloque de 10 antes de hacer el siguiente
+            const resultadosChunk = await Promise.all(promesas);
+            tarjetasValidas.push(...resultadosChunk.filter(r => r !== null));
+        }
 
         if (tarjetasValidas.length === 0) {
             section.style.display = 'none';
@@ -5784,11 +5793,11 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
 
     } catch (err) {
         console.error("Error cargando watchlist:", err);
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--error);">Error de conexión al cargar pendientes.</div>';
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--error);">Error de telemetría al cargar pendientes.</div>';
     }
 };
 
-window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) {
+window.marcarSiguienteEpisodio = async function(serieId, season, episode, btn) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.style.pointerEvents = 'none';
 
@@ -5810,13 +5819,12 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         });
 
         if (error) throw error;
-        showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0' + season : season} | E${episode < 10 ? '0' + episode : episode}`);
+        showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0'+season : season} | E${episode < 10 ? '0'+episode : episode}`);
 
-        // === MAGIA AISLADA: ACTUALIZAMOS SOLO ESTA TARJETA ===
+        // === MAGIA: AISLAMOS Y RECARGAMOS SOLO LA TARJETA AL NUEVO EPISODIO ===
         const card = btn.closest('.glass-panel');
         if (!card) return;
 
-        // Difuminamos la tarjeta
         card.style.opacity = '0.5';
         card.style.pointerEvents = 'none';
 
@@ -5824,10 +5832,10 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         let nextE = episode + 1;
 
         const resSerie = await fetch(`/api/tmdb?id=${serieId}&tipo=tv`);
-        if (!resSerie.ok) throw new Error("Fallo API TMDB Serie");
+        if (!resSerie.ok) throw new Error("Fallo API Serie");
         const showData = await resSerie.json();
 
-        // Calcular si cambia de temporada
+        // Calculamos el salto exacto de temporada
         const currentSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
         if (currentSeasonInfo && nextE > currentSeasonInfo.episode_count) {
             nextS++;
@@ -5835,16 +5843,16 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         }
 
         const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
-        if (!nextSeasonInfo) {
+        if (!nextSeasonInfo || nextSeasonInfo.episode_count === 0) {
+            // Si ya no quedan más, se borra sola con animación
             card.style.transform = 'scale(0.8)';
             card.style.opacity = '0';
             setTimeout(() => card.remove(), 300);
             return;
         }
 
-        // Buscar el nuevo episodio
         const resSeason = await fetch(`/api/tmdb?id=${serieId}&tipo=tv_season&season=${nextS}`);
-        if (!resSeason.ok) throw new Error("Fallo API TMDB Temporada");
+        if (!resSeason.ok) throw new Error("Fallo API Temporada");
         const seasonData = await resSeason.json();
         const nextEpInfo = seasonData.episodes?.find(ep => ep.episode_number === nextE);
 
@@ -5869,7 +5877,7 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
                 <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
                 <div style="flex: 1; min-width: 0;">
                     <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
-                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0' + nextS : nextS} | E${nextE < 10 ? '0' + nextE : nextE}</p>
+                    <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0'+nextS : nextS} | E${nextE < 10 ? '0'+nextE : nextE}</p>
                     <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
                 </div>
                 ${btnMarcarHtml}
@@ -5884,7 +5892,7 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         showToast('error', 'Error BD', 'No se pudo guardar el episodio.');
         btn.innerHTML = '<i class="fas fa-check"></i>';
         btn.style.pointerEvents = 'auto';
-
+        
         const card = btn.closest('.glass-panel');
         if (card) {
             card.style.opacity = '1';
