@@ -4624,15 +4624,15 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   VISTA DE JUEGOS MEJORADA & HISTORIAL DE BÚSQUEDA - ESTILO 3: MINIMALISTA
+   VISTA DE JUEGOS MEJORADA & HISTORIAL DE BÚSQUEDA - ESTILO 4: DARK PREMIUM
    ========================================================================== */
 
 /* --- SEARCH BOX --- */
 .search-box {
     position: relative;
-    background: var(--glass-bg);
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 10px;
     gap: 8px;
     margin-bottom: 10px;
     padding: 12px 14px;
@@ -4644,7 +4644,7 @@ span.flatpickr-weekday {
     min-width: 0;
     background: transparent;
     border: none;
-    padding: 10px 4px;
+    padding: 8px 4px;
     color: var(--text-main);
     font-family: var(--font-cyber);
     font-size: 0.95rem;
@@ -4654,7 +4654,7 @@ span.flatpickr-weekday {
 
 .search-box input::placeholder {
     color: var(--text-muted);
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .search-box input:focus {
@@ -4666,10 +4666,10 @@ span.flatpickr-weekday {
     background: var(--primary);
     border: none;
     color: white;
-    padding: 0 22px;
+    padding: 0 24px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     transition: 0.3s;
 }
 
@@ -4696,7 +4696,7 @@ span.flatpickr-weekday {
     display: none;
     min-width: 0;
     box-sizing: border-box;
-    animation: minimalSlideDown 0.15s ease forwards;
+    animation: darkSlideDown 0.15s ease forwards;
 }
 
 .search-history-dropdown::-webkit-scrollbar {
@@ -4721,12 +4721,13 @@ span.flatpickr-weekday {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
+    padding: 10px 18px;
     border-bottom: 1px solid var(--border-color);
     font-size: 0.7rem;
     color: var(--text-muted);
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .search-history-clear-all {
@@ -4734,13 +4735,14 @@ span.flatpickr-weekday {
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     transition: color 0.2s;
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 8px;
+    padding: 2px 10px;
     border-radius: 4px;
+    font-weight: 500;
 }
 
 .search-history-clear-all:hover {
@@ -4752,11 +4754,11 @@ span.flatpickr-weekday {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 16px;
+    padding: 8px 18px;
     cursor: pointer;
     transition: background 0.15s;
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     gap: 8px;
 }
 
@@ -4772,7 +4774,7 @@ span.flatpickr-weekday {
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .search-history-item span i {
@@ -4796,15 +4798,16 @@ span.flatpickr-weekday {
 }
 
 .search-history-item:hover .search-history-delete {
-    opacity: 1;
+    opacity: 0.6;
 }
 
 .search-history-delete:hover {
     background: rgba(239, 68, 68, 0.08);
     color: var(--error);
+    opacity: 1;
 }
 
-@keyframes minimalSlideDown {
+@keyframes darkSlideDown {
     from {
         opacity: 0;
         transform: translateY(-4px);
