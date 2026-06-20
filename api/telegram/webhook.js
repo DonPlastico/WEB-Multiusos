@@ -22,21 +22,14 @@ export default async function handler(req, res) {
     if (text === '/start') {
         try {
             const username = message.from.username || 'AndyGauoG';
-            
-            // 🔥 VERIFICAR QUE EL TOKEN EXISTE
             const botToken = process.env.TELEGRAM_BOT_TOKEN;
-            console.log(`🔑 Token disponible: ${botToken ? 'SÍ' : 'NO'}`);
-            
-            if (!botToken) {
-                console.error('❌ TOKEN NO ENCONTRADO en variables de entorno');
-                return res.status(200).json({ ok: true });
-            }
 
             console.log(`📱 Procesando /start para chat_id: ${chatId}`);
             console.log(`👤 Username: ${username}`);
 
             // 🔥 PASO 1: Intentar actualizar el usuario en Supabase
             let userUpdated = false;
+            let userEmail = '';
             try {
                 // Buscar al usuario por username
                 const { data: userData, error: findError } = await supabase
@@ -46,9 +39,10 @@ export default async function handler(req, res) {
                     .maybeSingle();
 
                 if (userData) {
+                    userEmail = userData.email || '';
                     console.log(`✅ Usuario encontrado: ${userData.username} (ID: ${userData.id})`);
-                    
-                    // Actualizar el chat_id (por si acaso)
+
+                    // Actualizar el chat_id
                     const { error: updateError } = await supabase
                         .from('usuarios')
                         .update({ telegram_chat_id: chatId.toString() })
@@ -67,23 +61,29 @@ export default async function handler(req, res) {
                 console.error('❌ Error de base de datos:', dbError);
             }
 
-            // 🔥 PASO 2: Enviar mensaje de confirmación a Telegram (FORZADO)
+            // 🔥 PASO 2: Enviar mensaje de confirmación a Telegram (SIN MARKDOWN)
+            let mensaje = '';
+            if (userUpdated) {
+                mensaje = `✅ ¡Cuenta vinculada con éxito!\n\nUsuario: ${username}\nChat ID: ${chatId}\n\nAhora recibirás códigos de verificación aquí.`;
+            } else {
+                mensaje = `⚠️ No se pudo vincular automáticamente.\n\nTu chat_id es: ${chatId}\n\n📌 Para vincular manualmente, ejecuta este SQL en Supabase:\n\nUPDATE usuarios \nSET telegram_chat_id = '${chatId}'\nWHERE username = '${username}' OR email = 'alexneitor5@gmail.com';\n\nLuego envía /start de nuevo.`;
+            }
+
             console.log(`📤 Enviando mensaje a chat_id: ${chatId}`);
-            
+            console.log(`📝 Mensaje: ${mensaje.substring(0, 100)}...`);
+
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    text: userUpdated 
-                        ? `✅ **¡Cuenta vinculada con éxito!**\n\nUsuario: ${username}\nChat ID: ${chatId}\n\nAhora recibirás códigos de verificación aquí.`
-                        : `⚠️ **No se pudo vincular automáticamente.**\n\nTu chat_id es: \`${chatId}\`\n\n📌 **Ejecuta esto en Supabase:**\n\n\`\`\`sql\nUPDATE usuarios \nSET telegram_chat_id = '${chatId}'\nWHERE username = '${username}' OR email = 'alexneitor5@gmail.com';\n\`\`\`\n\nLuego envía /start de nuevo.`,
-                    parse_mode: 'Markdown'
+                    text: mensaje
+                    // ❌ NO USAR parse_mode: 'Markdown'
                 })
             });
 
             const result = await response.json();
-            console.log('📬 Respuesta de Telegram:', JSON.stringify(result, null, 2));
+            console.log('📬 Respuesta de Telegram:', JSON.stringify(result));
 
             if (!response.ok) {
                 console.error('❌ Error enviando mensaje:', result);
@@ -95,8 +95,8 @@ export default async function handler(req, res) {
 
         } catch (error) {
             console.error('❌ Error en webhook:', error);
-            
-            // Intentar enviar mensaje de error al usuario
+
+            // Intentar enviar mensaje de error al usuario (SIN MARKDOWN)
             try {
                 const botToken = process.env.TELEGRAM_BOT_TOKEN;
                 if (botToken) {
@@ -105,15 +105,14 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             chat_id: chatId,
-                            text: `❌ **Error interno:**\n\`${error.message || 'Error desconocido'}\`\n\nRevisa los logs de Vercel.`,
-                            parse_mode: 'Markdown'
+                            text: `❌ Error interno: ${error.message || 'Error desconocido'}\n\nRevisa los logs de Vercel.`
                         })
                     });
                 }
             } catch (e) {
                 console.error('❌ Error enviando mensaje de error:', e);
             }
-            
+
             return res.status(200).json({ ok: true });
         }
     }
