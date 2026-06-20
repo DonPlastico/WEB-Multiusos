@@ -5703,81 +5703,82 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     //    y filtramos las que NO están al 100%
     const seriesEnProgreso = [];
 
-    const TMDB_KEY = import.meta.env.VITE_TMDB_KEY;
+    // Cola de peticiones de 5 en 5 para no reventar el rate limit
+    const entries = [...seriesMap.entries()];
+    const CHUNK = 5;
+    for (let i = 0; i < entries.length; i += CHUNK) {
+        const chunk = entries.slice(i, i + CHUNK);
+        await Promise.all(chunk.map(async ([tmdbId, epVistos]) => {
+            try {
+                // Usamos nuestro proxy igual que el resto del main.js
+                const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv`);
+                if (!res.ok) return;
+                const data = await res.json();
 
-    await Promise.all([...seriesMap.entries()].map(async ([tmdbId, epVistos]) => {
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_KEY}&language=es-ES`);
-            if (!res.ok) return;
-            const data = await res.json();
+                const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
+                const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
 
-            // Contamos solo temporadas reales (sin la T0 = specials)
-            const temporadasReales = (data.seasons || []).filter(s => s.season_number > 0);
-            const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+                const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
+                const totalVistosUsuario = epVistosReales.length;
 
-            // Episodios vistos de esta serie (sin contar T0)
-            const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
-            const totalVistosUsuario = epVistosReales.length;
+                if (totalVistosUsuario >= totalEpsSerie && totalEpsSerie > 0) return;
 
-            // Si ha visto TODOS → terminada → no aparece en watchlist
-            if (totalVistosUsuario >= totalEpsSerie && totalEpsSerie > 0) return;
+                let siguienteEp = null;
+                let totalPendientes = 0;
 
-            // Sacamos el episodio pendiente: el siguiente que NO tiene visto
-            // Construimos la lista de todos los eps posibles en orden T1E1, T1E2...
-            let siguienteEp = null;
-            let totalPendientes = 0;
-
-            for (const temp of temporadasReales) {
-                for (let e = 1; e <= temp.episode_count; e++) {
-                    const cod = `T${temp.season_number}_E${e}`;
-                    if (!epVistos.has(cod)) {
-                        totalPendientes++;
-                        if (!siguienteEp) {
-                            siguienteEp = {
-                                temporada: temp.season_number,
-                                episodio: e,
-                                totalTemp: temp.episode_count
-                            };
+                for (const temp of temporadasReales) {
+                    for (let e = 1; e <= temp.episode_count; e++) {
+                        const cod = `T${temp.season_number}_E${e}`;
+                        if (!epVistos.has(cod)) {
+                            totalPendientes++;
+                            if (!siguienteEp) {
+                                siguienteEp = {
+                                    temporada: temp.season_number,
+                                    episodio: e,
+                                    totalTemp: temp.episode_count
+                                };
+                            }
                         }
                     }
                 }
-            }
 
-            if (!siguienteEp) return;
+                if (!siguienteEp) return;
 
-            // Buscamos los detalles del episodio pendiente para mostrar su nombre
-            let epNombre = '';
-            let epPoster = '';
-            let esPremiere = siguienteEp.episodio === 1;
+                let epNombre = '';
+                let epPoster = '';
+                let esPremiere = siguienteEp.episodio === 1;
 
-            try {
-                const resEp = await fetch(
-                    `https://api.themoviedb.org/3/tv/${tmdbId}/season/${siguienteEp.temporada}/episode/${siguienteEp.episodio}?api_key=${TMDB_KEY}&language=es-ES`
-                );
-                if (resEp.ok) {
-                    const epData = await resEp.json();
-                    epNombre = epData.name || '';
-                    epPoster = epData.still_path
-                        ? `https://image.tmdb.org/t/p/w300${epData.still_path}`
-                        : '';
-                }
+                try {
+                    const resEp = await fetch(
+                        `/api/tmdb?id=${tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}&episode=${siguienteEp.episodio}`
+                    );
+                    if (resEp.ok) {
+                        const epData = await resEp.json();
+                        // El proxy devuelve episodes[], cogemos el que toca
+                        const epInfo = epData.episodes?.find(e => e.episode_number === siguienteEp.episodio);
+                        epNombre = epInfo?.name || '';
+                        epPoster = epInfo?.still_path
+                            ? `https://image.tmdb.org/t/p/w300${epInfo.still_path}`
+                            : '';
+                    }
+                } catch (_) { }
+
+                seriesEnProgreso.push({
+                    tmdbId,
+                    nombre: data.titulo || data.title || '',
+                    poster: data.poster ? data.poster : '',
+                    temporada: siguienteEp.temporada,
+                    episodio: siguienteEp.episodio,
+                    epNombre,
+                    epPoster,
+                    pendientes: totalPendientes - 1,
+                    esPremiere,
+                    popularity: data.popularidad || 0
+                });
+
             } catch (_) { }
-
-            seriesEnProgreso.push({
-                tmdbId,
-                nombre: data.name || data.original_name || '',
-                poster: data.poster_path ? `https://image.tmdb.org/t/p/w92${data.poster_path}` : '',
-                temporada: siguienteEp.temporada,
-                episodio: siguienteEp.episodio,
-                epNombre,
-                epPoster,
-                pendientes: totalPendientes - 1, // los que quedan DESPUÉS de este
-                esPremiere,
-                popularity: data.popularity || 0
-            });
-
-        } catch (_) { }
-    }));
+        }));
+    }
 
     if (seriesEnProgreso.length === 0) {
         seccion.style.display = 'none';
