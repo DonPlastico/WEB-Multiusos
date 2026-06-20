@@ -91,7 +91,10 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
         cargarTMDB('tv');
         seriesCargadas = true;
     } else if (target === 'profile') {
-        cargarPerfilPublico(usernameUrl);
+        // Si venimos de editar, usar el nuevo username
+        const usernameFromEdit = document.getElementById('edit-username')?.value;
+        const userToLoad = usernameFromEdit || usernameUrl;
+        cargarPerfilPublico(userToLoad);
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
@@ -3154,14 +3157,16 @@ async function cargarPerfilPublico(usernameTarget) {
         let miPropioUsername = null;
         let emailLogueado = null;
 
-        // Sacamos nuestros datos si estamos logueados
         if (session) {
             emailLogueado = session.user.email;
-            const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', emailLogueado).single();
+            const { data: miPerfil } = await supabase
+                .from('usuarios')
+                .select('username')
+                .eq('email', emailLogueado)
+                .single();
             if (miPerfil) miPropioUsername = miPerfil.username;
         }
 
-        // Si no me pasan usuario por la URL (entrar desde el menú normal), asumo que quiero ver MI perfil
         const usuarioABuscar = usernameTarget || miPropioUsername;
 
         if (!usuarioABuscar) {
@@ -3169,7 +3174,7 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
-        // Buscamos en Supabase
+        // 🔥 Usar la vista perfiles_publicos en lugar de la tabla usuarios
         const { data: perfilTarget, error } = await supabase
             .from('perfiles_publicos')
             .select('*')
@@ -3177,11 +3182,12 @@ async function cargarPerfilPublico(usernameTarget) {
             .single();
 
         if (error || !perfilTarget) {
+            console.error('Error cargando perfil:', error);
             document.querySelector('.profile-username').textContent = "Usuario no encontrado en el Nexus";
             return;
         }
 
-        // Pintamos el Nombre
+        // Actualizar el username en la UI
         document.querySelector('.profile-username').textContent = perfilTarget.username;
 
         // Pintar Avatar
@@ -5005,7 +5011,6 @@ function toggleCorreoVisibility() {
     }
 }
 
-// === FUNCIÓN: Guardar cambios del perfil ===
 async function guardarCambiosPerfil(e) {
     if (e) e.preventDefault();
 
@@ -5015,7 +5020,6 @@ async function guardarCambiosPerfil(e) {
         return;
     }
 
-    // RECOGER TODOS LOS DATOS DEL FORMULARIO
     const username = document.getElementById('edit-username').value.trim();
     const nombre = document.getElementById('edit-firstname').value.trim();
     const apellidos = document.getElementById('edit-lastname').value.trim();
@@ -5024,17 +5028,6 @@ async function guardarCambiosPerfil(e) {
     const colorPicker = document.getElementById('edit-color-picker');
     const colorHex = colorPicker ? colorPicker.value : '#6366f1';
 
-    // 🔥 LOGS PARA DEBUG
-    console.log('📝 Datos a guardar:');
-    console.log('  username:', username);
-    console.log('  nombre:', nombre);
-    console.log('  apellidos:', apellidos);
-    console.log('  descripcion:', descripcion);
-    console.log('  sexo:', sexo);
-    console.log('  color:', colorHex);
-    console.log('  email:', session.user.email);
-
-    // VALIDACIONES
     if (!username || username.length < 3) {
         showToast('error', 'Error', 'El nombre de usuario debe tener al menos 3 caracteres.');
         return;
@@ -5046,15 +5039,13 @@ async function guardarCambiosPerfil(e) {
     }
 
     const btnGuardar = document.getElementById('btn-save-profile');
-    if (!btnGuardar) return;
-
     const textoOriginal = btnGuardar.innerHTML;
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
     btnGuardar.disabled = true;
 
     try {
-        // 🔥 GUARDAR EN SUPABASE
-        const { data: updateData, error } = await supabase
+        // 1. ACTUALIZAR TABLA USUARIOS
+        const { data: updateData, error: errorUpdate } = await supabase
             .from('usuarios')
             .update({
                 username: username,
@@ -5066,55 +5057,64 @@ async function guardarCambiosPerfil(e) {
                 updated_at: new Date().toISOString()
             })
             .eq('email', session.user.email)
-            .select(); // 🔥 IMPORTANTE: Devuelve los datos actualizados
+            .select();
 
-        if (error) {
-            console.error('❌ Error en Supabase:', error);
-            throw error;
+        if (errorUpdate) throw errorUpdate;
+
+        // 2. 🔥 ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos
+        // Si la vista tiene WITH CHECK OPTION, esto funcionará
+        const { error: errorView } = await supabase
+            .from('perfiles_publicos')
+            .update({
+                username: username,
+                nombre: nombre,
+                apellidos: apellidos,
+                descripcion: descripcion,
+                sexo: sexo,
+                color_destacado: colorHex
+            })
+            .eq('auth_id', session.user.id);
+
+        if (errorView) {
+            console.warn('⚠️ No se pudo actualizar perfiles_publicos directamente:', errorView);
+            // Si falla, intentamos con RPC
+            await supabase.rpc('refresh_perfil_publico', { user_id: session.user.id });
         }
 
-        console.log('✅ Datos actualizados en Supabase:', updateData);
+        // 3. 🔥 ACTUALIZAR LA SESIÓN DE SUPABASE (para que el cambio sea inmediato)
+        await supabase.auth.updateUser({
+            data: {
+                username: username,
+                nombre: nombre,
+                apellidos: apellidos,
+                descripcion: descripcion,
+                sexo: sexo,
+                color_destacado: colorHex
+            }
+        });
 
-        // Guardar estado del correo
-        const emailContainer = document.getElementById('edit-email-container');
-        if (emailContainer) {
-            const isBlurred = emailContainer.classList.contains('blurred');
-            await supabase
-                .from('usuarios')
-                .update({ mostrar_correo: isBlurred })
-                .eq('email', session.user.email);
-        }
-
-        // GUARDAR COLOR EN LOCALSTORAGE
+        // Guardar en localStorage
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp');
 
-        // 🔥 ACTUALIZAR UI
+        // Actualizar UI
         const dropdownUsername = document.getElementById('dropdown-username');
-        if (dropdownUsername) {
-            dropdownUsername.textContent = username;
-        }
+        if (dropdownUsername) dropdownUsername.textContent = username;
 
         const mainProfileUsername = document.getElementById('main-profile-username');
-        if (mainProfileUsername) {
-            mainProfileUsername.textContent = username;
-        }
+        if (mainProfileUsername) mainProfileUsername.textContent = username;
+
+        // 🔥 FORZAR RECARGA DE PERFIL PÚBLICO
+        await cargarPerfilPublico(username);
 
         showToast('success', '¡Guardado!', `Usuario actualizado a: ${username}`);
 
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
 
-        // Volver a la vista anterior
+        // Volver al perfil
         setTimeout(() => {
-            const destino = vistaAnteriorAlEditar === 'edit-profile' ? 'profile' : vistaAnteriorAlEditar;
-            cambiarVista(destino, true);
-
-            if (destino === 'profile') {
-                setTimeout(() => {
-                    cargarPerfilPublico(username);
-                }, 500);
-            }
+            cambiarVista('profile', true, username);
         }, 1500);
 
     } catch (error) {
