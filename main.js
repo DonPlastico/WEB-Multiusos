@@ -5473,39 +5473,30 @@ function mostrarHistorial(tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    // Buscar el contenedor padre .search-box
-    const searchBox = input.closest('.search-box');
-    if (!searchBox) return;
-
-    // Asegurar que el search-box tenga position: relative
-    searchBox.style.position = 'relative';
-
-    // === ELIMINAR CUALQUIER HISTORIAL DUPLICADO ===
-    // Buscar todos los historiales que ya existen y eliminarlos
-    const existingContainers = searchBox.querySelectorAll('.search-history-dropdown');
-    existingContainers.forEach(el => el.remove());
-
-    // Crear NUEVO contenedor
-    const container = document.createElement('div');
-    container.id = `history-container-${tipo}`;
-    container.className = 'search-history-dropdown';
-    searchBox.appendChild(container);
+    // Crear o obtener el contenedor del historial
+    let container = document.getElementById(`history-container-${tipo}`);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = `history-container-${tipo}`;
+        container.className = 'search-history-dropdown';
+        // Buscar el .search-box que contiene el input
+        const searchBox = input.closest('.search-box');
+        if (searchBox) {
+            searchBox.style.position = 'relative';
+            searchBox.appendChild(container);
+        } else {
+            // Fallback: usar el parentNode
+            input.parentNode.style.position = 'relative';
+            input.parentNode.appendChild(container);
+        }
+    }
 
     if (historial.length === 0) {
         container.style.display = 'none';
         return;
     }
 
-    // Calcular el ancho exacto del input
-    const inputWidth = input.offsetWidth;
-    const searchBoxPadding = parseFloat(getComputedStyle(searchBox).paddingLeft) || 15;
-    const totalWidth = inputWidth + (searchBoxPadding * 2);
-
     container.style.display = 'block';
-    container.style.width = totalWidth + 'px';
-    container.style.left = '0px';
-    container.style.right = 'auto';
-
     container.innerHTML = `
         <div class="search-history-header">
             <span>📜 Búsquedas recientes</span>
@@ -5557,27 +5548,16 @@ function configurarHistorialInput(inputId, tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    // Eliminar listeners antiguos para evitar duplicados
-    const newInput = input.cloneNode(true);
-    input.parentNode.replaceChild(newInput, input);
-
-    // Actualizar la referencia al nuevo input
-    const freshInput = document.getElementById(inputId);
-    if (!freshInput) return;
-
     // Mostrar historial al hacer focus
-    freshInput.addEventListener('focus', () => {
+    input.addEventListener('focus', () => {
         mostrarHistorial(tipo);
     });
 
     // Ocultar historial al hacer clic fuera
     document.addEventListener('click', (e) => {
-        const searchBox = freshInput.closest('.search-box');
-        if (searchBox) {
-            const container = searchBox.querySelector(`#history-container-${tipo}`);
-            if (container && !searchBox.contains(e.target)) {
-                container.style.display = 'none';
-            }
+        const container = document.getElementById(`history-container-${tipo}`);
+        if (container && !input.parentNode.contains(e.target)) {
+            container.style.display = 'none';
         }
     });
 
@@ -5587,28 +5567,21 @@ function configurarHistorialInput(inputId, tipo) {
     const btn = document.getElementById(btnId);
 
     const guardarYBuscar = () => {
-        const query = freshInput.value.trim();
+        const query = input.value.trim();
         if (query) {
             guardarEnHistorial(tipo, query);
             setTimeout(() => mostrarHistorial(tipo), 100);
         }
     };
 
-    freshInput.addEventListener('keypress', (e) => {
+    input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             guardarYBuscar();
         }
     });
 
     if (btn) {
-        // Eliminar listeners antiguos del botón
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-
-        const freshBtn = document.getElementById(btnId);
-        if (freshBtn) {
-            freshBtn.addEventListener('click', guardarYBuscar);
-        }
+        btn.addEventListener('click', guardarYBuscar);
     }
 }
 
