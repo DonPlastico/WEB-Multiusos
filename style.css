@@ -5558,6 +5558,10 @@ span.flatpickr-weekday {
         grid-template-columns: 1fr;
         gap: 40px;
     }
+
+    .watchlist-list {
+        max-height: 400px !important;
+    }
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
