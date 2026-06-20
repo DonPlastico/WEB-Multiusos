@@ -5798,33 +5798,38 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
     seriesEnProgreso.forEach((serie) => {
         const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
+        const imgParaFondo = serie.epPoster || serie.poster || '';
+
         const thumbHtml = serie.epPoster
             ? `<img src="${serie.epPoster}" alt="${serie.epNombre}" loading="lazy">`
-            : (serie.poster
-                ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">`
-                : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
+            : (serie.poster ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">` : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
 
         const item = document.createElement('div');
         item.className = 'watchlist-item';
         item.dataset.tmdbId = serie.tmdbId;
+
+        // Nueva estructura HTML con capa de fondo y contenedor de contenido
         item.innerHTML = `
-            <div class="watchlist-thumb">${thumbHtml}</div>
-            <div class="watchlist-info">
-                <span class="watchlist-show-name">
-                    ${serie.nombre.toUpperCase()} <i class="fas fa-chevron-right"></i>
-                </span>
-                <div class="watchlist-ep-title">
-                    <span class="watchlist-ep-code">T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}</span>
+            ${imgParaFondo ? `<div class="watchlist-item-bg" style="background-image: url('${imgParaFondo}')"></div>` : ''}
+            <div class="watchlist-item-content">
+                <div class="watchlist-thumb">${thumbHtml}</div>
+                <div class="watchlist-info">
+                    <span class="watchlist-show-name">
+                        ${serie.nombre} <i class="fas fa-chevron-right"></i>
+                    </span>
+                    <div class="watchlist-ep-title">
+                        <span class="watchlist-ep-code">T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}</span>
+                    </div>
+                    <div class="watchlist-ep-name">${serie.epNombre}</div>
                 </div>
-                <div class="watchlist-ep-name">${serie.epNombre}</div>
+                <button class="watchlist-check-btn" title="Marcar episodio como visto"
+                    data-tmdb="${serie.tmdbId}"
+                    data-season="${serie.temporada}"
+                    data-episode="${serie.episodio}"
+                    data-user="${userId}">
+                    <i class="fas fa-check"></i>
+                </button>
             </div>
-            <button class="watchlist-check-btn" title="Marcar episodio como visto"
-                data-tmdb="${serie.tmdbId}"
-                data-season="${serie.temporada}"
-                data-episode="${serie.episodio}"
-                data-user="${userId}">
-                <i class="fas fa-check"></i>
-            </button>
         `;
 
         item.querySelector('.watchlist-show-name').addEventListener('click', (e) => {
@@ -5832,27 +5837,20 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
         });
 
+        // Evento del botón de marcar visto (El resto de tu código de marcar como visto se mantiene igual...)
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
             const btn = e.currentTarget;
-
             btn.disabled = true;
             btn.style.opacity = '0.5';
-
             const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
 
             try {
                 const { error: upsertError } = await supabase.from('user_media').upsert({
-                    user_id: userId,
-                    media_id: mediaId,
-                    tipo: 'tv_episode',
-                    visto: true,
-                    veces_vista: 1,
-                    fecha_vista: new Date().toISOString().split('T')[0]
+                    user_id: userId, media_id: mediaId, tipo: 'tv_episode', visto: true, veces_vista: 1, fecha_vista: new Date().toISOString().split('T')[0]
                 }, { onConflict: 'user_id,media_id' });
 
                 if (upsertError) throw new Error(upsertError.message);
-
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
 
                 const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv`);
@@ -5869,8 +5867,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                         itemEl.remove();
                         if (lista.querySelectorAll('.watchlist-item').length === 0) seccion.style.display = 'none';
                     }, 300);
-
-                    // ACTUALIZAR CACHÉ (Serie terminada)
                     const idx = seriesEnProgreso.findIndex(s => s.tmdbId === serie.tmdbId);
                     if (idx > -1) seriesEnProgreso.splice(idx, 1);
                     sessionStorage.setItem(cacheKey, JSON.stringify(seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] }))));
@@ -5914,24 +5910,25 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
                 const itemEl = btn.closest('.watchlist-item');
                 const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
+                const nuevoFondo = nuevoPoster || serie.poster || '';
                 const thumbHtml = nuevoPoster
                     ? `<img src="${nuevoPoster}" alt="${nuevoNombre}" loading="lazy">`
                     : (serie.poster ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">` : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
 
+                // Actualizar fondo y contenido
+                const bgEl = itemEl.querySelector('.watchlist-item-bg');
+                if (bgEl && nuevoFondo) bgEl.style.backgroundImage = `url('${nuevoFondo}')`;
                 itemEl.querySelector('.watchlist-thumb').innerHTML = thumbHtml;
                 itemEl.querySelector('.watchlist-ep-code').innerHTML = `T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}`;
                 itemEl.querySelector('.watchlist-ep-name').textContent = nuevoNombre;
 
                 lista.prepend(itemEl);
-
                 itemEl.style.transition = 'background 0.3s ease';
                 itemEl.style.background = 'rgba(16, 185, 129, 0.1)';
-                setTimeout(() => { itemEl.style.background = ''; }, 800);
+                setTimeout(() => { itemEl.style.background = 'var(--bg-card)'; }, 800);
 
                 btn.disabled = false;
                 btn.style.opacity = '1';
-
-                // ACTUALIZAR CACHÉ (Nuevo estado del episodio)
                 sessionStorage.setItem(cacheKey, JSON.stringify(seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] }))));
 
             } catch (err) {
@@ -5944,8 +5941,31 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         lista.appendChild(item);
     });
 
-    // 6. Botón toggle grid
-    document.getElementById('btn-watchlist-toggle-grid')?.addEventListener('click', () => {
-        lista.classList.toggle('watchlist-grid-mode');
-    });
+    // 6. Lógica de vista Grid/List con LocalStorage e intercambio de iconos
+    const btnToggle = document.getElementById('btn-watchlist-toggle-grid');
+    if (btnToggle) {
+        const iconToggle = btnToggle.querySelector('i');
+        const vistaPreferida = localStorage.getItem('watchlist_pref_vista') || 'grid'; // Grid por defecto como en tu captura
+
+        // Aplicar estado inicial
+        if (vistaPreferida === 'grid') {
+            lista.classList.add('watchlist-grid-mode');
+            iconToggle.className = 'fas fa-list';
+        } else {
+            lista.classList.remove('watchlist-grid-mode');
+            iconToggle.className = 'fas fa-th-large';
+        }
+
+        // Al hacer click, alternar
+        btnToggle.onclick = () => {
+            const esModoGrid = lista.classList.toggle('watchlist-grid-mode');
+            if (esModoGrid) {
+                iconToggle.className = 'fas fa-list';
+                localStorage.setItem('watchlist_pref_vista', 'grid');
+            } else {
+                iconToggle.className = 'fas fa-th-large';
+                localStorage.setItem('watchlist_pref_vista', 'lista');
+            }
+        };
+    }
 }

@@ -5038,28 +5038,75 @@ span.flatpickr-weekday {
     border-radius: 20px;
 }
 
-/* Tarjeta de episodio */
-.watchlist-item {
+/* Contenedor principal de la lista */
+.watchlist-list {
     display: flex;
-    align-items: center;
-    gap: 0;
-    border-bottom: 1px solid var(--border-color);
-    transition: background 0.15s ease;
-    cursor: pointer;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Modo Cuadrícula (se activa por JS con el botón de la derecha) */
+.watchlist-list.watchlist-grid-mode {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+/* ==========================================================================
+   Tarjeta de episodio (GRID / LISTA)
+   ========================================================================== */
+.watchlist-item {
     position: relative;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background-color: var(--bg-card);
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
 }
 
 .watchlist-item:hover {
-    background: var(--bg-hover);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* Thumbnail izquierda */
+/* Capa de fondo con la imagen difuminada y degradado oscuro */
+.watchlist-item-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.25;
+    z-index: 0;
+    /* Degradado para que la parte derecha sea más oscura y se lea el texto */
+    mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 60%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 60%);
+}
+
+/* Contenedor Flex para el contenido que va SOBRE el fondo */
+.watchlist-item-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Thumbnail izquierda (Poster) */
 .watchlist-thumb {
-    width: 80px;
-    height: 80px;
+    width: 65px;
+    height: 90px;
     flex-shrink: 0;
+    border-radius: 6px;
+    margin: 10px;
     overflow: hidden;
     position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-elevated);
 }
 
 .watchlist-thumb img {
@@ -5080,11 +5127,12 @@ span.flatpickr-weekday {
     font-size: 1.4rem;
 }
 
-/* Contenido central */
+/* Textos centrales */
 .watchlist-info {
     flex: 1;
-    padding: 12px 14px;
+    padding: 10px 14px 10px 4px;
     min-width: 0;
+    /* Necesario para que el text-overflow funcione con flexbox */
 }
 
 .watchlist-show-name {
@@ -5092,25 +5140,21 @@ span.flatpickr-weekday {
     align-items: center;
     gap: 5px;
     font-family: var(--font-cyber);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--text-secondary);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 3px 10px;
-    margin-bottom: 6px;
+    color: var(--text-main);
+    margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
+    transition: color 0.2s;
+    /* Reseteamos los estilos de botón antiguo para dejar el texto limpio */
+    background: transparent;
+    border: none;
+    padding: 0;
 }
 
 .watchlist-show-name:hover {
-    border-color: var(--primary);
     color: var(--primary);
 }
 
@@ -5120,27 +5164,26 @@ span.flatpickr-weekday {
 
 .watchlist-ep-title {
     font-family: var(--font-cyber);
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .watchlist-ep-code {
-    color: var(--text-main);
+    color: var(--primary);
 }
 
 .watchlist-ep-extra {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 400;
 }
 
 .watchlist-ep-name {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -5154,7 +5197,8 @@ span.flatpickr-weekday {
     height: 36px;
     border-radius: 50%;
     border: 2px solid var(--border-light);
-    background: transparent;
+    background: rgba(0, 0, 0, 0.4);
+    /* Fondo traslúcido para destacar sobre la imagen */
     color: var(--text-muted);
     display: flex;
     align-items: center;
@@ -5163,18 +5207,19 @@ span.flatpickr-weekday {
     cursor: pointer;
     margin-right: 16px;
     transition: all 0.2s ease;
+    z-index: 2;
 }
 
 .watchlist-check-btn:hover {
     border-color: var(--success);
     color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
+    background: rgba(16, 185, 129, 0.2);
 }
 
 .watchlist-check-btn.checked {
     border-color: var(--success);
     color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
+    background: rgba(16, 185, 129, 0.2);
 }
 
 /* Estado vacío */
