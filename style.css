@@ -4934,8 +4934,23 @@ span.flatpickr-weekday {
    WATCHLIST (Estilo TV Time) — Sección perfil
    ========================================================================== */
 
-.watchlist-section {
+/* ==========================================================================
+   GRID DE MÓDULOS DEL PERFIL (Izquierda y Derecha)
+   ========================================================================== */
+.profile-modules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
     margin-top: 40px;
+    align-items: start;
+}
+
+/* Reseteamos el margen superior porque ahora lo controla el grid padre */
+.watchlist-section,
+.recommendations-section {
+    margin-top: 0;
+    width: 100%;
+    min-width: 0;
 }
 
 /* Tabs: LISTA PENDIENTE + Botón Grid */
@@ -5043,7 +5058,7 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 350px !important;
+    max-height: 850px !important;
     overflow-y: auto !important;
     padding-right: 8px;
 }
@@ -5538,7 +5553,11 @@ span.flatpickr-weekday {
         gap: 20px;
     }
 
-
+    /* En pantallas medianas/pequeñas, pasamos de 2 columnas a 1 apilada */
+    .profile-modules-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
 }
 
 /* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */

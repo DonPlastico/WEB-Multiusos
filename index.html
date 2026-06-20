@@ -979,20 +979,80 @@
                     </div>
                 </div>
 
-                <!-- WATCHLIST: episodios pendientes de ver (estilo TV Time) -->
-                <div id="watchlist-section" class="watchlist-section">
-                    <div class="watchlist-tabs">
-                        <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
-                        <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
-                            <i class="fas fa-th-large"></i>
-                        </button>
+                <div class="profile-modules-grid">
+
+                    <div id="watchlist-section" class="watchlist-section">
+                        <div class="watchlist-tabs">
+                            <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
+                            <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                        </div>
+
+                        <div id="watchlist-list" class="watchlist-list">
+                            <div class="watchlist-loading">
+                                <i class="fas fa-circle-notch fa-spin"></i>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Lista de episodios -->
-                    <div id="watchlist-list" class="watchlist-list">
-                        <!-- se genera dinámicamente desde main.js -->
-                        <div class="watchlist-loading">
-                            <i class="fas fa-circle-notch fa-spin"></i>
+                    <div id="recommendations-section" class="recommendations-section">
+                        <div class="watchlist-tabs">
+                            <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
+                        </div>
+
+                        <div id="recommendations-list" class="watchlist-list">
+
+                            <div class="watchlist-item">
+                                <div class="watchlist-item-bg"
+                                    style="background-image: url('https://image.tmdb.org/t/p/w500/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg')">
+                                </div>
+                                <div class="watchlist-item-content">
+                                    <div class="watchlist-thumb">
+                                        <img src="https://image.tmdb.org/t/p/w300/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg"
+                                            alt="Severance" loading="lazy">
+                                    </div>
+                                    <div class="watchlist-info">
+                                        <span class="watchlist-show-name">
+                                            95% COINCIDENCIA <i class="fas fa-star"
+                                                style="color: gold; margin-left: 4px;"></i>
+                                        </span>
+                                        <div class="watchlist-ep-title">
+                                            <span class="watchlist-ep-code">Severance</span>
+                                        </div>
+                                        <div class="watchlist-ep-name">Porque te gusta la Ciencia Ficción</div>
+                                    </div>
+                                    <button class="watchlist-check-btn" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="watchlist-item">
+                                <div class="watchlist-item-bg"
+                                    style="background-image: url('https://image.tmdb.org/t/p/w500/qZDtstXhA9JavF6aWWe3s9wZq4.jpg')">
+                                </div>
+                                <div class="watchlist-item-content">
+                                    <div class="watchlist-thumb">
+                                        <img src="https://image.tmdb.org/t/p/w300/qZDtstXhA9JavF6aWWe3s9wZq4.jpg"
+                                            alt="The Last of Us" loading="lazy">
+                                    </div>
+                                    <div class="watchlist-info">
+                                        <span class="watchlist-show-name">
+                                            88% COINCIDENCIA <i class="fas fa-star"
+                                                style="color: gold; margin-left: 4px;"></i>
+                                        </span>
+                                        <div class="watchlist-ep-title">
+                                            <span class="watchlist-ep-code">The Last of Us</span>
+                                        </div>
+                                        <div class="watchlist-ep-name">Basado en tus últimos visionados</div>
+                                    </div>
+                                    <button class="watchlist-check-btn" title="Ver Detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
