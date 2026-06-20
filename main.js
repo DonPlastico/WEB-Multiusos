@@ -5480,14 +5480,16 @@ function mostrarHistorial(tipo) {
     // Asegurar que el search-box tenga position: relative
     searchBox.style.position = 'relative';
 
-    // Crear o obtener el contenedor del historial
-    let container = document.getElementById(`history-container-${tipo}`);
-    if (!container) {
-        container = document.createElement('div');
-        container.id = `history-container-${tipo}`;
-        container.className = 'search-history-dropdown';
-        searchBox.appendChild(container);
-    }
+    // === ELIMINAR CUALQUIER HISTORIAL DUPLICADO ===
+    // Buscar todos los historiales que ya existen y eliminarlos
+    const existingContainers = searchBox.querySelectorAll('.search-history-dropdown');
+    existingContainers.forEach(el => el.remove());
+
+    // Crear NUEVO contenedor
+    const container = document.createElement('div');
+    container.id = `history-container-${tipo}`;
+    container.className = 'search-history-dropdown';
+    searchBox.appendChild(container);
 
     if (historial.length === 0) {
         container.style.display = 'none';
@@ -5555,16 +5557,27 @@ function configurarHistorialInput(inputId, tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
+    // Eliminar listeners antiguos para evitar duplicados
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+
+    // Actualizar la referencia al nuevo input
+    const freshInput = document.getElementById(inputId);
+    if (!freshInput) return;
+
     // Mostrar historial al hacer focus
-    input.addEventListener('focus', () => {
+    freshInput.addEventListener('focus', () => {
         mostrarHistorial(tipo);
     });
 
     // Ocultar historial al hacer clic fuera
     document.addEventListener('click', (e) => {
-        const container = document.getElementById(`history-container-${tipo}`);
-        if (container && !input.parentNode.contains(e.target)) {
-            container.style.display = 'none';
+        const searchBox = freshInput.closest('.search-box');
+        if (searchBox) {
+            const container = searchBox.querySelector(`#history-container-${tipo}`);
+            if (container && !searchBox.contains(e.target)) {
+                container.style.display = 'none';
+            }
         }
     });
 
@@ -5574,21 +5587,28 @@ function configurarHistorialInput(inputId, tipo) {
     const btn = document.getElementById(btnId);
 
     const guardarYBuscar = () => {
-        const query = input.value.trim();
+        const query = freshInput.value.trim();
         if (query) {
             guardarEnHistorial(tipo, query);
             setTimeout(() => mostrarHistorial(tipo), 100);
         }
     };
 
-    input.addEventListener('keypress', (e) => {
+    freshInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             guardarYBuscar();
         }
     });
 
     if (btn) {
-        btn.addEventListener('click', guardarYBuscar);
+        // Eliminar listeners antiguos del botón
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
+        const freshBtn = document.getElementById(btnId);
+        if (freshBtn) {
+            freshBtn.addEventListener('click', guardarYBuscar);
+        }
     }
 }
 
