@@ -4759,8 +4759,8 @@ span.flatpickr-weekday {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: transparent;
-    border: 1px solid var(--border-color);
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.08);
     color: var(--text-muted);
     cursor: pointer;
     font-size: 0.65rem;
@@ -4779,10 +4779,9 @@ span.flatpickr-weekday {
 }
 
 .search-history-clear-all:hover {
+    background: rgba(239, 68, 68, 0.08);
     border-color: var(--error);
     color: var(--error);
-    background: rgba(239, 68, 68, 0.06);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.05);
 }
 
 .search-history-clear-all:hover i {
