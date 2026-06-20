@@ -5024,6 +5024,16 @@ async function guardarCambiosPerfil(e) {
     const colorPicker = document.getElementById('edit-color-picker');
     const colorHex = colorPicker ? colorPicker.value : '#6366f1';
 
+    // 🔥 LOGS PARA DEBUG
+    console.log('📝 Datos a guardar:');
+    console.log('  username:', username);
+    console.log('  nombre:', nombre);
+    console.log('  apellidos:', apellidos);
+    console.log('  descripcion:', descripcion);
+    console.log('  sexo:', sexo);
+    console.log('  color:', colorHex);
+    console.log('  email:', session.user.email);
+
     // VALIDACIONES
     if (!username || username.length < 3) {
         showToast('error', 'Error', 'El nombre de usuario debe tener al menos 3 caracteres.');
@@ -5043,8 +5053,8 @@ async function guardarCambiosPerfil(e) {
     btnGuardar.disabled = true;
 
     try {
-        // 🔥 GUARDAR TODO EN SUPABASE
-        const { error } = await supabase
+        // 🔥 GUARDAR EN SUPABASE
+        const { data: updateData, error } = await supabase
             .from('usuarios')
             .update({
                 username: username,
@@ -5055,9 +5065,15 @@ async function guardarCambiosPerfil(e) {
                 color_destacado: colorHex,
                 updated_at: new Date().toISOString()
             })
-            .eq('email', session.user.email);
+            .eq('email', session.user.email)
+            .select(); // 🔥 IMPORTANTE: Devuelve los datos actualizados
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Error en Supabase:', error);
+            throw error;
+        }
+
+        console.log('✅ Datos actualizados en Supabase:', updateData);
 
         // Guardar estado del correo
         const emailContainer = document.getElementById('edit-email-container');
@@ -5069,29 +5085,22 @@ async function guardarCambiosPerfil(e) {
                 .eq('email', session.user.email);
         }
 
-        // 🔥 GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
+        // GUARDAR COLOR EN LOCALSTORAGE
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp');
 
-        // 🔥 ACTUALIZAR EL NOMBRE DE USUARIO EN EL MENÚ DESPLEGABLE
+        // 🔥 ACTUALIZAR UI
         const dropdownUsername = document.getElementById('dropdown-username');
         if (dropdownUsername) {
             dropdownUsername.textContent = username;
         }
 
-        // 🔥 ACTUALIZAR EL NOMBRE EN EL PERFIL PÚBLICO (si estamos en profile)
         const mainProfileUsername = document.getElementById('main-profile-username');
         if (mainProfileUsername) {
             mainProfileUsername.textContent = username;
         }
 
-        // 🔥 ACTUALIZAR EL NOMBRE EN EL AVATAR DEL MENÚ (si existe)
-        const avatarUsername = document.querySelector('.user-dropdown-header .dropdown-username');
-        if (avatarUsername) {
-            avatarUsername.textContent = username;
-        }
-
-        showToast('success', '¡Guardado!', 'Los cambios se han aplicado correctamente.');
+        showToast('success', '¡Guardado!', `Usuario actualizado a: ${username}`);
 
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
@@ -5101,17 +5110,16 @@ async function guardarCambiosPerfil(e) {
             const destino = vistaAnteriorAlEditar === 'edit-profile' ? 'profile' : vistaAnteriorAlEditar;
             cambiarVista(destino, true);
 
-            // 🔥 FORZAR RECARGA DEL PERFIL PÚBLICO CON EL NUEVO USERNAME
             if (destino === 'profile') {
                 setTimeout(() => {
                     cargarPerfilPublico(username);
-                }, 300);
+                }, 500);
             }
         }, 1500);
 
     } catch (error) {
-        console.error('Error guardando perfil:', error);
-        showToast('error', 'Error', 'No se pudieron guardar los cambios.');
+        console.error('❌ Error guardando perfil:', error);
+        showToast('error', 'Error', 'No se pudieron guardar los cambios: ' + error.message);
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
     }
