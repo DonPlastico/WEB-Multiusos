@@ -9,6 +9,13 @@ inject();
 import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
+
+// ==========================================================================
+//   COLOR DINÁMICO DEL USUARIO
+// ==========================================================================
+
+let colorUsuarioActual = '#6366f1'; // Color por defecto
+
 // ==========================================================================
 //   RUTAS Y NAVEGACION (URLs LIMPIAS Y BOTONES ATRAS/ADELANTE)
 // ==========================================================================
@@ -1586,6 +1593,17 @@ async function verificarSesion() {
             btnAdmin.style.display = 'inline-flex';
         } else {
             btnAdmin.style.display = 'none';
+        }
+
+        // Cargar color del usuario
+        const { data: perfilColor } = await supabase
+            .from('usuarios')
+            .select('color_destacado')
+            .eq('email', session.user.email)
+            .single();
+
+        if (perfilColor?.color_destacado) {
+            aplicarColorDinamico(perfilColor.color_destacado);
         }
     } else {
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
@@ -4841,11 +4859,14 @@ async function cargarDatosPerfil() {
         const genderSelect = document.getElementById('edit-gender');
         if (genderSelect) genderSelect.value = perfil?.sexo || '--';
 
+        // Cargar color del perfil
         const colorPicker = document.getElementById('edit-color-picker');
         if (colorPicker) {
             const color = perfil?.color_destacado || '#6366f1';
             colorPicker.value = color;
-            actualizarVistaPreviaColor(color);
+
+            // Aplicar color dinámico en TODA la web
+            aplicarColorDinamico(color);
         }
 
         // Restaurar estado del correo borroso - POR DEFECTO OCULTO (blurred)
@@ -4965,7 +4986,6 @@ async function guardarCambiosPerfil(e) {
     const apellidos = document.getElementById('edit-lastname').value.trim();
     const descripcion = document.getElementById('edit-description').value.trim();
     const sexo = document.getElementById('edit-gender').value;
-    const color_destacado = document.getElementById('edit-color-picker').value;
 
     // Validaciones básicas
     if (!username || username.length < 3) {
@@ -4996,7 +5016,6 @@ async function guardarCambiosPerfil(e) {
                 apellidos: apellidos,
                 descripcion: descripcion,
                 sexo: sexo,
-                color_destacado: color_destacado,
                 updated_at: new Date().toISOString()
             })
             .eq('email', session.user.email);
@@ -5152,36 +5171,41 @@ function inicializarEditProfile() {
 
 function handleColorChange(e) {
     const color = e.target.value;
-    const hexDisplay = document.getElementById('edit-color-hex-display');
-    const colorPicker = document.getElementById('edit-color-picker');
 
-    // Actualizar el hex display
-    if (hexDisplay) hexDisplay.textContent = color;
+    // Aplicar color inmediatamente en la web
+    aplicarColorDinamico(color);
 
-    // Actualizar la vista previa del color (si la quieres mantener)
-    const preview = document.getElementById('edit-color-preview');
-    if (preview) {
-        preview.style.backgroundColor = color;
-        preview.style.borderColor = color;
+    // Guardar en Supabase (sin esperar a que el usuario haga clic en "Guardar")
+    guardarColorEnSupabase(color);
+}
+
+// === Guardar solo el color en Supabase ===
+async function guardarColorEnSupabase(color) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    try {
+        const { error } = await supabase
+            .from('usuarios')
+            .update({ color_destacado: color })
+            .eq('email', session.user.email);
+
+        if (error) throw error;
+        console.log('✅ Color guardado en Supabase:', color);
+    } catch (error) {
+        console.error('❌ Error guardando color:', error);
     }
-
-    // Actualizar el dot del panel de información
-    const infoDot = document.getElementById('edit-profile-color-dot');
-    if (infoDot) infoDot.style.background = color;
-
-    const infoText = document.getElementById('edit-profile-color-text');
-    if (infoText) infoText.textContent = color;
 }
 
 function handleColorPresetClick(e) {
     const color = e.target.dataset.color;
     if (!color) return;
 
-    const colorPicker = document.getElementById('edit-color-picker');
-    if (colorPicker) {
-        colorPicker.value = color;
-        actualizarVistaPreviaColor(color);
-    }
+    // Aplicar color inmediatamente
+    aplicarColorDinamico(color);
+
+    // Guardar en Supabase
+    guardarColorEnSupabase(color);
 }
 
 // ==========================================================================
@@ -5200,3 +5224,140 @@ document.getElementById('btn-back-to-profile')?.addEventListener('click', () => 
         cambiarVista('profile', true);
     }
 });
+
+// === FUNCIÓN: Aplicar color dinámico en toda la web ===
+function aplicarColorDinamico(colorHex) {
+    if (!colorHex) return;
+
+    // Guardar en localStorage para persistencia rápida
+    localStorage.setItem('dp_user_color', colorHex);
+    colorUsuarioActual = colorHex;
+
+    // 1. CAMBIAR LA VARIABLE CSS --primary
+    document.documentElement.style.setProperty('--primary', colorHex);
+
+    // 2. CAMBIAR EL GRADIENTE PRINCIPAL (--gradient-primary)
+    const colorSecundario = '#2dd4bf'; // Tu color secundario (puedes cambiarlo)
+    document.documentElement.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${colorHex}, ${colorSecundario})`);
+
+    // 3. ACTUALIZAR COLORES DERIVADOS (soft, hover, glow)
+    const rgb = hexToRgb(colorHex);
+    if (rgb) {
+        document.documentElement.style.setProperty('--primary-soft', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`);
+        document.documentElement.style.setProperty('--neon-glow', `0 0 12px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4), 0 0 8px rgba(45, 212, 191, 0.2)`);
+
+        // Actualizar también el shadow de los botones primarios
+        const btnPrimary = document.querySelector('.auth-btn.primary');
+        if (btnPrimary) {
+            btnPrimary.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+        }
+    }
+
+    // 4. ACTUALIZAR ELEMENTOS QUE USAN --primary EN EL CSS
+    // (Los estilos se actualizan automáticamente porque usan var(--primary))
+
+    // 5. ACTUALIZAR EL COLOR PICKER Y PREVIEW
+    const colorPicker = document.getElementById('edit-color-picker');
+    const colorPreview = document.getElementById('edit-color-preview');
+    const hexDisplay = document.getElementById('edit-color-hex-display');
+    const colorDot = document.getElementById('edit-profile-color-dot');
+    const colorText = document.getElementById('edit-profile-color-text');
+
+    if (colorPicker) colorPicker.value = colorHex;
+    if (colorPreview) {
+        colorPreview.style.backgroundColor = colorHex;
+        colorPreview.style.borderColor = colorHex;
+    }
+    if (hexDisplay) hexDisplay.textContent = colorHex;
+    if (colorDot) colorDot.style.background = colorHex;
+    if (colorText) colorText.textContent = colorHex;
+
+    // 6. ACTUALIZAR EL ICONO DEL MENÚ DE USUARIO (si tiene el color)
+    const userIcon = document.querySelector('#user-profile i, #user-profile img');
+    if (userIcon && userIcon.tagName === 'I') {
+        userIcon.style.color = colorHex;
+    }
+
+    // 7. ACTUALIZAR EL BORDE DEL HEADER DE EDITAR PERFIL
+    const editHeader = document.querySelector('.edit-profile-admin-header');
+    if (editHeader) {
+        editHeader.style.borderTopColor = colorHex;
+    }
+
+    // 8. ACTUALIZAR EL BORDE DE LOS MODALES DE ANUNCIOS
+    document.querySelectorAll('.announce-panel, .add-friend-panel, .social-list-panel').forEach(el => {
+        el.style.borderTopColor = colorHex;
+    });
+
+    // 9. ACTUALIZAR EL PUNTO DE ESTADO "PERFIL ACTIVO"
+    const statusDot = document.querySelector('.edit-profile-admin-dot');
+    if (statusDot) {
+        statusDot.style.background = colorHex;
+        statusDot.style.boxShadow = `0 0 10px ${colorHex}`;
+    }
+
+    // 10. ACTUALIZAR EL BORDE DEL ESTADO "PERFIL ACTIVO"
+    const statusBox = document.querySelector('.edit-profile-admin-status');
+    if (statusBox) {
+        statusBox.style.borderColor = `rgba(${rgb?.r || 99}, ${rgb?.g || 102}, ${rgb?.b || 241}, 0.2)`;
+        statusBox.style.background = `rgba(${rgb?.r || 99}, ${rgb?.g || 102}, ${rgb?.b || 241}, 0.05)`;
+    }
+
+    console.log(`🎨 Color dinámico aplicado: ${colorHex}`);
+}
+
+// === UTILIDAD: Convertir HEX a RGB ===
+function hexToRgb(hex) {
+    // Eliminar # si existe
+    hex = hex.replace('#', '');
+
+    // Si es de 3 dígitos, convertirlo a 6
+    if (hex.length === 3) {
+        hex = hex.split('').map(c => c + c).join('');
+    }
+
+    const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+// ==========================================================================
+//   CARGAR COLOR GUARDADO AL INICIAR
+// ==========================================================================
+
+// Cargar color desde localStorage (rápido) o desde Supabase (cuando se autentique)
+async function cargarColorInicial() {
+    // 1. Intentar cargar desde localStorage (más rápido)
+    const localColor = localStorage.getItem('dp_user_color');
+    if (localColor) {
+        aplicarColorDinamico(localColor);
+    }
+
+    // 2. Verificar sesión y cargar desde Supabase (sobrescribe si hay diferencia)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        try {
+            const { data: perfil } = await supabase
+                .from('usuarios')
+                .select('color_destacado')
+                .eq('email', session.user.email)
+                .single();
+
+            if (perfil?.color_destacado) {
+                const color = perfil.color_destacado;
+                // Si el color en Supabase es diferente al de localStorage, aplicamos el de Supabase
+                if (color !== localStorage.getItem('dp_user_color')) {
+                    aplicarColorDinamico(color);
+                }
+            }
+        } catch (error) {
+            console.error('Error cargando color desde Supabase:', error);
+        }
+    }
+}
+
+// Ejecutar al cargar la página
+cargarColorInicial();
