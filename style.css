@@ -4082,17 +4082,32 @@ span.flatpickr-weekday {
 
 /* Estado VISTO (verde) */
 #btn-watch-toggle.watched {
-    border-color: var(--success);
-    color: white;
-    background: #0a6849;
+    background: var(--primary-soft) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
     box-shadow: 0 0 25px #10b98133;
 }
 
 #btn-watch-toggle.watched:hover {
-    background: var(--success);
-    color: white;
+    background: var(--primary) !important;
+    color: var(--text-main) !important;
     border-color: var(--success);
     box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+}
+
+/* Efecto hover en los checks de Temporada y Episodios */
+.btn-watch-season:hover, 
+.btn-watch-episode:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+/* Watchlist TV Time: Botón de check y estado Activo/Visto */
+.watchlist-check-btn:hover,
+.watchlist-check-btn.checked {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    background: var(--primary-soft) !important;
 }
 
 /* Estado "No visto" - Ojo tachado (default) */

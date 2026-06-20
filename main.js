@@ -1014,7 +1014,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
             const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -6px; right: -6px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
             btnVistoHtml = `
-                <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative; flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--success)'; this.style.color='white';" onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='var(--success)';" onclick="abrirMenuTarjeta(event, this)">
+                <button class="btn-card-watched-status watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="${userMediaInfo.id}" data-veces="${veces}" title="Vista. Clic para opciones" style="position: relative; flex: 1; background: var(--primary-soft); border: 1px solid var(--primary); color: var(--primary); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--primary)'; this.style.color='white';" onmouseout="this.style.background='var(--primary-soft)'; this.style.color='var(--primary)';" onclick="abrirMenuTarjeta(event, this)">
                     <i class="fas fa-eye" style="font-size: 0.9rem;"></i>
                     ${badgeExtra}
                 </button>
@@ -2902,7 +2902,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                         const nota = ep.vote_average ? ep.vote_average.toFixed(1) : '0.0';
 
                                         const isWatched = window.episodiosVistosActuales.has(`${seasonNumber}_${ep.episode_number}`);
-                                        const colorBtn = isWatched ? 'var(--success)' : 'var(--text-muted)';
+                                        const colorBtn = isWatched ? 'var(--primary)' : 'var(--text-muted)';
                                         const iconClass = isWatched ? 'fas fa-eye' : 'fas fa-eye-slash';
 
                                         episodesHtml += `
@@ -3051,10 +3051,10 @@ function cerrarModalMedia() {
                         badgeBtn.setAttribute('data-veces', veces);
                         badgeBtn.setAttribute('data-db-id', window.estadoMediaActual.id || '');
                         badgeBtn.title = 'Vista. Clic para opciones';
-                        badgeBtn.style.cssText = "position: relative; flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
+                        badgeBtn.style.cssText = "position: relative; flex: 1; background: var(--primary-soft); border: 1px solid var(--primary); color: var(--primary); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
                         badgeBtn.setAttribute('onclick', 'abrirMenuTarjeta(event, this)');
-                        badgeBtn.onmouseover = function () { this.style.background = 'var(--success)'; this.style.color = 'white'; };
-                        badgeBtn.onmouseout = function () { this.style.background = 'rgba(16, 185, 129, 0.15)'; this.style.color = 'var(--success)'; };
+                        badgeBtn.onmouseover = function () { this.style.background = 'var(--primary)'; this.style.color = 'white'; };
+                        badgeBtn.onmouseout = function () { this.style.background = 'var(--primary-soft)'; this.style.color = 'var(--primary)'; };
 
                         badgeBtn.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>${badgeExtra}`;
                     } else {
@@ -4479,8 +4479,8 @@ window.refrescarUIEpisodiosYTemporadas = function () {
         }
 
         if (vistosDeEstaTemp === totalEp && totalEp > 0) {
-            btn.style.color = 'var(--success)';
-            btn.style.borderColor = 'var(--success)';
+            btn.style.color = 'var(--primary)';
+            btn.style.borderColor = 'var(--primary)';
             btn.innerHTML = '<i class="fas fa-eye"></i>';
         } else {
             btn.style.color = 'var(--text-muted)';
@@ -4495,8 +4495,8 @@ window.refrescarUIEpisodiosYTemporadas = function () {
         const e = parseInt(btn.getAttribute('data-episode'));
 
         if (window.episodiosVistosActuales.has(`${s}_${e}`)) {
-            btn.style.color = 'var(--success)';
-            btn.style.borderColor = 'var(--success)';
+            btn.style.color = 'var(--primary)';
+            btn.style.borderColor = 'var(--primary)';
             btn.innerHTML = '<i class="fas fa-eye"></i>';
         } else {
             btn.style.color = 'var(--text-muted)';
@@ -4841,10 +4841,10 @@ window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
         btn.setAttribute('data-veces', '1');
         btn.setAttribute('data-db-id', data.id);
         btn.title = 'Vista. Clic para opciones';
-        btn.style.cssText = "position: relative; flex: 1; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
+        btn.style.cssText = "position: relative; flex: 1; background: var(--primary-soft); border: 1px solid var(--primary); color: var(--primary); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;";
         btn.setAttribute('onclick', 'abrirMenuTarjeta(event, this)');
-        btn.onmouseover = function () { this.style.background = 'var(--success)'; this.style.color = 'white'; };
-        btn.onmouseout = function () { this.style.background = 'rgba(16, 185, 129, 0.15)'; this.style.color = 'var(--success)'; };
+        btn.onmouseover = function () { this.style.background = 'var(--primary)'; this.style.color = 'white'; };
+        btn.onmouseout = function () { this.style.background = 'var(--primary-soft)'; this.style.color = 'var(--primary)'; };
 
         btn.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`;
         showToast('success', 'Guardado', 'Película marcada como vista.');
