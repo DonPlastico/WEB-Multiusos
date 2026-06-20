@@ -2780,25 +2780,6 @@ span.flatpickr-weekday {
     border-color: var(--error);
 }
 
-/* --- CONSOLA DE LOGS (Limpia) --- */
-.terminal-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.terminal-box::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 4px;
-}
-
-.terminal-box::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-.terminal-box::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
-
 /* Colores de estado para el texto de la consola */
 .log-line.system {
     color: var(--secondary);
@@ -3372,24 +3353,6 @@ span.flatpickr-weekday {
     gap: 7.5px;
 }
 
-/* Scrollbar fina para el chat */
-.chatbox-messages-area::-webkit-scrollbar {
-    width: 4px;
-}
-
-.chatbox-messages-area::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.chatbox-messages-area::-webkit-scrollbar-thumb {
-    background: var(--border-light);
-    border-radius: 4px;
-}
-
-.chatbox-messages-area::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
-}
-
 .chatbox-sender-area {
     background-color: var(--bg-secondary);
     width: 100%;
@@ -3903,25 +3866,6 @@ span.flatpickr-weekday {
     height: 100%;
     /* MAGIA: 'stretch' fuerza a todos los hijos a tener la misma altura máxima */
     align-items: stretch;
-}
-
-/* Scrollbar fina exclusiva para el carrusel */
-.cast-carousel::-webkit-scrollbar {
-    height: 6px;
-}
-
-.cast-carousel::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-}
-
-.cast-carousel::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 4px;
-}
-
-.cast-carousel::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-soft);
 }
 
 /* Tarjeta individual del Actor */
@@ -5055,31 +4999,12 @@ span.flatpickr-weekday {
 
 /* Contenedor principal de la lista */
 .watchlist-list {
-    display: flex;
     flex-direction: column;
     gap: 12px;
+    padding: 5px 5px 0 0;
+    display: flex;
     max-height: 850px !important;
     overflow-y: auto !important;
-    padding-right: 8px;
-}
-
-/* Personalizamos la barra de scroll solo para esta lista (Estilo Cyber/Moderno) */
-.watchlist-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.watchlist-list::-webkit-scrollbar-track {
-    background: var(--bg-elevated, #1a1a24);
-    border-radius: 4px;
-}
-
-.watchlist-list::-webkit-scrollbar-thumb {
-    background: var(--primary, #6366f1);
-    border-radius: 4px;
-}
-
-.watchlist-list::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-hover, #4f46e5);
 }
 
 /* Modo Cuadrícula (se activa por JS con el botón de la derecha) */

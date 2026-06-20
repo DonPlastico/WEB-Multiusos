@@ -563,11 +563,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             </div>
         `;
 
-        setTimeout(() => {
-            const loaderText = document.querySelector('#loader-games .loading-text');
-            if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
-        }, 1200);
-
         document.getElementById('btn-cargar-mas')?.remove();
     } else {
         const btnMas = document.getElementById('btn-cargar-mas');
@@ -1096,12 +1091,6 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
                 <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
             </div>
         `;
-
-        // cambio el texto
-        setTimeout(() => {
-            const loaderText = document.querySelector(`#loader-${tipo} .loading-text`);
-            if (loaderText) loaderText.textContent = 'ADAPTÁNDONOS A TUS PREFERENCIAS...';
-        }, 1200);
 
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
     } else {
