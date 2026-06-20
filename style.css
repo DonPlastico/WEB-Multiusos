@@ -5043,8 +5043,8 @@ span.flatpickr-weekday {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 200px;
-    overflow-y: auto;
+    max-height: 200px !important;
+    overflow-y: auto !important;
     padding-right: 8px;
 }
 
@@ -5120,15 +5120,14 @@ span.flatpickr-weekday {
 
 /* Thumbnail izquierda (Poster) */
 .watchlist-thumb {
-    width: 65px;
-    height: 90px;
-    flex-shrink: 0;
-    border-radius: 6px;
-    margin: 10px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.1);
     background: var(--bg-elevated);
+    border: 1px solid #ffffff1a;
+    border-radius: 6px;
+    flex-shrink: 0;
+    height: 90px;
+    margin: 5px;
+    position: relative;
+    overflow: hidden;
 }
 
 .watchlist-thumb img {
