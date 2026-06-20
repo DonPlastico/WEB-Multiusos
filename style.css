@@ -254,7 +254,9 @@ input[type=number]::-webkit-outer-spin-button {
 .icon-btn {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    color: var(--text-main);
+    /* color: var(--text-main); */
+    
+    color: white;
     font-size: 1.3rem;
     cursor: pointer;
     transition: 0.3s;
