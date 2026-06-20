@@ -5473,22 +5473,20 @@ function mostrarHistorial(tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
+    // Buscar el contenedor padre .search-box
+    const searchBox = input.closest('.search-box');
+    if (!searchBox) return;
+
+    // Asegurar que el search-box tenga position: relative
+    searchBox.style.position = 'relative';
+
     // Crear o obtener el contenedor del historial
     let container = document.getElementById(`history-container-${tipo}`);
     if (!container) {
         container = document.createElement('div');
         container.id = `history-container-${tipo}`;
         container.className = 'search-history-dropdown';
-        // Buscar el .search-box que contiene el input
-        const searchBox = input.closest('.search-box');
-        if (searchBox) {
-            searchBox.style.position = 'relative';
-            searchBox.appendChild(container);
-        } else {
-            // Fallback: usar el parentNode
-            input.parentNode.style.position = 'relative';
-            input.parentNode.appendChild(container);
-        }
+        searchBox.appendChild(container);
     }
 
     if (historial.length === 0) {
@@ -5496,7 +5494,16 @@ function mostrarHistorial(tipo) {
         return;
     }
 
+    // Calcular el ancho exacto del input
+    const inputWidth = input.offsetWidth;
+    const searchBoxPadding = parseFloat(getComputedStyle(searchBox).paddingLeft) || 15;
+    const totalWidth = inputWidth + (searchBoxPadding * 2);
+
     container.style.display = 'block';
+    container.style.width = totalWidth + 'px';
+    container.style.left = '0px';
+    container.style.right = 'auto';
+
     container.innerHTML = `
         <div class="search-history-header">
             <span>📜 Búsquedas recientes</span>
