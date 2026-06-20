@@ -3,5 +3,6 @@ node_modules/
 .env*
 
 
-*/
-ideas.md
+./
+.PORHACER.md
+.gemini.md
