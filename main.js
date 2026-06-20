@@ -5724,9 +5724,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
                 const totalVistosUsuario = epVistosReales.length;
 
-                const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
-                const totalVistosUsuario = epVistosReales.length;
-
                 if (totalVistosUsuario >= totalEpsSerie && totalEpsSerie > 0) return;
 
                 let siguienteEp = null;
