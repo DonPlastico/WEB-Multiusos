@@ -381,6 +381,9 @@ langMenu.innerHTML = `
     <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
         <img src="https://flagcdn.com/24x18/jp.png" alt="JA"> <span>日本語</span>
     </button>
+    <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
+        <img src="https://flagcdn.com/24x18/kr.png" alt="KR"> <span>한국인</span>
+    </button>
 `;
 
 const langContainer = document.createElement('div');
@@ -556,7 +559,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         gridJuegos.innerHTML = `
             <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
-                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
+                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO JUEGOS...</h3>
             </div>
         `;
 
