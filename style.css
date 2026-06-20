@@ -4758,39 +4758,32 @@ span.flatpickr-weekday {
 .search-history-clear-all {
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(239, 68, 68, 0.04);
-    border: 1px solid rgba(239, 68, 68, 0.08);
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-color);
     color: var(--text-muted);
     cursor: pointer;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 4px 12px;
-    border-radius: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
     transition: all 0.25s ease;
-    font-family: var(--font-cyber);
+    font-size: 0.7rem;
 }
 
 .search-history-clear-all i {
-    font-size: 0.6rem;
-    opacity: 0.5;
-    transition: all 0.25s ease;
+    color: var(--text-muted);
+    opacity: 0.4;
+    transition: color 0.2s;
 }
 
 .search-history-clear-all:hover {
-    background: rgba(239, 68, 68, 0.08);
     border-color: var(--error);
     color: var(--error);
+    background: rgba(239, 68, 68, 0.06);
 }
 
 .search-history-clear-all:hover i {
-    opacity: 1;
     color: var(--error);
-}
-
-.search-history-clear-all:active {
-    transform: scale(0.95);
+    opacity: 1;
 }
 
 .search-history-item {
