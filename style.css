@@ -5568,6 +5568,7 @@ span.flatpickr-weekday {
 @media (max-width: 768px) {
     .cyber-container {
         margin-top: 105px;
+        margin-bottom: 30px;
     }
 
     .hero-section {
