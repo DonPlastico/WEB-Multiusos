@@ -5836,6 +5836,10 @@ cast-carousel::-webkit-scrollbar {
         flex-direction: column !important;
         gap: 5px;
     }
+
+    .scroll-top-btn{
+    bottom: 40px;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
