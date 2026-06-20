@@ -1446,8 +1446,8 @@ span.flatpickr-weekday {
    ========================================================================== */
 .scroll-top-btn {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: 60px;
+    right: 10px;
     width: 45px;
     height: 45px;
     background: var(--bg-card);
@@ -4623,7 +4623,107 @@ span.flatpickr-weekday {
     display: block;
 }
 
+/* ==========================================================================
+   HISTORIAL DE BÚSQUEDA
+   ========================================================================== */
 
+.search-history-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-top: 5px;
+    padding: 8px 0;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    backdrop-filter: blur(12px);
+    display: none;
+}
+
+.search-history-dropdown::-webkit-scrollbar {
+    width: 4px;
+}
+
+.search-history-dropdown::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.search-history-dropdown::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.search-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.search-history-clear-all {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.search-history-clear-all:hover {
+    color: var(--error);
+}
+
+.search-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.search-history-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.search-history-item span i {
+    margin-right: 10px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.search-history-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-size: 0.75rem;
+}
+
+.search-history-delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--error);
+}
 
 
 

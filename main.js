@@ -534,6 +534,13 @@ function crearTarjeta(juego) {
 async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
     // 1. SISTEMA DE FRENADO DE EMERGENCIA
     if (resetear) {
+        // GUARDAR BÚSQUEDA PARA PERSISTENCIA F5
+        if (busqueda) {
+            localStorage.setItem('last_search_games', busqueda);
+        } else {
+            localStorage.removeItem('last_search_games');
+        }
+
         clearTimeout(autoScanTimeout); // Detenemos cualquier escáner fantasma
         if (peticionAbort) peticionAbort.abort(); // Cortamos la conexión de red anterior
 
@@ -1051,6 +1058,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         </div>
     `;
 }
+
 async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     if (cargandoTMDB) return;
     cargandoTMDB = true;
@@ -1058,8 +1066,25 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     const grid = document.getElementById(tipo === 'movie' ? 'movies-grid' : 'series-grid');
 
     if (resetear) {
-        if (tipo === 'movie') { pageMovies = 1; searchMoviesActual = busqueda; }
-        else { pageSeries = 1; searchSeriesActual = busqueda; }
+        if (tipo === 'movie') {
+            pageMovies = 1;
+            searchMoviesActual = busqueda;
+            // GUARDAR BÚSQUEDA DE PELÍCULAS
+            if (busqueda) {
+                localStorage.setItem('last_search_movies', busqueda);
+            } else {
+                localStorage.removeItem('last_search_movies');
+            }
+        } else {
+            pageSeries = 1;
+            searchSeriesActual = busqueda;
+            // GUARDAR BÚSQUEDA DE SERIES
+            if (busqueda) {
+                localStorage.setItem('last_search_tv', busqueda);
+            } else {
+                localStorage.removeItem('last_search_tv');
+            }
+        }
 
         // muestro el loader
         grid.innerHTML = `
@@ -1110,15 +1135,24 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
+        // FILTRAR DUPLICADOS POR TÍTULO
+        const vistos = new Set();
+        const datosUnicos = datos.filter(item => {
+            const key = item.titulo ? item.titulo.toLowerCase().trim() : '';
+            if (!key || vistos.has(key)) return false;
+            vistos.add(key);
+            return true;
+        });
+
         if (resetear) grid.innerHTML = '';
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
 
-        // CRUCE DE DATOS CON SUPABASE PARA VER QUÉ HEMOS VISTO DE LA LISTA
+        // CRUCE DE DATOS CON SUPABASE
         const { data: { session } } = await supabase.auth.getSession();
         let vistosMap = {};
 
-        if (session && datos && datos.length > 0) {
-            const idsTMDB = datos.map(d => d.id.toString());
+        if (session && datosUnicos && datosUnicos.length > 0) {
+            const idsTMDB = datosUnicos.map(d => d.id.toString());
             const { data: vistosData } = await supabase
                 .from('user_media')
                 .select('media_id, veces_vista, id')
@@ -1131,7 +1165,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             }
         }
 
-        datos.forEach(item => {
+        datosUnicos.forEach(item => {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
@@ -1145,7 +1179,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             grid.innerHTML += crearTarjetaTMDB(item, tipo, userMediaInfo);
         });
 
-        if (datos.length > 0) {
+        if (datosUnicos.length > 0) {
             const btnMas = document.createElement('div');
             btnMas.id = `btn-cargar-mas-${tipo}`;
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
@@ -5389,3 +5423,204 @@ async function cargarColorInicial() {
 
 // Ejecutar al cargar la página
 cargarColorInicial();
+
+// ==========================================================================
+//   PERSISTENCIA DE BÚSQUEDA E HISTORIAL
+// ==========================================================================
+
+// === FUNCIÓN: Guardar búsqueda en el historial ===
+function guardarEnHistorial(tipo, query) {
+    if (!query || query.trim() === '') return;
+
+    const key = `search_history_${tipo}`; // search_history_games, search_history_movies, search_history_tv
+    let historial = JSON.parse(localStorage.getItem(key)) || [];
+
+    // Eliminar duplicados (si ya existe, lo movemos al principio)
+    historial = historial.filter(item => item.toLowerCase() !== query.toLowerCase());
+
+    // Añadir al principio (más reciente)
+    historial.unshift(query.trim());
+
+    // Limitar a 20 búsquedas
+    if (historial.length > 20) {
+        historial = historial.slice(0, 20);
+    }
+
+    localStorage.setItem(key, JSON.stringify(historial));
+}
+
+// === FUNCIÓN: Cargar historial de búsqueda ===
+function cargarHistorial(tipo) {
+    const key = `search_history_${tipo}`;
+    const historial = JSON.parse(localStorage.getItem(key)) || [];
+    return historial;
+}
+
+// === FUNCIÓN: Eliminar una búsqueda del historial ===
+function eliminarDelHistorial(tipo, query) {
+    const key = `search_history_${tipo}`;
+    let historial = JSON.parse(localStorage.getItem(key)) || [];
+    historial = historial.filter(item => item.toLowerCase() !== query.toLowerCase());
+    localStorage.setItem(key, JSON.stringify(historial));
+    mostrarHistorial(tipo); // Refrescar la UI
+}
+
+// === FUNCIÓN: Mostrar historial en el input ===
+function mostrarHistorial(tipo) {
+    const historial = cargarHistorial(tipo);
+    const inputId = tipo === 'games' ? 'search-juegos' :
+        tipo === 'movies' ? 'search-movies' : 'search-series';
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    // Crear o obtener el contenedor del historial
+    let container = document.getElementById(`history-container-${tipo}`);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = `history-container-${tipo}`;
+        container.className = 'search-history-dropdown';
+        input.parentNode.style.position = 'relative';
+        input.parentNode.appendChild(container);
+    }
+
+    if (historial.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+    container.innerHTML = `
+        <div class="search-history-header">
+            <span>📜 Búsquedas recientes</span>
+            <button class="search-history-clear-all" onclick="limpiarHistorialCompleto('${tipo}')">
+                <i class="fas fa-trash-alt"></i> Limpiar todo
+            </button>
+        </div>
+        ${historial.map(item => `
+            <div class="search-history-item" onclick="aplicarBusquedaDesdeHistorial('${tipo}', '${item.replace(/'/g, "\\'")}')">
+                <span><i class="fas fa-clock"></i> ${item}</span>
+                <button class="search-history-delete" onclick="event.stopPropagation(); eliminarDelHistorial('${tipo}', '${item.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('')}
+    `;
+}
+
+// === FUNCIÓN: Aplicar búsqueda desde el historial ===
+window.aplicarBusquedaDesdeHistorial = function (tipo, query) {
+    const inputId = tipo === 'games' ? 'search-juegos' :
+        tipo === 'movies' ? 'search-movies' : 'search-series';
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.value = query;
+        // Disparar la búsqueda
+        if (tipo === 'games') {
+            cargarJuegosIGDB(query);
+        } else if (tipo === 'movies') {
+            cargarTMDB('movie', query);
+        } else if (tipo === 'tv') {
+            cargarTMDB('tv', query);
+        }
+    }
+    // Ocultar el historial
+    const container = document.getElementById(`history-container-${tipo}`);
+    if (container) container.style.display = 'none';
+};
+
+// === FUNCIÓN: Limpiar todo el historial ===
+window.limpiarHistorialCompleto = function (tipo) {
+    const key = `search_history_${tipo}`;
+    localStorage.setItem(key, JSON.stringify([]));
+    mostrarHistorial(tipo);
+};
+
+// === FUNCIÓN: Mostrar/ocultar historial al hacer focus en el input ===
+function configurarHistorialInput(inputId, tipo) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    // Mostrar historial al hacer focus
+    input.addEventListener('focus', () => {
+        mostrarHistorial(tipo);
+    });
+
+    // Ocultar historial al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById(`history-container-${tipo}`);
+        if (container && !input.parentNode.contains(e.target)) {
+            container.style.display = 'none';
+        }
+    });
+
+    // Guardar en historial al hacer submit (Enter o clic en botón)
+    const btnId = tipo === 'games' ? 'btn-buscar-juegos' :
+        tipo === 'movies' ? 'btn-buscar-movies' : 'btn-buscar-series';
+    const btn = document.getElementById(btnId);
+
+    const guardarYBuscar = () => {
+        const query = input.value.trim();
+        if (query) {
+            guardarEnHistorial(tipo, query);
+            setTimeout(() => mostrarHistorial(tipo), 100);
+        }
+    };
+
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            guardarYBuscar();
+        }
+    });
+
+    if (btn) {
+        btn.addEventListener('click', guardarYBuscar);
+    }
+}
+
+// === FUNCIÓN: Cargar búsqueda guardada al hacer F5 ===
+function cargarBusquedaGuardada(tipo) {
+    const key = `last_search_${tipo}`;
+    const busqueda = localStorage.getItem(key);
+    if (busqueda) {
+        const inputId = tipo === 'games' ? 'search-juegos' :
+            tipo === 'movies' ? 'search-movies' : 'search-series';
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = busqueda;
+            // Disparar la búsqueda automáticamente
+            if (tipo === 'games') {
+                cargarJuegosIGDB(busqueda);
+            } else if (tipo === 'movies') {
+                cargarTMDB('movie', busqueda);
+            } else if (tipo === 'tv') {
+                cargarTMDB('tv', busqueda);
+            }
+        }
+    }
+}
+
+// === CONFIGURAR HISTORIAL PARA CADA TIPO ===
+configurarHistorialInput('search-juegos', 'games');
+configurarHistorialInput('search-movies', 'movies');
+configurarHistorialInput('search-series', 'tv');
+
+// Para juegos - modifica cargarJuegosIGDB
+// Añade esta línea al principio de la función:
+// if (resetear && busqueda) {
+//     localStorage.setItem('last_search_games', busqueda);
+// }
+
+// Para películas - modifica cargarTMDB
+// Añade esta línea cuando se hace una búsqueda:
+// localStorage.setItem('last_search_movies', busqueda);
+
+// Para series - modifica cargarTMDB
+// Añade esta línea cuando se hace una búsqueda:
+// localStorage.setItem('last_search_tv', busqueda);
+
+// === CARGAR BÚSQUEDAS GUARDADAS AL INICIAR ===
+setTimeout(() => {
+    cargarBusquedaGuardada('games');
+    cargarBusquedaGuardada('movies');
+    cargarBusquedaGuardada('tv');
+}, 500);
