@@ -5020,11 +5020,7 @@ async function guardarCambiosPerfil(e) {
     const nombre = document.getElementById('edit-firstname').value.trim();
     const apellidos = document.getElementById('edit-lastname').value.trim();
     const descripcion = document.getElementById('edit-description').value.trim();
-
-    // RECOGER EL SEXO DEL INPUT OCULTO (NO del select)
     const sexo = document.getElementById('edit-gender').value;
-
-    // RECOGER EL COLOR ACTUAL (del picker)
     const colorPicker = document.getElementById('edit-color-picker');
     const colorHex = colorPicker ? colorPicker.value : '#6366f1';
 
@@ -5047,7 +5043,7 @@ async function guardarCambiosPerfil(e) {
     btnGuardar.disabled = true;
 
     try {
-        // GUARDAR TODO EN SUPABASE
+        // 🔥 GUARDAR TODO EN SUPABASE
         const { error } = await supabase
             .from('usuarios')
             .update({
@@ -5063,7 +5059,7 @@ async function guardarCambiosPerfil(e) {
 
         if (error) throw error;
 
-        // Guardar estado del correo (si existe)
+        // Guardar estado del correo
         const emailContainer = document.getElementById('edit-email-container');
         if (emailContainer) {
             const isBlurred = emailContainer.classList.contains('blurred');
@@ -5073,29 +5069,43 @@ async function guardarCambiosPerfil(e) {
                 .eq('email', session.user.email);
         }
 
-        // GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
+        // 🔥 GUARDAR COLOR EN LOCALSTORAGE PERMANENTE
         localStorage.setItem('dp_user_color', colorHex);
-        localStorage.removeItem('dp_user_color_temp'); // Limpiar temporal
+        localStorage.removeItem('dp_user_color_temp');
+
+        // 🔥 ACTUALIZAR EL NOMBRE DE USUARIO EN EL MENÚ DESPLEGABLE
+        const dropdownUsername = document.getElementById('dropdown-username');
+        if (dropdownUsername) {
+            dropdownUsername.textContent = username;
+        }
+
+        // 🔥 ACTUALIZAR EL NOMBRE EN EL PERFIL PÚBLICO (si estamos en profile)
+        const mainProfileUsername = document.getElementById('main-profile-username');
+        if (mainProfileUsername) {
+            mainProfileUsername.textContent = username;
+        }
+
+        // 🔥 ACTUALIZAR EL NOMBRE EN EL AVATAR DEL MENÚ (si existe)
+        const avatarUsername = document.querySelector('.user-dropdown-header .dropdown-username');
+        if (avatarUsername) {
+            avatarUsername.textContent = username;
+        }
 
         showToast('success', '¡Guardado!', 'Los cambios se han aplicado correctamente.');
 
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
 
-        // Actualizar nombre en el menú
-        const dropdownUsername = document.getElementById('dropdown-username');
-        if (dropdownUsername) dropdownUsername.textContent = username;
-
         // Volver a la vista anterior
         setTimeout(() => {
             const destino = vistaAnteriorAlEditar === 'edit-profile' ? 'profile' : vistaAnteriorAlEditar;
             cambiarVista(destino, true);
 
+            // 🔥 FORZAR RECARGA DEL PERFIL PÚBLICO CON EL NUEVO USERNAME
             if (destino === 'profile') {
-                const usernameDisplay = document.getElementById('main-profile-username');
-                if (usernameDisplay) {
-                    cargarPerfilPublico(usernameDisplay.textContent);
-                }
+                setTimeout(() => {
+                    cargarPerfilPublico(username);
+                }, 300);
             }
         }, 1500);
 
