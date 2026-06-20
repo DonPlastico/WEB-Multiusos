@@ -1915,18 +1915,18 @@ span.flatpickr-weekday {
 .color-picker-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
 .color-picker-row {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 #edit-color-picker {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border: 2px solid var(--border-color);
     border-radius: 10px;
     cursor: pointer;
@@ -1949,8 +1949,8 @@ span.flatpickr-weekday {
 }
 
 .color-preview {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
     border: 2px solid var(--border-color);
     transition: all 0.3s ease;
@@ -1960,13 +1960,13 @@ span.flatpickr-weekday {
 .color-presets {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding: 5px 0;
+    gap: 4px;
+    padding: 2px 0;
 }
 
 .color-preset-btn {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     border: 2px solid var(--border-color);
     cursor: pointer;

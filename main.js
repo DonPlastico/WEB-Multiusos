@@ -4848,14 +4848,11 @@ async function cargarDatosPerfil() {
             actualizarVistaPreviaColor(color);
         }
 
-        // Restaurar estado del correo borroso
+        // Restaurar estado del correo borroso - POR DEFECTO OCULTO (blurred)
         const emailContainer = document.getElementById('edit-email-container');
         if (emailContainer) {
-            if (perfil?.mostrar_correo === false) {
-                emailContainer.classList.add('blurred');
-            } else {
-                emailContainer.classList.remove('blurred');
-            }
+            // Por defecto siempre blurred (oculto) al cargar
+            emailContainer.classList.add('blurred');
         }
 
         // Guardar vista anterior para volver después
@@ -4866,6 +4863,13 @@ async function cargarDatosPerfil() {
 
         // Actualizar contador de caracteres
         actualizarContadorCaracteres();
+
+        // ===== NUEVO: Actualizar panel de información =====
+        const infoUsername = document.getElementById('edit-profile-username-display');
+        const infoEmail = document.getElementById('edit-profile-email-display');
+
+        if (infoUsername) infoUsername.textContent = perfil?.username || '--';
+        if (infoEmail) infoEmail.textContent = session.user.email || '--';
 
     } catch (error) {
         console.error('Error cargando perfil:', error);
@@ -4905,7 +4909,7 @@ function toggleCorreoVisibility() {
     const isBlurred = container.classList.contains('blurred');
 
     if (isBlurred) {
-        // Revelar correo
+        // Revelar correo (QUITAR blur)
         container.classList.remove('blurred');
 
         // Limpiar timeout anterior
@@ -4918,7 +4922,7 @@ function toggleCorreoVisibility() {
             container.classList.add('blurred');
         }, 5 * 60 * 1000); // 5 minutos
     } else {
-        // Ocultar manualmente (click en el correo ya visible)
+        // Ocultar manualmente (AÑADIR blur)
         container.classList.add('blurred');
         if (timeoutOcultarCorreo) {
             clearTimeout(timeoutOcultarCorreo);
@@ -4987,7 +4991,7 @@ async function guardarCambiosPerfil(e) {
             const isBlurred = emailContainer.classList.contains('blurred');
             await supabase
                 .from('usuarios')
-                .update({ mostrar_correo: !isBlurred })
+                .update({ mostrar_correo: isBlurred })
                 .eq('email', session.user.email);
         }
 
@@ -5104,3 +5108,20 @@ function handleColorPresetClick(e) {
         actualizarVistaPreviaColor(color);
     }
 }
+
+// ==========================================================================
+//   VOLVER AL PERFIL DESDE EDITAR
+// ==========================================================================
+
+document.getElementById('btn-back-to-profile')?.addEventListener('click', () => {
+    // Obtener el username actual del perfil
+    const usernameDisplay = document.getElementById('main-profile-username');
+    const username = usernameDisplay?.textContent || null;
+
+    // Si no hay username, ir a profile sin parámetro
+    if (username && username !== 'Usuario') {
+        cambiarVista('profile', true, username);
+    } else {
+        cambiarVista('profile', true);
+    }
+});
