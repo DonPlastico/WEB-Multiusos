@@ -1,4 +1,3 @@
-// /api/telegram/send-code.js
 import { supabase } from '../../supabase.js';
 
 export default async function handler(req, res) {

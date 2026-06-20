@@ -1,8 +1,6 @@
-// /api/telegram/webhook.js
 import { supabase } from '../../supabase.js';
 
 export default async function handler(req, res) {
-    // Solo aceptamos peticiones POST (las que envía Telegram)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -10,7 +8,6 @@ export default async function handler(req, res) {
     const { body } = req;
     const { message } = body;
 
-    // Solo procesamos mensajes de texto
     if (!message || !message.text) {
         return res.status(200).json({ ok: true });
     }
@@ -18,52 +15,107 @@ export default async function handler(req, res) {
     const chatId = message.chat.id;
     const text = message.text;
 
-    // Cuando el usuario escribe /start
     if (text === '/start') {
         try {
-            // Buscar al usuario por email o username
-            // (Adapta esto a cómo guardas los usuarios en tu tabla)
+            // ESTRATEGIA DE BÚSQUEDA MEJORADA
             const username = message.from.username;
+            const firstName = message.from.first_name || '';
+            const lastName = message.from.last_name || '';
+            const fullName = `${firstName} ${lastName}`.trim();
 
-            // 1. Intentar actualizar por username
-            const { data: userData, error: userError } = await supabase
+            console.log(`🔍 Buscando usuario para chat_id: ${chatId}`);
+
+            // 1. Buscar por username (prioridad 1)
+            let { data: userData, error: userError } = await supabase
                 .from('usuarios')
-                .update({ telegram_chat_id: chatId.toString() })
+                .select('id, email, username')
                 .eq('username', username);
 
-            // 2. Si no funciona, intentar por email (si tienes)
-            if (userError || !userData || userData.length === 0) {
-                // Buscar por email (si el username es un email)
-                const email = username ? `${username}@` : '';
-                // O usa el primer nombre como fallback
-                const firstName = message.from.first_name || '';
-
-                // Si no encontramos, usamos el primer nombre como búsqueda
-                const { error: updateError } = await supabase
+            // 2. Si no, buscar por nombre completo
+            if (!userData || userData.length === 0) {
+                console.log(`👤 No encontrado por username, buscando por nombre: ${fullName}`);
+                const { data: nameData, error: nameError } = await supabase
                     .from('usuarios')
-                    .update({ telegram_chat_id: chatId.toString() })
-                    .eq('username', firstName);
+                    .select('id, email, username')
+                    .eq('nombre', firstName)
+                    .eq('apellidos', lastName);
+
+                if (nameData && nameData.length > 0) {
+                    userData = nameData;
+                }
             }
 
-            // 3. Responder al usuario en Telegram
+            // 3. Si no, buscar por email (usando el username de Telegram como email)
+            if (!userData || userData.length === 0) {
+                console.log(`📧 No encontrado por nombre, buscando por email: ${username}@`);
+                const { data: emailData, error: emailError } = await supabase
+                    .from('usuarios')
+                    .select('id, email, username')
+                    .ilike('email', `${username}%`);
+
+                if (emailData && emailData.length > 0) {
+                    userData = emailData;
+                }
+            }
+
+            // 4. Si NO se encontró ningún usuario, creamos uno nuevo (opcional)
+            if (!userData || userData.length === 0) {
+                console.log(`🆕 Usuario no encontrado, creando nuevo con username: ${username}`);
+                // Esto es opcional, solo si quieres que el bot cree usuarios automáticamente
+                // const { data: newUser, error: createError } = await supabase
+                //     .from('usuarios')
+                //     .insert([{ username: username || fullName, email: `${username}@telegram.user` }])
+                //     .select();
+                // if (newUser) userData = newUser;
+
+                // Si no quieres crear usuarios automáticamente, devolvemos un error amigable
+                const botToken = process.env.TELEGRAM_BOT_TOKEN;
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: `❌ No pude encontrar tu usuario en el sistema.\n\nPor favor, inicia sesión en la web con el mismo nombre de usuario (${username || fullName}) y vuelve a intentarlo.`,
+                    })
+                });
+                return res.status(200).json({ ok: true });
+            }
+
+            // 5. Actualizar el chat_id del primer usuario encontrado
+            const userToUpdate = userData[0];
+            console.log(`✅ Usuario encontrado: ${userToUpdate.username || userToUpdate.email} (ID: ${userToUpdate.id})`);
+
+            const { error: updateError } = await supabase
+                .from('usuarios')
+                .update({ telegram_chat_id: chatId.toString() })
+                .eq('id', userToUpdate.id);
+
+            if (updateError) {
+                console.error('❌ Error actualizando usuario:', updateError);
+                throw updateError;
+            }
+
+            console.log(`✅ Chat ID guardado correctamente para ${userToUpdate.username}`);
+
+            // 6. Responder al usuario
             const botToken = process.env.TELEGRAM_BOT_TOKEN;
             await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: chatId,
-                    text: '✅ ¡Tu cuenta está vinculada!\n\nAhora recibirás códigos de verificación aquí. Para empezar, ve a la web y solicita tu código.',
+                    text: `✅ **¡Cuenta vinculada con éxito!**\n\nUsuario: ${userToUpdate.username || userToUpdate.email}\n\nAhora recibirás códigos de verificación aquí.\n\nVe a la web para solicitar tu código.`,
+                    parse_mode: 'Markdown'
                 })
             });
 
             return res.status(200).json({ ok: true });
 
         } catch (error) {
-            console.error('Error en webhook:', error);
+            console.error('❌ Error en webhook:', error);
             return res.status(200).json({ ok: true });
         }
     }
 
-    // Si no es /start, ignoramos el mensaje
     return res.status(200).json({ ok: true });
 }
