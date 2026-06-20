@@ -4632,6 +4632,8 @@ span.flatpickr-weekday {
     top: 100%;
     left: 0;
     right: 0;
+    width: 100%;
+    /* ← IMPORTANTE: mismo ancho que el input */
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
@@ -4643,6 +4645,8 @@ span.flatpickr-weekday {
     overflow-y: auto;
     backdrop-filter: blur(12px);
     display: none;
+    min-width: 0;
+    /* ← Permite que se reduzca en móvil */
 }
 
 .search-history-dropdown::-webkit-scrollbar {
@@ -4696,6 +4700,7 @@ span.flatpickr-weekday {
     transition: background 0.2s;
     color: var(--text-secondary);
     font-size: 0.9rem;
+    gap: 8px;
 }
 
 .search-history-item:hover {
@@ -4703,10 +4708,18 @@ span.flatpickr-weekday {
     color: var(--text-main);
 }
 
+.search-history-item span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .search-history-item span i {
     margin-right: 10px;
     color: var(--text-muted);
     font-size: 0.75rem;
+    flex-shrink: 0;
 }
 
 .search-history-delete {
@@ -4718,6 +4731,7 @@ span.flatpickr-weekday {
     border-radius: 4px;
     transition: all 0.2s;
     font-size: 0.75rem;
+    flex-shrink: 0;
 }
 
 .search-history-delete:hover {
@@ -5290,6 +5304,20 @@ span.flatpickr-weekday {
     .email-text {
         font-size: 0.85rem;
     }
+
+    .search-history-dropdown {
+        max-height: 200px;
+    }
+
+    .search-history-item {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .search-history-header {
+        font-size: 0.7rem;
+        padding: 6px 12px;
+    }
 }
 
 /* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
@@ -5532,6 +5560,35 @@ span.flatpickr-weekday {
 
     .color-picker-row {
         padding: 10px 12px;
+    }
+
+    .search-history-dropdown {
+        max-height: 180px;
+        border-radius: 8px;
+    }
+
+    .search-history-item {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+    }
+
+    .search-history-item span i {
+        font-size: 0.65rem;
+        margin-right: 6px;
+    }
+
+    .search-history-delete {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+
+    .search-history-header {
+        font-size: 0.65rem;
+        padding: 5px 10px;
+    }
+
+    .search-history-clear-all {
+        font-size: 0.6rem;
     }
 }
 
