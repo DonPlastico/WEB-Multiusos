@@ -5903,6 +5903,7 @@ span.flatpickr-weekday {
     .watchlist-list.watchlist-grid-mode {
         display: flex !important;
         flex-direction: column !important;
+        gap: 5px;
     }
 }
 
