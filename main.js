@@ -1127,11 +1127,31 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
-        // FILTRAR DUPLICADOS POR TÍTULO
+        // FILTRAR DUPLICADOS Y BLOQUEAR "MAKING OF / DETRÁS DE CÁMARAS"
         const vistos = new Set();
         const datosUnicos = datos.filter(item => {
             const key = item.titulo ? item.titulo.toLowerCase().trim() : '';
+
+            // 1. Si no hay título o ya está en la lista (duplicado), lo ignoramos
             if (!key || vistos.has(key)) return false;
+
+            // 2. ESCUDO ANTI-EXTRAS (Añade aquí lo que quieras bloquear)
+            const palabrasProhibidas = [
+                'making of',
+                'behind the scenes',
+                'detrás de las cámaras',
+                'detras de camaras',
+                'así se hizo',
+                'marvel studios: assembled',
+                'marvel studios assembled',
+                'unseen footage'
+            ];
+
+            // Si el título contiene alguna de las palabras prohibidas, lo descartamos
+            const esUnExtra = palabrasProhibidas.some(palabra => key.includes(palabra));
+            if (esUnExtra) return false;
+
+            // 3. Si ha pasado todos los filtros, lo guardamos
             vistos.add(key);
             return true;
         });
