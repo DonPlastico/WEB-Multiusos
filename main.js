@@ -5678,10 +5678,11 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-muted);"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br><span style="display:inline-block; margin-top:10px; letter-spacing:1px;">Sincronizando Watchlist...</span></div>';
 
     try {
-        // 1. Extraer TODOS los episodios que ha visto
+        // CORRECCIÓN DEL ERROR 400: Quitamos 'updated_at' que no existe en tu BD
+        // Y usamos 'created_at' o simplemente no lo pedimos para evitar cuelgues.
         const { data: watchedEps, error } = await supabase
             .from('user_media')
-            .select('media_id, fecha_vista, updated_at')
+            .select('media_id, fecha_vista')
             .eq('user_id', targetId)
             .eq('tipo', 'tv_episode');
 
@@ -5693,32 +5694,25 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
         // 2. Agrupar para saber en qué S y E se quedó de cada serie
         const seriesProgress = {};
         watchedEps.forEach(ep => {
-            const partes = ep.media_id.split('_');
+            const partes = ep.media_id.split('_'); // Ej: 1408_T8_E3
             if (partes.length < 3) return;
             const serieId = partes[0];
             const s = parseInt(partes[1].replace('T', ''));
             const e = parseInt(partes[2].replace('E', ''));
-            const fecha = ep.updated_at || ep.fecha_vista || '2000-01-01'; // Usar la fecha más reciente
 
             if (!seriesProgress[serieId]) {
-                seriesProgress[serieId] = { maxS: s, maxE: e, lastActivity: new Date(fecha) };
+                seriesProgress[serieId] = { maxS: s, maxE: e };
             } else {
                 if (s > seriesProgress[serieId].maxS || (s === seriesProgress[serieId].maxS && e > seriesProgress[serieId].maxE)) {
                     seriesProgress[serieId].maxS = s;
                     seriesProgress[serieId].maxE = e;
                 }
-                // Guardar la fecha de actividad más reciente para ordenar
-                const fechaActual = new Date(fecha);
-                if (fechaActual > seriesProgress[serieId].lastActivity) {
-                    seriesProgress[serieId].lastActivity = fechaActual;
-                }
             }
         });
 
-        // 3. Ordenar por las vistas más recientes y limitar a 12 (para no reventar las peticiones a Vercel)
+        // 3. Tomar las series y limitarlas a 12 para no saturar tu API en Vercel
         const seriesPrioritarias = Object.keys(seriesProgress)
             .map(id => ({ id, ...seriesProgress[id] }))
-            .sort((a, b) => b.lastActivity - a.lastActivity)
             .slice(0, 12);
 
         // 4. Consultar las APIs de TMDB en paralelo para buscar el siguiente episodio
@@ -5739,11 +5733,11 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
                     nextE = 1;
                 }
 
-                // Ver si la temporada nueva existe (Si no, es que está al día)
+                // Ver si la temporada nueva existe (Si no, es que la serie está al día o terminada)
                 const nextSeasonInfo = showData.temporadas_info?.find(t => t.season_number === nextS);
                 if (!nextSeasonInfo) return null;
 
-                // Sacar info concreta del episodio (para la foto y el título)
+                // Sacar info concreta del episodio
                 const resSeason = await fetch(`/api/tmdb?id=${progreso.id}&tipo=tv_season&season=${nextS}`);
                 if (!resSeason.ok) return null;
                 const seasonData = await resSeason.json();
@@ -5768,7 +5762,7 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
                             <img src="${showData.poster}" style="width: 55px; height: 82px; object-fit: cover; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.6);">
                             <div style="flex: 1; min-width: 0;">
                                 <h3 style="margin: 0; font-size: 1rem; color: var(--neon-white); text-shadow: 1px 1px 3px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${showData.titulo}</h3>
-                                <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">S${nextS < 10 ? '0' + nextS : nextS} E${nextE < 10 ? '0' + nextE : nextE}</p>
+                                <p style="margin: 3px 0; color: var(--primary); font-weight: bold; font-family: var(--font-cyber); letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">T${nextS < 10 ? '0' + nextS : nextS} | E${nextE < 10 ? '0' + nextE : nextE}</p>
                                 <p style="margin: 0; font-size: 0.8rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">${epTitle}</p>
                             </div>
                             ${btnMarcar}
@@ -5786,14 +5780,14 @@ window.cargarWatchlistTVTime = async function (targetId, esMiPerfil) {
         const tarjetasValidas = resultados.filter(r => r !== null);
 
         if (tarjetasValidas.length === 0) {
-            section.style.display = 'none'; // El usuario está totalmente al día en sus top 12 series
+            section.style.display = 'none';
         } else {
             grid.innerHTML = tarjetasValidas.join('');
         }
 
     } catch (err) {
         console.error("Error cargando watchlist:", err);
-        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--error);">Error de telemetría.</div>';
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--error);">Error de telemetría al cargar pendientes.</div>';
     }
 };
 
@@ -5808,21 +5802,21 @@ window.marcarSiguienteEpisodio = async function (serieId, season, episode, btn) 
         const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         const mediaId = `${serieId}_T${season}_E${episode}`;
 
+        // CORRECCIÓN: Tampoco intentamos insertar 'updated_at' aquí
         const { error } = await supabase.from('user_media').insert({
             user_id: session.user.id,
             media_id: mediaId,
             tipo: 'tv_episode',
             visto: true,
             veces_vista: 1,
-            fecha_vista: hoy,
-            updated_at: new Date().toISOString()
+            fecha_vista: hoy
         });
 
         if (error) throw error;
 
-        showToast('success', 'Episodio Guardado', `Marcado el S${season < 10 ? '0' + season : season} E${episode < 10 ? '0' + episode : episode}`);
+        showToast('success', 'Episodio Guardado', `Marcado el T${season < 10 ? '0' + season : season} | E${episode < 10 ? '0' + episode : episode}`);
 
-        // Efecto visual y recarga automática para mostrar el siguiente
+        // Efecto visual y recarga automática
         const card = btn.closest('.glass-panel');
         if (card) {
             card.style.opacity = '0';
