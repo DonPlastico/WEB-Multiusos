@@ -1346,17 +1346,26 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
 //   EDITAR PERFIL - LISTENER DEL MENÚ
 // ==========================================================================
 
-// Añadir este código DESPUÉS de la creación del userMenu (línea ~580)
-document.querySelector('#user-menu .theme-option .fa-user-edit')?.closest('.theme-option')?.addEventListener('click', () => {
-    // Guardar la vista actual para volver después
-    vistaAnteriorAlEditar = vistaActualGlobal;
-    localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
+// El menú se crea dinámicamente en el bloque de AUTENTICACION Y SESION. Buscamos el botón "Editar perfil" dentro del userMenu que ya existe
+const editProfileBtn = userMenu.querySelector('.theme-option .fa-user-edit')?.closest('.theme-option');
+if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Evita que el click se propague al botón de perfil
 
-    // Cambiar a la vista de editar perfil
-    cambiarVista('edit-profile');
-    userMenu.classList.remove('show');
-    userMenuOpen = false;
-});
+        // Guardar la vista actual para volver después
+        vistaAnteriorAlEditar = vistaActualGlobal;
+        localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
+
+        // Cambiar a la vista de editar perfil
+        cambiarVista('edit-profile');
+        userMenu.classList.remove('show');
+        userMenuOpen = false;
+
+        console.log('✅ Navegando a Editar Perfil desde:', vistaAnteriorAlEditar);
+    });
+} else {
+    console.warn('⚠️ No se encontró el botón "Editar perfil" en el menú');
+}
 
 // ==========================================================================
 //   FLATPICKR PARA FECHAS
