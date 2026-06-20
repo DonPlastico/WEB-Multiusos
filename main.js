@@ -94,7 +94,17 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
         // Si venimos de editar, usar el nuevo username
         const usernameFromEdit = document.getElementById('edit-username')?.value;
         const userToLoad = usernameFromEdit || usernameUrl;
-        cargarPerfilPublico(userToLoad);
+
+        // 🔥 Asegurar que siempre pasamos un username
+        if (userToLoad) {
+            cargarPerfilPublico(userToLoad);
+        } else {
+            // Si no hay username, obtenerlo de la sesión
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.user_metadata?.username) {
+                cargarPerfilPublico(session.user.user_metadata.username);
+            }
+        }
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
@@ -3174,15 +3184,21 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
-        // 🔥 Usar la vista perfiles_publicos en lugar de la tabla usuarios
+        // 🔥 CAMBIAR .single() POR .maybeSingle()
         const { data: perfilTarget, error } = await supabase
             .from('perfiles_publicos')
             .select('*')
             .eq('username', usuarioABuscar)
-            .single();
+            .maybeSingle(); // <--- ESTE ES EL CAMBIO
 
-        if (error || !perfilTarget) {
-            console.error('Error cargando perfil:', error);
+        if (error) {
+            console.error('Error en consulta:', error);
+            document.querySelector('.profile-username').textContent = "Error al cargar perfil";
+            return;
+        }
+
+        if (!perfilTarget) {
+            console.warn('Perfil no encontrado para:', usuarioABuscar);
             document.querySelector('.profile-username').textContent = "Usuario no encontrado en el Nexus";
             return;
         }
@@ -5044,45 +5060,26 @@ async function guardarCambiosPerfil(e) {
     btnGuardar.disabled = true;
 
     try {
-        // 1. ACTUALIZAR TABLA USUARIOS
-        const { data: updateData, error: errorUpdate } = await supabase
-            .from('usuarios')
-            .update({
-                username: username,
-                nombre: nombre,
-                apellidos: apellidos,
-                descripcion: descripcion,
-                sexo: sexo,
-                color_destacado: colorHex,
-                updated_at: new Date().toISOString()
-            })
-            .eq('email', session.user.email)
-            .select();
+        // 🔥 USAR LA FUNCIÓN RPC QUE CREASTE
+        const { data, error: rpcError } = await supabase.rpc('actualizar_perfil', {
+            p_user_id: session.user.id,
+            p_username: username,
+            p_nombre: nombre,
+            p_apellidos: apellidos,
+            p_descripcion: descripcion,
+            p_sexo: sexo,
+            p_color: colorHex
+        });
 
-        if (errorUpdate) throw errorUpdate;
-
-        // 2. 🔥 ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos
-        // Si la vista tiene WITH CHECK OPTION, esto funcionará
-        const { error: errorView } = await supabase
-            .from('perfiles_publicos')
-            .update({
-                username: username,
-                nombre: nombre,
-                apellidos: apellidos,
-                descripcion: descripcion,
-                sexo: sexo,
-                color_destacado: colorHex
-            })
-            .eq('auth_id', session.user.id);
-
-        if (errorView) {
-            console.warn('⚠️ No se pudo actualizar perfiles_publicos directamente:', errorView);
-            // Si falla, intentamos con RPC
-            await supabase.rpc('refresh_perfil_publico', { user_id: session.user.id });
+        if (rpcError) {
+            console.error('❌ Error RPC:', rpcError);
+            throw new Error(rpcError.message);
         }
 
-        // 3. 🔥 ACTUALIZAR LA SESIÓN DE SUPABASE (para que el cambio sea inmediato)
-        await supabase.auth.updateUser({
+        console.log('✅ Perfil actualizado correctamente');
+
+        // 🔥 ACTUALIZAR LA SESIÓN DE SUPABASE
+        const { error: updateError } = await supabase.auth.updateUser({
             data: {
                 username: username,
                 nombre: nombre,
@@ -5093,26 +5090,33 @@ async function guardarCambiosPerfil(e) {
             }
         });
 
+        if (updateError) {
+            console.warn('⚠️ No se pudo actualizar la sesión:', updateError);
+        }
+
         // Guardar en localStorage
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp');
 
-        // Actualizar UI
+        // 🔥 ACTUALIZAR UI INMEDIATAMENTE
         const dropdownUsername = document.getElementById('dropdown-username');
         if (dropdownUsername) dropdownUsername.textContent = username;
 
         const mainProfileUsername = document.getElementById('main-profile-username');
         if (mainProfileUsername) mainProfileUsername.textContent = username;
 
-        // 🔥 FORZAR RECARGA DE PERFIL PÚBLICO
-        await cargarPerfilPublico(username);
+        // 🔥 FORZAR RECARGA DEL PERFIL CON EL NUEVO NOMBRE
+        // Esperamos un momento para que la DB se actualice
+        setTimeout(async () => {
+            await cargarPerfilPublico(username);
+        }, 500);
 
         showToast('success', '¡Guardado!', `Usuario actualizado a: ${username}`);
 
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
 
-        // Volver al perfil
+        // Volver al perfil después de 1.5 segundos
         setTimeout(() => {
             cambiarVista('profile', true, username);
         }, 1500);
