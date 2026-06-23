@@ -4831,7 +4831,26 @@ cast-carousel::-webkit-scrollbar {
     transition: background 0.2s ease;
 }
 
+/* ==========================================================================
+   MODAL RECORTAR AVATAR (CROPPER)
+   ========================================================================== */
+/* Forzar recorte visual circular en Cropper.js */
+.cropper-view-box,
+.cropper-face {
+    border-radius: 50%;
+}
 
+/* Ocultar el recuadro cuadrado y dejar solo las líneas de guía si quieres */
+.cropper-dashed,
+.cropper-line {
+    display: none !important;
+}
+
+/* Estilizar el fondo de la zona no seleccionada para el tema oscuro */
+.cropper-modal {
+    background-color: var(--bg-main);
+    opacity: 0.85;
+}
 
 
 

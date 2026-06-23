@@ -14,9 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 </head>
 
 <body>
@@ -1736,6 +1738,28 @@
                     <button id="btn-send-announce" class="auth-btn primary full-width">
                         <i class="fas fa-paper-plane"></i> ENVIAR ALERTA
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
+
+        <div id="crop-modal" class="cyber-modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>RECORTAR AVATAR</h2>
+                    <button id="btn-close-crop" class="close-floating-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="img-container"
+                        style="max-height: 400px; width: 100%; background: var(--bg-secondary); border-radius: 12px; overflow: hidden;">
+                        <img id="image-to-crop" src="" alt="Imagen a recortar" style="max-width: 100%;">
+                    </div>
+                    <div class="edit-profile-admin-side-actions" style="margin-top: 20px;">
+                        <button id="btn-save-crop" class="auth-btn primary full-width">
+                            <i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

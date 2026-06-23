@@ -6008,3 +6008,130 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         };
     }
 }
+
+// ==========================================================================
+//   SUBIDA Y RECORTE DE AVATAR CUSTOM
+// ==========================================================================
+
+let cropper;
+const avatarInput = document.getElementById('avatar-upload-input');
+const cropModal = document.getElementById('crop-modal');
+const imageToCrop = document.getElementById('image-to-crop');
+const btnSaveCrop = document.getElementById('btn-save-crop');
+const btnCloseCrop = document.getElementById('btn-close-crop');
+const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
+
+// 1. Abrir explorador de archivos al hacer clic en el botón custom
+if (btnTriggerUpload) {
+    btnTriggerUpload.addEventListener('click', () => {
+        avatarInput.click();
+    });
+}
+
+// 2. Al seleccionar archivo, abrir modal e iniciar Cropper
+avatarInput.addEventListener('change', function (e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+            imageToCrop.src = event.target.result;
+            cropModal.classList.add('show');
+
+            // Destruir instancia anterior si existe
+            if (cropper) cropper.destroy();
+
+            // Iniciar Cropper con opciones para zoom, arrastre y recorte 1:1
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 1, // Cuadrado perfecto (circular por el CSS)
+                viewMode: 1,
+                dragMode: 'move', // Arrastrar imagen para encuadrar
+                autoCropArea: 0.9,
+                restore: false,
+                guides: true, // Mostrar grilla
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+    avatarInput.value = ''; // Limpiar para poder subir la misma imagen si se cancela
+});
+
+// 3. Cerrar Modal
+if (btnCloseCrop) {
+    btnCloseCrop.addEventListener('click', () => {
+        cropModal.classList.remove('show');
+        if (cropper) cropper.destroy();
+    });
+}
+
+// 4. Guardar, generar Hash y subir a Supabase
+if (btnSaveCrop) {
+    btnSaveCrop.addEventListener('click', async () => {
+        if (!cropper) return;
+
+        btnSaveCrop.disabled = true;
+        btnSaveCrop.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO...';
+
+        // Obtener canvas recortado
+        cropper.getCroppedCanvas({
+            width: 500,
+            height: 500,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        }).toBlob(async (blob) => {
+            try {
+                // Generar Hash Único
+                const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                const fileName = `custom_avatar_${uniqueHash}.png`;
+
+                // Obtener usuario logueado
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    alert('Debes iniciar sesión para subir un avatar.');
+                    throw new Error("No hay usuario autenticado");
+                }
+
+                // Subir al storage (Bucket: 'avatars', Carpeta: el ID del usuario)
+                const { data, error } = await supabase.storage
+                    .from('avatars')
+                    .upload(`${user.id}/${fileName}`, blob, {
+                        cacheControl: '3600',
+                        upsert: false // False porque el hash asegura que sea nuevo
+                    });
+
+                if (error) throw error;
+
+                // Obtener la URL pública de la imagen
+                const { data: { publicUrl } } = supabase.storage
+                    .from('avatars')
+                    .getPublicUrl(`${user.id}/${fileName}`);
+
+                // ACTUALIZAR UI (Reemplaza el icono o imagen actual del avatar)
+                const profileAvatarDiv = document.querySelector('.profile-avatar');
+                if (profileAvatarDiv) {
+                    profileAvatarDiv.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                }
+
+                // Aquí deberías guardar la `publicUrl` en tu tabla de perfiles (Supabase DB)
+                // await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+
+                // Cerrar modal
+                cropModal.classList.remove('show');
+                cropper.destroy();
+
+            } catch (error) {
+                console.error('Error subiendo avatar:', error);
+                alert('Error al subir el avatar. Revisa la consola.');
+            } finally {
+                btnSaveCrop.disabled = false;
+                btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
+            }
+        }, 'image/png', 1.0); // Forzar conversión a PNG para mantener calidad y transparencia
+    });
+}
