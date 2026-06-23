@@ -5508,19 +5508,16 @@ function mostrarHistorial(tipo) {
         container.id = `history-container-${tipo}`;
         container.className = 'search-history-dropdown';
 
-        // Forzar z-index desde JS
-        container.style.zIndex = '999999';
+        // Eliminamos las manipulaciones en línea del z-index para que respete style.css
         container.style.position = 'absolute';
 
         const searchBox = input.closest('.search-box');
         if (searchBox) {
             searchBox.style.position = 'relative';
-            searchBox.style.zIndex = '99999';
-            searchBox.style.overflow = 'visible'; // ¡CRÍTICO!
+            searchBox.style.overflow = 'visible';
             searchBox.appendChild(container);
         } else {
             input.parentNode.style.position = 'relative';
-            input.parentNode.style.zIndex = '99999';
             input.parentNode.style.overflow = 'visible';
             input.parentNode.appendChild(container);
         }
