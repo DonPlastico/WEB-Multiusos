@@ -1744,11 +1744,11 @@
 
         <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
         <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
-
+        
         <div id="crop-modal" class="cyber-modal">
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h2 id="crop-modal-title">RECORTAR AVATAR</h2>
+                    <h2>RECORTAR AVATAR</h2>
                     <button id="btn-close-crop" class="close-floating-btn"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="modal-body">
@@ -1756,15 +1756,9 @@
                         style="max-height: 400px; width: 100%; background: var(--bg-secondary); border-radius: 12px; overflow: hidden;">
                         <img id="image-to-crop" src="" alt="Imagen a recortar" style="max-width: 100%;">
                     </div>
-                    <div class="edit-profile-admin-side-actions"
-                        style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                        <!-- BOTÓN PARA AVATAR (visible por defecto) -->
-                        <button id="btn-save-crop-avatar" class="auth-btn primary full-width">
+                    <div class="edit-profile-admin-side-actions" style="margin-top: 20px;">
+                        <button id="btn-save-crop" class="auth-btn primary full-width">
                             <i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR
-                        </button>
-                        <!-- BOTÓN PARA BANNER (oculto por defecto) -->
-                        <button id="btn-save-crop-banner" class="auth-btn primary full-width" style="display: none;">
-                            <i class="fas fa-cloud-upload-alt"></i> SUBIR BANNER
                         </button>
                     </div>
                 </div>
