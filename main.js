@@ -1903,51 +1903,51 @@ async function cargarDisenoPerfil(email) {
         console.error("Fallo al leer BD, usando diseño por defecto.");
     }
 
-    // pinto el banner
+    // PINTAR EL BANNER (CORREGIDO)
     const bannerEl = document.querySelector('.profile-banner');
     if (bannerEl) {
+        // Caso 1: Banner por defecto o "custom" (sin imagen)
         if (bannerId === 'default' || bannerId === 'custom') {
-            // si es default sin imagen
             bannerEl.style.backgroundImage = 'none';
-        } else if (bannerId.startsWith('http')) {
+            bannerEl.style.backgroundSize = '';
+            bannerEl.style.backgroundPosition = '';
+        }
+        // Caso 2: Banner es una URL de Supabase (empieza con http)
+        else if (bannerId.startsWith('http')) {
             bannerEl.style.backgroundImage = `url('${bannerId}')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
-        } else {
-            // si tiene numero pongo la imagen de GitHub
+        }
+        // Caso 3: Banner es un número predefinido (1-5)
+        else {
             bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
         }
     }
 
-    // pinto el avatar
+    // PINTAR EL AVATAR (ya funciona correctamente)
     let avatarHtml = '';
-    // si es default el astronauta
     if (avatarId === 'default' || avatarId === 'custom') {
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
     } else if (avatarId.startsWith('http')) {
-        // 👉 NUEVO: Si detecta que es un enlace de Supabase
         avatarHtml = `<img src="${avatarId}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
-        // si es uno de los avatares predefinidos locales
         avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
-    // cambio el icono del boton
+    // Cambiar el icono del botón de la navbar
     const navAvatarEl = document.getElementById('user-profile');
     if (navAvatarEl) {
         navAvatarEl.innerHTML = avatarHtml;
     }
 
-    // cambio el avatar gigante
+    // Cambiar el avatar gigante del perfil
     const perfilAvatarEl = document.querySelector('.profile-avatar');
     if (perfilAvatarEl) {
-        // guardo el overlay de editar
         const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
         perfilAvatarEl.innerHTML = '';
         if (overlay) perfilAvatarEl.appendChild(overlay);
-
         perfilAvatarEl.insertAdjacentHTML('beforeend', avatarHtml);
     }
 }
@@ -3224,8 +3224,15 @@ async function cargarPerfilPublico(usernameTarget) {
         const bannerElement = document.querySelector('.profile-banner');
         if (bannerElement) {
             if (bannerDB === 'default' || bannerDB === 'custom') {
-                bannerElement.style.backgroundImage = 'none'; // Esto limpiará tu banner si el otro no tiene
+                bannerElement.style.backgroundImage = 'none';
+                bannerElement.style.backgroundSize = '';
+                bannerElement.style.backgroundPosition = '';
+            } else if (bannerDB.startsWith('http')) {
+                bannerElement.style.backgroundImage = `url('${bannerDB}')`;
+                bannerElement.style.backgroundSize = 'cover';
+                bannerElement.style.backgroundPosition = 'center';
             } else {
+                // Banner predefinido numérico
                 bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.png')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
@@ -5095,8 +5102,7 @@ async function guardarCambiosPerfil(e) {
 
         if (errorUpdate) throw errorUpdate;
 
-        // 2. 🔥 ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos
-        // Si la vista tiene WITH CHECK OPTION, esto funcionará
+        // 2. ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos. Si la vista tiene WITH CHECK OPTION, esto funcionará
         const { error: errorView } = await supabase
             .from('perfiles_publicos')
             .update({
@@ -5115,7 +5121,7 @@ async function guardarCambiosPerfil(e) {
             await supabase.rpc('refresh_perfil_publico', { user_id: session.user.id });
         }
 
-        // 3. 🔥 ACTUALIZAR LA SESIÓN DE SUPABASE (para que el cambio sea inmediato)
+        // 3. ACTUALIZAR LA SESIÓN DE SUPABASE (para que el cambio sea inmediato)
         await supabase.auth.updateUser({
             data: {
                 username: username,
@@ -5138,7 +5144,7 @@ async function guardarCambiosPerfil(e) {
         const mainProfileUsername = document.getElementById('main-profile-username');
         if (mainProfileUsername) mainProfileUsername.textContent = username;
 
-        // 🔥 FORZAR RECARGA DE PERFIL PÚBLICO
+        // FORZAR RECARGA DE PERFIL PÚBLICO
         await cargarPerfilPublico(username);
 
         showToast('success', '¡Guardado!', `Usuario actualizado a: ${username}`);
@@ -6046,7 +6052,7 @@ const btnSaveCrop = document.getElementById('btn-save-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
 const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
 
-// 🔥 Función helper para cambiar el título del modal de forma segura
+// Función helper para cambiar el título del modal de forma segura
 function setModalTitle(text) {
     const titleEl = document.getElementById('crop-modal-title');
     if (titleEl) {
@@ -6078,7 +6084,7 @@ avatarInput.addEventListener('change', function (e) {
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
 
-            // 🔥 Usar la función segura en lugar de getElementById directo
+            // Usar la función segura en lugar de getElementById directo
             setModalTitle("RECORTAR AVATAR");
 
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
@@ -6218,7 +6224,7 @@ bannerInput.addEventListener('change', function (e) {
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
 
-            // 🔥 Usar la función segura en lugar de getElementById directo
+            // Usar la función segura en lugar de getElementById directo
             setModalTitle("RECORTAR PORTADA");
 
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR PORTADA';
