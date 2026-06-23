@@ -4217,7 +4217,7 @@ window.actualizarUIMediaPersonal = function (data) {
             btnWatchToggle.classList.remove('watched');
         }
 
-        personalText.textContent = "Debes marcarla como vista";
+        personalText.textContent = "Haz clic para puntuar";
     }
 
     // Resetear las estrellas según el estado actual (NUEVO)
@@ -4369,11 +4369,7 @@ function resetearEstrellasPersonal() {
     } else {
         stars.forEach(star => star.className = 'far fa-star');
         starsContainer.classList.remove('voted');
-        if (window.estadoMediaActual?.visto) {
-            personalText.textContent = 'Haz clic para puntuar';
-        } else {
-            personalText.textContent = 'Debes marcarla como vista';
-        }
+        personalText.textContent = 'Haz clic para puntuar';
     }
 }
 
@@ -4434,11 +4430,8 @@ document.addEventListener('click', (e) => {
     const star = e.target.closest('#media-detail-personal-stars i');
     if (!star) return;
 
-    if (!window.estadoMediaActual || !window.estadoMediaActual.visto) {
-        showToast('error', 'Acción denegada', 'Debes marcar la película/serie como vista antes de poder valorarla.');
-        resetearEstrellasPersonal();
-        return;
-    }
+    // Solo verificamos que la tarjeta esté cargada, sin importar si está vista o no
+    if (!window.estadoMediaActual) return;
 
     // Calcular nota basada en hover
     const starsContainer = document.getElementById('media-detail-personal-stars');
