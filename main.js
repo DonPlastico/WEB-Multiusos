@@ -6084,8 +6084,12 @@ avatarInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            // AQUÍ ESTÁ LA CLAVE: Asignamos la función específica del avatar
-            btnSaveCrop.onclick = () => guardarAvatarCustom();
+            const newBtn = btnSaveCrop.cloneNode(true);
+            btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
+            // Ahora usamos newBtn en lugar de btnSaveCrop
+            const activeBtn = document.getElementById('btn-save-crop'); // El nuevo clon
+
+            activeBtn.onclick = () => guardarAvatarCustom();
         };
         reader.readAsDataURL(file);
     }
@@ -6211,8 +6215,12 @@ bannerInput.addEventListener('change', function (e) {
                 autoCropArea: 0.9
             });
 
-            // AQUÍ ESTÁ LA CLAVE: Asignamos la función específica del banner
-            btnSaveCrop.onclick = () => guardarBannerCustom();
+            // CLONA EL BOTÓN PARA ELIMINAR TODOS LOS EVENTOS ANTIGUOS
+            const newBtn = btnSaveCrop.cloneNode(true);
+            btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
+            const activeBtn = document.getElementById('btn-save-crop');
+
+            activeBtn.onclick = () => guardarBannerCustom();
         };
         reader.readAsDataURL(file);
     }
