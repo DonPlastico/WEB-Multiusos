@@ -1724,7 +1724,7 @@
                         <div class="field-wrapper">
                             <i class="fas fa-user field-icon"></i>
                             <input type="text" id="announce-specific-user" class="cyber-input"
-                                placeholder="Ej. Juanx23">
+                                placeholder="Ej. Pacoporras">
                         </div>
                     </div>
 
@@ -1742,28 +1742,49 @@
             </div>
         </div>
 
-        <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
-        <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
-
+        <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
         <div id="crop-modal" class="cyber-modal">
-            <div class="modal-content" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h2 id="crop-modal-title">RECORTAR AVATAR</h2>
-                    <button id="btn-close-crop" class="close-floating-btn"><i class="fas fa-times"></i></button>
+            <div class="modal-content glass-panel game-details-panel"
+                style="max-width: 650px; max-height: 90vh; width: 90%;">
+                <!-- Botón de Cerrar -->
+                <button id="btn-close-crop" class="icon-btn close-floating-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Cabecera -->
+                <div class="game-hero-section"
+                    style="height: 80px; min-height: 80px; padding-bottom: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                    <div class="hero-overlay-gradient"
+                        style="background: linear-gradient(to bottom, rgba(10,10,15,0) 0%, var(--bg-main) 100%);"></div>
+                    <div class="hero-content-centered" style="margin-bottom: 0;">
+                        <h1 id="crop-modal-title" class="glitch-text" style="font-size: 1.8rem; margin-bottom: 0;">
+                            RECORTAR AVATAR</h1>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <div class="img-container"
-                        style="max-height: 400px; width: 100%; background: var(--bg-secondary); border-radius: 12px; overflow: hidden;">
-                        <img id="image-to-crop" src="" alt="Imagen a recortar" style="max-width: 100%;">
+
+                <!-- Cuerpo -->
+                <div class="game-detail-body" style="padding: 20px 30px 30px 30px;">
+                    <!-- Contenedor de imagen (con el mismo estilo que la sinopsis) -->
+                    <div class="detail-desc-col glass-panel padded-panel"
+                        style="padding: 10px; min-height: auto; margin-bottom: 20px;">
+                        <div
+                            style="width: 100%; aspect-ratio: 1 / 1; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img id="image-to-crop" src="" alt="Imagen a recortar"
+                                style="width: 100%; height: 100%; object-fit: contain;">
+                        </div>
                     </div>
-                    <div class="edit-profile-admin-side-actions" style="margin-top: 20px;">
-                        <button id="btn-save-crop" class="auth-btn primary full-width">
-                            <i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR
-                        </button>
-                    </div>
+
+                    <!-- Botón de acción -->
+                    <button id="btn-save-crop" class="auth-btn primary full-width" style="padding: 14px;">
+                        <i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Inputs ocultos fuera del modal -->
+        <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
+        <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
 
         <!-- boton pa volver al tope -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
