@@ -1906,8 +1906,12 @@ async function cargarDisenoPerfil(email) {
         if (bannerId === 'default' || bannerId === 'custom') {
             // si es default sin imagen
             bannerEl.style.backgroundImage = 'none';
+        } else if (bannerId.startsWith('http')) {
+            bannerEl.style.backgroundImage = `url('${bannerId}')`;
+            bannerEl.style.backgroundSize = 'cover';
+            bannerEl.style.backgroundPosition = 'center';
         } else {
-            // si tiene numero pongo la imagen
+            // si tiene numero pongo la imagen de GitHub
             bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
@@ -6156,4 +6160,88 @@ if (btnSaveCrop) {
             }
         }, 'image/png', 1.0); // Forzar conversión a PNG para mantener calidad y transparencia
     });
+}
+
+// ==========================================================================
+//   SUBIDA Y RECORTE DE BANNER CUSTOM
+// ==========================================================================
+
+const bannerInput = document.getElementById('banner-upload-input');
+const btnTriggerBanner = document.querySelector('.custom-card-item[onclick*="banner"]'); // Selecciona el botón de subir banner del modal
+
+// 1. Abrir explorador al hacer clic en el botón custom del modal
+if (btnTriggerBanner) {
+    btnTriggerBanner.addEventListener('click', () => {
+        // Esto se activa al hacer clic en "SUBIR CUSTOM" del modal de banners
+        bannerInput.click();
+    });
+}
+
+// 2. Al seleccionar archivo, abrir el modal de recorte con formato apaisado
+bannerInput.addEventListener('change', function (e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+            imageToCrop.src = event.target.result;
+            cropModal.classList.add('show');
+
+            if (cropper) cropper.destroy();
+
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 16 / 9, // Formato rectangular apaisado
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9
+            });
+
+            // Cambiamos el comportamiento del botón de guardar para el banner
+            btnSaveCrop.onclick = () => guardarBannerCustom();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// 3. Función específica para subir el banner
+async function guardarBannerCustom() {
+    if (!cropper) return;
+
+    btnSaveCrop.disabled = true;
+    btnSaveCrop.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO BANNER...';
+
+    cropper.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
+        try {
+            const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            const fileName = `custom_banner_${uniqueHash}.png`;
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // Subir al bucket 'banners' (Asegúrate de tenerlo creado y público)
+            const { error } = await supabase.storage.from('banners').upload(`${user.id}/${fileName}`, blob);
+            if (error) throw error;
+
+            const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(`${user.id}/${fileName}`);
+
+            // Actualizar DB
+            const { error: dbError } = await supabase.from('usuarios').update({ banner: publicUrl }).eq('email', user.email);
+            if (dbError) throw dbError;
+
+            // Actualizar UI
+            const bannerEl = document.querySelector('.profile-banner');
+            if (bannerEl) {
+                bannerEl.style.backgroundImage = `url('${publicUrl}')`;
+            }
+
+            cropModal.classList.remove('show');
+            cropper.destroy();
+            showToast('success', 'Banner Actualizado', 'Tu portada luce genial.');
+        } catch (error) {
+            console.error(error);
+            alert('Error subiendo banner.');
+        } finally {
+            btnSaveCrop.disabled = false;
+            btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR BANNER';
+        }
+    }, 'image/png', 1.0);
 }
