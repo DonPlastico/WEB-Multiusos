@@ -1841,6 +1841,17 @@ window.seleccionarDiseño = async function (tipo, idCard) {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
+    // 👉 NUEVO: Interceptamos si el usuario le dio al botón de "SUBIR CUSTOM"
+    if (tipo === 'avatar' && idCard === 'custom') {
+        const avatarInput = document.getElementById('avatar-upload-input');
+        if (avatarInput) {
+            avatarInput.click(); // Esto abre el explorador de Windows/Mac
+        } else {
+            console.error('No se encontró el input #avatar-upload-input');
+        }
+        return; // ¡CRÍTICO! Cortamos la función aquí para que no guarde "custom" en Supabase
+    }
+
     // pregunto quien es
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
