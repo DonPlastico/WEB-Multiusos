@@ -1836,23 +1836,26 @@ function openCustomizationModal(type) {
 // GUARDAR DISEÑO EN BD
 // ============================================
 window.seleccionarDiseño = async function (tipo, idCard) {
-    // cierro el modal al toque
+    // 1. Cierro el modal al toque
     modalEdit.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // 👉 NUEVO: Interceptamos si el usuario le dio al botón de "SUBIR CUSTOM"
-    if (tipo === 'avatar' && idCard === 'custom') {
-        const avatarInput = document.getElementById('avatar-upload-input');
-        if (avatarInput) {
-            avatarInput.click(); // Esto abre el explorador de Windows/Mac
+    // 2. INTERCEPTACIÓN PARA SUBIDA CUSTOM (Avatar O Banner)
+    if (idCard === 'custom') {
+        // Seleccionamos el input correcto según el tipo
+        const inputId = (tipo === 'banner') ? 'banner-upload-input' : 'avatar-upload-input';
+        const inputEl = document.getElementById(inputId);
+
+        if (inputEl) {
+            inputEl.click(); // Esto abre el explorador de archivos
         } else {
-            console.error('No se encontró el input #avatar-upload-input');
+            console.error(`No se encontró el input: ${inputId}`);
         }
         return; // ¡CRÍTICO! Cortamos la función aquí para que no guarde "custom" en Supabase
     }
 
-    // pregunto quien es
+    // 3. Lógica normal para avatares/banners predefinidos
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
