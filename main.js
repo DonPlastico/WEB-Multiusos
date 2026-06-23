@@ -6061,9 +6061,12 @@ avatarInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
-            cropModal.classList.add('show');
+            document.getElementById('crop-modal-title').textContent = "RECORTAR AVATAR";
+            btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
 
-            // Destruir instancia anterior si existe
+            cropModal.classList.add('show');
+            cropModal.classList.add('crop-avatar'); // <--- AÑADE ESTO
+
             if (cropper) cropper.destroy();
 
             // Iniciar Cropper con opciones para zoom, arrastre y recorte 1:1
@@ -6093,6 +6096,7 @@ avatarInput.addEventListener('change', function (e) {
 if (btnCloseCrop) {
     btnCloseCrop.addEventListener('click', () => {
         cropModal.classList.remove('show');
+        cropModal.classList.remove('crop-avatar');
         if (cropper) cropper.destroy();
     });
 }
@@ -6192,7 +6196,11 @@ bannerInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
+            document.getElementById('crop-modal-title').textContent = "RECORTAR PORTADA";
+            btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR PORTADA';
+
             cropModal.classList.add('show');
+            cropModal.classList.remove('crop-avatar'); // <--- AÑADE ESTO (importante quitarlo si antes era avatar)
 
             if (cropper) cropper.destroy();
 

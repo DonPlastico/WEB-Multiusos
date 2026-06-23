@@ -4834,9 +4834,9 @@ cast-carousel::-webkit-scrollbar {
 /* ==========================================================================
    MODAL RECORTAR AVATAR (CROPPER)
    ========================================================================== */
-/* Forzar recorte visual circular en Cropper.js */
-.cropper-view-box,
-.cropper-face {
+/* Clase que aplicaremos por JS solo cuando sea un avatar */
+.crop-avatar .cropper-view-box,
+.crop-avatar .cropper-face {
     border-radius: 50%;
 }
 
