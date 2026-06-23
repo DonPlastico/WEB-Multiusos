@@ -6065,7 +6065,7 @@ avatarInput.addEventListener('change', function (e) {
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
 
             cropModal.classList.add('show');
-            cropModal.classList.add('crop-avatar'); // <--- AÑADE ESTO
+            cropModal.classList.add('crop-avatar');
 
             if (cropper) cropper.destroy();
 
@@ -6251,8 +6251,8 @@ async function guardarBannerCustom() {
             cropper.destroy();
             showToast('success', 'Banner Actualizado', 'Tu portada luce genial.');
         } catch (error) {
-            console.error(error);
-            alert('Error subiendo banner.');
+            console.error('ERROR DETALLADO:', error);
+            alert('Error subiendo banner: ' + (error.message || error));
         } finally {
             btnSaveCrop.disabled = false;
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR BANNER';
