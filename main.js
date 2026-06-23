@@ -6080,6 +6080,9 @@ avatarInput.addEventListener('change', function (e) {
                 cropBoxResizable: true,
                 toggleDragModeOnDblclick: false,
             });
+
+            // AQUÍ ESTÁ LA CLAVE: Asignamos la función específica del avatar
+            btnSaveCrop.onclick = () => guardarAvatarCustom();
         };
         reader.readAsDataURL(file);
     }
@@ -6200,7 +6203,7 @@ bannerInput.addEventListener('change', function (e) {
                 autoCropArea: 0.9
             });
 
-            // Cambiamos el comportamiento del botón de guardar para el banner
+            // AQUÍ ESTÁ LA CLAVE: Asignamos la función específica del banner
             btnSaveCrop.onclick = () => guardarBannerCustom();
         };
         reader.readAsDataURL(file);
