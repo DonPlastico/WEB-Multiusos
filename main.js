@@ -6108,19 +6108,19 @@ if (btnSaveCrop) {
                     throw new Error("No hay usuario autenticado");
                 }
 
-                // Subir al storage (Bucket: 'avatars', Carpeta: el ID del usuario)
+                // Subir al storage (Bucket: 'avatares', Carpeta: el ID del usuario)
                 const { data, error } = await supabase.storage
-                    .from('avatars')
+                    .from('avatares')
                     .upload(`${user.id}/${fileName}`, blob, {
                         cacheControl: '3600',
-                        upsert: false // False porque el hash asegura que sea nuevo
+                        upsert: false
                     });
 
                 if (error) throw error;
 
                 // Obtener la URL pública de la imagen
                 const { data: { publicUrl } } = supabase.storage
-                    .from('avatars')
+                    .from('avatares')
                     .getPublicUrl(`${user.id}/${fileName}`);
 
                 // ACTUALIZAR UI (Reemplaza el icono o imagen actual del avatar)
