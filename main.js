@@ -6046,6 +6046,21 @@ const btnSaveCrop = document.getElementById('btn-save-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
 const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
 
+// 🔥 Función helper para cambiar el título del modal de forma segura
+function setModalTitle(text) {
+    const titleEl = document.getElementById('crop-modal-title');
+    if (titleEl) {
+        titleEl.textContent = text;
+    } else {
+        console.warn('⚠️ No se encontró #crop-modal-title, usando fallback');
+        // Fallback: buscar el h2 dentro del modal
+        const fallbackTitle = document.querySelector('#crop-modal .modal-header h2');
+        if (fallbackTitle) {
+            fallbackTitle.textContent = text;
+        }
+    }
+}
+
 // 1. Abrir explorador de archivos al hacer clic en el botón custom
 if (btnTriggerUpload) {
     btnTriggerUpload.addEventListener('click', () => {
@@ -6062,7 +6077,10 @@ avatarInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
-            document.getElementById('crop-modal-title').textContent = "RECORTAR AVATAR";
+
+            // 🔥 Usar la función segura en lugar de getElementById directo
+            setModalTitle("RECORTAR AVATAR");
+
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
 
             cropModal.classList.add('show');
@@ -6072,12 +6090,12 @@ avatarInput.addEventListener('change', function (e) {
 
             // Iniciar Cropper con opciones para zoom, arrastre y recorte 1:1
             cropper = new Cropper(imageToCrop, {
-                aspectRatio: 1, // Cuadrado perfecto (circular por el CSS)
+                aspectRatio: 1,
                 viewMode: 1,
-                dragMode: 'move', // Arrastrar imagen para encuadrar
+                dragMode: 'move',
                 autoCropArea: 0.9,
                 restore: false,
-                guides: true, // Mostrar grilla
+                guides: true,
                 center: true,
                 highlight: false,
                 cropBoxMovable: true,
@@ -6085,7 +6103,6 @@ avatarInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            // === AQUÍ ESTÁ EL ARREGLO ===
             const newBtn = btnSaveCrop.cloneNode(true);
             btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
             const activeBtn = document.getElementById('btn-save-crop');
@@ -6094,12 +6111,11 @@ avatarInput.addEventListener('change', function (e) {
             activeBtn.removeEventListener('click', guardarAvatarCustom);
             activeBtn.removeEventListener('click', guardarBannerCustom);
 
-            // Asignar el evento correcto
             activeBtn.onclick = guardarAvatarCustom;
         };
         reader.readAsDataURL(file);
     }
-    avatarInput.value = ''; // Limpiar para poder subir la misma imagen si se cancela
+    avatarInput.value = '';
 });
 
 // 3. Cerrar Modal
@@ -6163,7 +6179,6 @@ async function guardarAvatarCustom() {
             cropModal.classList.remove('show');
             cropper.destroy();
 
-            // Actualizar también el icono de la navbar
             const navAvatar = document.getElementById('user-profile');
             if (navAvatar) {
                 navAvatar.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
@@ -6202,7 +6217,10 @@ bannerInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
-            document.getElementById('crop-modal-title').textContent = "RECORTAR PORTADA";
+
+            // 🔥 Usar la función segura en lugar de getElementById directo
+            setModalTitle("RECORTAR PORTADA");
+
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR PORTADA';
 
             cropModal.classList.add('show');
@@ -6224,7 +6242,6 @@ bannerInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            // === AQUÍ ESTÁ EL ARREGLO ===
             const newBtn = btnSaveCrop.cloneNode(true);
             btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
             const activeBtn = document.getElementById('btn-save-crop');
@@ -6233,7 +6250,6 @@ bannerInput.addEventListener('change', function (e) {
             activeBtn.removeEventListener('click', guardarAvatarCustom);
             activeBtn.removeEventListener('click', guardarBannerCustom);
 
-            // Asignar el evento correcto
             activeBtn.onclick = guardarBannerCustom;
         };
         reader.readAsDataURL(file);
