@@ -1919,8 +1919,11 @@ async function cargarDisenoPerfil(email) {
     // si es default el astronauta
     if (avatarId === 'default' || avatarId === 'custom') {
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
+    } else if (avatarId.startsWith('http')) {
+        // 👉 NUEVO: Si detecta que es un enlace de Supabase
+        avatarHtml = `<img src="${avatarId}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
-        // si es uno de los avatares pongo la imagen
+        // si es uno de los avatares predefinidos locales
         avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
@@ -3202,6 +3205,9 @@ async function cargarPerfilPublico(usernameTarget) {
 
             if (avatarDB === 'default' || avatarDB === 'custom') {
                 avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
+            } else if (avatarDB.startsWith('http')) {
+                // 👉 NUEVO: Si detecta que es un enlace de Supabase
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
                 avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
