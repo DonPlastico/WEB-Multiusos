@@ -6123,14 +6123,19 @@ if (btnSaveCrop) {
                     .from('avatares')
                     .getPublicUrl(`${user.id}/${fileName}`);
 
+                // 👉 GUARDAR EN LA BASE DE DATOS (Tabla usuarios)
+                const { error: dbError } = await supabase
+                    .from('usuarios')
+                    .update({ avatar: publicUrl })
+                    .eq('email', user.email);
+
+                if (dbError) throw dbError;
+
                 // ACTUALIZAR UI (Reemplaza el icono o imagen actual del avatar)
                 const profileAvatarDiv = document.querySelector('.profile-avatar');
                 if (profileAvatarDiv) {
                     profileAvatarDiv.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
                 }
-
-                // Aquí deberías guardar la `publicUrl` en tu tabla de perfiles (Supabase DB)
-                // await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
 
                 // Cerrar modal
                 cropModal.classList.remove('show');
