@@ -5553,8 +5553,10 @@ cast-carousel::-webkit-scrollbar {
 
     .profile-stats-wrapper {
         margin-top: 50px;
-        flex-direction: column-reverse;
-        align-items: flex-end;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
         gap: 10px;
     }
 
