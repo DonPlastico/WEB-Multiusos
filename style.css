@@ -515,6 +515,7 @@ input[type=number]::-webkit-outer-spin-button {
 
 .search-box {
     position: relative;
+    z-index: 90;
     background: var(--glass-bg);
     border: 1px solid var(--border-color);
     border-radius: 16px;
