@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RESET Y VARIABLES - PALETA PREMIUM QUE ME GUSTO
+   RESET Y VARIABLES - PALETA PREMIUM
    ========================================================================== */
 
 * {
@@ -24,8 +24,12 @@
     border-radius: 4px;
 }
 
+/* ==========================================================================
+   VARIABLES - TEMA OSCURO Y CLARO
+   ========================================================================== */
+
 :root {
-    /* modo oscuro (es mi favorito) */
+    /* Modo oscuro */
     --bg-main: #0a0a0f;
     --bg-secondary: #050508;
     --bg-card: #14141c;
@@ -75,7 +79,6 @@
     --neon-glow: 0 0 12px rgba(99, 102, 241, 0.4), 0 0 8px rgba(45, 212, 191, 0.2);
 }
 
-/* modo claro (marrones y beiges bonitos) */
 :root[data-theme="light"] {
     --bg-main: #f5f0e8;
     --bg-secondary: #e8e0d5;
@@ -125,6 +128,10 @@
     --neon-glow: 0 0 12px rgba(139, 107, 77, 0.2), 0 0 8px rgba(201, 168, 123, 0.15);
 }
 
+/* ==========================================================================
+   ESTILOS BASE
+   ========================================================================== */
+
 body {
     background-color: var(--bg-main);
     color: var(--text-main);
@@ -151,7 +158,6 @@ input[type=number]::-webkit-outer-spin-button {
     appearance: none;
 }
 
-/* Evitar que el scroll traspase al fondo de la web */
 .cyber-modal,
 .filters-overlay,
 .filter-sidebar,
@@ -159,7 +165,10 @@ input[type=number]::-webkit-outer-spin-button {
     overscroll-behavior: contain;
 }
 
-/* navbar q queda bien */
+/* ==========================================================================
+   NAVBAR
+   ========================================================================== */
+
 .cyber-nav {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -194,7 +203,6 @@ input[type=number]::-webkit-outer-spin-button {
     color: var(--text-muted);
 }
 
-/* efecto cuando paso el raton para que se vea que es boton */
 .logo:hover {
     transform: scale(1.05);
     filter: brightness(1.2);
@@ -277,7 +285,6 @@ input[type=number]::-webkit-outer-spin-button {
     color: white !important;
 }
 
-/* menu desplegable pa los temas */
 .theme-dropdown {
     position: relative;
 }
@@ -341,7 +348,6 @@ input[type=number]::-webkit-outer-spin-button {
     min-width: 200px;
 }
 
-/* alineacion de banderas en el menu de idiomas */
 .lang-menu .theme-option img {
     width: 24px;
     height: 18px;
@@ -354,7 +360,44 @@ input[type=number]::-webkit-outer-spin-button {
     font-size: 1.5rem;
 }
 
-/* contenedores y vistas principales */
+.user-menu-panel {
+    min-width: 240px;
+}
+
+.user-dropdown-header {
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.user-dropdown-header:hover {
+    background: var(--bg-hover);
+}
+
+.dropdown-username {
+    font-weight: 700;
+    color: var(--neon-white);
+    font-size: 1.05rem;
+}
+
+.dropdown-subtext {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+}
+
+/* ==========================================================================
+   CONTENEDORES Y VISTAS
+   ========================================================================== */
+
 .cyber-container {
     padding: 100px 150px;
     margin: 0 auto;
@@ -369,7 +412,10 @@ input[type=number]::-webkit-outer-spin-button {
     display: block;
 }
 
-/* hero y seccciones bonitas */
+/* ==========================================================================
+   HERO Y SECCIONES
+   ========================================================================== */
+
 .hero-section {
     padding: 80px 40px;
     margin-bottom: 50px;
@@ -410,10 +456,6 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0 auto;
 }
 
-.trends-container {
-    margin-bottom: 50px;
-}
-
 .section-title {
     font-size: 1.5rem;
     color: var(--neon-white);
@@ -452,7 +494,6 @@ input[type=number]::-webkit-outer-spin-button {
     border-radius: 16px;
 }
 
-/* lineas raras retro pero q quedan bien */
 .scanlines {
     position: fixed;
     top: 0;
@@ -468,8 +509,12 @@ input[type=number]::-webkit-outer-spin-button {
     opacity: 0.3;
 }
 
-/* vista de juegos mejorada */
+/* ==========================================================================
+   BUSCADOR Y JUEGOS
+   ========================================================================== */
+
 .search-box {
+    position: relative;
     background: var(--glass-bg);
     border: 1px solid var(--border-color);
     border-radius: 16px;
@@ -477,10 +522,17 @@ input[type=number]::-webkit-outer-spin-button {
     margin-bottom: 10px;
     padding: 15px;
     display: flex;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .search-box input {
     flex: 1;
+    min-width: 0;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     padding: 14px 20px;
@@ -500,19 +552,205 @@ input[type=number]::-webkit-outer-spin-button {
 .search-box button:not(.btn-mobile-filters) {
     background: var(--primary);
     border: none;
-    color: white;
+    color: #fff;
     padding: 0 28px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1.2rem;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
 }
 
-.search-box button:hover {
+.search-box button:not(.btn-mobile-filters):hover {
     background: var(--primary-hover);
     transform: scale(1.02);
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.3);
 }
 
+.search-box button:not(.btn-mobile-filters):active {
+    transform: scale(0.98);
+}
+
+/* --- HISTORIAL DE BÚSQUEDA --- */
+.search-history-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 6px 0;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(99, 102, 241, 0.02);
+    z-index: 999999 !important;
+    max-height: 260px;
+    overflow-y: auto;
+    display: none;
+    min-width: 0;
+    box-sizing: border-box;
+    animation: minimalSlideDown 0.15s ease forwards;
+    backdrop-filter: blur(12px);
+}
+
+.search-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.search-history-header span {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-history-clear-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary) !important;
+    cursor: pointer;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: var(--font-cyber);
+}
+
+.search-history-clear-all i {
+    font-size: 0.6rem;
+    color: var(--text-secondary) !important;
+    opacity: 0.7;
+    transition: all 0.25s ease;
+}
+
+.search-history-clear-all span {
+    color: var(--text-secondary) !important;
+}
+
+.search-history-clear-all:hover {
+    border-color: var(--error);
+    color: var(--error) !important;
+    background: rgba(239, 68, 68, 0.06);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 0 20px rgba(239, 68, 68, 0.02);
+    transform: translateY(-1px);
+}
+
+.search-history-clear-all:hover i {
+    color: var(--error) !important;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.search-history-clear-all:hover span {
+    color: var(--error) !important;
+}
+
+.search-history-clear-all:active {
+    transform: scale(0.95);
+}
+
+.search-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    gap: 8px;
+    border-left: 2px solid transparent;
+}
+
+.search-history-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    border-left-color: var(--primary);
+    padding-left: 14px;
+}
+
+.search-history-item span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.search-history-item span i {
+    color: var(--text-muted);
+    opacity: 0.5;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.search-history-item:hover span i {
+    opacity: 0.8;
+    color: var(--primary);
+}
+
+.search-history-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    opacity: 0.4;
+}
+
+.search-history-item:hover .search-history-delete {
+    opacity: 1;
+}
+
+.search-history-delete:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--error);
+    opacity: 1;
+}
+
+.search-history-delete:hover i {
+    color: var(--error);
+}
+
+.search-history-item .badge-recent {
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    text-transform: uppercase;
+    margin-left: auto;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* --- GRID DE JUEGOS --- */
 .cyber-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -536,12 +774,10 @@ input[type=number]::-webkit-outer-spin-button {
     box-shadow: var(--shadow-lg);
 }
 
-/* Estilos para cuando no hay portada */
 .game-cover-container {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    /* height: 250px; */
     overflow: hidden;
     background: var(--bg-card);
 }
@@ -581,6 +817,23 @@ input[type=number]::-webkit-outer-spin-button {
     font-weight: bold;
     z-index: 2;
     backdrop-filter: blur(4px);
+}
+
+.nsfw-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--error);
+    color: white;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 800;
+    z-index: 3;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    animation: pulse-border 2s infinite;
 }
 
 .game-info {
@@ -637,7 +890,34 @@ input[type=number]::-webkit-outer-spin-button {
     font-size: 0.7rem;
 }
 
-/* los filtros estan aqui */
+#btn-cargar-mas {
+    width: 100%;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+#btn-cargar-mas button {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    padding: 0.8rem 2.5rem;
+    border-radius: 40px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+#btn-cargar-mas button:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   FILTROS
+   ========================================================================== */
+
 .games-layout {
     width: 100%;
     display: grid;
@@ -655,13 +935,11 @@ input[type=number]::-webkit-outer-spin-button {
     position: sticky;
     top: 100px;
     padding: 0;
-    /* max-height: calc(100vh - 120px); */
     display: flex;
     flex-direction: column;
     background: var(--glass-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    /* overflow: hidden; */
     backdrop-filter: blur(12px);
 }
 
@@ -706,7 +984,6 @@ input[type=number]::-webkit-outer-spin-button {
     overscroll-behavior: contain;
 }
 
-/* acordeones q se cierran y abren */
 .accordion-item {
     border-bottom: 1px solid var(--border-color);
 }
@@ -757,7 +1034,6 @@ input[type=number]::-webkit-outer-spin-button {
     animation: slideDown 0.3s ease;
 }
 
-/* checkboxes personalizados */
 .custom-check {
     display: flex;
     align-items: center;
@@ -803,7 +1079,6 @@ input[type=number]::-webkit-outer-spin-button {
     color: white;
 }
 
-/* inputs y precios bonitos */
 .cyber-input {
     width: 100%;
     background: var(--bg-secondary);
@@ -886,30 +1161,6 @@ input[type=number]::-webkit-outer-spin-button {
     --date-picker-filter: invert(0.6);
 }
 
-#btn-cargar-mas {
-    width: 100%;
-    text-align: center;
-    margin: 2rem 0;
-}
-
-#btn-cargar-mas button {
-    background: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    padding: 0.8rem 2.5rem;
-    border-radius: 40px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 600;
-}
-
-#btn-cargar-mas button:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-}
-
 .btn-ver-mas {
     background: transparent;
     border: none;
@@ -929,6 +1180,51 @@ input[type=number]::-webkit-outer-spin-button {
     text-decoration: underline;
 }
 
+/* ==========================================================================
+   BOTÓN VOLVER ARRIBA
+   ========================================================================== */
+
+.scroll-top-btn {
+    position: fixed;
+    bottom: 60px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    background: var(--bg-card);
+    color: var(--primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 999;
+    box-shadow: var(--shadow-md);
+}
+
+.scroll-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--neon-glow);
+    transform: translateY(-5px);
+}
+
+/* ==========================================================================
+   AUTENTICACIÓN - LOGIN Y REGISTRO
+   ========================================================================== */
+
 #login.view,
 #register.view,
 #verified-account.view,
@@ -943,15 +1239,11 @@ input[type=number]::-webkit-outer-spin-button {
     display: flex;
 }
 
-/* cuando clickeo en login o register */
 body.auth-mode .nav-links {
     opacity: 0.4;
     pointer-events: none;
 }
 
-/* ============================================================
-   PAGINAS DE AUTENTICACION - LOGIN Y REGISTRO
-   ============================================================ */
 .auth-page {
     min-height: calc(100vh - 70px);
     display: flex;
@@ -981,7 +1273,6 @@ body.auth-mode .nav-links {
     z-index: 1;
 }
 
-/* Para la vista de registro el card puede ser mas ancho */
 #register .auth-page-inner {
     max-width: 700px;
 }
@@ -1048,7 +1339,6 @@ body.auth-mode .nav-links {
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* campos */
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -1105,12 +1395,10 @@ body.auth-mode .nav-links {
     color: var(--primary);
 }
 
-/* Override: input de fecha */
 .date-field {
     color-scheme: dark;
 }
 
-/* contraseña dentro del campo */
 .field-wrapper.password-wrapper .cyber-input {
     padding-right: 44px !important;
 }
@@ -1132,7 +1420,6 @@ body.auth-mode .nav-links {
     color: var(--primary);
 }
 
-/* ---- BOTONES MEJORADOS ---- */
 .auth-btn {
     display: inline-flex;
     align-items: center;
@@ -1153,7 +1440,6 @@ body.auth-mode .nav-links {
     text-decoration: none;
 }
 
-/* efecto de brillo en hover */
 .auth-btn::after {
     content: '';
     position: absolute;
@@ -1173,7 +1459,6 @@ body.auth-mode .nav-links {
     left: 160%;
 }
 
-/* primary: color primario, texto blanco */
 .auth-btn.primary {
     background: var(--primary);
     color: #fff;
@@ -1191,7 +1476,6 @@ body.auth-mode .nav-links {
     box-shadow: 0 2px 10px var(--primary-soft);
 }
 
-/* secondary: borde con primario, fondo transparente */
 .auth-btn.secondary {
     background: transparent;
     color: var(--text-muted);
@@ -1211,13 +1495,11 @@ body.auth-mode .nav-links {
     transform: translateY(0);
 }
 
-/* icono del boton mas pequeño */
 .auth-btn i {
     font-size: 0.95em;
     flex-shrink: 0;
 }
 
-/* boton deshabilitado */
 .auth-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
@@ -1229,7 +1511,6 @@ body.auth-mode .nav-links {
     display: none;
 }
 
-/* botones full width */
 .auth-btn.full-width {
     width: 100%;
     justify-content: center;
@@ -1240,7 +1521,6 @@ body.auth-mode .nav-links {
     margin-top: 4px;
 }
 
-/* mensaje de error o exito */
 .auth-message {
     font-size: 0.88rem;
     text-align: center;
@@ -1249,7 +1529,6 @@ body.auth-mode .nav-links {
     letter-spacing: 0.5px;
 }
 
-/* divider con texto */
 .auth-divider {
     display: flex;
     align-items: center;
@@ -1269,7 +1548,6 @@ body.auth-mode .nav-links {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* texto de terminos */
 .terms-text {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -1293,10 +1571,9 @@ body.auth-mode .nav-links {
 }
 
 /* ==========================================================================
-   CUSTOM DATE PICKER (FLATPICKR) - ESTILO CYBER/PREMIUM
+   FLATPICKR - CALENDARIO PERSONALIZADO
    ========================================================================== */
 
-/* fondo del calendario */
 .flatpickr-calendar {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
@@ -1307,7 +1584,6 @@ body.auth-mode .nav-links {
     padding: 10px !important;
 }
 
-/* las flechitas q cambian el mes */
 .flatpickr-calendar.arrowTop:before,
 .flatpickr-calendar.arrowTop:after {
     border-bottom-color: var(--border-color) !important;
@@ -1317,7 +1593,6 @@ body.auth-mode .nav-links {
     border-bottom-color: var(--bg-card) !important;
 }
 
-/* cabecera del calendario */
 .flatpickr-months .flatpickr-month {
     background: transparent !important;
     color: var(--text-main) !important;
@@ -1336,14 +1611,12 @@ body.auth-mode .nav-links {
     font-weight: 700 !important;
 }
 
-/* los dias de la semana */
 span.flatpickr-weekday {
     color: var(--primary) !important;
     font-weight: 700 !important;
     letter-spacing: 1px;
 }
 
-/* los numeros de los dias */
 .flatpickr-day {
     color: var(--text-main) !important;
     border-radius: 8px !important;
@@ -1351,7 +1624,6 @@ span.flatpickr-weekday {
     transition: all 0.2s ease !important;
 }
 
-/* cuando paso el raton */
 .flatpickr-day:hover,
 .flatpickr-day:focus {
     background: var(--bg-hover) !important;
@@ -1359,7 +1631,6 @@ span.flatpickr-weekday {
     color: var(--neon-white) !important;
 }
 
-/* el dia que seleccione */
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.endRange,
@@ -1385,14 +1656,12 @@ span.flatpickr-weekday {
     font-weight: bold;
 }
 
-/* dias del mes anterior/siguiente */
 .flatpickr-day.prevMonthDay,
 .flatpickr-day.nextMonthDay {
     color: var(--text-muted) !important;
     opacity: 0.5;
 }
 
-/* el dia de hoy */
 .flatpickr-day.today {
     border-color: var(--primary) !important;
 }
@@ -1403,118 +1672,13 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   ESTILOS DEL MENÚ DE USUARIO AVANZADO
+   PERFIL DE USUARIO
    ========================================================================== */
-.user-menu-panel {
-    min-width: 240px;
-    /* lo hacemos mas ancho para que quepa el texto */
-}
 
-.user-dropdown-header {
-    padding: 12px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.user-dropdown-header:hover {
-    background: var(--bg-hover);
-}
-
-.dropdown-username {
-    font-weight: 700;
-    color: var(--neon-white);
-    font-size: 1.05rem;
-}
-
-.dropdown-subtext {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-
-.dropdown-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 6px 0;
-}
-
-/* ==========================================================================
-   BOTÓN VOLVER ARRIBA
-   ========================================================================== */
-.scroll-top-btn {
-    position: fixed;
-    bottom: 60px;
-    right: 10px;
-    width: 45px;
-    height: 45px;
-    background: var(--bg-card);
-    color: var(--primary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
-    z-index: 999;
-    box-shadow: var(--shadow-md);
-}
-
-.scroll-top-btn.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.scroll-top-btn:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: var(--neon-glow);
-    transform: translateY(-5px);
-    /* Efecto de flotar un poquito más al pasar el ratón */
-}
-
-/* ==========================================================================
-   VISTA PERFIL DE USUARIO
-   ========================================================================== */
 .profile-layout {
     max-width: 1600px;
     width: 100%;
     margin: 0 auto;
-}
-
-.profile-header-info {
-    z-index: 20;
-    gap: 20px;
-    display: flex;
-    position: absolute;
-    bottom: -45px;
-    left: 40px;
-    align-items: center;
-}
-
-.profile-text {
-    margin-bottom: 12px;
-    /* ajuste pa que el texto quede bien con el avatar */
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-}
-
-.profile-username {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--neon-white);
-    line-height: 1;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .profile-banner {
@@ -1527,6 +1691,68 @@ span.flatpickr-weekday {
     box-shadow: var(--shadow-md);
     margin-bottom: 0;
     cursor: pointer;
+}
+
+.profile-header-info {
+    z-index: 20;
+    gap: 20px;
+    display: flex;
+    position: absolute;
+    bottom: -45px;
+    left: 40px;
+    align-items: center;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--bg-card);
+    border: 5px solid var(--bg-main);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5rem;
+    color: var(--primary);
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.edit-overlay-avatar {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-white);
+    font-size: 1.8rem;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 15;
+}
+
+.profile-avatar:hover .edit-overlay-avatar {
+    opacity: 1;
+}
+
+.profile-text {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.profile-username {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .edit-overlay {
@@ -1551,51 +1777,204 @@ span.flatpickr-weekday {
     opacity: 1;
 }
 
-/* si el avatar esta en hover oculto el overlay del banner */
 .profile-banner:has(.profile-avatar:hover) .edit-overlay {
     opacity: 0;
 }
 
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    background: var(--bg-card);
-    border: 5px solid var(--bg-main);
-    border-radius: 50%;
+/* --- Estadísticas del perfil --- */
+.profile-stats-wrapper {
+    z-index: 20;
+    justify-content: flex-end;
+    margin: 7.5px 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3.5rem;
-    color: var(--primary);
-    box-shadow: var(--shadow-lg);
-    z-index: 10;
+    gap: 7.5px;
+    align-items: stretch;
     position: relative;
-    /* para anclar su overlay */
-    overflow: hidden;
-    cursor: pointer;
 }
 
-.edit-overlay-avatar {
-    position: absolute;
-    inset: 0;
-    background: rgba(10, 10, 15, 0.8);
+.add-friend-btn {
+    height: auto;
+    width: 50px;
+    font-size: 1.2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-stats {
+    display: flex;
+    align-items: center;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 35px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stat-box:hover .stat-num {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.stat-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    transition: all 0.2s ease;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: sans-serif;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 30px;
+    background: var(--border-color);
+}
+
+/* --- Estadísticas detalladas --- */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.stats-header h2 {
+    font-size: 1.8rem;
+    color: var(--neon-white);
+    letter-spacing: 1px;
+}
+
+.stats-arrow-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.stats-arrow-btn:hover {
+    background: var(--primary);
+    color: white !important;
+    border-color: var(--primary);
+    transform: translateX(6px);
+}
+
+.stats-cards-wrapper {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    align-items: stretch;
+    gap: 7.5px;
+    padding: 10px;
+    display: flex;
+}
+
+.stats-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    border-color: var(--primary-soft);
+}
+
+.stats-card-header {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--neon-white);
+    font-size: 0.95rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--neon-white);
-    font-size: 1.8rem;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 15;
-    /* por encima del astronauta */
+    gap: 10px;
+    background: var(--bg-secondary);
 }
 
-.profile-avatar:hover .edit-overlay-avatar {
-    opacity: 1;
+.stats-card-header i {
+    color: var(--text-muted);
+}
+
+.stats-card-body {
+    padding: 20px 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.stats-card-body.single-number .num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--neon-white);
+}
+
+.stats-card-body.multi-number {
+    gap: 25px;
+}
+
+.stats-card-body.multi-number div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stats-card-body.multi-number .num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-white);
+}
+
+.stats-card-body.multi-number .lbl {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.stats-main-divider {
+    background: var(--border-color);
+    border-radius: 2px;
+    width: 2px;
+    margin: 0 30px;
+}
+
+.plat-tag {
+    background: var(--primary);
+    color: white;
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
 }
 
 /* ==========================================================================
-   EDITAR PERFIL - ESTILO ADMIN
+   EDITAR PERFIL
    ========================================================================== */
 
 .edit-profile-admin-container {
@@ -1605,7 +1984,6 @@ span.flatpickr-weekday {
     padding: 20px 0;
 }
 
-/* --- HEADER --- */
 .edit-profile-admin-header {
     padding: 25px;
     margin-bottom: 7.5px;
@@ -1680,7 +2058,6 @@ span.flatpickr-weekday {
     letter-spacing: 1px;
 }
 
-/* --- GRID PRINCIPAL --- */
 .edit-profile-admin-grid {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
@@ -1688,7 +2065,6 @@ span.flatpickr-weekday {
     align-items: start;
 }
 
-/* --- COLUMNA IZQUIERDA: FORMULARIO --- */
 .edit-profile-admin-form {
     padding: 15px;
     overflow-y: auto;
@@ -1730,20 +2106,6 @@ span.flatpickr-weekday {
     color: var(--success);
 }
 
-/* --- CORREO BORROSO --- */
-.edit-profile-reveal-hint {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-.edit-profile-email-info {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    margin-top: 5px;
-}
-
-/* --- BOTONES SIDE PANEL --- */
 .edit-profile-admin-side {
     display: flex;
     flex-direction: column;
@@ -1833,7 +2195,6 @@ span.flatpickr-weekday {
     margin: 6px 0;
 }
 
-/* --- INFO LIST --- */
 .edit-profile-admin-info-list {
     display: flex;
     flex-direction: column;
@@ -1862,9 +2223,18 @@ span.flatpickr-weekday {
     color: var(--success);
 }
 
-/* ==========================================================================
-   CORREO BORROSO (reutilizado de los estilos viejos)
-   ========================================================================== */
+.edit-profile-reveal-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.edit-profile-email-info {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
 .email-blurred-container {
     padding: 12px 16px;
     background: var(--bg-secondary);
@@ -1905,9 +2275,6 @@ span.flatpickr-weekday {
     font-weight: 600;
 }
 
-/* ==========================================================================
-   SELECTOR DE COLOR (reutilizado)
-   ========================================================================== */
 .color-picker-container {
     display: flex;
     flex-direction: column;
@@ -2040,9 +2407,6 @@ span.flatpickr-weekday {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* ==========================================================================
-   TEXTAREA DESCRIPCIÓN (reutilizado)
-   ========================================================================== */
 .textarea-wrapper {
     position: relative;
 }
@@ -2094,8 +2458,9 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   MODAL DE PERSONALIZACIÓN Y CARDS
+   MODALES
    ========================================================================== */
+
 .cyber-modal {
     position: fixed;
     top: 0;
@@ -2153,7 +2518,6 @@ span.flatpickr-weekday {
     overflow-y: auto;
 }
 
-/* sistema de grid adaptable */
 .modal-grid {
     display: grid;
     gap: 20px;
@@ -2161,14 +2525,12 @@ span.flatpickr-weekday {
 
 .modal-grid.banner-grid {
     grid-template-columns: repeat(3, 1fr);
-    /* 2 filas de 3 para sumar 6 */
 }
 
 .modal-grid.avatar-grid {
     grid-template-columns: repeat(5, 1fr);
 }
 
-/* tarjetas base */
 .custom-card-item {
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
@@ -2185,14 +2547,11 @@ span.flatpickr-weekday {
 
 .banner-grid .custom-card-item {
     aspect-ratio: 21 / 9;
-    /* proporcion panoramica pa portadas */
 }
 
 .avatar-grid .custom-card-item {
     aspect-ratio: 1 / 1;
-    /* proporcion cuadrada pa avatares */
     border-radius: 50%;
-    /* lo hacemos redondito */
 }
 
 .custom-card-item:hover {
@@ -2207,7 +2566,6 @@ span.flatpickr-weekday {
     object-fit: cover;
 }
 
-/* tarjeta CUSTOM destacada */
 .custom-card-item.special-custom {
     border-style: dashed;
     border-color: var(--primary);
@@ -2240,265 +2598,6 @@ span.flatpickr-weekday {
     font-size: 1.5rem;
 }
 
-/* ==========================================================================
-   ESTADÍSTICAS DEL PERFIL (Siguiendo / Seguidores)
-   ========================================================================== */
-.profile-stats-wrapper {
-    z-index: 20;
-    justify-content: flex-end;
-    margin: 7.5px 0;
-    display: flex;
-    gap: 7.5px;
-    align-items: stretch;
-    position: relative;
-}
-
-/* Modificador especial para este botón en concreto */
-.add-friend-btn {
-    height: auto;
-    /* anulamos sus 42px fijos por defecto para que se estire */
-    width: 50px;
-    /* un poco mas ancho pa que se vea robusto */
-    font-size: 1.2rem;
-    box-shadow: var(--shadow-sm);
-}
-
-.profile-stats {
-    display: flex;
-    align-items: center;
-    background: var(--bg-main);
-    /* fondo oscuro como en tu foto */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px 0;
-    box-shadow: var(--shadow-sm);
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 35px;
-    /* espaciado entre las palabras */
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-/* pequeño efecto al pasar el raton */
-.stat-box:hover .stat-num {
-    color: var(--primary);
-    transform: scale(1.1);
-}
-
-.stat-num {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--neon-white);
-    transition: all 0.2s ease;
-    line-height: 1.2;
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-family: sans-serif;
-    /* para que quede mas neutro como en tu imagen */
-}
-
-.stat-divider {
-    width: 1px;
-    height: 30px;
-    background: var(--border-color);
-    /* la rayita que separa las cajas */
-}
-
-/* ==========================================================================
-   ESTADÍSTICAS DETALLADAS (Cine y Series)
-   ========================================================================== */
-.stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.stats-header h2 {
-    font-size: 1.8rem;
-    color: var(--neon-white);
-    letter-spacing: 1px;
-}
-
-/* flecha elegante y redonda */
-.stats-arrow-btn {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    color: var(--text-muted);
-    transition: all 0.3s ease;
-}
-
-.stats-arrow-btn:hover {
-    background: var(--primary);
-    color: white !important;
-    border-color: var(--primary);
-    transform: translateX(6px);
-    /* efecto de deslizarse hacia la derecha */
-}
-
-/* Contenedor general de las tarjetas */
-.stats-cards-wrapper {
-    background: var(--bg-main);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    align-items: stretch;
-    gap: 7.5px;
-    padding: 10px;
-    display: flex;
-}
-
-.stats-card {
-    flex: 1;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: transform 0.2s ease;
-}
-
-.stats-card:hover {
-    border-color: var(--primary-soft);
-}
-
-.stats-card-header {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--neon-white);
-    font-size: 0.95rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: var(--bg-secondary);
-}
-
-.stats-card-header i {
-    color: var(--text-muted);
-}
-
-.stats-card-body {
-    padding: 20px 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-grow: 1;
-}
-
-.stats-card-body.single-number .num {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--neon-white);
-}
-
-.stats-card-body.multi-number {
-    gap: 25px;
-}
-
-.stats-card-body.multi-number div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.stats-card-body.multi-number .num {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--neon-white);
-}
-
-.stats-card-body.multi-number .lbl {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-
-/* divisor visual gigante entre Series y Peliculas */
-.stats-main-divider {
-    background: var(--border-color);
-    border-radius: 2px;
-    width: 2px;
-    margin: 0 30px;
-}
-
-.plat-tag {
-    background: var(--primary);
-    color: white;
-    font-size: 0.6rem;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: var(--shadow-sm);
-}
-
-/* ==========================================================================
-   DRAWER DE FILTROS — MÓVIL
-   ========================================================================== */
-
-/* Overlay oscuro */
-.filters-overlay {
-    display: none;
-}
-
-/* Fila de cierre dentro del drawer — oculta en desktop */
-.filter-drawer-close-row {
-    display: none;
-}
-
-/* Botón de abrir filtros en móvil — oculto en desktop */
-.btn-mobile-filters {
-    display: none;
-    /* oculto en desktop */
-    align-items: center;
-    justify-content: center;
-    background: var(--primary);
-    border: none;
-    color: #fff;
-    width: 46px;
-    height: 46px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
-}
-
-/* ==========================================================================
-   MODAL DE DETALLES DEL JUEGO (Estilo Playnite)
-   ========================================================================== */
-/* Panel gigante del 90% */
-.game-details-panel {
-    width: 90vw !important;
-    height: 90vh !important;
-    max-width: 1920px !important;
-    max-height: 1080px !important;
-    padding: 0 !important;
-    /* Quitamos padding para que el banner llegue a los bordes */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    background: var(--bg-main) !important;
-}
-
-/* Botón flotante para cerrar */
 .close-floating-btn {
     position: absolute;
     top: 20px;
@@ -2516,7 +2615,23 @@ span.flatpickr-weekday {
     border-color: var(--error);
 }
 
-/* Hero / Banner Superior (Fondo del juego) */
+/* ==========================================================================
+   MODAL DETALLES JUEGO (Playnite)
+   ========================================================================== */
+
+.game-details-panel {
+    width: 90vw !important;
+    height: 90vh !important;
+    max-width: 1920px !important;
+    max-height: 1080px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-main) !important;
+}
+
 .game-hero-section {
     position: relative;
     height: 45vh;
@@ -2531,7 +2646,6 @@ span.flatpickr-weekday {
     flex-shrink: 0;
 }
 
-/* Degradado oscuro para que el título y el cuerpo se fusionen (Esencial para el estilo Playnite) */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
@@ -2559,16 +2673,13 @@ span.flatpickr-weekday {
     margin-top: 15px;
 }
 
-/* Cuerpo del modal desplazable */
 .game-detail-body {
     padding: 0 40px 40px 40px;
     overflow-y: auto;
     flex-grow: 1;
     margin-top: 0;
-    /* Aseguramos que empiece limpio */
 }
 
-/* Fila de 3 columnas (Carátula, Descripción) */
 .game-detail-grid {
     z-index: 10;
     grid-template-columns: 250px 1fr;
@@ -2597,7 +2708,6 @@ span.flatpickr-weekday {
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9);
 }
 
-/* Paneles de información estilo cristal oscurecido */
 .detail-desc-col,
 .detail-advanced-info {
     padding: 10px;
@@ -2620,19 +2730,6 @@ span.flatpickr-weekday {
     padding-bottom: 5px;
 }
 
-/* Cian */
-.bar-extra {
-    background-color: #3f51b5;
-    width: 0%;
-}
-
-/* Azul */
-.bar-comp {
-    background-color: #4caf50;
-    width: 0%;
-}
-
-/* Descripción */
 .desc-scroll-area {
     flex-grow: 1;
     max-height: 220px;
@@ -2645,10 +2742,8 @@ span.flatpickr-weekday {
     line-height: 1.7;
     color: #d1d1e0;
     white-space: pre-wrap;
-    /* Respeta los saltos de línea de la API */
 }
 
-/* Fila de Detalles Avanzados */
 .advanced-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 7.5px;
@@ -2690,11 +2785,867 @@ span.flatpickr-weekday {
     text-overflow: ellipsis;
 }
 
+.bar-extra {
+    background-color: #3f51b5;
+    width: 0%;
+}
+
+.bar-comp {
+    background-color: #4caf50;
+    width: 0%;
+}
+
 /* ==========================================================================
-   PANEL DE ADMINISTRACIÓN (ESTILO CLEAN / NEXUS)
+   MODAL PELIS/SERIES
    ========================================================================== */
 
-/* Efecto hover suave para las tarjetas de métricas (igual que tus juegos) */
+#media-details-modal .modal-content {
+    width: 90vw !important;
+    height: 90dvh !important;
+    max-width: 1920px !important;
+    max-height: 1080px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-main) !important;
+}
+
+#media-detail-hero-bg {
+    position: relative;
+    height: 30vh !important;
+    min-height: 250px !important;
+    background-size: cover;
+    background-position: top center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 25px !important;
+    flex-shrink: 0;
+}
+
+#media-detail-info {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.padded-panel {
+    padding: 10px !important;
+}
+
+.media-top-grid {
+    display: grid;
+    grid-template-columns: 224px 1fr 400px;
+    gap: 15px;
+    margin-top: 10px;
+    position: relative;
+    z-index: 10;
+}
+
+.detail-tech-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.tech-info-content {
+    flex-direction: column;
+    gap: 5px;
+    display: flex;
+}
+
+.tech-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.tech-item i {
+    color: var(--primary);
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.tech-item .watch-status-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.7;
+}
+
+.tech-item .watch-status-text i {
+    color: var(--text-muted);
+}
+
+.tech-item .watch-status-text span {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.tech-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 4px 0;
+}
+
+.placeholder-action {
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+}
+
+.placeholder-action:hover {
+    color: var(--primary);
+}
+
+.media-where-to-watch {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.providers-3col-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7.5px;
+    margin-top: 10px;
+}
+
+.provider-col {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.provider-col-title {
+    text-align: center;
+    font-family: var(--font-cyber);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+    margin-bottom: 5px;
+}
+
+.platform-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    white-space: nowrap;
+}
+
+.platform-btn:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.providers-icon-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 5px;
+}
+
+.provider-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 55px;
+    cursor: pointer;
+}
+
+.provider-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.provider-item:hover .provider-logo {
+    transform: scale(1.1) translateY(-3px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+    border-color: var(--primary);
+}
+
+.provider-price {
+    background-color: var(--primary-soft) !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    padding: 2px 4px;
+    border-radius: 6px !important;
+    font-weight: bold !important;
+    font-size: 0.8rem !important;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.provider-item:hover .provider-price {
+    background-color: var(--primary) !important;
+    color: white !important;
+    box-shadow: 0 0 10px var(--primary-soft);
+}
+
+.providers-icon-grid .no-providers {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 10px 0;
+    width: 100%;
+    text-align: center;
+    display: block;
+}
+
+.media-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.media-trailer-col,
+.media-cast-col,
+.media-rating-col {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.trailer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100%;
+}
+
+.trailer-thumbnail-container {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.trailer-thumbnail-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.trailer-thumbnail-container:hover img {
+    opacity: 1;
+}
+
+.trailer-duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.btn-trailer {
+    padding: 12px !important;
+    background: #FF0000 !important;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3) !important;
+    margin-top: auto;
+}
+
+.btn-trailer:hover {
+    background: #ff3333 !important;
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5) !important;
+}
+
+.cast-carousel {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    height: 100%;
+    align-items: stretch;
+}
+
+cast-carousel::-webkit-scrollbar {
+    height: 4px;
+}
+
+.cast-card {
+    min-width: 105px;
+    max-width: 105px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    height: auto;
+}
+
+.cast-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.cast-img {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.cast-info {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+}
+
+.cast-name {
+    color: var(--neon-white);
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cast-character {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.rating-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    gap: 10px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    padding: 20px;
+}
+
+.rating-score {
+    display: flex;
+    align-items: baseline;
+}
+
+.score-big {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--neon-white);
+    line-height: 1;
+}
+
+.score-max {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-left: 5px;
+    font-weight: 700;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 5px;
+    font-size: 1.8rem;
+    color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.rating-count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* --- Mi valoración personal --- */
+.personal-rating-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.personal-rating-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 5px;
+    background: rgba(99, 102, 241, 0.03);
+    border: 1px dashed var(--primary-soft);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-height: 70px;
+    cursor: pointer;
+}
+
+.personal-rating-content:hover {
+    background: rgba(99, 102, 241, 0.06);
+}
+
+.personal-stars {
+    display: flex;
+    gap: 2px;
+    font-size: 1.8rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.personal-stars i {
+    transition: all 0.15s ease;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1.6rem;
+    position: relative;
+}
+
+.personal-stars i:hover {
+    transform: scale(1.15);
+}
+
+.personal-stars.voted i {
+    color: gold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.personal-stars i.active-star {
+    color: gold !important;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.personal-stars i.half-hover::before {
+    content: '\f5c0';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: gold;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50%;
+    overflow: hidden;
+}
+
+.personal-stars i.half-hover {
+    color: var(--text-muted);
+}
+
+#media-detail-personal-value {
+    display: none;
+}
+
+.media-rating-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+}
+
+.media-rating-col .personal-rating-section,
+.media-rating-col .global-rating-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.media-rating-col .personal-rating-content,
+.media-rating-col .global-rating-mini {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-rating-col>div[style*="height: 1px"] {
+    display: none !important;
+}
+
+.global-rating-mini {
+    padding: 10px !important;
+    background: rgba(99, 102, 241, 0.03) !important;
+    border: 1px dashed var(--primary-soft) !important;
+    border-radius: 8px !important;
+    gap: 5px !important;
+}
+
+.watch-count-badge {
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 12px;
+    margin-left: 6px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px var(--primary-soft);
+    letter-spacing: 0.5px;
+}
+
+/* --- Botón flotante del ojo --- */
+#btn-watch-toggle {
+    position: relative;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--text-muted);
+    backdrop-filter: blur(5px);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 190px;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#btn-watch-toggle:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.08);
+    box-shadow: 0 0 20px var(--primary-soft);
+}
+
+#btn-watch-toggle.watched {
+    background: var(--primary-soft) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+    box-shadow: 0 0 25px #10b98133;
+}
+
+#btn-watch-toggle.watched:hover {
+    background: var(--primary) !important;
+    color: var(--text-main) !important;
+    border-color: var(--success);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+}
+
+#btn-watch-toggle:not(.watched) {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+#btn-watch-toggle .watch-count-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    z-index: 101;
+    background: var(--primary);
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    min-width: 18px;
+    text-align: center;
+    font-family: var(--font-cyber);
+    border: 1px solid var(--bg-main);
+    display: none;
+    animation: pulse-badge 2s infinite;
+}
+
+#btn-watch-toggle.watched .watch-count-badge {
+    background: var(--success);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+#watch-context-menu {
+    position: absolute;
+    top: 230px !important;
+    right: 0;
+    min-width: 180px;
+    z-index: 100;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px 0;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+#watch-context-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+}
+
+#watch-context-menu .theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-family: var(--font-cyber);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: left;
+}
+
+#watch-context-menu .theme-option:hover {
+    background: var(--bg-hover);
+}
+
+#watch-context-menu .dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 6px 0;
+}
+
+/* --- Temporadas y episodios --- */
+.seasons-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.season-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.season-item.active {
+    border-color: var(--primary-soft);
+}
+
+.season-header {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    background: #ffffff05;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+    transition: background .2s;
+    display: flex;
+}
+
+.season-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.season-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.season-title {
+    font-family: var(--font-cyber);
+    color: var(--text-main);
+    font-size: 1.1rem;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.episode-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.season-header .chevron-icon {
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+}
+
+.season-item.active .chevron-icon {
+    transform: rotate(180deg);
+    color: var(--primary);
+}
+
+.season-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: var(--bg-main);
+}
+
+.episodes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7.5px;
+    padding: 10px;
+}
+
+.episode-card {
+    display: flex;
+    gap: 15px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 10px;
+    align-items: flex-start;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.episode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ep-img-container {
+    position: relative;
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+.ep-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ep-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--neon-white);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--primary-soft);
+    z-index: 2;
+}
+
+.ep-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.ep-title {
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ep-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.ep-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ep-overview {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+
+/* ==========================================================================
+   ADMIN PANEL
+   ========================================================================== */
+
 .admin-metrics-grid .game-card {
     transition: transform 0.3s ease, border-color 0.3s ease;
 }
@@ -2704,13 +3655,11 @@ span.flatpickr-weekday {
     border-color: var(--primary);
 }
 
-/* Buscador del panel */
 .admin-search input:focus {
     outline: none;
     border-color: var(--primary);
 }
 
-/* --- TABLA DE USUARIOS --- */
 .cyber-table tbody tr {
     transition: background 0.2s ease, border-left 0.2s ease;
     border-left: 2px solid transparent;
@@ -2719,7 +3668,6 @@ span.flatpickr-weekday {
 .cyber-table tbody tr:hover {
     background: var(--bg-hover);
     border-left: 2px solid var(--primary);
-    /* Una línea sutil a la izquierda al pasar el ratón */
 }
 
 .cyber-table td {
@@ -2729,12 +3677,10 @@ span.flatpickr-weekday {
     vertical-align: middle;
 }
 
-/* --- ACCIONES DE TABLA (ALINEADAS A LA DERECHA) --- */
 .table-actions {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-    /* MAGIA: Esto empuja los botones a la derecha */
 }
 
 .table-actions .action-btn {
@@ -2752,7 +3698,6 @@ span.flatpickr-weekday {
     justify-content: center;
 }
 
-/* Colores elegantes al hacer hover en cada botón */
 .table-actions .action-btn:hover {
     background: var(--bg-hover);
     color: var(--text-main);
@@ -2779,7 +3724,6 @@ span.flatpickr-weekday {
     border-color: var(--error);
 }
 
-/* Colores de estado para el texto de la consola */
 .log-line.system {
     color: var(--secondary);
 }
@@ -2797,10 +3741,9 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   SISTEMA DE NOTIFICACIONES (TOASTS) Y MODAL DE TRANSMISIÓN
+   NOTIFICACIONES (TOASTS)
    ========================================================================== */
 
-/* --- CONTENEDOR FLOTANTE DE NOTIFICACIONES --- */
 .toast-container {
     position: fixed;
     top: 90px;
@@ -2809,19 +3752,15 @@ span.flatpickr-weekday {
     flex-direction: column;
     gap: 12px;
     z-index: 9999;
-    /* Por encima de cualquier modal o scanline */
     pointer-events: none;
-    /* No estorba los clicks de la web a menos que toques el toast */
 }
 
 .toast-wrapper {
     pointer-events: auto;
-    /* Permite hacer click en el toast o cerrarlo */
     animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     transition: all 0.3s ease;
 }
 
-/* Notificación base limpia (inspirada en tu diseño de Uiverse) */
 .toast-alert {
     display: flex;
     align-items: center;
@@ -2830,7 +3769,6 @@ span.flatpickr-weekday {
     min-height: 56px;
     border-radius: 8px;
     background: #232531;
-    /* Fondo exacto de tu paleta elegida */
     padding: 10px 14px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
@@ -2842,7 +3780,6 @@ span.flatpickr-weekday {
     gap: 12px;
 }
 
-/* Contenedor del Icono con Backdrop Blur */
 .toast-icon-bg {
     display: flex;
     align-items: center;
@@ -2859,7 +3796,6 @@ span.flatpickr-weekday {
     height: 20px;
 }
 
-/* Colores específicos de iconos por estado */
 .toast-success .toast-icon-bg {
     color: #2b9875;
 }
@@ -2868,7 +3804,6 @@ span.flatpickr-weekday {
     color: #d65563;
 }
 
-/* Textos internos */
 .toast-text {
     display: flex;
     flex-direction: column;
@@ -2888,7 +3823,6 @@ span.flatpickr-weekday {
     margin: 0;
 }
 
-/* Botón de cerrar de la notificación */
 .toast-close {
     background: transparent;
     border: none;
@@ -2912,12 +3846,14 @@ span.flatpickr-weekday {
     height: 16px;
 }
 
-/* Animación de salida programada */
 .toast-wrapper.toast-leave {
     animation: toastSlideOut 0.25s ease-in forwards;
 }
 
-/* --- ANNOUNCE MODAL --- */
+/* ==========================================================================
+   MODAL ANUNCIO
+   ========================================================================== */
+
 .announce-panel {
     width: 100%;
     max-width: 480px;
@@ -2980,7 +3916,10 @@ span.flatpickr-weekday {
     box-sizing: border-box;
 }
 
-/* --- CYBER SELECT CUSTOM --- */
+/* ==========================================================================
+   CYBER SELECT
+   ========================================================================== */
+
 .cyber-select-wrapper {
     position: relative;
     user-select: none;
@@ -3081,12 +4020,12 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   MODAL AÑADIR CONTACTOS / BUSCADOR DE AMIGOS
+   MODAL AÑADIR AMIGOS
    ========================================================================== */
+
 .add-friend-panel {
     width: 100%;
     max-width: 550px;
-    /* Tamaño perfecto para que el buscador no se vea gigantesco */
     padding: 0;
     border-top: 3px solid var(--primary);
     display: flex;
@@ -3094,7 +4033,6 @@ span.flatpickr-weekday {
     max-height: 85vh;
 }
 
-/* Ajustes de cabecera usando variables limpias */
 .announce-friend-header {
     margin-bottom: 0;
     padding: 24px 30px;
@@ -3107,7 +4045,6 @@ span.flatpickr-weekday {
     box-shadow: 0 0 15px var(--primary-soft);
 }
 
-/* Buscador adaptado */
 .add-friend-search {
     margin: 20px 30px;
     padding: 12px;
@@ -3117,7 +4054,6 @@ span.flatpickr-weekday {
     width: 100%;
 }
 
-/* Área de resultados con scroll */
 .friend-results-scroll-area {
     flex-grow: 1;
     overflow-y: auto;
@@ -3128,7 +4064,6 @@ span.flatpickr-weekday {
     flex-direction: column;
 }
 
-/* Estado vacío (centrado absoluto horizontal y verticalmente) */
 .empty-state-centered {
     position: absolute;
     inset: 0;
@@ -3147,21 +4082,17 @@ span.flatpickr-weekday {
     color: var(--border-light);
 }
 
-/* Grid de resultados (Oculto de base, el JS le dará display: flex) */
 .friend-results-grid {
     flex-direction: column;
     gap: 12px;
     width: 100%;
     z-index: 2;
-    /* Por encima del placeholder vacío */
 }
 
-/* Tarjeta individual de usuario buscado */
 .friend-user-card {
     display: flex;
     align-items: center;
     gap: 7.5px;
-    /* Exactamente lo que pediste entre avatar y texto */
     padding: 12px 18px;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -3176,7 +4107,6 @@ span.flatpickr-weekday {
     box-shadow: var(--shadow-sm);
 }
 
-/* Avatar de la tarjeta */
 .friend-card-avatar {
     width: 45px;
     height: 45px;
@@ -3198,10 +4128,8 @@ span.flatpickr-weekday {
     object-fit: cover;
 }
 
-/* Contenedor del nombre (empuja el botón hacia la derecha) */
 .friend-card-info {
     flex-grow: 1;
-    /* Esto hace que ocupe el espacio central y tire el botón al fondo */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -3215,7 +4143,6 @@ span.flatpickr-weekday {
     margin: 0;
 }
 
-/* Botón de añadir (derecha del todo) */
 .btn-send-request {
     background: var(--primary-soft);
     color: var(--primary);
@@ -3241,8 +4168,9 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   CHATBOX Y NOTIFICACIONES FLOTANTE (ESTILO NEXUS)
+   CHATBOX
    ========================================================================== */
+
 .chatbox-container {
     background-color: var(--bg-card);
     border-left: 1px solid var(--border-color);
@@ -3263,13 +4191,11 @@ span.flatpickr-weekday {
     overflow: hidden;
 }
 
-/* Estado Colapsado */
 .chatbox-container.collapsed {
     height: 51px;
     cursor: pointer;
 }
 
-/* Brillo sutil si pasas el ratón cuando está colapsado */
 .chatbox-container.collapsed:hover .chatbox-nav-bar {
     background-color: var(--bg-hover);
 }
@@ -3282,7 +4208,6 @@ span.flatpickr-weekday {
     align-items: center;
     border-bottom: 1px solid var(--border-color);
     padding: 0;
-    /* Padding a 0 porque las pestañas tienen su propio padding */
 }
 
 .chatbox-tabs {
@@ -3302,7 +4227,6 @@ span.flatpickr-weekday {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Centrado perfecto */
     cursor: pointer;
     transition: all 0.3s ease;
     border-bottom: 2px solid transparent;
@@ -3316,23 +4240,6 @@ span.flatpickr-weekday {
 .chatbox-tab.active {
     color: var(--primary);
     border-bottom-color: var(--primary);
-}
-
-.chatbox-line {
-    position: absolute;
-    width: 16px;
-    height: 2px;
-    background-color: var(--text-muted);
-    border-radius: 30px;
-    transition: background-color 0.2s;
-}
-
-.chatbox-line.one {
-    transform: rotate(45deg);
-}
-
-.chatbox-line.two {
-    transform: rotate(135deg);
 }
 
 .chatbox-view {
@@ -3423,7 +4330,7 @@ span.flatpickr-weekday {
     fill: var(--primary);
 }
 
-/* --- TARJETAS DE ALERTAS / NOTIFICACIONES --- */
+/* --- Notificaciones dentro del chat --- */
 .notifs-area {
     padding: 10px;
     gap: 7.5px;
@@ -3527,10 +4434,9 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   PAGINACIÓN Y BOTONES DE LISTAS SOCIALES
+   LISTAS SOCIALES (Seguidores/Siguiendo)
    ========================================================================== */
 
-/* Hacemos este modal más ancho para que quepan 3 columnas holgadamente */
 .social-list-panel {
     width: 100%;
     max-width: 900px;
@@ -3541,7 +4447,6 @@ span.flatpickr-weekday {
     max-height: 85vh;
 }
 
-/* Forzamos a que este contenedor sea un Grid de 3 columnas */
 #social-list-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -3549,7 +4454,6 @@ span.flatpickr-weekday {
     width: 100%;
 }
 
-/* Estado desactivado para los botones de pasar página */
 .pagination-controls .icon-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -3559,7 +4463,6 @@ span.flatpickr-weekday {
     transform: none !important;
 }
 
-/* Botón rojo para "Dejar de seguir" en la lista */
 .btn-remove-friend {
     background: rgba(239, 68, 68, 0.1);
     color: var(--error);
@@ -3585,1292 +4488,9 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
-   TAGS DINÁMICOS DE CONTENIDO (+18)
+   WATCHLIST (TV Time)
    ========================================================================== */
 
-.nsfw-tag {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    /* A la derecha, opuesto a la nota */
-    background: var(--error);
-    color: white;
-    font-size: 0.65rem;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-weight: 800;
-    z-index: 3;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
-    animation: pulse-border 2s infinite;
-    /* ¡El tag rojo brilla para alertar! */
-}
-
-/* ==========================================================================
-   MODAL DE DETALLES PELIS/SERIES
-   ========================================================================== */
-
-#media-details-modal .modal-content {
-    width: 90vw !important;
-    height: 90dvh !important;
-    max-width: 1920px !important;
-    max-height: 1080px !important;
-    padding: 0 !important;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    background: var(--bg-main) !important;
-}
-
-/* 1. Hero más pequeño */
-#media-detail-hero-bg {
-    position: relative;
-    height: 30vh !important;
-    min-height: 250px !important;
-    background-size: cover;
-    background-position: top center;
-    background-repeat: no-repeat;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 25px !important;
-    flex-shrink: 0;
-}
-
-#media-detail-info {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 15px;
-}
-
-/* 2. Padded panels (Dar aire a los cristales) */
-.padded-panel {
-    padding: 10px !important;
-}
-
-/* --- TOP GRID: Portada, Sinopsis, Detalles --- */
-.media-top-grid {
-    display: grid;
-    grid-template-columns: 224px 1fr 400px;
-    gap: 15px;
-    margin-top: 10px;
-    position: relative;
-    z-index: 10;
-}
-
-.detail-tech-col {
-    display: flex;
-    flex-direction: column;
-}
-
-.tech-info-content {
-    flex-direction: column;
-    gap: 5px;
-    display: flex;
-}
-
-.tech-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    font-size: 0.95rem;
-    color: var(--text-main);
-    line-height: 1.4;
-}
-
-.tech-item i {
-    color: var(--primary);
-    width: 20px;
-    text-align: center;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-/* Estado de visionado - texto estático */
-.tech-item .watch-status-text {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0.7;
-}
-
-.tech-item .watch-status-text i {
-    color: var(--text-muted);
-}
-
-.tech-item .watch-status-text span {
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.tech-divider {
-    height: 1px;
-    background: var(--border-light);
-    margin: 4px 0;
-}
-
-.placeholder-action {
-    cursor: pointer;
-    transition: color 0.2s;
-    user-select: none;
-}
-
-.placeholder-action:hover {
-    color: var(--primary);
-}
-
-/* --- DÓNDE VERLO (Fila central 3 Columnas) --- */
-.media-where-to-watch {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.providers-3col-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 7.5px;
-    margin-top: 10px;
-}
-
-.provider-col {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.provider-col-title {
-    text-align: center;
-    font-family: var(--font-cyber);
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 6px;
-    margin-bottom: 5px;
-}
-
-.platform-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-family: var(--font-cyber);
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
-    color: white;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s ease, filter 0.2s ease;
-    white-space: nowrap;
-}
-
-.platform-btn:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* --- TRÁILER Y VALORACIÓN (Grid Inferior) --- */
-.media-bottom-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.6fr 1fr;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.media-trailer-col,
-.media-cast-col,
-.media-rating-col {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.trailer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    height: 100%;
-}
-
-.trailer-thumbnail-container {
-    position: relative;
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
-    aspect-ratio: 16 / 9;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-}
-
-.trailer-thumbnail-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.8;
-    transition: opacity 0.3s;
-}
-
-.trailer-thumbnail-container:hover img {
-    opacity: 1;
-}
-
-.trailer-duration {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.8rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.btn-trailer {
-    padding: 12px !important;
-    background: #FF0000 !important;
-    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3) !important;
-    margin-top: auto;
-}
-
-.btn-trailer:hover {
-    background: #ff3333 !important;
-    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5) !important;
-}
-
-.cast-carousel {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    height: 100%;
-    /* MAGIA: 'stretch' fuerza a todos los hijos a tener la misma altura máxima */
-    align-items: stretch;
-}
-
-cast-carousel::-webkit-scrollbar {
-    height: 4px;
-}
-
-/* Tarjeta individual del Actor */
-.cast-card {
-    min-width: 105px;
-    max-width: 105px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease, border-color 0.2s ease;
-    height: auto;
-    /* Se adapta a la altura del stretch */
-}
-
-.cast-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--primary);
-    box-shadow: var(--shadow-sm);
-}
-
-.cast-img {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-light);
-    flex-shrink: 0;
-    /* Evita que la imagen se encoja para dejar espacio al texto */
-}
-
-.cast-info {
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex-grow: 1;
-    /* Obliga al contenedor de texto a estirarse hasta el final de la tarjeta */
-}
-
-/* Nombre real (Blanco) */
-.cast-name {
-    color: var(--neon-white);
-    font-family: var(--font-cyber);
-    font-size: 0.85rem;
-    font-weight: 700;
-    line-height: 1.1;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Nombre en la película (Gris) */
-.cast-character {
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.rating-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    gap: 10px;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    border: 1px solid var(--border-light);
-    padding: 20px;
-}
-
-.rating-score {
-    display: flex;
-    align-items: baseline;
-}
-
-.score-big {
-    font-size: 4rem;
-    font-weight: 800;
-    color: var(--neon-white);
-    line-height: 1;
-}
-
-.score-max {
-    font-size: 1.2rem;
-    color: var(--text-muted);
-    margin-left: 5px;
-    font-weight: 700;
-}
-
-.rating-stars {
-    display: flex;
-    gap: 5px;
-    font-size: 1.8rem;
-    color: gold;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-}
-
-.rating-count {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-/* ==========================================================================
-   MI VALORACIÓN PERSONAL Y ESTADO DE VISIONADO
-   ========================================================================== */
-
-/* Panel de "Mi Valoración" */
-.personal-rating-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 15px;
-    background: rgba(99, 102, 241, 0.05);
-    /* Un fondo muy suave del color primario */
-    border: 1px dashed var(--primary-soft);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.personal-rating-content:hover {
-    background: rgba(99, 102, 241, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-}
-
-.personal-score-box .score-big {
-    font-size: 3rem;
-    line-height: 1;
-}
-
-/* Estrellas personales (Apagadas por defecto) */
-.personal-stars {
-    color: var(--text-muted);
-    font-size: 1.4rem;
-    transition: color 0.3s;
-}
-
-/* Cuando el usuario haya votado, se encenderán */
-.personal-stars.voted {
-    color: gold;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-}
-
-/* Reducimos el panel Global para darle protagonismo al Personal */
-.global-rating-mini {
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    gap: 2px !important;
-}
-
-/* Badge de las veces vistas (el x2, x3...) */
-.watch-count-badge {
-    background: var(--primary);
-    color: white;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 12px;
-    margin-left: 6px;
-    vertical-align: middle;
-    box-shadow: 0 0 8px var(--primary-soft);
-    letter-spacing: 0.5px;
-}
-
-/* ==========================================================================
-   BOTÓN FLOTANTE DEL OJO (ESTADO DE VISIONADO)
-   ========================================================================== */
-
-/* Botón flotante del ojo */
-#btn-watch-toggle {
-    position: relative;
-    z-index: 10;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid var(--text-muted);
-    backdrop-filter: blur(5px);
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 190px;
-    color: white;
-    font-size: 1.3rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-#btn-watch-toggle:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    transform: scale(1.08);
-    box-shadow: 0 0 20px var(--primary-soft);
-}
-
-/* Estado VISTO (verde) */
-#btn-watch-toggle.watched {
-    background: var(--primary-soft) !important;
-    border-color: var(--primary) !important;
-    color: var(--primary) !important;
-    box-shadow: 0 0 25px #10b98133;
-}
-
-#btn-watch-toggle.watched:hover {
-    background: var(--primary) !important;
-    color: var(--text-main) !important;
-    border-color: var(--success);
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
-}
-
-/* Estado "No visto" - Ojo tachado (default) */
-#btn-watch-toggle:not(.watched) {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Menú contextual del ojo */
-#watch-context-menu {
-    position: absolute;
-    top: 230px !important;
-    right: 0;
-    min-width: 180px;
-    z-index: 100;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 8px 0;
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(10px);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-}
-
-#watch-context-menu.show {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
-}
-
-#watch-context-menu .theme-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 18px;
-    width: 100%;
-    background: none;
-    border: none;
-    color: var(--text-main);
-    font-family: var(--font-cyber);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: left;
-}
-
-#watch-context-menu .theme-option:hover {
-    background: var(--bg-hover);
-}
-
-#watch-context-menu .dropdown-divider {
-    height: 1px;
-    background: var(--border-color);
-    margin: 6px 0;
-}
-
-/* Badge de veces vistas (x2, x3, +20) */
-#btn-watch-toggle .watch-count-badge {
-    position: absolute;
-    bottom: -4px;
-    right: -4px;
-    z-index: 101;
-    background: var(--primary);
-    color: white;
-    font-size: 0.55rem;
-    font-weight: 800;
-    padding: 2px 5px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    min-width: 18px;
-    text-align: center;
-    font-family: var(--font-cyber);
-    border: 1px solid var(--bg-main);
-    display: none;
-    /* Oculto por defecto, se muestra con JS */
-    animation: pulse-badge 2s infinite;
-}
-
-/* Cuando el botón está en estado "VISTO" (verde) */
-#btn-watch-toggle.watched .watch-count-badge {
-    background: var(--success);
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
-}
-
-/* ==========================================================================
-   ESTRELLAS INTERACTIVAS (HOVER Y CLICK PARA VALORAR)
-   ========================================================================== */
-
-/* Estrellas personales con hover de media estrella */
-.personal-stars {
-    display: flex;
-    gap: 2px;
-    font-size: 1.8rem;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-}
-
-.personal-stars i {
-    transition: all 0.15s ease;
-    cursor: pointer;
-    color: var(--text-muted);
-    font-size: 1.6rem;
-    position: relative;
-}
-
-/* Efecto hover - se iluminan y crecen */
-.personal-stars i:hover {
-    transform: scale(1.15);
-}
-
-/* Estrellas activas (votadas) */
-.personal-stars.voted i {
-    color: gold;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-/* Hover que ilumina SOLO la estrella bajo el cursor (sin medias) */
-.personal-stars i.active-star {
-    color: gold !important;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-}
-
-/* Para hover de media estrella: usamos pseudo-elementos */
-.personal-stars i.half-hover::before {
-    content: '\f5c0';
-    /* fa-star-half-alt */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    color: gold;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 50%;
-    overflow: hidden;
-}
-
-.personal-stars i.half-hover {
-    color: var(--text-muted);
-}
-
-/* Panel de valoración personal - más compacto */
-.personal-rating-section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.personal-rating-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 5px;
-    background: rgba(99, 102, 241, 0.03);
-    border: 1px dashed var(--primary-soft);
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    min-height: 70px;
-    cursor: pointer;
-}
-
-.personal-rating-content:hover {
-    background: rgba(99, 102, 241, 0.06);
-}
-
-/* Sección global - más compacta */
-.global-rating-section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.global-rating-mini {
-    padding: 5px !important;
-    background: transparent !important;
-    border: none !important;
-    gap: 2px !important;
-}
-
-/* Ocultar el número de nota personal (ya no lo usamos) */
-#media-detail-personal-value {
-    display: none;
-}
-
-/* Columna de valoración dividida en dos divs con gap */
-.media-rating-col {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 15px !important;
-}
-
-.media-rating-col .personal-rating-section,
-.media-rating-col .global-rating-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Asegurar que el contenido se estire correctamente */
-.media-rating-col .personal-rating-content,
-.media-rating-col .global-rating-mini {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Eliminar el separador que ya no necesitas (ahora usamos gap) */
-.media-rating-col>div[style*="height: 1px"] {
-    display: none !important;
-}
-
-/* Ajustar el panel global para que ocupe todo el espacio */
-.global-rating-mini {
-    padding: 10px !important;
-    background: rgba(99, 102, 241, 0.03) !important;
-    border: 1px dashed var(--primary-soft) !important;
-    border-radius: 8px !important;
-    gap: 5px !important;
-}
-
-/* ==========================================================================
-   TEMPORADAS Y EPISODIOS (ACORDEÓN PARA SERIES)
-   ========================================================================== */
-
-.seasons-accordion {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-/* Contenedor de la temporada completa */
-.season-item {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.3s;
-}
-
-.season-item.active {
-    border-color: var(--primary-soft);
-}
-
-/* Cabecera clicable (Botón de la temporada) */
-.season-header {
-    cursor: pointer;
-    -webkit-user-select: none;
-    user-select: none;
-    background: #ffffff05;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 10px;
-    transition: background .2s;
-    display: flex;
-}
-
-.season-header:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.season-header-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.season-title {
-    font-family: var(--font-cyber);
-    color: var(--text-main);
-    font-size: 1.1rem;
-    margin: 0;
-    letter-spacing: 0.5px;
-}
-
-.episode-count {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.season-header .chevron-icon {
-    color: var(--text-muted);
-    transition: transform 0.3s ease;
-}
-
-.season-item.active .chevron-icon {
-    transform: rotate(180deg);
-    color: var(--primary);
-}
-
-/* Contenedor expandible (Cuerpo del acordeón) */
-.season-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    /* Animación super suave */
-    background: var(--bg-main);
-}
-
-.episodes-list {
-    display: flex;
-    flex-direction: column;
-    gap: 7.5px;
-    padding: 10px;
-}
-
-/* Tarjeta individual de Episodio */
-.episode-card {
-    display: flex;
-    gap: 15px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    overflow: hidden;
-    padding: 10px;
-    align-items: flex-start;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.episode-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.ep-img-container {
-    position: relative;
-    width: 120px;
-    flex-shrink: 0;
-    border-radius: 6px;
-    overflow: hidden;
-    aspect-ratio: 16 / 9;
-}
-
-.ep-img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* El E1, E2, E3... que sale sobre la foto */
-.ep-number {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    background: rgba(0, 0, 0, 0.8);
-    color: var(--neon-white);
-    font-family: var(--font-cyber);
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--primary-soft);
-    z-index: 2;
-}
-
-.ep-info {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex-grow: 1;
-    overflow: hidden;
-}
-
-.ep-title {
-    color: var(--text-main);
-    font-size: 0.95rem;
-    font-weight: bold;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ep-meta {
-    display: flex;
-    gap: 15px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.ep-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* La sinopsis del episodio cortada a 2 líneas */
-.ep-overview {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin: 0;
-}
-
-/* ==========================================================================
-   NUEVO SISTEMA DE PROVEEDORES STREAMING (ICONOS TIPO JUSTWATCH)
-   ========================================================================== */
-.providers-icon-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 5px;
-}
-
-.provider-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    width: 55px;
-    /* Ancho fijo para alinear textos debajo */
-    cursor: pointer;
-}
-
-.provider-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    /* Borde redondeado suave */
-    object-fit: cover;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.provider-item:hover .provider-logo {
-    transform: scale(1.1) translateY(-3px);
-    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
-    /* Brillo morado suave */
-    border-color: var(--primary);
-}
-
-.provider-price {
-    background-color: var(--primary-soft) !important;
-    border: 1px solid var(--primary) !important;
-    color: var(--primary) !important;
-    padding: 2px 4px;
-    border-radius: 6px !important;
-    font-weight: bold !important;
-    font-size: 0.8rem !important;
-    text-align: center;
-    transition: all 0.2s ease;
-}
-
-.provider-item:hover .provider-price {
-    background-color: var(--primary) !important;
-    color: white !important;
-    box-shadow: 0 0 10px var(--primary-soft);
-}
-
-/* Ajuste para el texto de "No disponible" */
-.providers-icon-grid .no-providers {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    font-style: italic;
-    padding: 10px 0;
-    width: 100%;
-    text-align: center;
-    display: block;
-}
-
-/* ==========================================================================
-   VISTA DE JUEGOS MEJORADA & HISTORIAL DE BÚSQUEDA - ESTILO 3: NEXUS EDITION
-   ========================================================================== */
-
-/* --- SEARCH BOX --- */
-.search-box {
-    position: relative;
-    background: var(--glass-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    gap: 8px;
-    margin-bottom: 10px;
-    padding: 12px 14px;
-    display: flex;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.search-box:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.search-box input {
-    flex: 1;
-    min-width: 0;
-    background: transparent;
-    border: none;
-    padding: 10px 4px;
-    color: var(--text-main);
-    font-family: var(--font-cyber);
-    font-size: 0.95rem;
-    outline: none;
-    transition: 0.3s;
-}
-
-.search-box input::placeholder {
-    color: var(--text-muted);
-    opacity: 0.5;
-    transition: opacity 0.3s;
-}
-
-.search-box input:focus::placeholder {
-    opacity: 0.2;
-}
-
-.search-box input:focus {
-    border: none;
-    box-shadow: none;
-}
-
-.search-box button:not(.btn-mobile-filters) {
-    background: var(--primary);
-    border: none;
-    color: #fff;
-    padding: 0 22px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
-}
-
-.search-box button:hover {
-    background: var(--primary-hover);
-    transform: scale(1.02);
-    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.3);
-}
-
-.search-box button:active {
-    transform: scale(0.98);
-}
-
-/* --- HISTORIAL DE BÚSQUEDA --- */
-.search-history-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 6px 0;
-    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(99, 102, 241, 0.02);
-    z-index: 999999 !important;
-    max-height: 260px;
-    overflow-y: auto;
-    display: none;
-    min-width: 0;
-    box-sizing: border-box;
-    animation: minimalSlideDown 0.15s ease forwards;
-    backdrop-filter: blur(12px);
-}
-
-/* --- HEADER --- */
-.search-history-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.search-history-header span {
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* --- BOTÓN LIMPIAR TODO (VERSIÓN CLARA) --- */
-.search-history-clear-all {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary) !important;
-    /* FORZADO: texto claro */
-    cursor: pointer;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 4px 14px;
-    border-radius: 20px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: var(--font-cyber);
-}
-
-.search-history-clear-all i {
-    font-size: 0.6rem;
-    color: var(--text-secondary) !important;
-    /* FORZADO: icono claro */
-    opacity: 0.7;
-    transition: all 0.25s ease;
-}
-
-.search-history-clear-all span {
-    color: var(--text-secondary) !important;
-    /* FORZADO: texto claro */
-}
-
-.search-history-clear-all:hover {
-    border-color: var(--error);
-    color: var(--error) !important;
-    background: rgba(239, 68, 68, 0.06);
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08), inset 0 0 20px rgba(239, 68, 68, 0.02);
-    transform: translateY(-1px);
-}
-
-.search-history-clear-all:hover i {
-    color: var(--error) !important;
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.search-history-clear-all:hover span {
-    color: var(--error) !important;
-}
-
-.search-history-clear-all:active {
-    transform: scale(0.95);
-}
-
-/* --- ITEMS DEL HISTORIAL --- */
-.search-history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 16px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    gap: 8px;
-    border-left: 2px solid transparent;
-}
-
-.search-history-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-main);
-    border-left-color: var(--primary);
-    padding-left: 14px;
-}
-
-.search-history-item span {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-secondary);
-}
-
-.search-history-item span i {
-    color: var(--text-muted);
-    opacity: 0.5;
-    font-size: 0.7rem;
-    flex-shrink: 0;
-    transition: opacity 0.2s, color 0.2s;
-}
-
-.search-history-item:hover span i {
-    opacity: 0.8;
-    color: var(--primary);
-}
-
-/* --- BOTÓN ELIMINAR (X) --- */
-.search-history-delete {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: all 0.15s ease;
-    font-size: 0.7rem;
-    flex-shrink: 0;
-    opacity: 0.4;
-}
-
-.search-history-item:hover .search-history-delete {
-    opacity: 1;
-}
-
-.search-history-delete:hover {
-    background: rgba(239, 68, 68, 0.08);
-    color: var(--error);
-    opacity: 1;
-}
-
-.search-history-delete i {
-    color: var(--text-muted);
-    transition: color 0.2s;
-}
-
-.search-history-delete:hover i {
-    color: var(--error);
-}
-
-/* --- BADGE DE BÚSQUEDA RECIENTE (Opcional) --- */
-.search-history-item .badge-recent {
-    font-size: 0.5rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 10px;
-    border-radius: 10px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    border: 1px solid rgba(99, 102, 241, 0.1);
-    text-transform: uppercase;
-    margin-left: auto;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
-
-/* --- MODO CLARO AJUSTES FINOS --- */
-:root[data-theme="light"] .search-history-dropdown {
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.95);
-}
-
-:root[data-theme="light"] .search-history-clear-all {
-    color: var(--text-secondary) !important;
-    border-color: var(--border-color);
-}
-
-:root[data-theme="light"] .search-history-clear-all i {
-    color: var(--text-secondary) !important;
-}
-
-:root[data-theme="light"] .search-history-clear-all:hover {
-    color: var(--error) !important;
-    border-color: var(--error);
-}
-
-:root[data-theme="light"] .search-history-clear-all:hover i {
-    color: var(--error) !important;
-}
-
-/* ==========================================================================
-   WATCHLIST (Estilo TV Time) — Sección perfil
-   ========================================================================== */
-
-/* ==========================================================================
-   GRID DE MÓDULOS DEL PERFIL (Izquierda y Derecha)
-   ========================================================================== */
 .profile-modules-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -4879,7 +4499,6 @@ cast-carousel::-webkit-scrollbar {
     align-items: start;
 }
 
-/* Reseteamos el margen superior porque ahora lo controla el grid padre */
 .watchlist-section,
 .recommendations-section {
     margin-top: 0;
@@ -4887,16 +4506,13 @@ cast-carousel::-webkit-scrollbar {
     min-width: 0;
 }
 
-/* Tabs: LISTA PENDIENTE + Botón Grid */
 .watchlist-tabs {
     display: flex;
     align-items: center;
-    /* Alinea verticalmente el texto y el botón */
     border-bottom: 2px solid var(--border-color);
     margin-bottom: 16px;
 }
 
-/* Empujamos el botón a la derecha y le damos un poco de margen inferior */
 #btn-watchlist-toggle-grid {
     margin-left: auto;
     margin-bottom: 4px;
@@ -4960,7 +4576,6 @@ cast-carousel::-webkit-scrollbar {
     color: var(--primary);
 }
 
-/* Loading spinner */
 .watchlist-loading {
     text-align: center;
     padding: 40px;
@@ -4968,7 +4583,6 @@ cast-carousel::-webkit-scrollbar {
     font-size: 1.5rem;
 }
 
-/* Separador de sección dentro de la lista */
 .watchlist-divider {
     text-align: center;
     margin: 8px 0;
@@ -4987,7 +4601,6 @@ cast-carousel::-webkit-scrollbar {
     border-radius: 20px;
 }
 
-/* Contenedor principal de la lista */
 .watchlist-list {
     flex-direction: column;
     gap: 12px;
@@ -4997,16 +4610,12 @@ cast-carousel::-webkit-scrollbar {
     overflow-y: auto !important;
 }
 
-/* Modo Cuadrícula (se activa por JS con el botón de la derecha) */
 .watchlist-list.watchlist-grid-mode {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 16px;
 }
 
-/* ==========================================================================
-   Tarjeta de episodio (GRID / LISTA)
-   ========================================================================== */
 .watchlist-item {
     position: relative;
     border: 1px solid var(--border-color);
@@ -5024,7 +4633,6 @@ cast-carousel::-webkit-scrollbar {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* Capa de fondo con la imagen difuminada y degradado oscuro */
 .watchlist-item-bg {
     position: absolute;
     top: 0;
@@ -5035,12 +4643,10 @@ cast-carousel::-webkit-scrollbar {
     background-position: center;
     opacity: 0.25;
     z-index: 0;
-    /* Degradado para que la parte derecha sea más oscura y se lea el texto */
     mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 60%);
     -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 60%);
 }
 
-/* Contenedor Flex para el contenido que va SOBRE el fondo */
 .watchlist-item-content {
     position: relative;
     z-index: 1;
@@ -5049,7 +4655,6 @@ cast-carousel::-webkit-scrollbar {
     width: 100%;
 }
 
-/* Thumbnail izquierda (Poster) */
 .watchlist-thumb {
     background: var(--bg-elevated);
     border: 1px solid #ffffff1a;
@@ -5079,12 +4684,10 @@ cast-carousel::-webkit-scrollbar {
     font-size: 1.4rem;
 }
 
-/* Textos centrales */
 .watchlist-info {
     flex: 1;
     padding: 10px 14px 10px 4px;
     min-width: 0;
-    /* Necesario para que el text-overflow funcione con flexbox */
 }
 
 .watchlist-show-name {
@@ -5100,7 +4703,6 @@ cast-carousel::-webkit-scrollbar {
     overflow: hidden;
     text-overflow: ellipsis;
     transition: color 0.2s;
-    /* Reseteamos los estilos de botón antiguo para dejar el texto limpio */
     background: transparent;
     border: none;
     padding: 0;
@@ -5142,7 +4744,6 @@ cast-carousel::-webkit-scrollbar {
     text-overflow: ellipsis;
 }
 
-/* Botón check derecha */
 .watchlist-check-btn {
     flex-shrink: 0;
     width: 36px;
@@ -5150,7 +4751,6 @@ cast-carousel::-webkit-scrollbar {
     border-radius: 50%;
     border: 2px solid var(--border-light);
     background: rgba(0, 0, 0, 0.4);
-    /* Fondo traslúcido para destacar sobre la imagen */
     color: var(--text-muted);
     display: flex;
     align-items: center;
@@ -5174,7 +4774,6 @@ cast-carousel::-webkit-scrollbar {
     background: rgba(16, 185, 129, 0.2);
 }
 
-/* Estado vacío */
 .watchlist-empty {
     margin-top: 80px;
     text-align: center;
@@ -5195,14 +4794,12 @@ cast-carousel::-webkit-scrollbar {
     letter-spacing: 1px;
 }
 
-/* Efecto hover en los checks de Temporada y Episodios */
 .btn-watch-season:hover,
 .btn-watch-episode:hover {
     border-color: var(--primary) !important;
     color: var(--primary) !important;
 }
 
-/* Watchlist TV Time: Botón de check y estado Activo/Visto */
 .watchlist-check-btn:hover,
 .watchlist-check-btn.checked {
     border-color: var(--primary) !important;
@@ -5210,21 +4807,33 @@ cast-carousel::-webkit-scrollbar {
     background: var(--primary-soft) !important;
 }
 
+/* ==========================================================================
+   DIBUJO DE FILTROS - MÓVIL
+   ========================================================================== */
 
+.filters-overlay {
+    display: none;
+}
 
+.filter-drawer-close-row {
+    display: none;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
+.btn-mobile-filters {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
 
 
 
@@ -5300,10 +4909,138 @@ cast-carousel::-webkit-scrollbar {
 
 
 /* ==========================================================================
-   RESPONSIVE (MÓVILES Y TABLETS)
+   KEYFRAMES Y ANIMACIONES
    ========================================================================== */
 
-/* ===== MODO SISTEMA (detecta navegador) ===== */
+@keyframes slideInMenu {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOverlay {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+@keyframes pulse-border {
+    0% {
+        border-color: rgba(239, 68, 68, 1);
+        opacity: 1;
+    }
+
+    50% {
+        border-color: rgba(239, 68, 68, 0.3);
+        opacity: 0.6;
+    }
+
+    100% {
+        border-color: rgba(239, 68, 68, 1);
+        opacity: 1;
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(60px) scale(0.9);
+    }
+}
+
+@keyframes selectOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes chatboxPopup {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes pulse-badge {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes minimalSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
 @media (prefers-color-scheme: dark) {
     :root[data-theme="system"] {
         --bg-main: #0a0a0f;
@@ -5380,7 +5117,7 @@ cast-carousel::-webkit-scrollbar {
     }
 }
 
-/* ===== TABLETS Y PANTALLAS PEQUEÑAS (Max 1100px) ===== */
+/* ===== TABLETS (max 1100px) ===== */
 @media (max-width: 1100px) {
     .cyber-container {
         padding: 10px;
@@ -5405,10 +5142,8 @@ cast-carousel::-webkit-scrollbar {
         right: 0;
     }
 
-    /* CUANDO SE ABRE EL MENÚ */
     .filter-sidebar.drawer-open {
         display: flex;
-        /* Vuelve a existir en la web */
         flex-direction: column;
         animation: slideInMenu 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
@@ -5443,7 +5178,6 @@ cast-carousel::-webkit-scrollbar {
 
     .detail-desc-col {
         grid-column: 1 / -1;
-        /* Descripción pasa abajo ocupando todo el ancho */
     }
 
     .hero-content-centered {
@@ -5466,7 +5200,6 @@ cast-carousel::-webkit-scrollbar {
         height: 350px !important;
     }
 
-
     #social-list-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -5476,13 +5209,11 @@ cast-carousel::-webkit-scrollbar {
         gap: 20px;
     }
 
-    /* ===== EDITAR PERFIL (Tablets) ===== */
     .edit-profile-admin-grid {
         grid-template-columns: 1fr;
         gap: 20px;
     }
 
-    /* En pantallas medianas/pequeñas, pasamos de 2 columnas a 1 apilada */
     .profile-modules-grid {
         grid-template-columns: 1fr;
         gap: 40px;
@@ -5493,7 +5224,7 @@ cast-carousel::-webkit-scrollbar {
     }
 }
 
-/* ===== MÓVILES GRANDES Y TABLETS VERTICALES (Max 768px) ===== */
+/* ===== MÓVILES (max 768px) ===== */
 @media (max-width: 768px) {
     .cyber-container {
         margin-top: 105px;
@@ -5520,12 +5251,10 @@ cast-carousel::-webkit-scrollbar {
         font-size: 1.2rem;
     }
 
-    /* Menú superior */
     .nav-links {
         gap: 15px;
         padding: 8px 12px;
         flex-wrap: wrap;
-        /* Deja que bajen de línea si no caben */
     }
 
     .nav-links a {
@@ -5542,12 +5271,10 @@ cast-carousel::-webkit-scrollbar {
         gap: 12px;
     }
 
-    /* PERFIL RESPONSIVE */
     .profile-banner {
         height: 220px;
     }
 
-    /* Portada más baja en móvil */
     .profile-avatar {
         width: 90px;
         height: 90px;
@@ -5565,7 +5292,6 @@ cast-carousel::-webkit-scrollbar {
         font-size: 1.5rem;
     }
 
-    /* Modales de personalización a menos columnas */
     .modal-grid.banner-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -5574,7 +5300,6 @@ cast-carousel::-webkit-scrollbar {
         grid-template-columns: repeat(3, 1fr);
     }
 
-    /* Estadísticas Detalladas: Pasamos el grid a columna única */
     .stats-cards-wrapper {
         flex-direction: column;
         gap: 15px;
@@ -5591,12 +5316,9 @@ cast-carousel::-webkit-scrollbar {
         gap: 15px;
     }
 
-    /* 1. Ocultamos la carátula grande en móviles */
     .detail-cover-col {
         display: none;
     }
-
-    /* (Borramos la clase .game-cover-large que tenías aquí porque ya no hace falta) */
 
     .game-detail-body {
         border-top: 1px solid var(--border-color);
@@ -5605,25 +5327,18 @@ cast-carousel::-webkit-scrollbar {
 
     .advanced-grid {
         grid-template-columns: 1fr;
-        /* Lista de 1 columna */
     }
 
-    /* 2. Arreglamos los textos largos para que bajen de línea */
     .advanced-item {
         align-items: flex-start;
-        /* Mantiene el icono alineado arriba cuando el texto baja */
     }
 
     .adv-value {
         white-space: normal;
-        /* Le damos permiso para saltar a la línea de abajo */
         word-break: break-word;
-        /* Evita que palabras súper largas rompan la pantalla */
         overflow: visible;
-        /* Quitamos el ocultamiento */
     }
 
-    /* --- ADMIN PANEL (MÓVILES) --- */
     .hero-section.glass-panel {
         padding: 25px 20px !important;
         flex-direction: column;
@@ -5662,9 +5377,6 @@ cast-carousel::-webkit-scrollbar {
         grid-template-columns: 1fr;
     }
 
-    /* ===== AJUSTES MODAL PELIS/SERIES EN TABLETS (768px) ===== */
-
-    /* Botón del ojo - más pequeño y más arriba */
     #btn-watch-toggle {
         margin-top: 130px !important;
         width: 35px !important;
@@ -5672,30 +5384,25 @@ cast-carousel::-webkit-scrollbar {
         font-size: 1.1rem !important;
     }
 
-    /* Menú contextual del ojo - más arriba también */
     #watch-context-menu {
         top: 160px !important;
     }
 
-    /* Dónde verlo - pasamos de 3 columnas a 1 columna vertical */
     .providers-3col-grid {
         grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
 
-    /* Las columnas de proveedores se apilan verticalmente */
     .provider-col {
         padding: 10px !important;
     }
 
-    /* Los botones de plataformas se vuelven más pequeños en móvil */
     .platform-btn {
         font-size: 0.75rem !important;
         padding: 6px 8px !important;
         white-space: normal !important;
     }
 
-    /* Ajuste episodios en móvil */
     .episode-card {
         flex-direction: column;
         padding: 15px;
@@ -5707,7 +5414,6 @@ cast-carousel::-webkit-scrollbar {
         margin: 0 auto;
     }
 
-    /* ===== EDITAR PERFIL (Móviles grandes) ===== */
     .edit-profile-admin-header {
         flex-direction: column;
         align-items: flex-start !important;
@@ -5798,7 +5504,6 @@ cast-carousel::-webkit-scrollbar {
         padding: 6px 12px;
     }
 
-
     .watchlist-tab {
         font-size: 0.8rem;
         padding: 10px 14px;
@@ -5825,7 +5530,6 @@ cast-carousel::-webkit-scrollbar {
         flex-wrap: wrap;
     }
 
-    /* ===== WATCHLIST RESPONSIVE (Ocultar Grid en móvil) ===== */
     #btn-watchlist-toggle-grid {
         display: none !important;
     }
@@ -5841,10 +5545,8 @@ cast-carousel::-webkit-scrollbar {
     }
 }
 
-/* ===== MÓVILES ESTÁNDAR Y PEQUEÑOS (Max 600px) ===== */
+/* ===== MÓVILES PEQUEÑOS (max 600px) ===== */
 @media (max-width: 600px) {
-
-    /* Auth */
     .fields-row {
         grid-template-columns: 1fr;
     }
@@ -5853,7 +5555,6 @@ cast-carousel::-webkit-scrollbar {
         padding: 28px 20px;
     }
 
-    /* Stats debajo de la portada */
     .profile-stats-wrapper {
         margin-top: 50px;
         flex-direction: column-reverse;
@@ -5873,7 +5574,6 @@ cast-carousel::-webkit-scrollbar {
         font-size: 0.65rem;
     }
 
-    /* Modales */
     .modal-content {
         width: 95%;
         padding: 10px;
@@ -5918,7 +5618,6 @@ cast-carousel::-webkit-scrollbar {
         padding: 4px 8px;
     }
 
-    /* DRAWER DE FILTROS */
     .filters-overlay {
         display: none;
         position: fixed;
@@ -6046,7 +5745,6 @@ cast-carousel::-webkit-scrollbar {
         height: 30px;
     }
 
-    /* ===== EDITAR PERFIL (Móviles pequeños) ===== */
     .edit-profile-admin-form {
         padding: 10px !important;
     }
@@ -6110,131 +5808,5 @@ cast-carousel::-webkit-scrollbar {
 
     .search-history-clear-all {
         font-size: 0.6rem;
-    }
-}
-
-@keyframes slideInMenu {
-    from {
-        transform: translateX(100%);
-    }
-
-    to {
-        transform: translateX(0);
-    }
-}
-
-@keyframes fadeOverlay {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-    }
-
-    70% {
-        box-shadow: 0 0 0 12px rgba(16, 185, 129, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-    }
-}
-
-@keyframes pulse-border {
-    0% {
-        border-color: rgba(239, 68, 68, 1);
-        opacity: 1;
-    }
-
-    50% {
-        border-color: rgba(239, 68, 68, 0.3);
-        opacity: 0.6;
-    }
-
-    100% {
-        border-color: rgba(239, 68, 68, 1);
-        opacity: 1;
-    }
-}
-
-@keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(40px) scale(0.9);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
-
-@keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(60px) scale(0.9);
-    }
-}
-
-@keyframes selectOpen {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes chatboxPopup {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Animación sutil del badge */
-@keyframes pulse-badge {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-@keyframes minimalSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
