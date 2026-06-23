@@ -4569,6 +4569,9 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     }
 
     window.refrescarUIEpisodiosYTemporadas();
+
+    // --- Sincronizar Watchlist al instante ---
+    if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
 };
 
 // 3. LISTENERS GLOBALES (Clics de UI)
@@ -4621,6 +4624,9 @@ document.addEventListener('click', async (e) => {
             await supabase.from('user_media').delete().eq('user_id', session.user.id).eq('media_id', mediaId).eq('tipo', 'tv_episode');
             window.episodiosVistosActuales.delete(`${season}_${episode}`);
             window.refrescarUIEpisodiosYTemporadas();
+
+            // Sincronizar
+            if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
         } else {
             // Marcar este y TODOS LOS ANTERIORES (Magia cascada)
             const miId = session.user.id;
@@ -4647,6 +4653,9 @@ document.addEventListener('click', async (e) => {
             }
             window.refrescarUIEpisodiosYTemporadas();
             showToast('success', 'Progreso guardado', `Visto hasta T${season} - E${episode}`);
+
+            // Sincronizar
+            if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
         }
     }
 });
@@ -4773,9 +4782,12 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
                 .eq('user_id', session.user.id)
                 .eq('tipo', 'tv_episode')
                 .like('media_id', `${targetCardData.id}_T%`);
+
+            // Sincronizar
+            if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
         }
 
-        // NO lo borramos, lo devolvemos a estado gris (no visto) y le reasignamos la función rápida
+        // NO lo borramos, lo devolvemos a estado gris (no visto) y le reasignamos la función 
         targetCardData.btnElement.className = 'btn-watch-indicator not-watched';
         targetCardData.btnElement.setAttribute('data-veces', '0');
         targetCardData.btnElement.setAttribute('data-db-id', '');
@@ -5658,6 +5670,38 @@ setTimeout(() => {
 // ==========================================================================
 //   WATCHLIST TVTIME — Episodios pendientes de series en progreso (CON CACHÉ)
 // ==========================================================================
+
+window.sincronizarWatchlistGlobal = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const userId = session.user.id;
+
+    // 1. Destruimos la caché en RAM para forzar una lectura fresca
+    sessionStorage.removeItem(`watchlist_tv_${userId}`);
+
+    // 2. Comprobamos si el usuario está viendo su propio perfil de fondo
+    const seccionWatchlist = document.getElementById('watchlist-section');
+    const viewPerfil = document.getElementById('profile');
+
+    if (seccionWatchlist && viewPerfil && viewPerfil.classList.contains('active')) {
+        const nombrePerfilVisto = document.getElementById('main-profile-username')?.textContent;
+        const miNombre = session.user.user_metadata?.username || session.user.email.split('@')[0];
+
+        // Si es tu propio perfil, recargamos la lista visualmente en segundo plano
+        if (nombrePerfilVisto === miNombre) {
+            const lista = document.getElementById('watchlist-list');
+            if (lista) {
+                lista.innerHTML = `
+                    <div class="watchlist-loading" style="padding: 20px;">
+                        <i class="fas fa-circle-notch fa-spin" style="color: var(--primary);"></i>
+                    </div>
+                `;
+            }
+            await cargarWatchlistTVTime(userId, true);
+        }
+    }
+};
 
 async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const seccion = document.getElementById('watchlist-section');

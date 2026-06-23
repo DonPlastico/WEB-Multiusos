@@ -273,7 +273,6 @@ input[type=number]::-webkit-outer-spin-button {
     transform: translateY(-2px);
 }
 
-
 .icon-btn:hover i {
     color: white !important;
 }
@@ -5837,8 +5836,8 @@ cast-carousel::-webkit-scrollbar {
         gap: 5px;
     }
 
-    .scroll-top-btn{
-    bottom: 40px;
+    .scroll-top-btn {
+        bottom: 40px;
     }
 }
 
