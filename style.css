@@ -5305,12 +5305,13 @@ cast-carousel::-webkit-scrollbar {
 
 .trends-container .horizontal-scroll {
     direction: ltr;
-    padding: 16px 20px 16px 20px;
+    padding: 10px;
     display: flex;
     justify-content: flex-start;
     overflow-x: auto;
     overflow-y: visible;
-    gap: 16px;
+    gap: 10px;
+    border-radius: 10px;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
@@ -5318,11 +5319,8 @@ cast-carousel::-webkit-scrollbar {
     align-items: stretch;
 }
 
-/* Modifica o añade esto para asegurar que el primer elemento no tenga márgenes negativos que lo empujen fuera */
-.horizontal-scroll>*:first-child {
-    margin-left: 0;
-    /* Aseguramos que el primero no se desplace */
-    scroll-snap-align: start;
+.trends-container .horizontal-scroll .trend-card:first-child {
+    margin-left: 8px;
 }
 
 /* Y asegurar que la última también tenga margen derecho */
