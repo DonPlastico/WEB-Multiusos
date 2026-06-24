@@ -5305,7 +5305,7 @@ cast-carousel::-webkit-scrollbar {
 
 .trends-container .horizontal-scroll {
     direction: ltr;
-    padding: 16px 20px 16px 4px;
+    padding: 16px 20px 16px 20px;
     display: flex;
     justify-content: flex-start;
     overflow-x: auto;
@@ -5318,8 +5318,11 @@ cast-carousel::-webkit-scrollbar {
     align-items: stretch;
 }
 
-.trends-container .horizontal-scroll .trend-card:first-child {
-    margin-left: 8px;
+/* Modifica o añade esto para asegurar que el primer elemento no tenga márgenes negativos que lo empujen fuera */
+.horizontal-scroll>*:first-child {
+    margin-left: 0;
+    /* Aseguramos que el primero no se desplace */
+    scroll-snap-align: start;
 }
 
 /* Y asegurar que la última también tenga margen derecho */
@@ -5399,8 +5402,6 @@ cast-carousel::-webkit-scrollbar {
 
 /* Estilo personalizado para las tarjetas dentro del scroll */
 .horizontal-scroll .trend-card {
-    flex: 0 0 200px;
-    /* Ancho fijo para todas */
     min-width: 180px;
     max-width: 220px;
     scroll-snap-align: start;
@@ -5494,25 +5495,6 @@ cast-carousel::-webkit-scrollbar {
     z-index: 5;
     backdrop-filter: blur(4px);
     font-family: var(--font-cyber);
-}
-
-.trend-position.top1 {
-    background: gold;
-    border-color: gold;
-    color: #1a1a24;
-    font-size: 1.2rem;
-}
-
-.trend-position.top2 {
-    background: silver;
-    border-color: silver;
-    color: #1a1a24;
-}
-
-.trend-position.top3 {
-    background: #cd7f32;
-    border-color: #cd7f32;
-    color: #1a1a24;
 }
 
 /* INFO DE LA TARJETA */
