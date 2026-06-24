@@ -13,18 +13,17 @@
 
     <title>DP-SYS | Nexus</title>
 
-    <link rel="icon" href="img/Logo.png" type="image/png" alt="DP-SYS Logo - Nexus de entretenimiento">
-    <link rel="apple-touch-icon" href="/img/Logo.png">
+    <link rel="icon" href="img/Logo.webp" type="image/png" alt="DP-SYS Logo - Nexus de entretenimiento">
+    <link rel="apple-touch-icon" href="/img/Logo.webp">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" media="print"
+        onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" media="print"
+        onload="this.media='all'">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <link rel="manifest" href="/manifest.json">
-
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BQ9SP8WMME"></script>
@@ -62,7 +61,7 @@
 
             <!-- la bandera pa cambiar idioma -->
             <button class="icon-btn" id="lang-toggle" title="Idioma">
-                <img src="https://flagcdn.com/48x36/es.png" alt="ES">
+                <img src="https://flagcdn.com/48x36/es.webp" alt="ES" loading="lazy">
             </button>
 
             <!-- boton del admin q esta oculto -->
@@ -210,25 +209,28 @@
 
             <div class="trends-container">
                 <h2 class="section-title">Tendencias en Películas</h2>
-                <div class="horizontal-scroll glass-panel" id="trend-movies"><img src="img/prox.png" alt="proximamente">
+                <div class="horizontal-scroll glass-panel" id="trend-movies"><img src="img/prox.webp" alt="proximamente"
+                        loading="lazy">
                 </div>
             </div>
 
             <div class="trends-container">
                 <h2 class="section-title">Tendencias en Series</h2>
-                <div class="horizontal-scroll glass-panel" id="trend-series"><img src="img/prox.png" alt="proximamente">
+                <div class="horizontal-scroll glass-panel" id="trend-series"><img src="img/prox.webp" alt="proximamente"
+                        loading="lazy">
                 </div>
             </div>
 
             <div class="trends-container">
                 <h2 class="section-title">Últimos Tráilers</h2>
-                <div class="horizontal-scroll glass-panel" id="latest-trailers"><img src="img/prox.png"
-                        alt="proximamente"></div>
+                <div class="horizontal-scroll glass-panel" id="latest-trailers"><img src="img/prox.webp"
+                        alt="proximamente" loading="lazy"></div>
             </div>
 
             <div class="trends-container">
                 <h2 class="section-title">Lo Más Popular</h2>
-                <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.png" alt="proximamente">
+                <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.webp" alt="proximamente"
+                        loading="lazy">
                 </div>
             </div>
         </section>
@@ -1682,7 +1684,7 @@
                 <div class="game-detail-body">
                     <div class="game-detail-grid">
                         <div class="detail-cover-col">
-                            <img id="detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
+                            <img id="detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel" loading="lazy">
                         </div>
 
                         <div class="detail-desc-col glass-panel">
@@ -1824,7 +1826,7 @@
                 <div class="game-detail-body">
                     <div class="media-top-grid">
                         <div class="detail-cover-col">
-                            <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
+                            <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel" loading="lazy">
                         </div>
 
                         <div class="detail-desc-col glass-panel padded-panel">
@@ -1916,7 +1918,7 @@
                             <h3 class="detail-section-title">Tráiler</h3>
                             <div class="trailer-content">
                                 <div class="trailer-thumbnail-container">
-                                    <img id="media-detail-trailer-img" src="" alt="Miniatura Trailer">
+                                    <img id="media-detail-trailer-img" src="" alt="Miniatura Trailer" loading="lazy">
                                     <span id="media-detail-trailer-duration" class="trailer-duration">--:--</span>
                                 </div>
                                 <button id="media-detail-trailer-btn" class="auth-btn primary btn-trailer">
@@ -2148,7 +2150,7 @@
                     <div
                         style="width: 100%; aspect-ratio: 1 / 1; max-height: 320px; background: var(--bg-secondary); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img id="image-to-crop" src="" alt="Imagen a recortar"
-                            style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                            style="width: 100%; height: 100%; object-fit: contain; display: block;" loading="lazy">
                     </div>
 
                     <!-- Botón -->
@@ -2286,7 +2288,11 @@
         </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
+    <script src="main.js" type="module" defer></script>
 </body>
 
 </html>

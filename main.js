@@ -367,28 +367,28 @@ const langMenu = document.createElement('div');
 langMenu.className = 'theme-menu lang-menu';
 langMenu.innerHTML = `
     <button class="theme-option lang-option active" data-lang="es" data-flag="es">
-        <img src="https://flagcdn.com/48x36/es.png" alt="ES"> <span>Español</span>
+        <img src="https://flagcdn.com/48x36/es.webp" alt="ES" loading="lazy"> <span>Español</span>
     </button>
     <button class="theme-option lang-option" data-lang="en" data-flag="us">
-        <img src="https://flagcdn.com/48x36/us.png" alt="EN"> <span>English (EE.UU)</span>
+        <img src="https://flagcdn.com/48x36/us.webp" alt="EN" loading="lazy"> <span>English (EE.UU)</span>
     </button>
     <button class="theme-option lang-option" data-lang="fr" data-flag="fr">
-        <img src="https://flagcdn.com/48x36/fr.png" alt="FR"> <span>Français</span>
+        <img src="https://flagcdn.com/48x36/fr.webp" alt="FR" loading="lazy"> <span>Français</span>
     </button>
     <button class="theme-option lang-option" data-lang="it" data-flag="it">
-        <img src="https://flagcdn.com/48x36/it.png" alt="IT"> <span>Italiano</span>
+        <img src="https://flagcdn.com/48x36/it.webp" alt="IT" loading="lazy"> <span>Italiano</span>
     </button>
     <button class="theme-option lang-option" data-lang="de" data-flag="de">
-        <img src="https://flagcdn.com/48x36/de.png" alt="DE"> <span>Deutsch</span>
+        <img src="https://flagcdn.com/48x36/de.webp" alt="DE" loading="lazy"> <span>Deutsch</span>
     </button>
     <button class="theme-option lang-option" data-lang="zh" data-flag="cn">
-        <img src="https://flagcdn.com/48x36/cn.png" alt="ZH"> <span>简体中文</span>
+        <img src="https://flagcdn.com/48x36/cn.webp" alt="ZH" loading="lazy"> <span>简体中文</span>
     </button>
     <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
-        <img src="https://flagcdn.com/48x36/jp.png" alt="JA"> <span>日本語</span>
+        <img src="https://flagcdn.com/48x36/jp.webp" alt="JA" loading="lazy"> <span>日本語</span>
     </button>
     <button class="theme-option lang-option" data-lang="ko" data-flag="kr">
-        <img src="https://flagcdn.com/48x36/kr.png" alt="KR"> <span>한국인</span>
+        <img src="https://flagcdn.com/48x36/kr.webp" alt="KR" loading="lazy"> <span>한국인</span>
     </button>
 `;
 
@@ -426,7 +426,7 @@ document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
         const flag = opt.dataset.flag;
 
         // ACTUALIZAR TAMAÑO DE LA BANDERA A 48x36
-        langFlagImg.src = `https://flagcdn.com/48x36/${flag}.png`;
+        langFlagImg.src = `https://flagcdn.com/48x36/${flag}.webp`;
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
@@ -515,7 +515,7 @@ function crearTarjeta(juego) {
 
     // 2. Lógica del contenedor de imagen
     const imgHtml = tienePortada
-        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
+        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
         : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
 
     // Inyectamos el data-store-url en la etiqueta principal de la tarjeta
@@ -1480,7 +1480,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <i class="fas fa-star" style="color:gold;"></i> ${media.nota}
                 </div>
                 ${nsfwTag} 
-                <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
+                <img src="${media.poster}" alt="${media.titulo}" class="game-cover" loading="lazy">
             </div>
             <div class="game-info">
                 <h3 class="game-title">${media.titulo}</h3>
@@ -2803,7 +2803,7 @@ function openCustomizationModal(type) {
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.png" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
                 </div>
             `;
         }
@@ -2833,7 +2833,7 @@ function openCustomizationModal(type) {
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
@@ -2956,7 +2956,7 @@ async function cargarDisenoPerfil(email) {
         }
         // Caso 3: Banner es un número predefinido (1-5)
         else {
-            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
+            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.webp')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
         }
@@ -2967,9 +2967,9 @@ async function cargarDisenoPerfil(email) {
     if (avatarId === 'default' || avatarId === 'custom') {
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
     } else if (avatarId.startsWith('http')) {
-        avatarHtml = `<img src="${avatarId}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="${avatarId}" alt="Avatar" loading="lazy" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
-        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.webp" alt="Avatar" loading="lazy" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
     // Cambiar el icono del botón de la navbar
@@ -3154,7 +3154,7 @@ async function buscarAmigos() {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Resultados" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
@@ -4296,9 +4296,9 @@ async function cargarPerfilPublico(usernameTarget) {
                 avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
             } else if (avatarDB.startsWith('http')) {
                 // 👉 NUEVO: Si detecta que es un enlace de Supabase
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" loading="lazy" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" loading="lazy" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
         }
 
@@ -4315,7 +4315,7 @@ async function cargarPerfilPublico(usernameTarget) {
                 bannerElement.style.backgroundPosition = 'center';
             } else {
                 // Banner predefinido numérico
-                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.png')`;
+                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.webp')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             }
@@ -5336,7 +5336,7 @@ window.cargarAlertas = async function () {
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             areaNotifs.innerHTML += `
                 <div class="notif-card">
@@ -5492,7 +5492,7 @@ async function cargarDatosSociales() {
             const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             // Botón de Dejar de Seguir (Comparamos MI ID con el TARGET ID)
             let actionBtnHtml = '';
@@ -7763,7 +7763,7 @@ async function guardarAvatarCustom() {
     }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_avatar_${uniqueHash}.png`;
+            const fileName = `custom_avatar_${uniqueHash}.webp`;
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -7797,12 +7797,12 @@ async function guardarAvatarCustom() {
                 const overlay = profileAvatarDiv.querySelector('.edit-overlay-avatar');
                 profileAvatarDiv.innerHTML = '';
                 if (overlay) profileAvatarDiv.appendChild(overlay);
-                profileAvatarDiv.insertAdjacentHTML('beforeend', `<img src="${publicUrl}" alt="URL" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`);
+                profileAvatarDiv.insertAdjacentHTML('beforeend', `<img src="${publicUrl}" alt="URL" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`);
             }
 
             const navAvatar = document.getElementById('user-profile');
             if (navAvatar) {
-                navAvatar.innerHTML = `<img src="${publicUrl}" alt="URL" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                navAvatar.innerHTML = `<img src="${publicUrl}" alt="URL" loading="lazy" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             }
 
             cropModal.classList.remove('show');
@@ -7836,7 +7836,7 @@ async function guardarBannerCustom() {
     cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_banner_${uniqueHash}.png`;
+            const fileName = `custom_banner_${uniqueHash}.webp`;
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
