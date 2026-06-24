@@ -4380,44 +4380,43 @@ async function cargarPerfilPublico(usernameTarget) {
                     }
                 }
 
-                if (mediaVisto.length > 0) {
-                    let totalPelis = 0;
-                    let totalEpisodios = 0;
+                // Siempre calculamos los totales, haya o no haya datos en la BD
+                let totalPelis = 0;
+                let totalEpisodios = 0;
 
-                    mediaVisto.forEach(item => {
-                        const cantidad = item.veces_vista || 1;
-                        if (item.tipo === 'movie') totalPelis += cantidad;
-                        if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
-                    });
+                mediaVisto.forEach(item => {
+                    const cantidad = item.veces_vista || 1;
+                    if (item.tipo === 'movie') totalPelis += cantidad;
+                    if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
+                });
 
-                    const minTotalesPelis = totalPelis * 120;
-                    const minTotalesSeries = totalEpisodios * 45;
+                const minTotalesPelis = totalPelis * 120;
+                const minTotalesSeries = totalEpisodios * 45;
 
-                    const calcularTiempoFormato = (mins) => {
-                        const meses = Math.floor(mins / 43200);
-                        let resto = mins % 43200;
-                        const dias = Math.floor(resto / 1440);
-                        resto = resto % 1440;
-                        const horas = Math.floor(resto / 60);
-                        return { meses, dias, horas };
-                    };
+                const calcularTiempoFormato = (mins) => {
+                    const meses = Math.floor(mins / 43200);
+                    let resto = mins % 43200;
+                    const dias = Math.floor(resto / 1440);
+                    resto = resto % 1440;
+                    const horas = Math.floor(resto / 60);
+                    return { meses, dias, horas };
+                };
 
-                    const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
-                    const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
+                const tiempoPelis = calcularTiempoFormato(minTotalesPelis);
+                const tiempoSeries = calcularTiempoFormato(minTotalesSeries);
 
-                    const nuevasStats = {
-                        totalEpisodios: totalEpisodios,
-                        tiempoSeries: tiempoSeries,
-                        totalPelis: totalPelis,
-                        tiempoPelis: tiempoPelis
-                    };
+                const nuevasStats = {
+                    totalEpisodios: totalEpisodios,
+                    tiempoSeries: tiempoSeries,
+                    totalPelis: totalPelis,
+                    tiempoPelis: tiempoPelis
+                };
 
-                    // 3. ACTUALIZACIÓN EN VIVO: Si los datos de Supabase son diferentes a la caché (has visto algo nuevo), actualizamos
-                    const nuevasStatsString = JSON.stringify(nuevasStats);
-                    if (statsGuardadas !== nuevasStatsString) {
-                        localStorage.setItem(cacheKey, nuevasStatsString); // Actualizamos la memoria
-                        pintarEstadisticas(totalEpisodios, tiempoSeries, totalPelis, tiempoPelis); // Actualizamos la pantalla en vivo
-                    }
+                // 3. ACTUALIZACIÓN EN VIVO: Si los datos cambian (incluso si bajan a 0), actualizamos la caché
+                const nuevasStatsString = JSON.stringify(nuevasStats);
+                if (statsGuardadas !== nuevasStatsString) {
+                    localStorage.setItem(cacheKey, nuevasStatsString);
+                    pintarEstadisticas(totalEpisodios, tiempoSeries, totalPelis, tiempoPelis);
                 }
             }, 50); // Le damos 50 milisegundos a la web para que pinte todo lo demás tranquilamente
 
