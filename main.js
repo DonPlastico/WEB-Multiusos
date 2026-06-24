@@ -1350,6 +1350,10 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
     // cierro la sesion
     await supabase.auth.signOut();
 
+    // Limpiar favoritos
+    delete window._nexus_user_id;
+    localStorage.removeItem('nexus_user_id');
+
     // cierro el menu
     userMenu.classList.remove('show');
     userMenuOpen = false;
@@ -1597,6 +1601,10 @@ async function verificarSesion() {
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
+        // GUARDAR ID PARA FAVORITOS
+        window._nexus_user_id = session.user.id;
+        localStorage.setItem('nexus_user_id', session.user.id);
+
         // pongo el astronauta temporalmente
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
@@ -1658,6 +1666,10 @@ async function verificarSesion() {
             aplicarColorDinamico(perfilColor.color_destacado);
         }
     } else {
+        // LIMPIAR ID AL CERRAR SESIÓN
+        delete window._nexus_user_id;
+        localStorage.removeItem('nexus_user_id');
+
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
         if (btnAdmin) btnAdmin.style.display = 'none';
 
@@ -4311,6 +4323,28 @@ window.actualizarUIMediaPersonal = function (data) {
     } else {
         mostrarBotonFavorito(false);
     }
+
+    // Para favoritos, verificar si está marcado como favorito
+    // Pero solo si hay sesión (no lanzar error)
+    try {
+        const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
+        if (memoInfo.id && memoInfo.tipo) {
+            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
+            const poster = document.getElementById('media-detail-cover-img')?.src || '';
+
+            // Verificar favoritos de forma segura
+            const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
+            if (userId) {
+                const isFav = esFavorito(memoInfo.id, memoInfo.tipo);
+                actualizarBotonFavorito(memoInfo.id, memoInfo.tipo, titulo, poster);
+                mostrarBotonFavorito(true);
+            }
+        }
+    } catch (e) {
+        // Si falla, simplemente no mostramos el botón de favoritos
+        console.debug('Favoritos no disponibles:', e);
+        mostrarBotonFavorito(false);
+    }
 };
 
 // 2. SINCRONIZAR CON BASE DE DATOS
@@ -6557,40 +6591,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ==========================================================================
-//   SISTEMA DE FAVORITOS
+/// ==========================================================================
+//   SISTEMA DE FAVORITOS (VERSIÓN ASYNC)
 // ==========================================================================
 
-// Obtener lista de favoritos del usuario desde localStorage
-function getFavoritos() {
-    const { data: { session } } = supabase.auth.getSession();
-    if (!session) return [];
+async function getUserId() {
+    try {
+        // Primero intentamos desde el cache rápido
+        if (window._nexus_user_id) return window._nexus_user_id;
 
-    const key = `${FAVORITOS_KEY}_${session.user.id}`;
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
+        const cached = localStorage.getItem('nexus_user_id');
+        if (cached) {
+            window._nexus_user_id = cached;
+            return cached;
+        }
+
+        // Si no hay cache, preguntamos a Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+            window._nexus_user_id = session.user.id;
+            localStorage.setItem('nexus_user_id', session.user.id);
+            return session.user.id;
+        }
+        return null;
+    } catch (e) {
+        console.warn('Error obteniendo userId:', e);
+        return null;
+    }
 }
 
-// Guardar lista de favoritos
-function setFavoritos(lista) {
-    const { data: { session } } = supabase.auth.getSession();
-    if (!session) return;
+async function getFavoritos() {
+    try {
+        const userId = await getUserId();
+        if (!userId) return [];
 
-    const key = `${FAVORITOS_KEY}_${session.user.id}`;
-    localStorage.setItem(key, JSON.stringify(lista));
+        const key = `${FAVORITOS_KEY}_${userId}`;
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        console.warn('Error obteniendo favoritos:', e);
+        return [];
+    }
 }
 
-// Verificar si un media está en favoritos
-function esFavorito(mediaId, tipo) {
-    const favoritos = getFavoritos();
+async function setFavoritos(lista) {
+    try {
+        const userId = await getUserId();
+        if (!userId) return;
+
+        const key = `${FAVORITOS_KEY}_${userId}`;
+        localStorage.setItem(key, JSON.stringify(lista));
+    } catch (e) {
+        console.warn('Error guardando favoritos:', e);
+    }
+}
+
+async function esFavorito(mediaId, tipo) {
+    const favoritos = await getFavoritos();
     return favoritos.some(f => f.id === mediaId.toString() && f.tipo === tipo);
 }
 
-// Añadir a favoritos
-function añadirFavorito(mediaId, tipo, titulo, poster) {
-    const favoritos = getFavoritos();
+async function añadirFavorito(mediaId, tipo, titulo, poster) {
+    const favoritos = await getFavoritos();
 
-    // Verificar si ya existe
     if (favoritos.some(f => f.id === mediaId.toString() && f.tipo === tipo)) {
         return false;
     }
@@ -6603,26 +6666,24 @@ function añadirFavorito(mediaId, tipo, titulo, poster) {
         fecha: new Date().toISOString()
     });
 
-    setFavoritos(favoritos);
+    await setFavoritos(favoritos);
     return true;
 }
 
-// Quitar de favoritos
-function quitarFavorito(mediaId, tipo) {
-    let favoritos = getFavoritos();
+async function quitarFavorito(mediaId, tipo) {
+    let favoritos = await getFavoritos();
     favoritos = favoritos.filter(f => !(f.id === mediaId.toString() && f.tipo === tipo));
-    setFavoritos(favoritos);
+    await setFavoritos(favoritos);
     return true;
 }
 
-// Alternar favorito (si está, lo quita; si no, lo añade)
-function toggleFavorito(mediaId, tipo, titulo, poster) {
-    if (esFavorito(mediaId, tipo)) {
-        quitarFavorito(mediaId, tipo);
-        return false; // Ya no es favorito
+async function toggleFavorito(mediaId, tipo, titulo, poster) {
+    if (await esFavorito(mediaId, tipo)) {
+        await quitarFavorito(mediaId, tipo);
+        return false;
     } else {
-        añadirFavorito(mediaId, tipo, titulo, poster);
-        return true; // Es favorito
+        await añadirFavorito(mediaId, tipo, titulo, poster);
+        return true;
     }
 }
 
