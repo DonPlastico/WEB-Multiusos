@@ -30,6 +30,12 @@ force = true
 [[headers]]
 for = "/*"
 
+[[plugins]]
+package = "netlify-plugin-cypress"
+
+[build.environment]
+CYPRESS_BASE_URL = "https://dpsys-nexus.netlify.app"
+
 [headers.values]
 X-Frame-Options = "DENY" # Evita que tu web se muestre en iframes (protección clickjacking)
 X-Content-Type-Options = "nosniff" # Evita que navegadores interpreten archivos como otros tipos (protección MIME)

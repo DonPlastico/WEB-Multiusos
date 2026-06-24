@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "cypress open",
+    "test:e2e:ci": "cypress run"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,8 @@
     "@supabase/supabase-js": "^2.108.2"
   },
   "devDependencies": {
+    "cypress": "^15.18.0",
+    "netlify-plugin-cypress": "^2.2.1",
     "vite": "^8.0.16"
   }
 }
