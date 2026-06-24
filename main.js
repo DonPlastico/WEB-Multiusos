@@ -8101,3 +8101,248 @@ window.recargarRecomendaciones = async function () {
     await cargarRecomendaciones(userId);
     showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
 };
+
+// ==========================================================================
+//   TENDENCIAS EN PELÍCULAS (ESTILO TMDB + CYBERPUNK)
+// ==========================================================================
+
+let trendMoviesPeriod = 'day'; // 'day', 'week'
+let trendMoviesCargando = false;
+let trendMoviesOffset = 0;
+
+// Función para cargar tendencias de películas
+async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
+    if (trendMoviesCargando) return;
+    trendMoviesCargando = true;
+
+    const container = document.getElementById('trend-movies-grid');
+    const loading = document.getElementById('trend-movies-loading');
+
+    if (!container) {
+        trendMoviesCargando = false;
+        return;
+    }
+
+    if (resetear) {
+        trendMoviesOffset = 0;
+        // Mostrar loading
+        if (loading) loading.style.display = 'flex';
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+
+    try {
+        // Construir URL para tendencias de películas
+        // Usamos discover con sort_by=popularity.desc y filtramos por fecha
+        const hoy = new Date();
+        let fechaDesde = new Date(hoy);
+
+        if (period === 'day') {
+            fechaDesde.setDate(hoy.getDate() - 1);
+        } else if (period === 'week') {
+            fechaDesde.setDate(hoy.getDate() - 7);
+        }
+
+        const desdeStr = fechaDesde.toISOString().split('T')[0];
+        const hastaStr = hoy.toISOString().split('T')[0];
+
+        // Construir URL con filtros de fecha y popularidad
+        let url = `/api/tmdb?trending=true&period=${period}&limit=20`;
+
+        // Añadir timestamp para evitar caché
+        url += `&_=${Date.now()}`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        // Ocultar loading
+        if (loading) loading.style.display = 'none';
+        container.style.display = 'inline-flex';
+
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div class="trends-empty" style="width: 100%; padding: 40px; text-align: center;">
+                    <i class="fas fa-film" style="font-size: 2rem; opacity: 0.3;"></i>
+                    <p style="margin-top: 10px; color: var(--text-muted);">No hay tendencias de películas disponibles</p>
+                </div>
+            `;
+            trendMoviesCargando = false;
+            return;
+        }
+
+        // Limitar a 20 películas
+        const peliculas = data.slice(0, 20);
+
+        // Renderizar tarjetas
+        peliculas.forEach((pelicula, index) => {
+            const card = crearTarjetaTrendPelicula(pelicula, index + 1);
+            container.appendChild(card);
+        });
+
+        // Guardar período actual
+        trendMoviesPeriod = period;
+
+    } catch (error) {
+        console.error('Error cargando tendencias de películas:', error);
+        if (loading) loading.style.display = 'none';
+        container.style.display = 'flex';
+        container.innerHTML = `
+            <div class="trends-empty" style="width: 100%; padding: 40px; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--error);"></i>
+                <p style="margin-top: 10px; color: var(--text-muted);">Error al cargar tendencias</p>
+                <button onclick="cargarTendenciasPeliculas('${period}', true)" 
+                        style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+    }
+
+    trendMoviesCargando = false;
+}
+
+// Función para crear tarjeta de tendencia de película (estilo TMDB)
+function crearTarjetaTrendPelicula(pelicula, posicion) {
+    const card = document.createElement('div');
+    card.className = 'comp:poster-item';
+    card.dataset.id = pelicula.id;
+    card.dataset.tipo = 'movie';
+    card.style.cursor = 'pointer';
+
+    const posterUrl = pelicula.poster || 'https://placehold.co/150x225/14141c/6366f1?text=SIN+POSTER';
+    const titulo = pelicula.titulo || 'Sin título';
+    const fecha = pelicula.fecha ? new Date(pelicula.fecha).toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    }) : 'Próximamente';
+
+    // Nota (0-10)
+    const nota = pelicula.nota || '0.0';
+
+    card.innerHTML = `
+        <div class="flex">
+            <div class="relative">
+                <a href="#" style="display: flex; aspect-ratio: 2 / 3; width: 150px; height: auto; background: var(--bg-card); border-radius: 12px; overflow: hidden; text-decoration: none;">
+                    <img src="${posterUrl}" alt="${titulo}" loading="lazy" 
+                         onerror="this.parentElement.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas fa-film\\' style=\\'font-size:2.5rem;color:var(--text-muted);\\'></i></div>'">
+                </a>
+                <div class="options">
+                    <a href="#" style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(10,10,15,0.7); backdrop-filter: blur(8px); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); text-decoration: none;">
+                        <span class="glyphicons_v2" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: bold; letter-spacing: -2px;">•••</span>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-2">
+                <a href="#">
+                    <h2>${titulo}</h2>
+                </a>
+                <span class="release_date">${fecha}</span>
+            </div>
+        </div>
+    `;
+
+    // Evento click para abrir modal de detalles
+    card.addEventListener('click', (e) => {
+        // Evitar que el click en el botón de opciones dispare el modal
+        if (e.target.closest('.options')) return;
+        abrirModalMedia(pelicula.id, 'movie');
+    });
+
+    return card;
+}
+
+// Función para inicializar el selector de períodos de tendencias de películas
+function initTrendMoviesSelector() {
+    const selector = document.getElementById('trending-movies-selector');
+    if (!selector) return;
+
+    const anchors = selector.querySelectorAll('.anchor');
+
+    anchors.forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            // Desmarcar todos
+            anchors.forEach(a => a.classList.remove('selected'));
+
+            // Marcar este
+            this.classList.add('selected');
+
+            // Obtener período
+            const period = this.dataset.period || 'day';
+
+            // Recargar tendencias
+            const container = document.getElementById('trend-movies-grid');
+            if (container) {
+                container.style.opacity = '0.5';
+                container.style.transition = 'opacity 0.2s';
+            }
+
+            cargarTendenciasPeliculas(period, true);
+
+            setTimeout(() => {
+                if (container) {
+                    container.style.opacity = '1';
+                    // Forzar scroll al principio
+                    const scroller = document.getElementById('trending_movies_scroller');
+                    if (scroller) {
+                        const content = scroller.querySelector('.column_content');
+                        if (content) content.scrollLeft = 0;
+                    }
+                }
+            }, 300);
+        });
+    });
+}
+
+// Función para cargar tendencias de películas al inicio
+function cargarTendenciasPeliculasInicial() {
+    setTimeout(() => {
+        cargarTendenciasPeliculas('day', true);
+        initTrendMoviesSelector();
+
+        // Forzar scroll al principio
+        const scroller = document.getElementById('trending_movies_scroller');
+        if (scroller) {
+            setTimeout(() => {
+                const content = scroller.querySelector('.column_content');
+                if (content) content.scrollLeft = 0;
+            }, 100);
+        }
+    }, 600);
+}
+
+// ==========================================================================
+//   MODIFICAR cambiarVista PARA CARGAR TENDENCIAS DE PELÍCULAS
+// ==========================================================================
+
+// Guardar la función original
+const originalCambiarVista2 = cambiarVista;
+
+// Sobrescribir para incluir tendencias de películas
+cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+    // Llamar a la función original
+    await originalCambiarVista2(target, guardarEnHistorial, usernameUrl);
+
+    // Si es la vista de películas, cargar tendencias de películas
+    if (target === 'movies') {
+        const container = document.getElementById('trend-movies-grid');
+        // Solo cargar si no hay contenido o está vacío
+        if (container && container.children.length === 0) {
+            cargarTendenciasPeliculas('day', true);
+        }
+    }
+};
+
+// ==========================================================================
+//   INICIALIZAR TENDENCIAS DE PELÍCULAS AL CARGAR LA PÁGINA
+// ==========================================================================
+
+// Añadir al DOMContentLoaded existente o crear uno nuevo
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar tendencias de películas
+    cargarTendenciasPeliculasInicial();
+});
