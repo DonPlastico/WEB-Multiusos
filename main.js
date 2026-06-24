@@ -6053,7 +6053,7 @@ const cropModal = document.getElementById('crop-modal');
 const imageToCrop = document.getElementById('image-to-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
 
-// 🔥 OBTENER EL BOTÓN DE FORMA SEGURA (con verificación)
+// OBTENER EL BOTÓN DE FORMA SEGURA (con verificación)
 let btnSaveCrop = document.getElementById('btn-save-crop');
 
 function setModalTitle(text) {
@@ -6066,7 +6066,7 @@ function setModalTitle(text) {
     }
 }
 
-// 🔥 FUNCIÓN PARA RECREAR EL BOTÓN DE FORMA SEGURA
+// FUNCIÓN PARA RECREAR EL BOTÓN DE FORMA SEGURA
 function recrearBoton(html) {
     // Buscar el botón actual
     let btn = document.getElementById('btn-save-crop');
@@ -6117,7 +6117,7 @@ avatarInput.addEventListener('change', function (e) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR AVATAR");
 
-            // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
+            // RECREAR EL BOTÓN EN LUGAR DE CLONAR
             const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR AVATAR');
             if (!btn) return;
             btnSaveCrop = btn;
@@ -6163,7 +6163,7 @@ bannerInput.addEventListener('change', function (e) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR PORTADA");
 
-            // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
+            // RECREAR EL BOTÓN EN LUGAR DE CLONAR
             const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR PORTADA');
             if (!btn) return;
             btnSaveCrop = btn;

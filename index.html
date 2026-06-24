@@ -66,11 +66,109 @@
 
         <!-- vista de inicio -->
         <section id="home" class="view active">
-            <div class="hero-section glass-panel">
-                <h1 class="glitch-text">Te damos la bienvenida.</h1>
-                <p class="subtitle-hero">Millones de películas, series y gente por descubrir. Explora ya.</p>
+            <div class="hero-section glass-panel"
+                style="padding: 60px 50px; display: flex; gap: 40px; text-align: left; justify-content: space-between; align-items: center; position: relative; overflow: hidden; min-height: 350px;">
+
+                <!-- Línea decorativa superior (igual que en admin-panel) -->
+                <div
+                    style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary); z-index: 2;">
+                </div>
+
+                <!-- Degradado de fondo sutil -->
+                <div
+                    style="position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 70% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 40%, rgba(45, 212, 191, 0.05) 0%, transparent 60%); z-index: 1;">
+                </div>
+
+                <!-- Partículas decorativas (círculos flotantes) -->
+                <div
+                    style="position: absolute; top: 20%; right: 15%; width: 80px; height: 80px; border-radius: 50%; background: rgba(99, 102, 241, 0.05); z-index: 1; animation: floatHero 8s ease-in-out infinite;">
+                </div>
+                <div
+                    style="position: absolute; bottom: 25%; right: 35%; width: 50px; height: 50px; border-radius: 50%; background: rgba(45, 212, 191, 0.06); z-index: 1; animation: floatHero 12s ease-in-out infinite 2s;">
+                </div>
+                <div
+                    style="position: absolute; top: 50%; left: 10%; width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 102, 241, 0.04); z-index: 1; animation: floatHero 10s ease-in-out infinite 4s;">
+                </div>
+
+                <!-- Contenido izquierdo -->
+                <div style="position: relative; z-index: 2; flex: 1;">
+                    <!-- Badge de estado (como el de admin) -->
+                    <div
+                        style="display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.08); padding: 8px 18px; border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.15); margin-bottom: 20px;">
+                        <div
+                            style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); animation: pulse 2s infinite;">
+                        </div>
+                        <span
+                            style="color: var(--success); font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">NEXUS
+                            EN LÍNEA</span>
+                    </div>
+
+                    <!-- Título principal con gradiente -->
+                    <h1
+                        style="font-size: 4rem; font-weight: 700; font-family: var(--font-cyber); line-height: 1.1; margin-bottom: 15px; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -1px;">
+                        Te damos la <br><span
+                            style="background: none; -webkit-background-clip: unset; background-clip: unset; color: var(--neon-white);">bienvenida.</span>
+                    </h1>
+
+                    <!-- Subtítulo -->
+                    <p
+                        style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 25px;">
+                        Millones de películas, series y gente por descubrir. <br>Explora ya.
+                    </p>
+
+                    <!-- Botones de acción -->
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <a href="#" onclick="cambiarVista('games')" class="auth-btn primary"
+                            style="padding: 12px 32px; font-size: 0.9rem;">
+                            <i class="fas fa-rocket"></i> EXPLORAR JUEGOS
+                        </a>
+                        <a href="#" onclick="cambiarVista('movies')" class="auth-btn secondary"
+                            style="padding: 12px 32px; font-size: 0.9rem;">
+                            <i class="fas fa-film"></i> VER PELÍCULAS
+                        </a>
+                    </div>
+
+                    <!-- Estadísticas rápidas -->
+                    <div
+                        style="display: flex; gap: 40px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-color);">
+                        <div>
+                            <span
+                                style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">10K+</span>
+                            <span
+                                style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Juegos</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">100K+</span>
+                            <span
+                                style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Películas</span>
+                        </div>
+                        <div>
+                            <span
+                                style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">50K+</span>
+                            <span
+                                style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Series</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido derecho: Icono decorativo / Gráfico -->
+                <div
+                    style="position: relative; z-index: 2; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);">
+                    <div
+                        style="position: relative; width: 140px; height: 140px; border-radius: 50%; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; animation: spinSlow 20s linear infinite;">
+                        <div
+                            style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(99, 102, 241, 0.15); border-top: 2px solid var(--primary); animation: spinSlow 8s linear infinite;">
+                        </div>
+                        <div
+                            style="position: absolute; width: 70%; height: 70%; border-radius: 50%; border: 1px solid rgba(45, 212, 191, 0.15); border-bottom: 2px solid var(--secondary); animation: spinSlow 12s linear infinite reverse;">
+                        </div>
+                        <i class="fas fa-compass" style="font-size: 3.5rem; color: var(--primary); opacity: 0.7;"></i>
+                    </div>
+                </div>
             </div>
 
+            <!-- Resto del contenido de home (tendencias, etc.) -->
             <div class="trends-container">
                 <h2 class="section-title">Tendencias en Juegos</h2>
                 <div class="horizontal-scroll glass-panel" id="trend-games"><img src="img/prox.png"></div>
@@ -95,7 +193,6 @@
                 <h2 class="section-title">Lo Más Popular</h2>
                 <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.png"></div>
             </div>
-
         </section>
 
         <!-- vista de juegos -->
