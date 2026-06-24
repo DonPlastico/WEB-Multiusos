@@ -7,6 +7,14 @@ export default async function handler(req, res) {
     const page = parseInt(req.query.page) || 1;
     const includeAdult = req.query.adult === 'true' ? 'true' : 'false';
 
+    // === NUEVOS PARÁMETROS DE FILTROS ===
+    const action = req.query.action; // Para detectar si nos piden la lista de géneros
+    const dateMin = req.query.dateMin || '';
+    const dateMax = req.query.dateMax || '';
+    const genres = req.query.genres || '';
+    const langs = req.query.langs || '';
+    const minVotes = parseInt(req.query.minVotes) || 0;
+
     const baseUrl = 'https://api.themoviedb.org/3';
     const headers = {
         'Authorization': `Bearer ${TMDB_TOKEN}`,
@@ -15,11 +23,19 @@ export default async function handler(req, res) {
 
     try {
         // =========================================================
+        // NUEVO: OBTENER LISTA DE GÉNEROS
+        // =========================================================
+        if (action === 'genres') {
+            const resGeneros = await fetch(`${baseUrl}/genre/${tipo}/list?language=es-ES`, { headers });
+            const dataGeneros = await resGeneros.json();
+            return res.status(200).json(dataGeneros);
+        }
+
+        // =========================================================
         // LAZY LOAD DE EPISODIOS (Para el Acordeón)
         // =========================================================
         if (tipo === 'tv_season' && id && req.query.season) {
             const seasonNum = req.query.season;
-            // Pedimos a la API directamente los detalles de esta temporada en concreto
             const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=es-ES`, { headers });
             const seasonData = await resSeason.json();
             return res.status(200).json(seasonData);
@@ -29,7 +45,6 @@ export default async function handler(req, res) {
         // DETALLES DE UN SOLO ITEM
         // =========================================================
         if (id) {
-            // AÑADIMOS "credits" a la petición para traernos a los actores
             const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`, { headers });
             const data = await resDetalle.json();
 
@@ -38,13 +53,11 @@ export default async function handler(req, res) {
             // ==========================================
             let sinopsisExtendida = data.overview || '';
 
-            // 1. Si hay keywords, las añadimos como contexto adicional
             if (data.keywords && data.keywords.keywords && data.keywords.keywords.length > 0) {
                 const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
                 sinopsisExtendida += `\n\nTemas: ${keywordsList}.`;
             }
 
-            // 2. Buscar traducciones en español que puedan tener una sinopsis más larga
             if (data.translations && data.translations.translations) {
                 const spanishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'es');
                 if (spanishTranslation && spanishTranslation.data && spanishTranslation.data.overview) {
@@ -55,7 +68,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 3. Si la sinopsis sigue siendo corta (< 150 caracteres), intentamos usar traducciones en inglés
             if (sinopsisExtendida.length < 150 && data.translations) {
                 const englishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'en');
                 if (englishTranslation && englishTranslation.data && englishTranslation.data.overview) {
@@ -66,7 +78,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 4. Si aún así es muy corta, combinamos tagline + overview + keywords
             if (sinopsisExtendida.length < 100) {
                 let combined = '';
                 if (data.tagline) combined += `"${data.tagline}" `;
@@ -78,14 +89,12 @@ export default async function handler(req, res) {
                 sinopsisExtendida = combined;
             }
 
-            // Fallback final
             if (!sinopsisExtendida || sinopsisExtendida.trim() === '') {
                 sinopsisExtendida = 'No hay sinopsis disponible para este título en el Nexus.';
             }
 
             const providersES = data['watch/providers']?.results?.ES;
 
-            // === NUEVO: FORMATO DE PROVEEDORES CON LOGOS ===
             const formatProvider = (p) => ({
                 name: p.provider_name,
                 logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : 'https://placehold.co/92x92/14141c/6366f1?text=PLAY'
@@ -94,15 +103,12 @@ export default async function handler(req, res) {
             const suscripcion = providersES?.flatrate ? providersES.flatrate.map(formatProvider) : [];
             const alquiler = providersES?.rent ? providersES.rent.map(formatProvider) : [];
             const compra = providersES?.buy ? providersES.buy.map(formatProvider) : [];
-            // ===============================================
 
-            // BUSCAMOS EL TRÁILER (Priorizamos YouTube)
             const videos = data.videos?.results || [];
             let trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer');
-            if (!trailer) trailer = videos.find(v => v.site === 'YouTube'); // Fallback a cualquier vídeo oficial
+            if (!trailer) trailer = videos.find(v => v.site === 'YouTube');
             const trailerId = trailer ? trailer.key : null;
 
-            // EXTRAEMOS EL REPARTO (Cogeremos los 15 primeros actores para el carrusel)
             const actoresBruto = data.credits?.cast || [];
             const repartoFormateado = actoresBruto.slice(0, 15).map(actor => {
                 return {
@@ -112,11 +118,10 @@ export default async function handler(req, res) {
                 };
             });
 
-            // EXTRAEMOS INFORMACIÓN BÁSICA DE LAS TEMPORADAS (Solo si es una serie)
             let temporadasInfo = [];
             if (tipo === 'tv' && data.seasons) {
                 temporadasInfo = data.seasons
-                    .filter(s => s.season_number > 0) // <-- Ignoramos la temporada 0 (Especiales)
+                    .filter(s => s.season_number > 0)
                     .map(s => {
                         return {
                             season_number: s.season_number,
@@ -162,18 +167,15 @@ export default async function handler(req, res) {
             const genero = req.query.genero;
             const limit = parseInt(req.query.limit) || 6;
 
-            // 1. Obtener lista de géneros de TMDB
             const genreUrl = `${baseUrl}/genre/${tipo}/list?language=es`;
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
 
-            // Buscar el ID del género (coincidencia exacta o parcial)
             let genreId = null;
             const generoLower = genero.toLowerCase().trim();
 
             for (const g of genreData.genres || []) {
                 const nombreLower = g.name.toLowerCase().trim();
-                // Coincidencia exacta o si el género contiene la palabra clave
                 if (nombreLower === generoLower ||
                     nombreLower.includes(generoLower) ||
                     generoLower.includes(nombreLower)) {
@@ -186,7 +188,6 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            // 2. Buscar contenido por género (usando discover con el token)
             const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=es&page=1&include_adult=false`;
 
             const searchRes = await fetch(searchUrl, { headers });
@@ -196,7 +197,6 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            // 3. Formatear resultados (igual que en el listado principal)
             const results = searchData.results.slice(0, limit).map(item => {
                 const isMovie = tipo === 'movie';
                 const titulo = isMovie ? item.title : item.name;
@@ -222,11 +222,31 @@ export default async function handler(req, res) {
         }
 
         // =========================================================
-        // LISTADOS (Para las tarjetas iniciales y búsquedas)
+        // LISTADOS MÁGICOS (Trending, Búsqueda o DISCOVER con Filtros)
         // =========================================================
-        const urlLista = busqueda
-            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`
-            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
+        let urlLista = '';
+
+        if (busqueda) {
+            // 1. Si hay texto, usamos SEARCH (TMDB no permite mezclar texto y filtros avanzados fácil)
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`;
+        } else if (dateMin || dateMax || genres || langs || minVotes > 0) {
+            // 2. Si no hay texto, pero SÍ hay filtros, usamos DISCOVER
+            urlLista = `${baseUrl}/discover/${tipo}?language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
+
+            if (genres) urlLista += `&with_genres=${genres}`;
+            if (langs) urlLista += `&with_original_language=${langs.replace(/,/g, '|')}`; // Reemplaza , por | para que haga un "OR" (ej: ko|ja)
+            if (minVotes > 0) urlLista += `&vote_count.gte=${minVotes}`;
+
+            if (dateMin) {
+                urlLista += tipo === 'movie' ? `&primary_release_date.gte=${dateMin}` : `&first_air_date.gte=${dateMin}`;
+            }
+            if (dateMax) {
+                urlLista += tipo === 'movie' ? `&primary_release_date.lte=${dateMax}` : `&first_air_date.lte=${dateMax}`;
+            }
+        } else {
+            // 3. Si está vacío, por defecto tendencias
+            urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
+        }
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
@@ -249,7 +269,6 @@ export default async function handler(req, res) {
                 providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
             }
 
-            // OBTENER CERTIFICACIÓN POR EDAD 
             let releaseDates = '';
             if (tipo === 'movie') {
                 releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
