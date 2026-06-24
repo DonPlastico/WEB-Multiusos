@@ -708,7 +708,7 @@ function cargarMas() {
 //   TENDENCIAS EN JUEGOS (RETRO + NEON)
 // ==========================================================================
 
-let trendPeriod = 'week'; // 'week', 'month', year
+let trendPeriod = 'day'; // 'day', 'week', 'month'
 let trendOffset = 0;
 let trendCargando = false;
 
@@ -718,6 +718,9 @@ function getDateRange(period) {
     let startDate = new Date(now);
 
     switch (period) {
+        case 'day':
+            startDate.setDate(now.getDate() - 1);
+            break;
         case 'week':
             startDate.setDate(now.getDate() - 7);
             break;
