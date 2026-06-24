@@ -226,9 +226,17 @@ export default async function handler(req, res) {
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
 
-        const urlLista = busqueda
-            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`
-            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
+        let urlLista;
+        if (busqueda) {
+            // Búsqueda por texto
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
+        } else if (minVotes > 0) {
+            // Con filtro de votos: usamos DISCOVER en lugar de TRENDING
+            urlLista = `${baseUrl}/discover/${tipo}?language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=${minVotes}`;
+        } else {
+            // Sin filtros: trending normal
+            urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
+        }
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
