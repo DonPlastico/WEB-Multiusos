@@ -747,13 +747,11 @@ function guardarFiltros() {
         series: { adult: adultSeries }
     };
 
-    console.log('💾 Guardando filtros:', filtrosState);
     localStorage.setItem('dp_sys_filters_v2', JSON.stringify(filtrosState));
 }
 
 function restaurarFiltrosDOM() {
     const guardados = localStorage.getItem('dp_sys_filters_v2');
-    console.log('📂 Restaurando filtros desde localStorage:', guardados);
     if (!guardados) return;
 
     try {
@@ -1200,75 +1198,29 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             const idsTMDB = datosUnicos.map(d => d.id.toString());
             const { data: vistosData } = await supabase
                 .from('user_media')
-                .select('media_id, veces_vista, id, visto')
+                .select('media_id, veces_vista, id')
                 .eq('user_id', session.user.id)
                 .eq('tipo', tipo)
-                .in('media_id', idsTMDB);
+                .in('media_id', idsTMDB); // Pide solo los que están en pantalla de golpe
 
-            console.log(`🔍 [${tipo}] Datos de user_media recibidos:`, vistosData);
-            console.log(`🔍 [${tipo}] IDs solicitados:`, idsTMDB);
-
-            if (vistosData && vistosData.length > 0) {
-                // Solo consideramos "visto" si el campo 'visto' es explícitamente true
-                vistosData.forEach(v => {
-                    if (v.visto === true) {
-                        vistosMap[v.media_id] = v;
-                    }
-                });
-                console.log(`🔍 [${tipo}] vistosMap generado (CORREGIDO):`, vistosMap);
-                console.log(`🔍 [${tipo}] Total de registros marcados como vistos:`, Object.keys(vistosMap).length);
-            } else {
-                console.log(`🔍 [${tipo}] No se encontraron registros en user_media para estos IDs`);
+            if (vistosData) {
+                vistosData.forEach(v => vistosMap[v.media_id] = v);
             }
         }
 
-        // === LEER FILTRO DE ESTADO ===
-        const estadoVisto = document.querySelector(`.estado-item-${tipo}[value="visto"]`)?.checked;
-        const estadoNoVisto = document.querySelector(`.estado-item-${tipo}[value="no_visto"]`)?.checked;
-
-        console.log(`🎯 [${tipo}] Filtros de estado - Visto: ${estadoVisto}, No visto: ${estadoNoVisto}`);
-        console.log(`🎯 [${tipo}] vistosMap keys:`, Object.keys(vistosMap));
-
-        let itemsMostrados = 0;
-
         datosUnicos.forEach(item => {
-
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
             // Bloquea ÚNICAMENTE si TMDB lo clasifica oficialmente como contenido para adultos
-            if (item.adult && !isAdultFilterActive) return;
+            const esContenidoAdulto = item.adult;
+
+            if (esContenidoAdulto && !isAdultFilterActive) return;
 
             // Pasamos la variable de si está vista a la función  
             const userMediaInfo = vistosMap[item.id.toString()];
-            const estaVisto = !!userMediaInfo;
-
-            console.log(`🎯 [${tipo}] Item ${item.titulo} (${item.id}) - visto: ${estaVisto}`);
-
-            // === FILTRO LOCAL ===
-            if (estadoVisto && !estadoNoVisto && !estaVisto) {
-                console.log(`⛔ [${tipo}] Ocultando ${item.titulo} - No está visto`);
-                return;
-            }
-            if (estadoNoVisto && !estadoVisto && estaVisto) {
-                console.log(`⛔ [${tipo}] Ocultando ${item.titulo} - Está visto`);
-                return;
-            }
-
-            // Si sobrevive, lo pintamos
-            console.log(`✅ [${tipo}] Mostrando ${item.titulo}`);
             grid.innerHTML += crearTarjetaTMDB(item, tipo, userMediaInfo);
-            itemsMostrados++;
         });
-
-        // === AUTO-AVANCE INTELIGENTE ===
-        // Si el filtro local ocultó TODOS los resultados, pero TMDB sí nos dio películas, 
-        // avanzamos de página automáticamente de fondo para que la pantalla no se quede vacía.
-        if (datosUnicos.length > 0 && itemsMostrados === 0) {
-            if (tipo === 'movie') pageMovies++; else pageSeries++;
-            cargarTMDB(tipo, searchActual, false);
-            return; // Cortamos aquí para que no dibuje el botón
-        }
 
         if (datosUnicos.length > 0) {
             const btnMas = document.createElement('div');
@@ -7223,9 +7175,6 @@ window.recargarRecomendaciones = async function () {
     const inputsTMDB = document.querySelectorAll(`.estado-item-${tipo}, .lang-item-${tipo} input, #date-min-${tipo}, #date-max-${tipo}`);
     inputsTMDB.forEach(input => {
         input.addEventListener('change', () => {
-            console.log(`🔄 [${tipo}] Cambio en filtro:`, input);
-            console.log(`🔄 [${tipo}] Valor:`, input.value, 'Checked:', input.checked);
-            console.log(`🔄 [${tipo}] searchActual antes de recargar:`, tipo === 'movie' ? searchMoviesActual : searchSeriesActual);
             guardarFiltros();
             cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
         });
