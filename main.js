@@ -1045,7 +1045,10 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     return `
         <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
-                <div class="top-platform-tag"><i class="fas fa-star" style="color:gold;"></i> ${media.nota}</div>
+                <div class="top-platform-tag">
+                <i class="fas fa-star" style="color:gold;"></i> ${media.nota}
+                ${media.votos ? `<span style="font-size:0.55rem; margin-left:4px; color:var(--text-muted);">(${media.votos} votos)</span>` : ''}
+            </div>
                 ${nsfwTag} 
                 <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
             </div>
