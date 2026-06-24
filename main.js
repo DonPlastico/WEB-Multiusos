@@ -97,6 +97,13 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
         cargarTMDB('tv');
         seriesCargadas = true;
     } else if (target === 'profile') {
+        // Si no hay usernameUrl, usamos el de la sesión
+        if (!usernameUrl) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.user_metadata?.username) {
+                usernameUrl = session.user.user_metadata.username;
+            }
+        }
         cargarPerfilPublico(usernameUrl);
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
@@ -3438,8 +3445,240 @@ async function cargarPerfilPublico(usernameTarget) {
         // === CARGAR WATCHLIST DE SERIES PENDIENTES ===
         await cargarWatchlistTVTime(perfilTarget.auth_id, miPropioUsername === usuarioABuscar);
 
+        // === CARGAR RECOMENDACIONES DINÁMICAS ===
+        // Solo cargar recomendaciones si estamos viendo nuestro propio perfil
+        if (miPropioUsername === usuarioABuscar) {
+            await cargarRecomendaciones(perfilTarget.auth_id);
+        } else {
+            // Si es perfil de otro, ocultamos la sección de recomendaciones
+            const recSection = document.getElementById('recommendations-section');
+            if (recSection) recSection.style.display = 'none';
+        }
+
     } catch (err) {
         console.error("Error al cargar perfil dinámico:", err);
+    }
+}
+
+// ==========================================================================
+//   RECOMENDACIONES DINÁMICAS (BASADAS EN ÚLTIMOS 7 VISIONADOS)
+// ==========================================================================
+
+async function cargarRecomendaciones(userId) {
+    const container = document.getElementById('rec-dynamic-container');
+    const loading = document.getElementById('rec-loading');
+    const empty = document.getElementById('rec-empty');
+    const emptyMsg = document.getElementById('rec-empty-message');
+
+    if (!container) return;
+
+    // Mostrar loading
+    if (loading) loading.style.display = 'flex';
+    if (empty) empty.style.display = 'none';
+    if (emptyMsg) emptyMsg.style.display = 'none';
+    container.innerHTML = '';
+
+    try {
+        // 1. OBTENER ÚLTIMOS 7 VISIONADOS (PELÍCULAS Y SERIES)
+        const { data: vistos, error } = await supabase
+            .from('user_media')
+            .select('media_id, tipo, fecha_vista, veces_vista')
+            .eq('user_id', userId)
+            .eq('visto', true)
+            .in('tipo', ['movie', 'tv'])
+            .order('fecha_vista', { ascending: false })
+            .limit(7);
+
+        if (error) throw error;
+
+        // Si no hay nada visto, ocultar sección
+        if (!vistos || vistos.length === 0) {
+            if (loading) loading.style.display = 'none';
+            if (empty) empty.style.display = 'flex';
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            return;
+        }
+
+        // Extraer IDs y tipos
+        const ids = vistos.map(v => v.media_id);
+        const tipos = [...new Set(vistos.map(v => v.tipo))];
+
+        // 2. OBTENER GÉNEROS DE CADA CONTENIDO VISTO (desde TMDB)
+        const generosVistos = new Set();
+        const generosDetalle = [];
+
+        for (const item of vistos) {
+            try {
+                const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.tipo}`);
+                if (!res.ok) continue;
+                const data = await res.json();
+
+                if (data.generos && data.generos !== 'N/A') {
+                    const generosList = data.generos.split(',').map(g => g.trim());
+                    generosList.forEach(g => {
+                        if (g && g !== 'N/A') {
+                            generosVistos.add(g);
+                            if (!generosDetalle.find(d => d.nombre === g)) {
+                                generosDetalle.push({ nombre: g, peso: 1 });
+                            } else {
+                                const found = generosDetalle.find(d => d.nombre === g);
+                                found.peso = (found.peso || 1) + 1;
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('Error obteniendo géneros de', item.media_id, e);
+            }
+        }
+
+        // Ordenar géneros por peso (los más vistos primero)
+        generosDetalle.sort((a, b) => (b.peso || 0) - (a.peso || 0));
+
+        // Tomar top 3 géneros para recomendaciones
+        const topGeneros = generosDetalle.slice(0, 3).map(g => g.nombre);
+
+        if (topGeneros.length === 0) {
+            if (loading) loading.style.display = 'none';
+            if (empty) empty.style.display = 'flex';
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            return;
+        }
+
+        // 3. BUSCAR RECOMENDACIONES POR GÉNERO (mezclar pelis y series)
+        const recomendaciones = [];
+        const yaVistos = new Set(ids); // No recomendar lo que ya ha visto
+
+        // Para cada género top, buscar 2 películas y 2 series (máximo 6 por género)
+        for (const genero of topGeneros) {
+            // Buscar películas de este género
+            try {
+                const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(genero)}&limit=4`);
+                if (resMovie.ok) {
+                    const movies = await resMovie.json();
+                    movies.forEach(m => {
+                        if (!yaVistos.has(m.id.toString()) && !recomendaciones.find(r => r.id === m.id.toString() && r.tipo === 'movie')) {
+                            recomendaciones.push({
+                                ...m,
+                                tipo: 'movie',
+                                generoCoincidencia: genero,
+                                puntuacion: 95 - (recomendaciones.length % 10) // Puntuación dinámica
+                            });
+                        }
+                    });
+                }
+            } catch (e) { /* ignorar */ }
+
+            // Buscar series de este género
+            try {
+                const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(genero)}&limit=4`);
+                if (resTv.ok) {
+                    const series = await resTv.json();
+                    series.forEach(s => {
+                        if (!yaVistos.has(s.id.toString()) && !recomendaciones.find(r => r.id === s.id.toString() && r.tipo === 'tv')) {
+                            recomendaciones.push({
+                                ...s,
+                                tipo: 'tv',
+                                generoCoincidencia: genero,
+                                puntuacion: 88 - (recomendaciones.length % 12)
+                            });
+                        }
+                    });
+                }
+            } catch (e) { /* ignorar */ }
+
+            // Si ya tenemos suficientes (10-12), paramos
+            if (recomendaciones.length >= 10) break;
+        }
+
+        // Limitar a 10 recomendaciones máximo
+        const finalRecomendaciones = recomendaciones.slice(0, 10);
+
+        // 4. PINTAR LAS RECOMENDACIONES
+        if (loading) loading.style.display = 'none';
+        container.innerHTML = '';
+
+        if (finalRecomendaciones.length === 0) {
+            if (empty) empty.style.display = 'flex';
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            return;
+        }
+
+        // Mostrar mensaje de "basado en tus últimos visionados"
+        if (emptyMsg) {
+            emptyMsg.style.display = 'inline-flex';
+            const ultimoGenero = topGeneros[0] || 'tu estilo';
+            emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en ${ultimoGenero}`;
+        }
+
+        // Generar HTML para cada recomendación
+        finalRecomendaciones.forEach((item, index) => {
+            const poster = item.poster || '';
+            const titulo = item.titulo || 'Sin título';
+            const generoMatch = item.generoCoincidencia || 'recomendado';
+            const puntuacion = item.puntuacion || 90;
+
+            // Tipo de contenido (PELÍCULA / SERIE)
+            const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
+
+            // Determinar si es película o serie para el badge
+            const esPelicula = item.tipo === 'movie';
+
+            const card = document.createElement('div');
+            card.className = 'watchlist-item';
+            card.style.cursor = 'pointer';
+            card.dataset.id = item.id;
+            card.dataset.tipo = item.tipo;
+
+            card.innerHTML = `
+                <div class="watchlist-item-bg" style="background-image: url('${poster}')"></div>
+                <div class="watchlist-item-content">
+                    <div class="watchlist-thumb">
+                        <img src="${poster}" alt="${titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'watchlist-thumb-placeholder\\'><i class=\\'fas ${esPelicula ? 'fa-film' : 'fa-tv'}\\'></i></div>'">
+                    </div>
+                    <div class="watchlist-info">
+                        <span class="watchlist-show-name">
+                            ${puntuacion}% COINCIDENCIA <i class="fas fa-star" style="color: gold; margin-left: 4px;"></i>
+                            <span style="font-size: 0.6rem; font-weight: 400; color: var(--text-muted); margin-left: 8px;">${tipoLabel}</span>
+                        </span>
+                        <div class="watchlist-ep-title">
+                            <span class="watchlist-ep-code">${titulo}</span>
+                        </div>
+                        <div class="watchlist-ep-name">Porque te gusta ${generoMatch}</div>
+                    </div>
+                    <button class="watchlist-check-btn" title="Ver Detalles">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+            `;
+
+            // Evento para abrir el modal al hacer clic en la tarjeta
+            card.addEventListener('click', (e) => {
+                // Si el clic fue en el botón o en sus hijos, no abrimos el modal (se maneja por separado)
+                if (e.target.closest('.watchlist-check-btn')) return;
+                abrirModalMedia(item.id, item.tipo);
+            });
+
+            // Evento para el botón de "Ver detalles" (abre el modal)
+            const btnDetail = card.querySelector('.watchlist-check-btn');
+            if (btnDetail) {
+                btnDetail.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    abrirModalMedia(item.id, item.tipo);
+                });
+            }
+
+            container.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error('Error cargando recomendaciones:', error);
+        if (loading) loading.style.display = 'none';
+        if (empty) {
+            empty.style.display = 'flex';
+            const p = empty.querySelector('p');
+            if (p) p.textContent = 'No se pudieron cargar las recomendaciones. Intenta más tarde.';
+        }
     }
 }
 
@@ -4281,7 +4520,7 @@ window.actualizarUIMediaPersonal = async function (data) {
     }
 
     resetearEstrellasPersonal();
-    
+
     const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
     const tipo = memoInfo.tipo;
 
@@ -4894,7 +5133,7 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
 });
 
 // ==========================================================================
-//   UTILIDAD: FORMATEAR TIEMPO EN DÍAS/HORAS/MINUTOS
+//   FORMATEAR TIEMPO EN DÍAS/HORAS/MINUTOS
 // ==========================================================================
 function formatearTiempo(minutos) {
     if (!minutos || minutos === 0) return "--";
@@ -5572,7 +5811,7 @@ function aplicarColorDinamico(colorHex) {
     console.log(`🎨 Color cargado permanentemente: ${colorHex}`);
 }
 
-// === UTILIDAD: Convertir HEX a RGB ===
+// === Convertir HEX a RGB ===
 function hexToRgb(hex) {
     // Eliminar # si existe
     hex = hex.replace('#', '');
@@ -6728,3 +6967,18 @@ document.getElementById('btn-add-to-favorites')?.addEventListener('click', async
     this.style.pointerEvents = 'auto';
     this.style.opacity = '1';
 });
+
+// ==========================================================================
+// FORZAR RECARGA DE RECOMENDACIONES (para usar desde consola)
+// ==========================================================================
+
+window.recargarRecomendaciones = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        showToast('error', 'Acceso denegado', 'Inicia sesión para ver recomendaciones.');
+        return;
+    }
+    const userId = session.user.id;
+    await cargarRecomendaciones(userId);
+    showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
+};
