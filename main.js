@@ -4202,7 +4202,7 @@ window.irAPerfilDesdeLista = function (usernameTarget) {
 window.estadoMediaActual = null; // Guardará en RAM el estado del modal abierto
 
 // 1. DIBUJAR INTERFAZ: Esta función pinta las estrellas, el ojo y el badge según los datos
-window.actualizarUIMediaPersonal = function (data) {
+window.actualizarUIMediaPersonal = async function (data) {
     window.estadoMediaActual = data || { visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null };
 
     const personalValue = document.getElementById('media-detail-personal-value');
@@ -4303,8 +4303,9 @@ window.actualizarUIMediaPersonal = function (data) {
             const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
             const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
-            actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster);
-            mostrarBotonFavorito(true);
+            actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster).then(() => {
+                mostrarBotonFavorito(true);
+            });
         } else {
             mostrarBotonFavorito(false);
         }
@@ -6688,15 +6689,15 @@ async function toggleFavorito(mediaId, tipo, titulo, poster) {
 }
 
 // Actualizar el botón de favoritos
-function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
+async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
     const container = document.getElementById('favorite-button-container');
     const btn = document.getElementById('btn-add-to-favorites');
     const btnText = document.getElementById('favorite-btn-text');
 
     if (!container || !btn || !btnText) return;
 
-    // Verificar si es favorito
-    const isFav = esFavorito(mediaId, tipo);
+    // ✅ AHORA CON AWAIT
+    const isFav = await esFavorito(mediaId, tipo);
 
     if (isFav) {
         btn.classList.add('is-favorite');
@@ -6733,21 +6734,18 @@ function mostrarBotonFavorito(mostrar) {
 }
 
 // Evento para el botón de favoritos
-document.getElementById('btn-add-to-favorites')?.addEventListener('click', function () {
+document.getElementById('btn-add-to-favorites')?.addEventListener('click', async function () {
     if (!mediaFavoritoActual) return;
 
     const { id, tipo, titulo, poster, esFavorito } = mediaFavoritoActual;
 
     if (esFavorito) {
-        // Quitar de favoritos
-        quitarFavorito(id, tipo);
+        await quitarFavorito(id, tipo);
         showToast('info', 'Favorito eliminado', `"${titulo}" ya no está en tus favoritos.`);
     } else {
-        // Añadir a favoritos
-        añadirFavorito(id, tipo, titulo, poster);
+        await añadirFavorito(id, tipo, titulo, poster);
         showToast('success', '¡Añadido a favoritos!', `"${titulo}" ahora es uno de tus favoritos. ❤️`);
     }
 
-    // Actualizar el botón
-    actualizarBotonFavorito(id, tipo, titulo, poster);
+    await actualizarBotonFavorito(id, tipo, titulo, poster);
 });
