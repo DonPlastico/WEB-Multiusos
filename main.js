@@ -53,7 +53,7 @@ let seriesCargadas = false;
 const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
-function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
+async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
     // antes de cambiar, guardo donde estaba
     memoriaScroll[vistaActualGlobal] = window.scrollY;
 
@@ -125,13 +125,13 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
 
 // cuando hago click en el menu
 linksMenu.forEach(link => {
-    link.addEventListener('click', (evento) => {
+    link.addEventListener('click', async (evento) => {
         evento.preventDefault();
         const target = link.getAttribute('data-target');
 
         // Solo cambiamos si NO estamos ya en esa vista (Evita historiales duplicados)
         if (vistaActualGlobal !== target) {
-            cambiarVista(target, true);
+            await cambiarVista(target, true);
         }
     });
 });
@@ -139,8 +139,8 @@ linksMenu.forEach(link => {
 // ahora el logo es el boton de HOME
 const logoHome = document.getElementById('logo-home');
 if (logoHome) {
-    logoHome.addEventListener('click', () => {
-        cambiarVista('home', true);
+    logoHome.addEventListener('click', async () => {
+        await cambiarVista('home', true);
         // quito el active del menu
         linksMenu.forEach(l => l.classList.remove('active'));
     });
@@ -149,14 +149,14 @@ if (logoHome) {
 // boton especial para admin
 const btnAdminTop = document.getElementById('btn-admin');
 if (btnAdminTop) {
-    btnAdminTop.addEventListener('click', () => {
-        cambiarVista('admin-panel', true);
+    btnAdminTop.addEventListener('click', async () => {
+        await cambiarVista('admin-panel', true);
         linksMenu.forEach(l => l.classList.remove('active'));
     });
 }
 
 // detecto cuando usan los botones atras/adelante del navegador
-window.addEventListener('popstate', (evento) => {
+window.addEventListener('popstate', async (evento) => {
     // Si hay un modal de detalles de juego abierto, lo cerramos primero
     const modalJuego = document.getElementById('game-details-modal');
     if (modalJuego && modalJuego.classList.contains('show')) {
@@ -173,7 +173,7 @@ window.addEventListener('popstate', (evento) => {
 
     if (evento.state && evento.state.vista) {
         // vuelvo a la vista anterior sin guardar
-        cambiarVista(evento.state.vista, false, evento.state.user || null);
+        await cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
         arrancarEnrutador();
     }
