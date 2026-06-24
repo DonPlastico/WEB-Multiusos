@@ -6362,5 +6362,32 @@ async function guardarBannerCustom() {
     }, 'image/png', 1.0);
 }
 
-// Exponer cambiarVista globalmente
-window.cambiarVista = cambiarVista;
+// ==========================================================================
+//   BOTONES DEL HERO
+// ==========================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnGames = document.getElementById('btn-hero-games');
+    if (btnGames) {
+        btnGames.addEventListener('click', (e) => {
+            e.preventDefault();
+            cambiarVista('games');
+        });
+    }
+
+    const btnMovies = document.getElementById('btn-hero-movies');
+    if (btnMovies) {
+        btnMovies.addEventListener('click', (e) => {
+            e.preventDefault();
+            cambiarVista('movies');
+        });
+    }
+
+    const btnSeries = document.getElementById('btn-hero-series');
+    if (btnSeries) {
+        btnSeries.addEventListener('click', (e) => {
+            e.preventDefault();
+            cambiarVista('series');
+        });
+    }
+});
