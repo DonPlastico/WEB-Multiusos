@@ -521,28 +521,135 @@
 
                     <div class="filter-main-header">
                         <h2>Filtros</h2>
-                        <button id="btn-reset-filters" data-target="movie">Limpiar</button>
+                        <button id="btn-reset-filters-movies" class="btn-reset-tmdb"
+                            data-target="movie">Limpiar</button>
                     </div>
 
-                    <div class="accordion-item nsfw-filter-container"
-                        style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
-                        <div class="accordion-header"
-                            style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <span style="color: var(--error);">
-                                <i class="fas fa-exclamation-triangle"
-                                    style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
-                            </span>
-                            <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
+                    <div class="filters-scroll-area">
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> ESTADO</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="estado-item-movie" value="visto">
+                                    <span class="box"></span> He visto
+                                </label>
+                                <label class="custom-check">
+                                    <input type="checkbox" class="estado-item-movie" value="no_visto">
+                                    <span class="box"></span> No he visto
+                                </label>
+                            </div>
                         </div>
-                        <div class="accordion-content">
-                            <label class="custom-check" title="Activa el contenido para adultos">
-                                <input type="checkbox" id="adult-filter-movie" class="adult-checkbox">
-                                <span class="box" style="border-color: var(--error);"></span>
-                                <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
-                                    +18</span>
-                            </label>
-                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
-                                desbloqueado por verificación de edad (+18) en el Nexus.</p>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
+                                <input type="date" id="date-min-movie" class="cyber-input date-picker">
+
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
+                                <input type="date" id="date-max-movie" class="cyber-input date-picker">
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" id="search-genre-movie" class="cyber-input mini-search"
+                                    placeholder="Buscar género...">
+                                <div id="genre-list-movie">
+                                    <div
+                                        style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Cargando géneros...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" id="search-lang-movie" class="cyber-input mini-search"
+                                    placeholder="Buscar idioma/país...">
+                                <div id="lang-list-movie">
+                                    <div class="lang-group">
+                                        <div class="lang-group-title"
+                                            style="color:var(--primary); font-size:0.8rem; margin:10px 0 5px; font-weight:bold;">
+                                            ASIÁTICOS</div>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="ko"><span class="box"></span> Corea del Sur</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="ja"><span class="box"></span> Japón</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="zh"><span class="box"></span> China</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="th"><span class="box"></span> Tailandia</label>
+                                    </div>
+                                    <div class="lang-group">
+                                        <div class="lang-group-title"
+                                            style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
+                                            OCCIDENTALES</div>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="en"><span class="box"></span> Inglés (EE.UU/UK)</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="es"><span class="box"></span> Español</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="fr"><span class="box"></span> Francés</label>
+                                        <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                value="de"><span class="box"></span> Alemán</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="slider-container" style="padding: 10px 5px;">
+                                    <input type="range" id="votes-slider-movie" min="0" max="500" step="50" value="0"
+                                        style="width:100%; accent-color: var(--primary);">
+                                    <div
+                                        style="display:flex; justify-content:space-between; margin-top:10px; color:var(--text-muted); font-size:0.85rem;">
+                                        <span>0</span>
+                                        <span id="votes-display-movie" style="color:var(--primary); font-weight:bold;">0
+                                            votos</span>
+                                        <span>500+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item nsfw-filter-container"
+                            style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div class="accordion-header"
+                                style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                                <span style="color: var(--error);">
+                                    <i class="fas fa-exclamation-triangle"
+                                        style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
+                                </span>
+                                <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check" title="Activa el contenido para adultos">
+                                    <input type="checkbox" id="adult-filter-movie" class="adult-checkbox">
+                                    <span class="box" style="border-color: var(--error);"></span>
+                                    <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
+                                        +18</span>
+                                </label>
+                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
+                                    desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -572,30 +679,137 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
+
                     <div class="filter-main-header">
                         <h2>Filtros</h2>
-                        <button id="btn-reset-filters" data-target="tv">Limpiar</button>
+                        <button id="btn-reset-filters-tv" class="btn-reset-tmdb" data-target="tv">Limpiar</button>
                     </div>
 
-                    <div class="accordion-item nsfw-filter-container"
-                        style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
-                        <div class="accordion-header"
-                            style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <span style="color: var(--error);">
-                                <i class="fas fa-exclamation-triangle"
-                                    style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
-                            </span>
-                            <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
+                    <div class="filters-scroll-area">
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> ESTADO</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check">
+                                    <input type="checkbox" class="estado-item-tv" value="visto">
+                                    <span class="box"></span> He visto
+                                </label>
+                                <label class="custom-check">
+                                    <input type="checkbox" class="estado-item-tv" value="no_visto">
+                                    <span class="box"></span> No he visto
+                                </label>
+                            </div>
                         </div>
-                        <div class="accordion-content">
-                            <label class="custom-check" title="Activa el contenido para adultos">
-                                <input type="checkbox" id="adult-filter-series" class="adult-checkbox">
-                                <span class="box" style="border-color: var(--error);"></span>
-                                <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
-                                    +18</span>
-                            </label>
-                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
-                                desbloqueado por verificación de edad (+18) en el Nexus.</p>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
+                            </div>
+                            <div class="accordion-content">
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
+                                <input type="date" id="date-min-tv" class="cyber-input date-picker">
+
+                                <label
+                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
+                                <input type="date" id="date-max-tv" class="cyber-input date-picker">
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" id="search-genre-tv" class="cyber-input mini-search"
+                                    placeholder="Buscar género...">
+                                <div id="genre-list-tv">
+                                    <div
+                                        style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Cargando géneros...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
+                            </div>
+                            <div class="accordion-content">
+                                <input type="text" id="search-lang-tv" class="cyber-input mini-search"
+                                    placeholder="Buscar idioma/país...">
+                                <div id="lang-list-tv">
+                                    <div class="lang-group">
+                                        <div class="lang-group-title"
+                                            style="color:var(--primary); font-size:0.8rem; margin:10px 0 5px; font-weight:bold;">
+                                            ASIÁTICOS</div>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="ko"><span
+                                                class="box"></span> Corea del Sur (K-Drama)</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="ja"><span
+                                                class="box"></span> Japón (Anime/J-Drama)</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="zh"><span
+                                                class="box"></span> China (C-Drama)</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="th"><span
+                                                class="box"></span> Tailandia (Thai-Drama)</label>
+                                    </div>
+                                    <div class="lang-group">
+                                        <div class="lang-group-title"
+                                            style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
+                                            OCCIDENTALES</div>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="en"><span
+                                                class="box"></span> Inglés (EE.UU/UK)</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="es"><span
+                                                class="box"></span> Español</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="fr"><span
+                                                class="box"></span> Francés</label>
+                                        <label class="custom-check lang-item-tv"><input type="checkbox" value="de"><span
+                                                class="box"></span> Alemán</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="slider-container" style="padding: 10px 5px;">
+                                    <input type="range" id="votes-slider-tv" min="0" max="500" step="50" value="0"
+                                        style="width:100%; accent-color: var(--primary);">
+                                    <div
+                                        style="display:flex; justify-content:space-between; margin-top:10px; color:var(--text-muted); font-size:0.85rem;">
+                                        <span>0</span>
+                                        <span id="votes-display-tv" style="color:var(--primary); font-weight:bold;">0
+                                            votos</span>
+                                        <span>500+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item nsfw-filter-container"
+                            style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div class="accordion-header"
+                                style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                                <span style="color: var(--error);">
+                                    <i class="fas fa-exclamation-triangle"
+                                        style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
+                                </span>
+                                <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
+                            </div>
+                            <div class="accordion-content">
+                                <label class="custom-check" title="Activa el contenido para adultos">
+                                    <input type="checkbox" id="adult-filter-series" class="adult-checkbox">
+                                    <span class="box" style="border-color: var(--error);"></span>
+                                    <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
+                                        +18</span>
+                                </label>
+                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
+                                    desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            </div>
                         </div>
                     </div>
                 </aside>
