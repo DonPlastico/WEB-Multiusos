@@ -715,8 +715,9 @@ let trendCargando = false;
 // Mapeo de períodos a fecha de inicio
 function getDateRange(period) {
     const now = new Date();
-    let startDate = new Date();
+    let startDate = new Date(now); // Copia exacta
 
+    // Ajustar según el período
     switch (period) {
         case 'day':
             startDate.setDate(now.getDate() - 1);
@@ -731,13 +732,30 @@ function getDateRange(period) {
             startDate.setDate(now.getDate() - 1);
     }
 
-    // Poner a 00:00:00 para evitar problemas de zona horaria
-    startDate.setHours(0, 0, 0, 0);
-    now.setHours(23, 59, 59, 999);
+    // Usar fechas en formato UTC para evitar desfases
+    const startUTC = Date.UTC(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        startDate.getDate(),
+        0, 0, 0, 0
+    );
+
+    const endUTC = Date.UTC(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23, 59, 59, 999
+    );
+
+    console.log('📅 Rango de fechas:', {
+        period,
+        start: new Date(startUTC).toISOString(),
+        end: new Date(endUTC).toISOString()
+    });
 
     return {
-        from: Math.floor(startDate.getTime() / 1000),
-        to: Math.floor(now.getTime() / 1000)
+        from: Math.floor(startUTC / 1000),
+        to: Math.floor(endUTC / 1000)
     };
 }
 
@@ -828,11 +846,12 @@ async function cargarTendencias(period = 'day', resetear = true) {
         console.error('Error cargando tendencias:', error);
         if (resetear) {
             container.innerHTML = `
-                <div class="trends-empty">
-                    <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                    <span>Error al cargar tendencias</span>
-                </div>
-            `;
+            <div class="trends-empty">
+                <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+                <span>No hay tendencias disponibles en este período</span>
+                <span style="font-size: 0.7rem; opacity: 0.6; margin-top: 4px;">Intenta con otro filtro</span>
+            </div>
+        `;
         }
     }
 

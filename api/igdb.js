@@ -5,17 +5,15 @@ export default async function handler(req, res) {
 
     const busqueda = req.query.query || '';
     const offset = parseInt(req.query.offset) || 0;
-
     const limit = parseInt(req.query.limit) || 50;
     const sortField = req.query.sort || '';
-
     const platforms = req.query.platforms || '';
     const genres = req.query.genres || '';
-
     const dateMin = req.query.dateMin || '';
     const dateMax = req.query.dateMax || '';
-
     const modes = req.query.modes || '';
+
+    console.log('🔍 Tendencias - Parámetros:', { dateMin, dateMax, sortField, busqueda });
 
     try {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
@@ -27,23 +25,25 @@ export default async function handler(req, res) {
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        // ===  TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
+        // === TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
         if (dateMin) {
-            const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
+            const minTimestamp = Math.floor(new Date(parseInt(dateMin) * 1000).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);
         }
         if (dateMax) {
-            const maxTimestamp = Math.floor(new Date(dateMax).getTime() / 1000);
+            const maxTimestamp = Math.floor(new Date(parseInt(dateMax) * 1000).getTime() / 1000);
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Solo exigimos juegos con rating si NO hay búsqueda, NO hay filtros de fecha y NO es una ordenación por rating
-        const tieneFiltrosFecha = dateMin || dateMax;
+        // ⚠️ CORRECCIÓN: Si hay fechas, NO aplicar el filtro de rating
+        const tieneFechas = dateMin || dateMax;
         const esOrdenRating = sortField.includes('rating');
 
-        if (!busqueda && whereClauses.length === 0 && !esOrdenRating && !tieneFiltrosFecha) {
+        if (!busqueda && whereClauses.length === 0 && !esOrdenRating && !tieneFechas) {
             whereClauses.push('total_rating > 80');
         }
+
+        console.log('📋 Where clauses:', whereClauses);
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
