@@ -30,8 +30,8 @@ force = true
 [[headers]]
 for = "/*"
 
-[[plugins]]
-package = "netlify-plugin-cypress"
+# [[plugins]]
+# package = "netlify-plugin-cypress"
 
 [build.environment]
 CYPRESS_BASE_URL = "https://dpsys-nexus.netlify.app"

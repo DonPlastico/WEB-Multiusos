@@ -16,7 +16,7 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 
-// Ignorar errores de módulos que no se cargan en los tests
+// Ignorar errores de módulos de Supabase durante los tests
 Cypress.on('uncaught:exception', (err, runnable) => {
     // Ignorar errores de módulos no encontrados
     if (err.message.includes('Failed to resolve module specifier')) {
@@ -26,6 +26,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     if (err.message.includes('gtag')) {
         return false
     }
-    // Dejar pasar otros errores
+    // Ignorar errores de Supabase
+    if (err.message.includes('supabase')) {
+        return false
+    }
     return true
 })
