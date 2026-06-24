@@ -964,14 +964,14 @@ function crearTarjetaTrend(juego, posicion) {
         precioHtml = `<span class="price-badge" style="font-size:0.7rem;">${juego.itad.precio.toFixed(2)} €</span>`;
     }
 
-    // Posición (con estilo retro)
+    // Mantenemos las clases por si quieres conservar los colores (oro, plata, bronce)
     let posClass = '';
-    let posEmoji = '';
-    if (posicion === 1) { posClass = 'top1'; posEmoji = '🥇'; }
-    else if (posicion === 2) { posClass = 'top2'; posEmoji = '🥈'; }
-    else if (posicion === 3) { posClass = 'top3'; posEmoji = '🥉'; }
+    if (posicion === 1) posClass = 'top1';
+    else if (posicion === 2) posClass = 'top2';
+    else if (posicion === 3) posClass = 'top3';
 
-    const posText = posEmoji || `#${posicion}`;
+    // Ahora siempre mostrará #1, #2, #3...
+    const posText = `#${posicion}`;
 
     // Rating - IGDB usa 'rating' (0-100) o 'total_rating' (0-100)
     const rating = juego.rating ? (juego.rating / 10).toFixed(1) :

@@ -1,7 +1,5 @@
 # WEB Multiusos (DP-SYS)
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/d2c14ea5-2f01-4c05-a5b4-193b69d4c25d/deploy-status)](https://app.netlify.com/projects/dpsys-nexus/deploys)
-
 ## 🚀 Sobre la web
 
 Centro de control para juegos, películas y series. Con APIs de IGDB, TMDB, ITAD y Supabase.
@@ -9,7 +7,7 @@ Centro de control para juegos, películas y series. Con APIs de IGDB, TMDB, ITAD
 ## 🛠️ Tecnologías
 
 - HTML5, CSS3, JavaScript
-- Netlify Functions
+- Vercel Functions
 - Supabase (autenticación y BD)
 - APIs: IGDB, TMDB, ITAD, Twitch
 
