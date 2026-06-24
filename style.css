@@ -5305,13 +5305,25 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .trends-container .horizontal-scroll {
-    padding-left: 24px;
-    /* Más espacio a la izquierda */
-    padding-right: 24px;
+    padding: 16px 20px 16px 4px;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: visible;
+    gap: 16px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+    align-items: stretch;
 }
 
 .trends-container .horizontal-scroll .trend-card:first-child {
     margin-left: 8px;
+}
+
+/* Y asegurar que la última también tenga margen derecho */
+.trends-container .horizontal-scroll .trend-card:last-child {
+    margin-right: 20px;
 }
 
 .trends-header {
