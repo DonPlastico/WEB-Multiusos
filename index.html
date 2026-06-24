@@ -1541,7 +1541,7 @@
                     </div>
                 </div>
 
-                <!-- 🔥 NUEVO: BARRA DE PROGRESO DE EPISODIOS (SOLO SERIES) -->
+                <!-- BARRA DE PROGRESO DE EPISODIOS (SOLO SERIES) -->
                 <div id="series-progress-container" style="display: none; padding: 0 40px; background: var(--bg-main);">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0 4px 0; gap: 15px;">
@@ -1562,6 +1562,16 @@
                             style="width: 0%; height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
                         </div>
                     </div>
+                </div>
+
+                <!-- BOTÓN AÑADIR A FAVORITOS -->
+                <div id="favorite-button-container"
+                    style="display: none; padding: 4px 40px 8px 40px; background: var(--bg-main); border-bottom: 1px solid var(--border-color);">
+                    <button id="btn-add-to-favorites" class="auth-btn primary full-width"
+                        style="padding: 8px 20px; font-size: 0.8rem; letter-spacing: 1.5px; border-radius: 8px; background: var(--gradient-primary);">
+                        <i class="fas fa-heart" style="margin-right: 8px;"></i>
+                        <span id="favorite-btn-text">AÑADIR A FAVORITOS</span>
+                    </button>
                 </div>
 
                 <div class="game-detail-body">

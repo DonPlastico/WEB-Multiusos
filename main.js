@@ -9,6 +9,12 @@ inject();
 import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
+// ==========================================================================
+//   FAVORITOS
+// ==========================================================================
+
+let mediaFavoritoActual = null; // Guarda el estado de favorito del media actual
+const FAVORITOS_KEY = 'nexus_favoritos'; // Clave para localStorage
 
 // ==========================================================================
 //   COLOR DINÁMICO DEL USUARIO
@@ -3081,6 +3087,8 @@ function cerrarModalMedia() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
+    mostrarBotonFavorito(false);
+
     // ACTUALIZACIÓN VISUAL INMEDIATA EN LA TARJETA
     try {
         const memoInfoStr = localStorage.getItem('modalMediaAbierto');
@@ -4263,6 +4271,46 @@ window.actualizarUIMediaPersonal = function (data) {
 
     // Resetear las estrellas según el estado actual (NUEVO)
     resetearEstrellasPersonal();
+
+    // Verificar si el media está completado al 100%
+    const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
+    const tipo = memoInfo.tipo;
+
+    if (tipo === 'tv' && window.serieInfoActual) {
+        // Es una serie: calcular total de episodios
+        let totalEpisodios = 0;
+        window.serieInfoActual.temporadas.forEach(temp => {
+            if (temp.season_number > 0) totalEpisodios += temp.episode_count;
+        });
+
+        const vistos = window.episodiosVistosActuales ? window.episodiosVistosActuales.size : 0;
+        const completada = totalEpisodios > 0 && vistos >= totalEpisodios;
+
+        if (completada && window.estadoMediaActual?.visto) {
+            // Mostrar el botón de favoritos
+            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
+            const poster = document.getElementById('media-detail-cover-img')?.src || '';
+
+            actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster);
+            mostrarBotonFavorito(true);
+        } else {
+            mostrarBotonFavorito(false);
+        }
+
+    } else if (tipo === 'movie') {
+        // Es una película: solo necesita estar marcada como vista
+        if (window.estadoMediaActual?.visto) {
+            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
+            const poster = document.getElementById('media-detail-cover-img')?.src || '';
+
+            actualizarBotonFavorito(memoInfo.id, 'movie', titulo, poster);
+            mostrarBotonFavorito(true);
+        } else {
+            mostrarBotonFavorito(false);
+        }
+    } else {
+        mostrarBotonFavorito(false);
+    }
 };
 
 // 2. SINCRONIZAR CON BASE DE DATOS
@@ -4610,6 +4658,11 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
 
     actualizarBarraProgresoSeries();
+
+    // Actualizar el estado de favoritos (puede cambiar si la serie se completó)
+    if (window.estadoMediaActual) {
+        actualizarUIMediaPersonal(window.estadoMediaActual);
+    }
 };
 
 // 3. LISTENERS GLOBALES (Clics de UI)
@@ -6504,3 +6557,136 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ==========================================================================
+//   SISTEMA DE FAVORITOS
+// ==========================================================================
+
+// Obtener lista de favoritos del usuario desde localStorage
+function getFavoritos() {
+    const { data: { session } } = supabase.auth.getSession();
+    if (!session) return [];
+
+    const key = `${FAVORITOS_KEY}_${session.user.id}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+}
+
+// Guardar lista de favoritos
+function setFavoritos(lista) {
+    const { data: { session } } = supabase.auth.getSession();
+    if (!session) return;
+
+    const key = `${FAVORITOS_KEY}_${session.user.id}`;
+    localStorage.setItem(key, JSON.stringify(lista));
+}
+
+// Verificar si un media está en favoritos
+function esFavorito(mediaId, tipo) {
+    const favoritos = getFavoritos();
+    return favoritos.some(f => f.id === mediaId.toString() && f.tipo === tipo);
+}
+
+// Añadir a favoritos
+function añadirFavorito(mediaId, tipo, titulo, poster) {
+    const favoritos = getFavoritos();
+
+    // Verificar si ya existe
+    if (favoritos.some(f => f.id === mediaId.toString() && f.tipo === tipo)) {
+        return false;
+    }
+
+    favoritos.push({
+        id: mediaId.toString(),
+        tipo: tipo,
+        titulo: titulo,
+        poster: poster,
+        fecha: new Date().toISOString()
+    });
+
+    setFavoritos(favoritos);
+    return true;
+}
+
+// Quitar de favoritos
+function quitarFavorito(mediaId, tipo) {
+    let favoritos = getFavoritos();
+    favoritos = favoritos.filter(f => !(f.id === mediaId.toString() && f.tipo === tipo));
+    setFavoritos(favoritos);
+    return true;
+}
+
+// Alternar favorito (si está, lo quita; si no, lo añade)
+function toggleFavorito(mediaId, tipo, titulo, poster) {
+    if (esFavorito(mediaId, tipo)) {
+        quitarFavorito(mediaId, tipo);
+        return false; // Ya no es favorito
+    } else {
+        añadirFavorito(mediaId, tipo, titulo, poster);
+        return true; // Es favorito
+    }
+}
+
+// Actualizar el botón de favoritos
+function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
+    const container = document.getElementById('favorite-button-container');
+    const btn = document.getElementById('btn-add-to-favorites');
+    const btnText = document.getElementById('favorite-btn-text');
+
+    if (!container || !btn || !btnText) return;
+
+    // Verificar si es favorito
+    const isFav = esFavorito(mediaId, tipo);
+
+    if (isFav) {
+        btn.classList.add('is-favorite');
+        btnText.textContent = 'QUITAR DE FAVORITOS';
+        btn.querySelector('.fa-heart').className = 'fas fa-heart';
+    } else {
+        btn.classList.remove('is-favorite');
+        btnText.textContent = 'AÑADIR A FAVORITOS';
+        btn.querySelector('.fa-heart').className = 'fas fa-heart';
+    }
+
+    // Guardar estado actual
+    mediaFavoritoActual = {
+        id: mediaId,
+        tipo: tipo,
+        titulo: titulo,
+        poster: poster,
+        esFavorito: isFav
+    };
+}
+
+// Mostrar/ocultar el botón de favoritos
+function mostrarBotonFavorito(mostrar) {
+    const container = document.getElementById('favorite-button-container');
+    if (container) {
+        if (mostrar) {
+            container.classList.add('show');
+            container.style.display = 'block';
+        } else {
+            container.classList.remove('show');
+            container.style.display = 'none';
+        }
+    }
+}
+
+// Evento para el botón de favoritos
+document.getElementById('btn-add-to-favorites')?.addEventListener('click', function () {
+    if (!mediaFavoritoActual) return;
+
+    const { id, tipo, titulo, poster, esFavorito } = mediaFavoritoActual;
+
+    if (esFavorito) {
+        // Quitar de favoritos
+        quitarFavorito(id, tipo);
+        showToast('info', 'Favorito eliminado', `"${titulo}" ya no está en tus favoritos.`);
+    } else {
+        // Añadir a favoritos
+        añadirFavorito(id, tipo, titulo, poster);
+        showToast('success', '¡Añadido a favoritos!', `"${titulo}" ahora es uno de tus favoritos. ❤️`);
+    }
+
+    // Actualizar el botón
+    actualizarBotonFavorito(id, tipo, titulo, poster);
+});

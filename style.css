@@ -5132,6 +5132,68 @@ cast-carousel::-webkit-scrollbar {
     background: var(--success) !important;
 }
 
+/* ==========================================================================
+   BOTÓN AÑADIR A FAVORITOS (MODAL SERIES/PELÍCULAS)
+   ========================================================================== */
+
+#favorite-button-container {
+    display: none;
+    padding: 4px 40px 8px 40px;
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#favorite-button-container.show {
+    display: block;
+}
+
+#btn-add-to-favorites {
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    border-radius: 8px;
+    background: var(--gradient-primary);
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+}
+
+#btn-add-to-favorites:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+}
+
+#btn-add-to-favorites .fa-heart {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+}
+
+#btn-add-to-favorites:hover .fa-heart {
+    transform: scale(1.2);
+}
+
+/* Cuando ya es favorito */
+#btn-add-to-favorites.is-favorite {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid var(--error);
+    color: var(--error);
+}
+
+#btn-add-to-favorites.is-favorite .fa-heart {
+    color: var(--error);
+}
+
+#btn-add-to-favorites.is-favorite:hover {
+    background: var(--error);
+    color: white;
+    border-color: var(--error);
+}
+
+#btn-add-to-favorites.is-favorite:hover .fa-heart {
+    color: white;
+}
+
 
 
 
@@ -5930,6 +5992,15 @@ cast-carousel::-webkit-scrollbar {
 
     #series-progress-track {
         height: 4px;
+    }
+
+    #favorite-button-container {
+        padding: 4px 20px 8px 20px;
+    }
+
+    #btn-add-to-favorites {
+        font-size: 0.7rem;
+        padding: 6px 16px;
     }
 }
 
