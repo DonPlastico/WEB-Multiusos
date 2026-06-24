@@ -110,8 +110,6 @@ function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
     }
 }
 
-window.cambiarVista = cambiarVista;
-
 // cuando hago click en el menu
 linksMenu.forEach(link => {
     link.addEventListener('click', (evento) => {
@@ -6363,3 +6361,6 @@ async function guardarBannerCustom() {
         }
     }, 'image/png', 1.0);
 }
+
+// Exponer cambiarVista globalmente
+window.cambiarVista = cambiarVista;
