@@ -226,15 +226,18 @@ export default async function handler(req, res) {
         // =========================================================
         let urlLista = '';
 
+        // 👇 IMPORTANTE: Leer el parámetro 'estado' (visto/no_visto)
+        const estado = req.query.estado || '';
+
         if (busqueda) {
-            // 1. Si hay texto, usamos SEARCH (TMDB no permite mezclar texto y filtros avanzados fácil)
+            // 1. Si hay texto, usamos SEARCH
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`;
         } else if (dateMin || dateMax || genres || langs || minVotes > 0) {
             // 2. Si no hay texto, pero SÍ hay filtros, usamos DISCOVER
             urlLista = `${baseUrl}/discover/${tipo}?language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
 
             if (genres) urlLista += `&with_genres=${genres}`;
-            if (langs) urlLista += `&with_original_language=${langs.replace(/,/g, '|')}`; // Reemplaza , por | para que haga un "OR" (ej: ko|ja)
+            if (langs) urlLista += `&with_original_language=${langs.replace(/,/g, '|')}`;
             if (minVotes > 0) urlLista += `&vote_count.gte=${minVotes}`;
 
             if (dateMin) {
@@ -247,6 +250,9 @@ export default async function handler(req, res) {
             // 3. Si está vacío, por defecto tendencias
             urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
         }
+
+        // 👇 REGLA DE ORO: Si solo se pide 'estado' sin otros filtros, usamos trending pero el frontend filtrará
+        // (No podemos filtrar por estado en TMDB porque no tienen ese dato, así que devolvemos todo y el frontend filtra)
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();

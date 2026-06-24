@@ -1209,10 +1209,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             console.log(`🔍 [${tipo}] IDs solicitados:`, idsTMDB);
 
             if (vistosData && vistosData.length > 0) {
-                // Consideramos "visto" si el registro EXISTE en user_media. El campo 'visto' puede ser null, false o true - lo que importa es que el registro existe
+                // Solo consideramos "visto" si el campo 'visto' es explícitamente true
                 vistosData.forEach(v => {
-                    // Si el registro existe, lo marcamos como visto
-                    vistosMap[v.media_id] = v;
+                    if (v.visto === true) {
+                        vistosMap[v.media_id] = v;
+                    }
                 });
                 console.log(`🔍 [${tipo}] vistosMap generado (CORREGIDO):`, vistosMap);
                 console.log(`🔍 [${tipo}] Total de registros marcados como vistos:`, Object.keys(vistosMap).length);
@@ -7224,6 +7225,7 @@ window.recargarRecomendaciones = async function () {
         input.addEventListener('change', () => {
             console.log(`🔄 [${tipo}] Cambio en filtro:`, input);
             console.log(`🔄 [${tipo}] Valor:`, input.value, 'Checked:', input.checked);
+            console.log(`🔄 [${tipo}] searchActual antes de recargar:`, tipo === 'movie' ? searchMoviesActual : searchSeriesActual);
             guardarFiltros();
             cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
         });
