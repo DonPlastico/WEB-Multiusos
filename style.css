@@ -5489,30 +5489,6 @@ cast-carousel::-webkit-scrollbar {
     font-family: var(--font-cyber);
 }
 
-.trend-position.top1 {
-    background: gold;
-    border-color: gold;
-    color: #1a1a24;
-    font-size: 0.8rem;
-    /* Ajustado */
-}
-
-.trend-position.top2 {
-    background: silver;
-    border-color: silver;
-    color: #1a1a24;
-    font-size: 0.8rem;
-    /* Ajustado */
-}
-
-.trend-position.top3 {
-    background: #cd7f32;
-    border-color: #cd7f32;
-    color: #1a1a24;
-    font-size: 0.8rem;
-    /* Ajustado */
-}
-
 /* INFO DE LA TARJETA */
 .trend-card .game-info {
     padding: 12px 14px;

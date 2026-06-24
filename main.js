@@ -744,7 +744,8 @@ function getDateRange(period) {
     };
 }
 
-async function cargarTendencias(period = 'week', resetear = true) {
+// Añadimos el parámetro intentos = 0
+async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
     if (trendCargando) return;
     trendCargando = true;
 
@@ -754,10 +755,12 @@ async function cargarTendencias(period = 'week', resetear = true) {
         return;
     }
 
-    // 🔥 FORZAR SCROLL AL PRINCIPIO ANTES DE CARGAR
-    container.scrollLeft = 0;
+    // FORZAR SCROLL AL PRINCIPIO ANTES DE CARGAR (Solo en el primer intento)
+    if (intentos === 0) {
+        container.scrollLeft = 0;
+    }
 
-    if (resetear) {
+    if (resetear && intentos === 0) {
         trendOffset = 0;
         const textos = {
             'week': 'de esta semana',
@@ -815,17 +818,31 @@ async function cargarTendencias(period = 'week', resetear = true) {
         trendPeriod = period;
 
     } catch (error) {
-        console.error('Error cargando tendencias:', error);
+        console.error(`Error cargando tendencias (Intento ${intentos + 1}):`, error);
+
+        // SISTEMA DE AUTO-REINTENTO INVISIBLE
+        if (intentos < 1) { // 1 reintento extra
+            trendCargando = false; // Liberamos el candado para que pueda volver a ejecutarse
+            setTimeout(() => cargarTendencias(period, resetear, intentos + 1), 1500);
+            return; // Salimos de la función aquí para no ejecutar el finally ni el scroll final
+        }
+
+        // Si ya falló 2 veces, mostramos el error visual
         if (resetear) {
-            container.innerHTML = `<div class="trends-empty"><i class="fas fa-exclamation-triangle"></i><span>Error al cargar</span></div>`;
+            container.innerHTML = `
+            <div class="trends-empty">
+                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                <span>Error de conexión con el servidor</span>
+                <span style="font-size: 0.7rem; opacity: 0.6; margin-top: 4px;">IGDB está tardando. Recarga la página.</span>
+            </div>`;
         }
     } finally {
         trendCargando = false;
     }
 
-    // 🔥 FORZAR SCROLL AL PRINCIPIO DESPUÉS DE CARGAR
+    // FORZAR SCROLL AL PRINCIPIO DESPUÉS DE CARGAR
     requestAnimationFrame(() => {
-        container.scrollLeft = 0;
+        if (container) container.scrollLeft = 0;
     });
 }
 
