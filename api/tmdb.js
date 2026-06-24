@@ -15,6 +15,8 @@ export default async function handler(req, res) {
     };
 
     try {
+        res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+
         // Temporadas
         if (tipo === 'tv_season' && id && query.season) {
             const seasonNum = query.season;

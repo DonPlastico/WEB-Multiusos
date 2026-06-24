@@ -523,7 +523,7 @@ function crearTarjeta(juego) {
 
     // 2. Lógica del contenedor de imagen
     const imgHtml = tienePortada
-        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
+        ? `<img src="${portada}" alt="${juego.name}" class="game-cover" loading="lazy" width="264" height="374" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
         : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
 
     // Inyectamos el data-store-url en la etiqueta principal de la tarjeta
@@ -1460,7 +1460,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <i class="fas fa-star" style="color:gold;"></i> ${media.nota}
                 </div>
                 ${nsfwTag} 
-                <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
+                <img src="${media.poster}" alt="${media.titulo}" class="game-cover" loading="lazy" width="264" height="374">
             </div>
             <div class="game-info">
                 <h3 class="game-title">${media.titulo}</h3>
