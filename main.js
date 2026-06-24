@@ -1298,16 +1298,25 @@ function initVoteFilters() {
 }
 
 // ==========================================================================
-//   FILTROS DE PAÍS / IDIOMA (PELÍCULAS Y SERIES) - CON BÚSQUEDA DINÁMICA
+//   FILTROS DE PAÍS / IDIOMA - SOLO PAÍSES VISIBLES POR DEFECTO
 // ==========================================================================
 
-// Lista completa de países para búsqueda (código ISO 3166-1 + nombre)
-const PAISES_DISPONIBLES = [
-    // Occidentales
+// Países que se muestran SIEMPRE en la lista
+const PAISES_VISIBLES = [
+    // Occidentales (solo Español e Inglés)
     { code: 'ES', name: 'España' },
     { code: 'US', name: 'Estados Unidos' },
-    { code: 'GB', name: 'Reino Unido' },
+    // Asiáticos (solo Corea, Japón, China)
+    { code: 'KR', name: 'Corea' },
+    { code: 'JP', name: 'Japón' },
+    { code: 'CN', name: 'China' },
+];
+
+// Países OCULTOS que SOLO aparecen al buscar
+const PAISES_OCULTOS = [
+    // Occidentales (ocultos)
     { code: 'FR', name: 'Francia' },
+    { code: 'GB', name: 'Reino Unido' },
     { code: 'DE', name: 'Alemania' },
     { code: 'IT', name: 'Italia' },
     { code: 'PT', name: 'Portugal' },
@@ -1332,10 +1341,7 @@ const PAISES_DISPONIBLES = [
     { code: 'CU', name: 'Cuba' },
     { code: 'PR', name: 'Puerto Rico' },
     { code: 'DO', name: 'República Dominicana' },
-    // Asiáticos
-    { code: 'KR', name: 'Corea' },
-    { code: 'JP', name: 'Japón' },
-    { code: 'CN', name: 'China' },
+    // Asiáticos (ocultos)
     { code: 'TW', name: 'Taiwán' },
     { code: 'HK', name: 'Hong Kong' },
     { code: 'TH', name: 'Tailandia' },
@@ -1349,7 +1355,7 @@ const PAISES_DISPONIBLES = [
     { code: 'SA', name: 'Arabia Saudita' },
     { code: 'AE', name: 'Emiratos Árabes' },
     { code: 'EG', name: 'Egipto' },
-    // Otros (África, Oceanía, etc.)
+    // Otros (ocultos)
     { code: 'ZA', name: 'Sudáfrica' },
     { code: 'NG', name: 'Nigeria' },
     { code: 'KE', name: 'Kenia' },
@@ -1375,7 +1381,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     // Si no hay items o no hay buscador, salimos
     if (!searchInput || items.length === 0) return;
 
-    // Mapear los códigos que ya existen en el DOM
+    // Mapear los códigos que ya existen en el DOM (los visibles)
     const existingCodes = new Set();
     items.forEach(item => {
         const cb = item.querySelector('input[type="checkbox"]');
@@ -1394,8 +1400,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
             return;
         }
 
-        // Buscar países que coincidan con la búsqueda
-        const matches = PAISES_DISPONIBLES.filter(p =>
+        // BUSCAR en PAISES_OCULTOS (los que no son visibles por defecto)
+        const matches = PAISES_OCULTOS.filter(p =>
             p.name.toLowerCase().includes(q) &&
             !existingCodes.has(p.code) // Excluir los que ya están visibles
         );
