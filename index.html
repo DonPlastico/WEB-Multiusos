@@ -1744,40 +1744,42 @@
 
         <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
         <div id="crop-modal" class="cyber-modal">
-            <div class="modal-content glass-panel game-details-panel"
-                style="max-width: 650px; max-height: 90vh; width: 90%;">
-                <!-- Botón de Cerrar -->
-                <button id="btn-close-crop" class="icon-btn close-floating-btn" title="Cerrar">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="modal-content glass-panel"
+                style="max-width: 550px; max-height: 85vh; width: 92%; padding: 0; border-radius: 16px; overflow: hidden;">
 
-                <!-- Cabecera -->
-                <div class="game-hero-section"
-                    style="height: 80px; min-height: 80px; padding-bottom: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
-                    <div class="hero-overlay-gradient"
-                        style="background: linear-gradient(to bottom, rgba(10,10,15,0) 0%, var(--bg-main) 100%);"></div>
-                    <div class="hero-content-centered" style="margin-bottom: 0;">
-                        <h1 id="crop-modal-title" class="glitch-text" style="font-size: 1.8rem; margin-bottom: 0;">
-                            RECORTAR AVATAR</h1>
-                    </div>
+                <!-- Cabecera con botón de cerrar -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+                    <h2 id="crop-modal-title" class="glitch-text"
+                        style="font-size: 1.2rem; margin: 0; letter-spacing: 1px;">
+                        RECORTAR AVATAR
+                    </h2>
+                    <button id="btn-close-crop" class="icon-btn"
+                        style="width: 32px; height: 32px; font-size: 0.9rem; border-radius: 6px;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
 
                 <!-- Cuerpo -->
-                <div class="game-detail-body" style="padding: 20px 30px 30px 30px;">
-                    <!-- Contenedor de imagen (con el mismo estilo que la sinopsis) -->
-                    <div class="detail-desc-col glass-panel padded-panel"
-                        style="padding: 10px; min-height: auto; margin-bottom: 20px;">
-                        <div
-                            style="width: 100%; aspect-ratio: 1 / 1; background: var(--bg-secondary); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                            <img id="image-to-crop" src="" alt="Imagen a recortar"
-                                style="width: 100%; height: 100%; object-fit: contain;">
-                        </div>
+                <div style="padding: 20px 24px 24px 24px;">
+
+                    <!-- Contenedor de imagen -->
+                    <div
+                        style="width: 100%; aspect-ratio: 1 / 1; max-height: 320px; background: var(--bg-secondary); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                        <img id="image-to-crop" src="" alt="Imagen a recortar"
+                            style="width: 100%; height: 100%; object-fit: contain; display: block;">
                     </div>
 
-                    <!-- Botón de acción -->
-                    <button id="btn-save-crop" class="auth-btn primary full-width" style="padding: 14px;">
-                        <i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR
+                    <!-- Botón -->
+                    <button id="btn-save-crop" class="auth-btn primary full-width"
+                        style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 1.5px; border-radius: 8px;">
+                        <i class="fas fa-cloud-upload-alt" style="margin-right: 8px;"></i> SUBIR AVATAR
                     </button>
+
+                    <p
+                        style="text-align: center; color: var(--text-muted); font-size: 0.7rem; margin-top: 10px; letter-spacing: 0.5px;">
+                        <i class="fas fa-info-circle"></i> Formatos: PNG, JPG, WEBP · Tamaño máximo: 5MB
+                    </p>
                 </div>
             </div>
         </div>
