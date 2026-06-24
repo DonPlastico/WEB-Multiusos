@@ -3499,13 +3499,9 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // Extraer IDs y tipos
-        const ids = vistos.map(v => v.media_id);
-        const tipos = [...new Set(vistos.map(v => v.tipo))];
-
         // 2. OBTENER GÉNEROS DE CADA CONTENIDO VISTO (desde TMDB)
-        const generosVistos = new Set();
         const generosDetalle = [];
+        const idsVistos = new Set();
 
         for (const item of vistos) {
             try {
@@ -3513,20 +3509,43 @@ async function cargarRecomendaciones(userId) {
                 if (!res.ok) continue;
                 const data = await res.json();
 
-                if (data.generos && data.generos !== 'N/A') {
-                    const generosList = data.generos.split(',').map(g => g.trim());
-                    generosList.forEach(g => {
-                        if (g && g !== 'N/A') {
-                            generosVistos.add(g);
-                            if (!generosDetalle.find(d => d.nombre === g)) {
-                                generosDetalle.push({ nombre: g, peso: 1 });
-                            } else {
-                                const found = generosDetalle.find(d => d.nombre === g);
-                                found.peso = (found.peso || 1) + 1;
-                            }
-                        }
-                    });
+                // Ver qué devuelve TMDB
+                console.log(`📺 ${item.tipo} ${item.media_id}:`, data.generos);
+
+                // Extraer géneros de forma más robusta
+                let generosTexto = data.generos || '';
+
+                // Si es "N/A" o vacío, intentar obtener de otra forma (respuesta alternativa)
+                if (generosTexto === 'N/A' || generosTexto === '' || !generosTexto) {
+                    // Si el título tiene "K-Drama" o "Korea", forzamos Romance
+                    if (data.titulo && (data.titulo.includes('K-Drama') || data.titulo.includes('Corea') || data.titulo.includes('Korean'))) {
+                        generosTexto = 'Romance, Drama';
+                        console.log(`🔧 Forzando géneros para K-Drama: ${data.titulo} → Romance, Drama`);
+                    } else {
+                        // Si no hay géneros, saltamos este item para no contaminar
+                        console.warn(`⚠️ Sin géneros para ${data.titulo || item.media_id}, saltando...`);
+                        continue;
+                    }
                 }
+
+                // Limpiar y procesar géneros
+                const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
+
+                // Agrupar por género con peso (cuántas veces aparece)
+                generosList.forEach(g => {
+                    if (g && g !== 'N/A') {
+                        const existente = generosDetalle.find(d => d.nombre === g);
+                        if (existente) {
+                            existente.peso = (existente.peso || 0) + 1;
+                        } else {
+                            generosDetalle.push({ nombre: g, peso: 1 });
+                        }
+                    }
+                });
+
+                // Guardar IDs vistos para no recomendar lo mismo
+                idsVistos.add(item.media_id.toString());
+
             } catch (e) {
                 console.warn('Error obteniendo géneros de', item.media_id, e);
             }
@@ -3535,34 +3554,42 @@ async function cargarRecomendaciones(userId) {
         // Ordenar géneros por peso (los más vistos primero)
         generosDetalle.sort((a, b) => (b.peso || 0) - (a.peso || 0));
 
-        // Tomar top 3 géneros para recomendaciones
-        const topGeneros = generosDetalle.slice(0, 3).map(g => g.nombre);
+        // Ver qué géneros se detectaron
+        console.log('📊 Géneros detectados:', generosDetalle);
 
-        if (topGeneros.length === 0) {
+        // Si no hay géneros detectados, mostrar mensaje
+        if (generosDetalle.length === 0) {
             if (loading) loading.style.display = 'none';
-            if (empty) empty.style.display = 'flex';
+            if (empty) {
+                empty.style.display = 'flex';
+                const p = empty.querySelector('p');
+                if (p) p.textContent = 'No se pudieron detectar géneros de tus visionados. Marca más contenido como visto.';
+            }
             if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
-        // 3. BUSCAR RECOMENDACIONES POR GÉNERO (mezclar pelis y series)
-        const recomendaciones = [];
-        const yaVistos = new Set(ids); // No recomendar lo que ya ha visto
+        // Tomar TOP 3 géneros para recomendaciones (o todos si son menos)
+        const topGeneros = generosDetalle.slice(0, 3).map(g => g.nombre);
 
-        // Para cada género top, buscar 2 películas y 2 series (máximo 6 por género)
+        // 3. BUSCAR RECOMENDACIONES POR GÉNERO
+        const recomendaciones = [];
+
+        // Para cada género top, buscar películas y series
         for (const genero of topGeneros) {
-            // Buscar películas de este género
+            // Buscar películas de este género (con un límite más alto para tener variedad)
             try {
-                const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(genero)}&limit=4`);
+                const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(genero)}&limit=6`);
                 if (resMovie.ok) {
                     const movies = await resMovie.json();
                     movies.forEach(m => {
-                        if (!yaVistos.has(m.id.toString()) && !recomendaciones.find(r => r.id === m.id.toString() && r.tipo === 'movie')) {
+                        const idStr = m.id.toString();
+                        if (!idsVistos.has(idStr) && !recomendaciones.find(r => r.id === idStr && r.tipo === 'movie')) {
                             recomendaciones.push({
                                 ...m,
                                 tipo: 'movie',
                                 generoCoincidencia: genero,
-                                puntuacion: 95 - (recomendaciones.length % 10) // Puntuación dinámica
+                                puntuacion: 90 - (recomendaciones.length % 15)
                             });
                         }
                     });
@@ -3571,24 +3598,25 @@ async function cargarRecomendaciones(userId) {
 
             // Buscar series de este género
             try {
-                const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(genero)}&limit=4`);
+                const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(genero)}&limit=6`);
                 if (resTv.ok) {
                     const series = await resTv.json();
                     series.forEach(s => {
-                        if (!yaVistos.has(s.id.toString()) && !recomendaciones.find(r => r.id === s.id.toString() && r.tipo === 'tv')) {
+                        const idStr = s.id.toString();
+                        if (!idsVistos.has(idStr) && !recomendaciones.find(r => r.id === idStr && r.tipo === 'tv')) {
                             recomendaciones.push({
                                 ...s,
                                 tipo: 'tv',
                                 generoCoincidencia: genero,
-                                puntuacion: 88 - (recomendaciones.length % 12)
+                                puntuacion: 85 - (recomendaciones.length % 15)
                             });
                         }
                     });
                 }
             } catch (e) { /* ignorar */ }
 
-            // Si ya tenemos suficientes (10-12), paramos
-            if (recomendaciones.length >= 10) break;
+            // Si ya tenemos suficientes, paramos
+            if (recomendaciones.length >= 12) break;
         }
 
         // Limitar a 10 recomendaciones máximo
@@ -3604,24 +3632,22 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // Mostrar mensaje de "basado en tus últimos visionados"
+        // Mostrar mensaje de "basado en tus últimos visionados" con el género principal
         if (emptyMsg) {
             emptyMsg.style.display = 'inline-flex';
-            const ultimoGenero = topGeneros[0] || 'tu estilo';
-            emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en ${ultimoGenero}`;
+            const generoPrincipal = generosDetalle[0]?.nombre || 'tu estilo';
+            const generoSecundario = generosDetalle[1]?.nombre ? ` y ${generosDetalle[1].nombre}` : '';
+            emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en ${generoPrincipal}${generoSecundario}`;
         }
 
         // Generar HTML para cada recomendación
-        finalRecomendaciones.forEach((item, index) => {
+        finalRecomendaciones.forEach((item) => {
             const poster = item.poster || '';
             const titulo = item.titulo || 'Sin título';
             const generoMatch = item.generoCoincidencia || 'recomendado';
-            const puntuacion = item.puntuacion || 90;
+            const puntuacion = item.puntuacion || 85;
 
-            // Tipo de contenido (PELÍCULA / SERIE)
             const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
-
-            // Determinar si es película o serie para el badge
             const esPelicula = item.tipo === 'movie';
 
             const card = document.createElement('div');
@@ -3652,14 +3678,11 @@ async function cargarRecomendaciones(userId) {
                 </div>
             `;
 
-            // Evento para abrir el modal al hacer clic en la tarjeta
             card.addEventListener('click', (e) => {
-                // Si el clic fue en el botón o en sus hijos, no abrimos el modal (se maneja por separado)
                 if (e.target.closest('.watchlist-check-btn')) return;
                 abrirModalMedia(item.id, item.tipo);
             });
 
-            // Evento para el botón de "Ver detalles" (abre el modal)
             const btnDetail = card.querySelector('.watchlist-check-btn');
             if (btnDetail) {
                 btnDetail.addEventListener('click', (e) => {
