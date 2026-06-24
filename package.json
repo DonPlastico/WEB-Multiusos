@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "cypress": "^15.18.0",
-    "netlify-plugin-cypress": "^2.2.1",
     "vite": "^8.0.16"
   }
 }
