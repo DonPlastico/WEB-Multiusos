@@ -247,7 +247,7 @@ export default async function handler(req, res) {
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
         } else {
             // Usamos discover para tener más control sobre los filtros
-            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=vote_average.desc&vote_count.gte=100`;
+            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=vote_average.desc&vote_count.desc`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
