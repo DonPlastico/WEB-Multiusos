@@ -6361,3 +6361,48 @@ async function guardarBannerCustom() {
         }
     }, 'image/png', 1.0);
 }
+
+// ==========================================================================
+//   BOTONES DEL HERO
+// ==========================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Botón de Juegos
+    const btnGames = document.getElementById('btn-hero-games');
+    if (btnGames) {
+        btnGames.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof cambiarVista === 'function') {
+                cambiarVista('games');
+            } else if (window.cambiarVista) {
+                window.cambiarVista('games');
+            }
+        });
+    }
+
+    // Botón de Películas
+    const btnMovies = document.getElementById('btn-hero-movies');
+    if (btnMovies) {
+        btnMovies.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof cambiarVista === 'function') {
+                cambiarVista('movies');
+            } else if (window.cambiarVista) {
+                window.cambiarVista('movies');
+            }
+        });
+    }
+
+    // Botón de Series
+    const btnSeries = document.getElementById('btn-hero-series');
+    if (btnSeries) {
+        btnSeries.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof cambiarVista === 'function') {
+                cambiarVista('series');
+            } else if (window.cambiarVista) {
+                window.cambiarVista('series');
+            }
+        });
+    }
+});
