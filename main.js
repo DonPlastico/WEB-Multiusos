@@ -1333,7 +1333,7 @@ const PAISES_DISPONIBLES = [
     { code: 'PR', name: 'Puerto Rico' },
     { code: 'DO', name: 'República Dominicana' },
     // Asiáticos
-    { code: 'KR', name: 'Corea del Sur' },
+    { code: 'KR', name: 'Corea' },
     { code: 'JP', name: 'Japón' },
     { code: 'CN', name: 'China' },
     { code: 'TW', name: 'Taiwán' },
