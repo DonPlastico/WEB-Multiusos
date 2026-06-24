@@ -6044,7 +6044,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 //   SUBIDA Y RECORTE DE AVATAR CUSTOM
 // ==========================================================================
 
-let cropper;
+let cropperAvatar = null; // ← Variable SEPARADA para avatar
 const avatarInput = document.getElementById('avatar-upload-input');
 const cropModal = document.getElementById('crop-modal');
 const imageToCrop = document.getElementById('image-to-crop');
@@ -6052,18 +6052,14 @@ const btnSaveCrop = document.getElementById('btn-save-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
 const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
 
-// Función helper para cambiar el título del modal de forma segura
 function setModalTitle(text) {
     const titleEl = document.getElementById('crop-modal-title');
     if (titleEl) {
         titleEl.textContent = text;
     } else {
-        console.warn('⚠️ No se encontró #crop-modal-title, usando fallback');
-        // Fallback: buscar el h2 dentro del modal
+        console.warn('⚠️ No se encontró #crop-modal-title');
         const fallbackTitle = document.querySelector('#crop-modal .modal-header h2');
-        if (fallbackTitle) {
-            fallbackTitle.textContent = text;
-        }
+        if (fallbackTitle) fallbackTitle.textContent = text;
     }
 }
 
@@ -6074,7 +6070,7 @@ if (btnTriggerUpload) {
     });
 }
 
-// 2. Al seleccionar archivo, abrir modal e iniciar Cropper
+// 2. Al seleccionar archivo, abrir modal e iniciar Cropper para AVATAR
 avatarInput.addEventListener('change', function (e) {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -6083,19 +6079,18 @@ avatarInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
-
-            // Usar la función segura en lugar de getElementById directo
             setModalTitle("RECORTAR AVATAR");
-
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
 
             cropModal.classList.add('show');
             cropModal.classList.add('crop-avatar');
 
-            if (cropper) cropper.destroy();
+            // 🔥 DESTRUIR EL CROPPER ANTERIOR SI EXISTE
+            if (cropperAvatar) cropperAvatar.destroy();
+            if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
 
-            // Iniciar Cropper con opciones para zoom, arrastre y recorte 1:1
-            cropper = new Cropper(imageToCrop, {
+            // 🔥 CREAR UN NUEVO CROPPER PARA AVATAR
+            cropperAvatar = new Cropper(imageToCrop, {
                 aspectRatio: 1,
                 viewMode: 1,
                 dragMode: 'move',
@@ -6114,9 +6109,6 @@ avatarInput.addEventListener('change', function (e) {
             const activeBtn = document.getElementById('btn-save-crop');
 
             activeBtn.onclick = null;
-            activeBtn.removeEventListener('click', guardarAvatarCustom);
-            activeBtn.removeEventListener('click', guardarBannerCustom);
-
             activeBtn.onclick = guardarAvatarCustom;
         };
         reader.readAsDataURL(file);
@@ -6129,19 +6121,23 @@ if (btnCloseCrop) {
     btnCloseCrop.addEventListener('click', () => {
         cropModal.classList.remove('show');
         cropModal.classList.remove('crop-avatar');
-        if (cropper) cropper.destroy();
+        if (cropperAvatar) cropperAvatar.destroy();
+        if (cropperBanner) cropperBanner.destroy();
+        cropperAvatar = null;
+        cropperBanner = null;
     });
 }
 
-// 4. Guardar, generar Hash y subir a Supabase
+// 4. Guardar AVATAR
 async function guardarAvatarCustom() {
-    if (!cropper) return;
+    // 🔥 USAR cropperAvatar, NO cropper
+    if (!cropperAvatar) return;
 
     const btn = document.getElementById('btn-save-crop');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO...';
 
-    cropper.getCroppedCanvas({
+    cropperAvatar.getCroppedCanvas({
         width: 500,
         height: 500,
         imageSmoothingEnabled: true,
@@ -6157,6 +6153,7 @@ async function guardarAvatarCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
+            // 🔥 SUBIR AL BUCKET 'avatares'
             const { error } = await supabase.storage
                 .from('avatares')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -6170,6 +6167,7 @@ async function guardarAvatarCustom() {
                 .from('avatares')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
+            // 🔥 ACTUALIZAR COLUMNA 'avatar'
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ avatar: publicUrl })
@@ -6177,17 +6175,24 @@ async function guardarAvatarCustom() {
 
             if (dbError) throw dbError;
 
+            // Actualizar UI
             const profileAvatarDiv = document.querySelector('.profile-avatar');
             if (profileAvatarDiv) {
-                profileAvatarDiv.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+                const overlay = profileAvatarDiv.querySelector('.edit-overlay-avatar');
+                profileAvatarDiv.innerHTML = '';
+                if (overlay) profileAvatarDiv.appendChild(overlay);
+                profileAvatarDiv.insertAdjacentHTML('beforeend', `<img src="${publicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`);
             }
-
-            cropModal.classList.remove('show');
-            cropper.destroy();
 
             const navAvatar = document.getElementById('user-profile');
             if (navAvatar) {
                 navAvatar.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+
+            cropModal.classList.remove('show');
+            if (cropperAvatar) {
+                cropperAvatar.destroy();
+                cropperAvatar = null;
             }
 
             showToast('success', 'Avatar Actualizado', 'Tu avatar luce genial.');
@@ -6206,6 +6211,7 @@ async function guardarAvatarCustom() {
 //   SUBIDA Y RECORTE DE BANNER CUSTOM
 // ==========================================================================
 
+let cropperBanner = null; // ← Variable SEPARADA para banner
 const bannerInput = document.getElementById('banner-upload-input');
 const btnTriggerBanner = document.querySelector('.custom-card-item.special-custom[onclick*="banner"]');
 
@@ -6223,18 +6229,18 @@ bannerInput.addEventListener('change', function (e) {
 
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
-
-            // Usar la función segura en lugar de getElementById directo
             setModalTitle("RECORTAR PORTADA");
-
             btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR PORTADA';
 
             cropModal.classList.add('show');
             cropModal.classList.remove('crop-avatar');
 
-            if (cropper) cropper.destroy();
+            // 🔥 DESTRUIR EL CROPPER ANTERIOR SI EXISTE
+            if (cropperBanner) cropperBanner.destroy();
+            if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
 
-            cropper = new Cropper(imageToCrop, {
+            // 🔥 CREAR UN NUEVO CROPPER PARA BANNER
+            cropperBanner = new Cropper(imageToCrop, {
                 aspectRatio: 16 / 9,
                 viewMode: 1,
                 dragMode: 'move',
@@ -6253,9 +6259,6 @@ bannerInput.addEventListener('change', function (e) {
             const activeBtn = document.getElementById('btn-save-crop');
 
             activeBtn.onclick = null;
-            activeBtn.removeEventListener('click', guardarAvatarCustom);
-            activeBtn.removeEventListener('click', guardarBannerCustom);
-
             activeBtn.onclick = guardarBannerCustom;
         };
         reader.readAsDataURL(file);
@@ -6264,13 +6267,14 @@ bannerInput.addEventListener('change', function (e) {
 });
 
 async function guardarBannerCustom() {
-    if (!cropper) return;
+    // 🔥 USAR cropperBanner, NO cropper
+    if (!cropperBanner) return;
 
     const btn = document.getElementById('btn-save-crop');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO BANNER...';
 
-    cropper.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
+    cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
             const fileName = `custom_banner_${uniqueHash}.png`;
@@ -6281,6 +6285,7 @@ async function guardarBannerCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
+            // 🔥 SUBIR AL BUCKET 'banners'
             const { error } = await supabase.storage
                 .from('banners')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -6294,6 +6299,7 @@ async function guardarBannerCustom() {
                 .from('banners')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
+            // 🔥 ACTUALIZAR COLUMNA 'banner'
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ banner: publicUrl })
@@ -6301,6 +6307,7 @@ async function guardarBannerCustom() {
 
             if (dbError) throw dbError;
 
+            // Actualizar UI
             const bannerEl = document.querySelector('.profile-banner');
             if (bannerEl) {
                 bannerEl.style.backgroundImage = `url('${publicUrl}')`;
@@ -6309,7 +6316,11 @@ async function guardarBannerCustom() {
             }
 
             cropModal.classList.remove('show');
-            cropper.destroy();
+            if (cropperBanner) {
+                cropperBanner.destroy();
+                cropperBanner = null;
+            }
+
             showToast('success', 'Banner Actualizado', 'Tu portada luce genial.');
         } catch (error) {
             console.error('ERROR DETALLADO:', error);
