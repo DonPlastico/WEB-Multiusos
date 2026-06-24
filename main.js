@@ -1423,8 +1423,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         }
 
         // BUSCAR en PAISES_OCULTOS (los que no son visibles por defecto)
-        const matches = PAISES_OCULTOS.filter(p => 
-            p.name.toLowerCase().includes(q) && 
+        const matches = PAISES_OCULTOS.filter(p =>
+            p.name.toLowerCase().includes(q) &&
             !existingCodes.has(p.code) // Excluir los que ya están visibles
         );
 
@@ -1449,7 +1449,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
 
             // Añadir evento al checkbox
             const cb = label.querySelector('input[type="checkbox"]');
-            cb.addEventListener('change', function() {
+            cb.addEventListener('change', function () {
                 // Recolectar países seleccionados
                 const selected = [];
                 document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
@@ -1478,7 +1478,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     }
 
     // Evento de búsqueda
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         updateSearchResults(this.value);
     });
 
@@ -1486,7 +1486,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     items.forEach(item => {
         const cb = item.querySelector('input[type="checkbox"]');
         if (cb) {
-            cb.addEventListener('change', function() {
+            cb.addEventListener('change', function () {
                 const selected = [];
                 document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
                     selected.push(c.value);
@@ -1504,7 +1504,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     });
 
     // Si el usuario hace clic fuera del buscador, limpiar la búsqueda
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const container = searchInput.closest('.accordion-content');
         if (container && !container.contains(e.target) && searchInput.value !== '') {
             searchInput.value = '';
