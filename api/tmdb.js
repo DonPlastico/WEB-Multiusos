@@ -225,58 +225,40 @@ export default async function handler(req, res) {
         // LISTADOS (Para las tarjetas iniciales y búsquedas)
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
-        const country = req.query.country || '';
+        const country = req.query.country || ''; // Código de país (ej: KR, ES, US)
 
         let urlLista;
         if (busqueda) {
             // Búsqueda por texto
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
-        } else if (minVotes > 0 || country) {
-            // Usamos discover para filtros avanzados
-            let discoverParams = `language=es-ES&page=${page}&sort_by=popularity.desc&include_adult=${includeAdult}`;
+        } else {
+            // Usamos discover para tener más control sobre los filtros
+            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
             }
 
             if (country) {
-                // Los códigos de país deben estar en mayúsculas y separados por coma
-                const countryCodes = country.split(',').map(c => c.trim().toUpperCase()).join(',');
-                discoverParams += `&with_origin_country=${countryCodes}`;
+                discoverParams += `&with_origin_country=${country.toUpperCase()}`;
             }
 
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
-        } else {
-            // Sin filtros: trending normal
-            urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
         }
-
-        console.log('📡 TMDB URL:', urlLista); // Para depuración
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
 
-        // --- VERIFICACIÓN DE SEGURIDAD ---
-        if (!listData || !listData.results || listData.results.length === 0) {
-            return res.status(200).json([]);
-        }
+        if (!listData.results || listData.results.length === 0) return res.status(200).json([]);
 
         const promesasDetalles = listData.results.map(async (item) => {
             try {
                 const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
                 return await detailRes.json();
-            } catch (e) {
-                console.warn('⚠️ Error obteniendo detalles de:', item.id, e.message);
-                return null;
-            }
+            } catch (e) { return null; }
         });
 
         const detallesRAW = (await Promise.all(promesasDetalles)).filter(d => d !== null);
-
-        // --- MÁS VERIFICACIÓN ---
-        if (!detallesRAW || detallesRAW.length === 0) {
-            return res.status(200).json([]);
-        }
 
         const jsonFinal = detallesRAW.map(data => {
             const providersES = data['watch/providers']?.results?.ES;
@@ -302,7 +284,6 @@ export default async function handler(req, res) {
                 poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
                 fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
                 nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
-                votos: data.vote_count || 0,  // <-- AÑADIR ESTO PARA MOSTRAR VOTOS
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0),
                 temporadas: tipo === 'tv' ? data.number_of_seasons : null,
                 episodios: tipo === 'tv' ? data.number_of_episodes : null,
