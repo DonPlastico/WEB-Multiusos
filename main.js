@@ -1,14 +1,6 @@
 // traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
-// traigo analytics de vercel para saber como la usan
-import { inject } from '@vercel/analytics';
-inject();
-
-// speed insights pa ver si algo va lento
-import { injectSpeedInsights } from '@vercel/speed-insights';
-injectSpeedInsights();
-
 // ==========================================================================
 //   FAVORITOS
 // ==========================================================================
@@ -598,7 +590,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
     peticionAbort = miAbort;
 
     try {
-        let url = `/api/igdb?offset=${offsetActual}`;
+        let url = `/.netlify/functions/igdb?offset=${offsetActual}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
         if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
@@ -770,7 +762,7 @@ async function cargarTendencias(period = 'day', resetear = true) {
     try {
         const dateRange = getDateRange(period);
 
-        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc`;
+        let url = `/.netlify/functions/igdb?offset=${trendOffset}&limit=20&sort=rating.desc`;
         url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
 
         console.log('📡 Tendencias URL:', url); // Para depuración
@@ -886,7 +878,7 @@ async function cargarMasTendencias(period = 'day') {
         trendOffset += 15; // Ya hemos mostrado 15, ahora cargamos los siguientes
 
         const dateRange = getDateRange(period);
-        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc`;
+        let url = `/.netlify/functions/igdb?offset=${trendOffset}&limit=10&sort=rating.desc`;
         url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
 
         const response = await fetch(url);
@@ -1570,7 +1562,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const dateMax = tipo === 'movie' ? window.dateMaxMovie : window.dateMaxSeries;
 
         // Construir URL base
-        let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}`;
+        let url = `/.netlify/functions/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}`;
 
         // Añadir país SOLO si hay algo seleccionado
         if (countryParam) {
@@ -1919,7 +1911,7 @@ async function cargarGeneros(tipo) {
     `;
 
     try {
-        const response = await fetch(`/api/tmdb?tipo=${tipo}&generos=1`);
+        const response = await fetch(`/.netlify/functions/tmdb?tipo=${tipo}&generos=1`);
         const data = await response.json();
 
         if (data && data.genres) {
@@ -3510,7 +3502,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}`);
+        const respuesta = await fetch(`/.netlify/functions/igdb?query=${encodeURIComponent(titulo)}`);
         const datos = await respuesta.json();
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
@@ -3709,7 +3701,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
     // 3. Llamada al servidor
     try {
-        const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
+        const respuesta = await fetch(`/.netlify/functions/tmdb?id=${id}&tipo=${tipo}`);
         const data = await respuesta.json();
 
         // ====================================================
@@ -4572,7 +4564,7 @@ async function cargarRecomendaciones(userId) {
             // Para cada película, obtener géneros y buscar recomendaciones
             for (const peli of ultimasPeliculas) {
                 try {
-                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie`);
+                    const res = await fetch(`/.netlify/functions/tmdb?id=${peli.media_id}&tipo=movie`);
                     if (!res.ok) continue;
                     const data = await res.json();
 
@@ -4587,7 +4579,7 @@ async function cargarRecomendaciones(userId) {
 
                     // Buscar 2 recomendaciones de este género
                     try {
-                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2`);
+                        const resRec = await fetch(`/.netlify/functions/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2`);
                         if (resRec.ok) {
                             const recs = await resRec.json();
                             recs.forEach(item => {
@@ -4625,7 +4617,7 @@ async function cargarRecomendaciones(userId) {
 
         for (const serieId of idsSeriesUnicas) {
             try {
-                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv`);
+                const res = await fetch(`/.netlify/functions/tmdb?id=${serieId}&tipo=tv`);
                 if (!res.ok) continue;
                 const data = await res.json();
 
@@ -4670,7 +4662,7 @@ async function cargarRecomendaciones(userId) {
                     // Buscar 2 recomendaciones de este género (mezclar pelis y series)
                     try {
                         // 1 película
-                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
+                        const resMovie = await fetch(`/.netlify/functions/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
                         if (resMovie.ok) {
                             const movies = await resMovie.json();
                             movies.forEach(item => {
@@ -4692,7 +4684,7 @@ async function cargarRecomendaciones(userId) {
 
                     try {
                         // 1 serie
-                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
+                        const resTv = await fetch(`/.netlify/functions/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
                         if (resTv.ok) {
                             const series = await resTv.json();
                             series.forEach(item => {
