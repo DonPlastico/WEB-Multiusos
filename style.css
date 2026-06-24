@@ -5307,6 +5307,7 @@ cast-carousel::-webkit-scrollbar {
     direction: ltr;
     padding: 16px 20px 16px 4px;
     display: flex;
+    justify-content: flex-start;
     overflow-x: auto;
     overflow-y: visible;
     gap: 16px;
