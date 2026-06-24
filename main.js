@@ -1,14 +1,6 @@
 // traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
-// traigo analytics de vercel para saber como la usan
-import { inject } from '@vercel/analytics';
-inject();
-
-// speed insights pa ver si algo va lento
-import { injectSpeedInsights } from '@vercel/speed-insights';
-injectSpeedInsights();
-
 // ==========================================================================
 //   FAVORITOS
 // ==========================================================================

@@ -1,9 +1,36 @@
+# Dependencias
 node_modules/
-.vercel
-.env*
+package-lock.json
 
+# Variables de entorno
+.env
+.env.*
+.env.local
+.env.production
+.env.development
 
-./
+# Archivos de build
+dist/
+.vite/
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos específicos del proyecto
 .PORHACER.md
 .gemini.md
-.env*
+vercel.json
+.vercel/
+
+# Netlify
+.netlify/
