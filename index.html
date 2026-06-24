@@ -174,8 +174,23 @@
 
             <!-- Resto del contenido de home (tendencias, etc.) -->
             <div class="trends-container">
-                <h2 class="section-title">Tendencias en Juegos</h2>
-                <div class="horizontal-scroll glass-panel" id="trend-games"><img src="img/prox.png"></div>
+                <div class="trends-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Juegos
+                        <span class="trends-badge">LIVE</span>
+                    </h2>
+                    <div class="trends-tabs">
+                        <button class="trend-tab active" data-period="day">Hoy</button>
+                        <button class="trend-tab" data-period="week">Esta semana</button>
+                        <button class="trend-tab" data-period="month">Este mes</button>
+                    </div>
+                </div>
+                <div class="horizontal-scroll glass-panel" id="trend-games">
+                    <div class="trends-loading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>Cargando tendencias...</span>
+                    </div>
+                </div>
             </div>
 
             <div class="trends-container">

@@ -705,6 +705,272 @@ function cargarMas() {
 }
 
 // ==========================================================================
+//   TENDENCIAS EN JUEGOS (RETRO + NEON)
+// ==========================================================================
+
+let trendPeriod = 'day'; // 'day', 'week', 'month'
+let trendOffset = 0;
+let trendCargando = false;
+
+// Mapeo de períodos a fecha de inicio
+function getDateRange(period) {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (period) {
+        case 'day':
+            startDate.setDate(now.getDate() - 1);
+            break;
+        case 'week':
+            startDate.setDate(now.getDate() - 7);
+            break;
+        case 'month':
+            startDate.setMonth(now.getMonth() - 1);
+            break;
+        default:
+            startDate.setDate(now.getDate() - 1);
+    }
+
+    // Formato Unix timestamp (segundos)
+    return {
+        from: Math.floor(startDate.getTime() / 1000),
+        to: Math.floor(now.getTime() / 1000)
+    };
+}
+
+async function cargarTendencias(period = 'day', resetear = true) {
+    if (trendCargando) return;
+    trendCargando = true;
+
+    const container = document.getElementById('trend-games');
+    if (!container) return;
+
+    if (resetear) {
+        trendOffset = 0;
+        container.innerHTML = `
+            <div class="trends-loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Cargando tendencias ${period === 'day' ? 'de hoy' : period === 'week' ? 'de esta semana' : 'de este mes'}...</span>
+            </div>
+        `;
+    }
+
+    try {
+        const dateRange = getDateRange(period);
+
+        // Usamos IGDB con filtro de fecha para obtener juegos lanzados recientemente
+        // Y los ordenamos por rating (puntuación) descendente
+        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc`;
+
+        // Añadir filtro de fecha
+        url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
+
+        console.log('📡 Tendencias URL:', url); // Para depuración
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (resetear) {
+            container.innerHTML = '';
+        }
+
+        if (!data || data.length === 0) {
+            if (resetear) {
+                container.innerHTML = `
+                    <div class="trends-empty">
+                        <i class="fas fa-gamepad"></i>
+                        <span>No hay tendencias en este período</span>
+                    </div>
+                `;
+            }
+            trendCargando = false;
+            return;
+        }
+
+        // Ordenar por rating (mejores primero) - ya viene ordenado de la API, pero por si acaso
+        const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+        // Tomar los 15 primeros para tendencias (o todos si son menos)
+        const topGames = sorted.slice(0, 15);
+
+        topGames.forEach((juego, index) => {
+            const card = crearTarjetaTrend(juego, index + 1);
+            container.appendChild(card);
+        });
+
+        // Si hay más juegos de los que mostramos, añadir indicador
+        if (data.length > 15) {
+            const moreIndicator = document.createElement('div');
+            moreIndicator.className = 'trend-more-indicator';
+            moreIndicator.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--text-muted);font-size:0.8rem;text-align:center;min-width:120px;">
+                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);"></i>
+                    <span style="margin-top:8px;">+${data.length - 15} más</span>
+                </div>
+            `;
+            container.appendChild(moreIndicator);
+        }
+
+        trendPeriod = period;
+
+    } catch (error) {
+        console.error('Error cargando tendencias:', error);
+        if (resetear) {
+            container.innerHTML = `
+                <div class="trends-empty">
+                    <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                    <span>Error al cargar tendencias</span>
+                </div>
+            `;
+        }
+    }
+
+    trendCargando = false;
+}
+
+function crearTarjetaTrend(juego, posicion) {
+    const card = document.createElement('div');
+    card.className = 'trend-card';
+    card.setAttribute('data-game-id', juego.id);
+    card.setAttribute('data-game-title', juego.name);
+
+    // Portada
+    const tienePortada = juego.cover && juego.cover.url;
+    const portada = tienePortada
+        ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+        : '';
+
+    // Fecha
+    const fecha = juego.first_release_date
+        ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+        : 'TBA';
+
+    // Precio
+    let precioHtml = '';
+    if (juego.itad && juego.itad.precio !== null) {
+        precioHtml = `<span class="price-badge" style="font-size:0.7rem;">${juego.itad.precio.toFixed(2)} €</span>`;
+    }
+
+    // Posición (con estilo retro)
+    let posClass = '';
+    let posEmoji = '';
+    if (posicion === 1) { posClass = 'top1'; posEmoji = '🥇'; }
+    else if (posicion === 2) { posClass = 'top2'; posEmoji = '🥈'; }
+    else if (posicion === 3) { posClass = 'top3'; posEmoji = '🥉'; }
+
+    const posText = posEmoji || `#${posicion}`;
+
+    // Rating - IGDB usa 'rating' (0-100) o 'total_rating' (0-100)
+    const rating = juego.rating ? (juego.rating / 10).toFixed(1) :
+        juego.total_rating ? (juego.total_rating / 10).toFixed(1) : '--';
+
+    card.innerHTML = `
+        <div class="game-cover-container">
+            <div class="trend-position ${posClass}">${posText}</div>
+            <div class="trending-badge">🔥 Trend</div>
+            ${tienePortada
+            ? `<img src="${portada}" alt="${juego.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas fa-gamepad\\' style=\\'font-size:3rem;color:var(--text-muted);\\'></i></div>'">`
+            : `<div class="no-cover" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);"><i class="fas fa-gamepad" style="font-size:3rem;color:var(--text-muted);"></i></div>`
+        }
+        </div>
+        <div class="game-info">
+            <h3 class="game-title">${juego.name}</h3>
+            <div class="game-release-info">
+                <span class="date">${fecha}</span>
+                <span class="dot">•</span>
+                <span style="color:gold;font-size:0.7rem;">⭐ ${rating}</span>
+            </div>
+            <div class="game-price">
+                ${precioHtml || '<span style="color:var(--text-muted);font-size:0.65rem;">Sin ofertas</span>'}
+            </div>
+        </div>
+    `;
+
+    // Evento click para abrir modal
+    card.addEventListener('click', () => {
+        const juegoData = {
+            idJuego: juego.id,
+            titulo: juego.name,
+            urlAmigable: juego.name.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_'),
+            storesRaw: juego.itad?.stores || 'none',
+            storeUrlRaw: juego.itad?.url || '',
+            portadaSrc: portada,
+            htmlPlataformas: '',
+            fecha: fecha,
+            priceText: juego.itad?.precio ? `${juego.itad.precio.toFixed(2)} €` : null,
+            priceNaText: null
+        };
+        procesarAperturaModalJuego(juegoData, true);
+    });
+
+    return card;
+}
+
+// Inicializar tabs de tendencias
+function initTrendTabs() {
+    const tabs = document.querySelectorAll('.trend-tab');
+    const container = document.getElementById('trend-games');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            // Quitar active de todos
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const period = this.getAttribute('data-period');
+
+            // Animación de cambio
+            if (container) {
+                container.style.opacity = '0.5';
+                container.style.transition = 'opacity 0.2s';
+            }
+
+            cargarTendencias(period, true);
+
+            setTimeout(() => {
+                if (container) {
+                    container.style.opacity = '1';
+                }
+            }, 300);
+        });
+    });
+}
+
+// Cargar tendencias al iniciar
+function cargarTendenciasInicial() {
+    // Esperar a que se cargue la vista de juegos
+    setTimeout(() => {
+        cargarTendencias('day', true);
+        initTrendTabs();
+    }, 500);
+}
+
+// Ejecutar cuando se carga la página
+document.addEventListener('DOMContentLoaded', function () {
+    // ... tu código existente ...
+
+    // Cargar tendencias
+    cargarTendenciasInicial();
+});
+
+// También cargar cuando se cambie a la vista de juegos
+// Modificar la función cambiarVista para que cargue tendencias al entrar a juegos
+const originalCambiarVista = cambiarVista;
+cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+    // Llamar a la función original
+    await originalCambiarVista(target, guardarEnHistorial, usernameUrl);
+
+    // Si es la vista de juegos, cargar tendencias
+    if (target === 'games') {
+        // Verificar si ya están cargadas
+        const container = document.getElementById('trend-games');
+        if (container && container.querySelector('.trends-loading')) {
+            cargarTendencias('day', true);
+        }
+    }
+};
+
+// ==========================================================================
 //   PERSISTENCIA DE FILTROS EN LOCALSTORAGE
 // ==========================================================================
 function guardarFiltros() {

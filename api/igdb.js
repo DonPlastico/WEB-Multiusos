@@ -6,6 +6,9 @@ export default async function handler(req, res) {
     const busqueda = req.query.query || '';
     const offset = parseInt(req.query.offset) || 0;
 
+    const limit = parseInt(req.query.limit) || 50;
+    const sortField = req.query.sort || '';
+
     const platforms = req.query.platforms || '';
     const genres = req.query.genres || '';
 
@@ -34,15 +37,30 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Solo exigimos juegos de sobresaliente (>80) si estamos en la vista general y sin filtros
-        if (!busqueda && whereClauses.length === 0) whereClauses.push('total_rating > 80');
+        // Solo exigimos juegos con rating si estamos en vista general y sin filtros, Y si no es una búsqueda de tendencias
+        if (!busqueda && whereClauses.length === 0 && !sortField.includes('rating')) {
+            whereClauses.push('total_rating > 80');
+        }
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
         // 2. CONSTRUIMOS LA QUERY FINAL
+        let sortQuery = 'sort first_release_date desc;';
+        if (sortField === 'rating.desc') {
+            sortQuery = 'sort rating desc;';
+        } else if (sortField === 'rating.asc') {
+            sortQuery = 'sort rating asc;';
+        } else if (sortField === 'popularity.desc') {
+            sortQuery = 'sort popularity desc;';
+        } else if (sortField === 'first_release_date.desc') {
+            sortQuery = 'sort first_release_date desc;';
+        } else if (sortField === 'first_release_date.asc') {
+            sortQuery = 'sort first_release_date asc;';
+        }
+
         const bodyQuery = busqueda
-            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; search "${busqueda}"; ${whereQuery} limit 50; offset ${offset};`
-            : `fields name, cover.url, first_release_date, platforms.name, total_rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; sort first_release_date desc; ${whereQuery} limit 50; offset ${offset};`;
+            ? `fields name, cover.url, first_release_date, platforms.name, total_rating, rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; search "${busqueda}"; ${whereQuery} limit ${limit}; offset ${offset};`
+            : `fields name, cover.url, first_release_date, platforms.name, total_rating, rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; ${sortQuery} ${whereQuery} limit ${limit}; offset ${offset};`;
 
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',

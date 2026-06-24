@@ -5295,7 +5295,291 @@ cast-carousel::-webkit-scrollbar {
     animation: heartPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+/* ==========================================
+   TENDENCIAS EN JUEGOS (NEON + RETRO)
+   ========================================== */
 
+.trends-container {
+    margin: 40px 0 30px;
+    padding: 0 20px;
+}
+
+.trends-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.trends-header .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--neon-white), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.trends-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--error);
+    color: white;
+    letter-spacing: 2px;
+    animation: pulse-badge 1.5s ease-in-out infinite;
+    -webkit-text-fill-color: white;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+/* TABS RETRO */
+.trends-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-elevated);
+    padding: 4px;
+    border-radius: 30px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+}
+
+.trend-tab {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 25px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    position: relative;
+}
+
+.trend-tab:hover {
+    color: var(--neon-white);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.trend-tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.trend-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* SCROLL HORIZONTAL */
+.horizontal-scroll {
+    display: flex;
+    gap: 16px;
+    padding: 20px 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    border-radius: 16px;
+    min-height: 320px;
+    position: relative;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+/* TARJETAS DE TENDENCIA */
+.trend-card {
+    flex: 0 0 180px;
+    min-width: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.trend-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1);
+}
+
+.trend-card .game-cover-container {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    background: var(--bg-elevated);
+}
+
+.trend-card .game-cover-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.trend-card:hover .game-cover-container img {
+    transform: scale(1.05);
+}
+
+/* POSICIÓN RETRO (estilo arcade) */
+.trend-position {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    font-family: 'Courier New', monospace;
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    backdrop-filter: blur(4px);
+    z-index: 2;
+}
+
+.trend-position.top1 {
+    border-color: gold;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    background: rgba(255, 215, 0, 0.2);
+    color: gold;
+}
+
+.trend-position.top2 {
+    border-color: silver;
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
+    background: rgba(192, 192, 192, 0.15);
+    color: silver;
+}
+
+.trend-position.top3 {
+    border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
+    background: rgba(205, 127, 50, 0.15);
+    color: #cd7f32;
+}
+
+/* BADGE DE TRENDING */
+.trending-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+/* INFO DE LA TARJETA */
+.trend-card .game-info {
+    padding: 12px 14px;
+}
+
+.trend-card .game-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--neon-white);
+}
+
+.trend-card .game-release-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.trend-card .game-release-info .date {
+    font-size: 0.65rem;
+}
+
+.trend-card .game-price {
+    margin-top: 6px;
+    font-size: 0.75rem;
+}
+
+/* LOADING */
+.trends-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 40px 0;
+    gap: 12px;
+    color: var(--text-muted);
+}
+
+.trends-loading i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.trends-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 40px 0;
+    gap: 12px;
+    color: var(--text-muted);
+}
+
+.trends-empty i {
+    font-size: 3rem;
+    opacity: 0.3;
+}
 
 
 
@@ -5532,6 +5816,20 @@ cast-carousel::-webkit-scrollbar {
 
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes pulse-badge {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.95);
     }
 }
 
@@ -6121,6 +6419,32 @@ cast-carousel::-webkit-scrollbar {
         width: 32px;
         height: 32px;
         font-size: 0.85rem;
+    }
+
+    .trends-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .trends-tabs {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .trend-tab {
+        flex: 1;
+        text-align: center;
+        font-size: 0.65rem;
+        padding: 6px 12px;
+    }
+
+    .trend-card {
+        flex: 0 0 150px;
+        min-width: 150px;
+    }
+
+    .trends-header .section-title {
+        font-size: 1.1rem;
     }
 }
 
