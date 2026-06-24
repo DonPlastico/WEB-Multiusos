@@ -3465,7 +3465,7 @@ async function cargarPerfilPublico(usernameTarget) {
 // ==========================================================================
 
 async function cargarRecomendaciones(userId) {
-    const container = document.getElementById('rec-dynamic-container');
+    const container = document.getElementById('recommendations-list');
     const loading = document.getElementById('rec-loading');
     const empty = document.getElementById('rec-empty');
     const emptyMsg = document.getElementById('rec-empty-message');
@@ -3476,7 +3476,13 @@ async function cargarRecomendaciones(userId) {
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
     if (emptyMsg) emptyMsg.style.display = 'none';
+
     container.innerHTML = '';
+
+    // Forzar el gap directamente en el contenedor dinámico
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '12px';
 
     try {
         // 1. OBTENER ÚLTIMOS 7 VISIONADOS (PELÍCULAS Y SERIES)

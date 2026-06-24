@@ -4692,34 +4692,6 @@ cast-carousel::-webkit-scrollbar {
 /* ==========================================================================
    RECOMENDACIONES (DINÁMICAS)
    ========================================================================== */
-
-.recommendations-section .watchlist-tabs {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--bg-elevated);
-    border-bottom: 1px solid var(--border-color);
-    border-radius: 12px 12px 0 0;
-}
-
-.recommendations-section .watchlist-tabs .watchlist-tab {
-    font-family: var(--font-cyber);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    background: transparent;
-    border: none;
-    padding: 10px 18px;
-    cursor: default;
-    transition: color 0.3s ease;
-}
-
-.recommendations-section .watchlist-tabs .watchlist-tab.active {
-    color: var(--neon-white);
-}
-
 #rec-empty-message {
     font-size: 0.7rem;
     color: var(--text-muted);
@@ -4748,7 +4720,6 @@ cast-carousel::-webkit-scrollbar {
     font-weight: 700;
     letter-spacing: 1.5px;
     padding: 12px 24px;
-    cursor: pointer;
     position: relative;
     transition: color 0.2s ease;
 }
