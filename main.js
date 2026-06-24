@@ -837,7 +837,6 @@ async function cargarTendencias(period = 'day', resetear = true) {
 
         trendPeriod = period;
 
-        const container = document.getElementById('trend-games');
         if (container) {
             setTimeout(() => {
                 container.scrollLeft = 0;
@@ -858,7 +857,6 @@ async function cargarTendencias(period = 'day', resetear = true) {
     }
 
     // Forzar scroll al inicio para mostrar las primeras tarjetas
-    const container = document.getElementById('trend-games');
     if (container) {
         // Esperar a que el DOM se actualice
         requestAnimationFrame(() => {
@@ -1087,7 +1085,6 @@ function initTrendTabs() {
             }, 300);
 
             // Reiniciar scroll al principio
-            const container = document.getElementById('trend-games');
             if (container) {
                 container.scrollLeft = 0;
             }
