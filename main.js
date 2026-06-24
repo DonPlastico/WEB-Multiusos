@@ -4281,10 +4281,7 @@ window.actualizarUIMediaPersonal = async function (data) {
     }
 
     resetearEstrellasPersonal();
-
-    // ============================================================
-    // 🔥 NUEVA LÓGICA SIMPLIFICADA PARA FAVORITOS
-    // ============================================================
+    
     const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
     const tipo = memoInfo.tipo;
 
