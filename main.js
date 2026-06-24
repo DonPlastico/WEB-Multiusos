@@ -1134,27 +1134,9 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     console.log(`🔞 Filtro +18 para ${tipo}: ${isAdult}`); // Para depuración
 
     try {
-        // === RECOLECTAR FILTROS DEL SIDEBAR ===
-        const estado = Array.from(document.querySelectorAll(`.estado-item-${tipo}:checked`)).map(cb => cb.value).join(',');
-        const dateMin = document.getElementById(`date-min-${tipo}`)?.value || '';
-        const dateMax = document.getElementById(`date-max-${tipo}`)?.value || '';
-        const genres = Array.from(document.querySelectorAll(`.genre-item-${tipo} input:checked`)).map(cb => cb.value).join(',');
-        const langs = Array.from(document.querySelectorAll(`.lang-item-${tipo} input:checked`)).map(cb => cb.value).join(',');
-        const minVotes = document.getElementById(`votes-slider-${tipo}`)?.value || '0';
-
+        // Le pasamos el &adult=true o false al servidor
         const timestamp = Date.now();
-        let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}`;
-
-        if (searchActual) url += `&query=${encodeURIComponent(searchActual)}`;
-        if (estado) url += `&estado=${estado}`;
-        if (dateMin) url += `&dateMin=${dateMin}`;
-        if (dateMax) url += `&dateMax=${dateMax}`;
-        if (genres) url += `&genres=${genres}`;
-        if (langs) url += `&langs=${langs}`;
-        if (minVotes > 0) url += `&minVotes=${minVotes}`;
-
-        url += `&_=${timestamp}`;
-
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
@@ -1460,23 +1442,14 @@ if (editProfileBtn) {
 // ==========================================================================
 if (document.getElementById('register-birthdate')) {
     flatpickr("#register-birthdate", {
-        locale: "es",
-        dateFormat: "Y-m-d",
-        altInput: true,
-        altFormat: "d / m / Y",
-        maxDate: "today",
-        disableMobile: true
+        locale: "es",                  // Idioma español
+        dateFormat: "Y-m-d",           // Formato que guarda Supabase (Ej: 1995-10-24)
+        altInput: true,                // Crea un input bonito extra para mostrar
+        altFormat: "d / m / Y",        // Formato visible para el usuario (Ej: 24 / 10 / 1995)
+        maxDate: "today",              // No pueden haber nacido en el futuro
+        disableMobile: true            // Fuerza a usar nuestro diseño en móviles (evita la rueda fea de iOS/Android)
     });
 }
-
-// Inicializar Flatpickr para TODOS los filtros de fechas de TMDB
-flatpickr(".date-picker", {
-    locale: "es",
-    dateFormat: "Y-m-d",
-    altInput: true,
-    altFormat: "d / m / Y",
-    disableMobile: true
-});
 
 // --------
 // REGISTRO
@@ -2326,41 +2299,18 @@ document.querySelectorAll('#btn-reset-filters[data-target]').forEach(btn => {
 // Botones de Limpiar de SERIES y PELÍCULAS
 document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
     btn.addEventListener('click', (e) => {
-        const target = e.target.getAttribute('data-target'); // 'movie' o 'tv'
-
-        // 1. Limpiar +18
-        const cbAdult = document.getElementById(target === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
-        if (cbAdult) cbAdult.checked = false;
-
-        // 2. Limpiar Checkboxes (Estado, Géneros, Idiomas)
-        document.querySelectorAll(`.estado-item-${target}`).forEach(cb => cb.checked = false);
-        document.querySelectorAll(`.genre-item-${target} input`).forEach(cb => cb.checked = false);
-        document.querySelectorAll(`.lang-item-${target} input`).forEach(cb => cb.checked = false);
-
-        // 3. Limpiar Buscadores internos
-        const sGenre = document.getElementById(`search-genre-${target}`);
-        if (sGenre) sGenre.value = '';
-        document.querySelectorAll(`#genre-list-${target} label`).forEach(lbl => lbl.style.display = '');
-
-        const sLang = document.getElementById(`search-lang-${target}`);
-        if (sLang) sLang.value = '';
-        document.querySelectorAll(`#lang-list-${target} label`).forEach(lbl => lbl.style.display = '');
-
-        // 4. Limpiar Fechas
-        const dMin = document.getElementById(`date-min-${target}`);
-        if (dMin) { dMin.value = ''; dMin._flatpickr?.clear(); }
-        const dMax = document.getElementById(`date-max-${target}`);
-        if (dMax) { dMax.value = ''; dMax._flatpickr?.clear(); }
-
-        // 5. Limpiar Slider
-        const slider = document.getElementById(`votes-slider-${target}`);
-        const display = document.getElementById(`votes-display-${target}`);
-        if (slider) slider.value = 0;
-        if (display) display.textContent = '0 votos';
-
-        // Aplicar y recargar
-        guardarFiltros();
-        cargarTMDB(target, target === 'movie' ? searchMoviesActual : searchSeriesActual, true);
+        const target = e.target.getAttribute('data-target');
+        if (target === 'movie') {
+            const cb = document.getElementById('adult-filter-movie');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('movie', searchMoviesActual, true);
+        } else if (target === 'tv') {
+            const cb = document.getElementById('adult-filter-series');
+            if (cb) cb.checked = false;
+            guardarFiltros();
+            cargarTMDB('tv', searchSeriesActual, true);
+        }
     });
 });
 
@@ -7133,104 +7083,3 @@ window.recargarRecomendaciones = async function () {
     await cargarRecomendaciones(userId);
     showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
 };
-
-// ==========================================================================
-//   NUEVOS FILTROS TMDB (PELÍCULAS Y SERIES)
-// ==========================================================================
-
-// 1. Actualizar números del Slider en tiempo real
-['movie', 'tv'].forEach(tipo => {
-    const slider = document.getElementById(`votes-slider-${tipo}`);
-    const display = document.getElementById(`votes-display-${tipo}`);
-
-    if (slider && display) {
-        slider.addEventListener('input', (e) => {
-            display.textContent = `${e.target.value} votos`;
-        });
-        // Disparar la búsqueda al soltar el slider (para no saturar la API)
-        slider.addEventListener('change', () => {
-            guardarFiltros();
-            cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
-        });
-    }
-
-    // 2. Buscadores internos (Géneros e Idiomas)
-    document.getElementById(`search-genre-${tipo}`)?.addEventListener('input', (e) => {
-        const txt = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(`#genre-list-${tipo} label`).forEach(lbl => {
-            const name = lbl.textContent.toLowerCase();
-            lbl.style.display = name.includes(txt) ? '' : 'none';
-        });
-    });
-
-    document.getElementById(`search-lang-${tipo}`)?.addEventListener('input', (e) => {
-        const txt = e.target.value.toLowerCase().trim();
-        document.querySelectorAll(`#lang-list-${tipo} label`).forEach(lbl => {
-            const name = lbl.textContent.toLowerCase();
-            lbl.style.display = name.includes(txt) ? '' : 'none';
-        });
-    });
-
-    // 3. Listeners para recargar al tocar checkboxes o fechas
-    const inputsTMDB = document.querySelectorAll(`.estado-item-${tipo}, .lang-item-${tipo} input, #date-min-${tipo}, #date-max-${tipo}`);
-    inputsTMDB.forEach(input => {
-        input.addEventListener('change', () => {
-            guardarFiltros();
-            cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
-        });
-    });
-});
-
-// 4. Carga Dinámica de Géneros desde la API
-async function cargarGenerosTMDB() {
-    try {
-        // Cargar para Películas
-        const resM = await fetch('/api/tmdb?action=genres&tipo=movie');
-        if (resM.ok) {
-            const genM = await resM.json();
-            const containerM = document.getElementById('genre-list-movie');
-            if (containerM && genM.genres) {
-                containerM.innerHTML = genM.genres.map(g => `
-                    <label class="custom-check genre-item-movie">
-                        <input type="checkbox" value="${g.id}">
-                        <span class="box"></span> <span>${g.name}</span>
-                    </label>
-                `).join('');
-            }
-        }
-
-        // Cargar para Series
-        const resT = await fetch('/api/tmdb?action=genres&tipo=tv');
-        if (resT.ok) {
-            const genT = await resT.json();
-            const containerT = document.getElementById('genre-list-tv');
-            if (containerT && genT.genres) {
-                containerT.innerHTML = genT.genres.map(g => `
-                    <label class="custom-check genre-item-tv">
-                        <input type="checkbox" value="${g.id}">
-                        <span class="box"></span> <span>${g.name}</span>
-                    </label>
-                `).join('');
-            }
-        }
-
-        // Asignar listeners a los nuevos géneros inyectados
-        document.querySelectorAll('.genre-item-movie input').forEach(cb => {
-            cb.addEventListener('change', () => { guardarFiltros(); cargarTMDB('movie', searchMoviesActual, true); });
-        });
-        document.querySelectorAll('.genre-item-tv input').forEach(cb => {
-            cb.addEventListener('change', () => { guardarFiltros(); cargarTMDB('tv', searchSeriesActual, true); });
-        });
-
-        // Restauramos filtros (por si recargó la página y tenía géneros marcados)
-        restaurarFiltrosDOM();
-
-    } catch (error) {
-        console.error("Error cargando géneros TMDB:", error);
-        document.getElementById('genre-list-movie').innerHTML = '<div style="color:var(--error); padding:10px;">Error al cargar</div>';
-        document.getElementById('genre-list-tv').innerHTML = '<div style="color:var(--error); padding:10px;">Error al cargar</div>';
-    }
-}
-
-// Inicializar carga de géneros
-cargarGenerosTMDB();

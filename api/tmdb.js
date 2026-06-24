@@ -224,9 +224,11 @@ export default async function handler(req, res) {
         // =========================================================
         // LISTADOS (Para las tarjetas iniciales y búsquedas)
         // =========================================================
+        const minVotes = parseInt(req.query.minVotes) || 0;
+
         const urlLista = busqueda
-            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}`
-            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
+            ? `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`
+            : `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
