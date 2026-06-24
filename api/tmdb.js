@@ -217,31 +217,8 @@ export default async function handler(req, res) {
             const period = query.period || 'day'; // 'day' o 'week'
             const limit = parseInt(query.limit) || 20;
 
-            // Calcular fechas para el período
-            const hoy = new Date();
-            let fechaDesde = new Date(hoy);
-
-            if (period === 'day') {
-                fechaDesde.setDate(hoy.getDate() - 1);
-            } else if (period === 'week') {
-                fechaDesde.setDate(hoy.getDate() - 7);
-            } else {
-                fechaDesde.setDate(hoy.getDate() - 1); // default a day
-            }
-
-            const desdeStr = fechaDesde.toISOString().split('T')[0];
-            const hastaStr = hoy.toISOString().split('T')[0];
-
-            // Construir URL de discover con filtros de fecha y popularidad
-            let discoverParams = `language=es-ES&page=1&include_adult=false&sort_by=popularity.desc&vote_count.gte=100`;
-            discoverParams += `&primary_release_date.gte=${desdeStr}&primary_release_date.lte=${hastaStr}`;
-
-            // Si hay filtro de género
-            if (query.genre) {
-                discoverParams += `&with_genres=${query.genre}`;
-            }
-
-            const trendingUrl = `${baseUrl}/discover/movie?${discoverParams}`;
+            // Usar el endpoint real de trending de TMDB
+            const trendingUrl = `${baseUrl}/trending/movie/${period}?language=es-ES`;
 
             const trendingRes = await fetch(trendingUrl, { headers });
             const trendingData = await trendingRes.json();
@@ -283,9 +260,6 @@ export default async function handler(req, res) {
                     generos: data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A'
                 };
             });
-
-            // Ordenar por popularidad (ya viene ordenado, pero por si acaso)
-            trendingFinal.sort((a, b) => (b.votos || 0) - (a.votos || 0));
 
             return res.status(200).json(trendingFinal);
         }

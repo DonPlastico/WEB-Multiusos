@@ -8117,6 +8117,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
 
     const container = document.getElementById('trend-movies-grid');
     const loading = document.getElementById('trend-movies-loading');
+    const scroller = document.getElementById('trending_movies_scroller');
 
     if (!container) {
         trendMoviesCargando = false;
@@ -8132,25 +8133,8 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
     }
 
     try {
-        // Construir URL para tendencias de películas
-        // Usamos discover con sort_by=popularity.desc y filtramos por fecha
-        const hoy = new Date();
-        let fechaDesde = new Date(hoy);
-
-        if (period === 'day') {
-            fechaDesde.setDate(hoy.getDate() - 1);
-        } else if (period === 'week') {
-            fechaDesde.setDate(hoy.getDate() - 7);
-        }
-
-        const desdeStr = fechaDesde.toISOString().split('T')[0];
-        const hastaStr = hoy.toISOString().split('T')[0];
-
-        // Construir URL con filtros de fecha y popularidad
-        let url = `/api/tmdb?trending=true&period=${period}&limit=20`;
-
-        // Añadir timestamp para evitar caché
-        url += `&_=${Date.now()}`;
+        // Usar la nueva ruta de tendencias con el endpoint real de TMDB
+        const url = `/api/tmdb?trending=true&period=${period}&limit=20&_=${Date.now()}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -8183,6 +8167,14 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
 
         // Guardar período actual
         trendMoviesPeriod = period;
+
+        // Forzar scroll al principio después de cargar
+        setTimeout(() => {
+            if (scroller) {
+                const content = scroller.querySelector('.column_content');
+                if (content) content.scrollLeft = 0;
+            }
+        }, 100);
 
     } catch (error) {
         console.error('Error cargando tendencias de películas:', error);
