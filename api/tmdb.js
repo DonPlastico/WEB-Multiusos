@@ -231,9 +231,14 @@ export default async function handler(req, res) {
         if (busqueda) {
             // Búsqueda por texto
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
-        } else {
-            // Usamos discover para tener más control sobre los filtros
-            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
+        } else if (minVotes > 0 || country) {
+            // Usamos discover para filtros avanzados
+            // NOTA: discover NO usa include_adult, usa certification filters o simplemente omitimos
+            let discoverParams = `language=es-ES&page=${page}&sort_by=popularity.desc`;
+
+            // Para contenido adulto en discover, usamos el parámetro 'include_adult' (funciona en discover)
+            // pero solo en discover, no en trending
+            discoverParams += `&include_adult=${includeAdult}`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
@@ -244,6 +249,9 @@ export default async function handler(req, res) {
             }
 
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
+        } else {
+            // Sin filtros: trending normal (más rápido y con mejores resultados de popularidad)
+            urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
         }
 
         const listRes = await fetch(urlLista, { headers });
