@@ -993,6 +993,8 @@ let searchMoviesActual = '';
 let pageSeries = 1;
 let searchSeriesActual = '';
 let cargandoTMDB = false;
+let countryFilterMovie = [];
+let countryFilterSeries = [];
 
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';

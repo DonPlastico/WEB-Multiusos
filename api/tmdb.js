@@ -225,7 +225,7 @@ export default async function handler(req, res) {
         // LISTADOS (Para las tarjetas iniciales y búsquedas)
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
-        const country = req.query.country || ''; // Código de país (ej: KR, ES, US)
+        const country = req.query.country || '';
 
         let urlLista;
         if (busqueda) {
@@ -240,25 +240,40 @@ export default async function handler(req, res) {
             }
 
             if (country) {
-                discoverParams += `&with_origin_country=${country.toUpperCase()}`;
+                // Los códigos de país deben estar en mayúsculas
+                const countryCodes = country.split(',').map(c => c.trim().toUpperCase()).join(',');
+                discoverParams += `&with_origin_country=${countryCodes}`;
             }
 
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
         }
 
+        console.log('📡 TMDB URL:', urlLista); // Para depuración
+
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
 
-        if (!listData.results || listData.results.length === 0) return res.status(200).json([]);
+        // --- VERIFICACIÓN DE SEGURIDAD ---
+        if (!listData || !listData.results || listData.results.length === 0) {
+            return res.status(200).json([]);
+        }
 
         const promesasDetalles = listData.results.map(async (item) => {
             try {
                 const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
                 return await detailRes.json();
-            } catch (e) { return null; }
+            } catch (e) {
+                console.warn('⚠️ Error obteniendo detalles de:', item.id, e.message);
+                return null;
+            }
         });
 
         const detallesRAW = (await Promise.all(promesasDetalles)).filter(d => d !== null);
+
+        // --- MÁS VERIFICACIÓN ---
+        if (!detallesRAW || detallesRAW.length === 0) {
+            return res.status(200).json([]);
+        }
 
         const jsonFinal = detallesRAW.map(data => {
             const providersES = data['watch/providers']?.results?.ES;
@@ -284,6 +299,7 @@ export default async function handler(req, res) {
                 poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
                 fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
                 nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
+                votos: data.vote_count || 0,  // <-- AÑADIDO PARA MOSTRAR VOTOS
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0),
                 temporadas: tipo === 'tv' ? data.number_of_seasons : null,
                 episodios: tipo === 'tv' ? data.number_of_episodes : null,
@@ -293,7 +309,6 @@ export default async function handler(req, res) {
         });
 
         res.status(200).json(jsonFinal);
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Fallo al conectar con TMDB' });
