@@ -225,17 +225,25 @@ export default async function handler(req, res) {
         // LISTADOS (Para las tarjetas iniciales y búsquedas)
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
+        const country = req.query.country || '';
 
         let urlLista;
         if (busqueda) {
             // Búsqueda por texto
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
-        } else if (minVotes > 0) {
-            // Con filtro de votos: usamos DISCOVER en lugar de TRENDING
-            urlLista = `${baseUrl}/discover/${tipo}?language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=${minVotes}`;
         } else {
-            // Sin filtros: trending normal
-            urlLista = `${baseUrl}/trending/${tipo}/week?language=es-ES&page=${page}&include_adult=${includeAdult}`;
+            // Usamos discover para tener más control sobre los filtros
+            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
+
+            if (minVotes > 0) {
+                discoverParams += `&vote_count.gte=${minVotes}`;
+            }
+
+            if (country) {
+                discoverParams += `&with_origin_country=${country.toUpperCase()}`;
+            }
+
+            urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
         }
 
         const listRes = await fetch(urlLista, { headers });

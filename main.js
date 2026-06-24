@@ -993,6 +993,8 @@ let searchMoviesActual = '';
 let pageSeries = 1;
 let searchSeriesActual = '';
 let cargandoTMDB = false;
+let countryFilterMovie = [];
+let countryFilterSeries = [];
 
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
@@ -1144,7 +1146,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             ? parseInt(document.getElementById('votes-slider-movie')?.value || 0)
             : parseInt(document.getElementById('votes-slider-tv')?.value || 0);
 
-        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
+        // Leer filtros de país
+        const countryCodes = tipo === 'movie' ? countryFilterMovie : countryFilterSeries;
+        const countryParam = countryCodes.length > 0 ? countryCodes.join(',') : '';
+
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}${countryParam ? `&country=${countryParam}` : ''}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
@@ -1277,10 +1283,90 @@ function initVoteFilters() {
     }
 }
 
+// ==========================================================================
+//   FILTROS DE PAÍS / IDIOMA (PELÍCULAS Y SERIES)
+// ==========================================================================
+
+function initCountryFilters() {
+    // --- PELÍCULAS ---
+    const langItemsMovie = document.querySelectorAll('.lang-item-movie input[type="checkbox"]');
+    const searchLangMovie = document.getElementById('search-lang-movie');
+
+    if (langItemsMovie.length > 0) {
+        langItemsMovie.forEach(cb => {
+            cb.addEventListener('change', function () {
+                // Recolectar países seleccionados
+                const selected = [];
+                document.querySelectorAll('.lang-item-movie input:checked').forEach(c => {
+                    selected.push(c.value);
+                });
+                countryFilterMovie = selected;
+
+                // Recargar películas con el filtro
+                cargarTMDB('movie', searchMoviesActual, true);
+            });
+        });
+    }
+
+    // Buscador de países (películas)
+    if (searchLangMovie) {
+        searchLangMovie.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.lang-item-movie');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (query === '') {
+                    item.style.display = '';
+                } else {
+                    item.style.display = text.includes(query) ? '' : 'none';
+                }
+            });
+        });
+    }
+
+    // --- SERIES ---
+    const langItemsSeries = document.querySelectorAll('.lang-item-tv input[type="checkbox"]');
+    const searchLangSeries = document.getElementById('search-lang-tv');
+
+    if (langItemsSeries.length > 0) {
+        langItemsSeries.forEach(cb => {
+            cb.addEventListener('change', function () {
+                // Recolectar países seleccionados
+                const selected = [];
+                document.querySelectorAll('.lang-item-tv input:checked').forEach(c => {
+                    selected.push(c.value);
+                });
+                countryFilterSeries = selected;
+
+                // Recargar series con el filtro
+                cargarTMDB('tv', searchSeriesActual, true);
+            });
+        });
+    }
+
+    // Buscador de países (series)
+    if (searchLangSeries) {
+        searchLangSeries.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.lang-item-tv');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (query === '') {
+                    item.style.display = '';
+                } else {
+                    item.style.display = text.includes(query) ? '' : 'none';
+                }
+            });
+        });
+    }
+}
+
 // Inicializar cuando se carga la página
 document.addEventListener('DOMContentLoaded', function () {
-    // ... tu código existente ...
     initVoteFilters();
+    initCountryFilters();
 });
 
 // listeners para pelis
@@ -2353,6 +2439,8 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             const display = document.getElementById('votes-display-movie');
             if (slider) slider.value = 0;
             if (display) display.textContent = '0 votos';
+            document.querySelectorAll('.lang-item-movie input:checked').forEach(c => c.checked = false);
+            countryFilterMovie = [];
             guardarFiltros();
             cargarTMDB('movie', searchMoviesActual, true);
         } else if (target === 'tv') {
@@ -2362,6 +2450,8 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             const display = document.getElementById('votes-display-tv');
             if (slider) slider.value = 0;
             if (display) display.textContent = '0 votos';
+            document.querySelectorAll('.lang-item-tv input:checked').forEach(c => c.checked = false);
+            countryFilterSeries = [];
             guardarFiltros();
             cargarTMDB('tv', searchSeriesActual, true);
         }
