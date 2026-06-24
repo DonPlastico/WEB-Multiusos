@@ -43,7 +43,7 @@ const mapaRutas = {
     'waiting-confirmation': '/esperando-confirmacion',
     'verified-account': '/cuenta-verificada'
 };
-
+ 
 // banderas para no cargar 2 veces lo mismo de la api
 let juegosCargados = false;
 let peliculasCargadas = false;
