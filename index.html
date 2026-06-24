@@ -1102,60 +1102,36 @@
                     <div id="recommendations-section" class="recommendations-section">
                         <div class="watchlist-tabs">
                             <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
+                            <span id="rec-empty-message"
+                                style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-left: auto;">
+                                <i class="fas fa-info-circle"></i> Basado en tus últimos 7 vistos
+                            </span>
                         </div>
 
                         <div id="recommendations-list" class="watchlist-list">
-
-                            <div class="watchlist-item">
-                                <div class="watchlist-item-bg"
-                                    style="background-image: url('https://image.tmdb.org/t/p/w500/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg')">
-                                </div>
-                                <div class="watchlist-item-content">
-                                    <div class="watchlist-thumb">
-                                        <img src="https://image.tmdb.org/t/p/w300/A4j8S6moJS2zNtRR8oWF08gRnL5.jpg"
-                                            alt="Severance" loading="lazy">
-                                    </div>
-                                    <div class="watchlist-info">
-                                        <span class="watchlist-show-name">
-                                            95% COINCIDENCIA <i class="fas fa-star"
-                                                style="color: gold; margin-left: 4px;"></i>
-                                        </span>
-                                        <div class="watchlist-ep-title">
-                                            <span class="watchlist-ep-code">Severance</span>
-                                        </div>
-                                        <div class="watchlist-ep-name">Porque te gusta la Ciencia Ficción</div>
-                                    </div>
-                                    <button class="watchlist-check-btn" title="Ver Detalles">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </button>
-                                </div>
+                            <!-- ESTADO DE CARGA -->
+                            <div id="rec-loading" class="watchlist-loading"
+                                style="display: flex; justify-content: center; padding: 40px 0;">
+                                <i class="fas fa-circle-notch fa-spin"
+                                    style="font-size: 1.8rem; color: var(--text-muted);"></i>
                             </div>
 
-                            <div class="watchlist-item">
-                                <div class="watchlist-item-bg"
-                                    style="background-image: url('https://image.tmdb.org/t/p/w500/qZDtstXhA9JavF6aWWe3s9wZq4.jpg')">
-                                </div>
-                                <div class="watchlist-item-content">
-                                    <div class="watchlist-thumb">
-                                        <img src="https://image.tmdb.org/t/p/w300/qZDtstXhA9JavF6aWWe3s9wZq4.jpg"
-                                            alt="The Last of Us" loading="lazy">
-                                    </div>
-                                    <div class="watchlist-info">
-                                        <span class="watchlist-show-name">
-                                            88% COINCIDENCIA <i class="fas fa-star"
-                                                style="color: gold; margin-left: 4px;"></i>
-                                        </span>
-                                        <div class="watchlist-ep-title">
-                                            <span class="watchlist-ep-code">The Last of Us</span>
-                                        </div>
-                                        <div class="watchlist-ep-name">Basado en tus últimos visionados</div>
-                                    </div>
-                                    <button class="watchlist-check-btn" title="Ver Detalles">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </button>
-                                </div>
+                            <!-- ESTADO VACÍO (oculto por defecto) -->
+                            <div id="rec-empty" class="watchlist-empty"
+                                style="display: none; text-align: center; padding: 40px 20px;">
+                                <i class="fas fa-compass"
+                                    style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 15px; opacity: 0.6;"></i>
+                                <p
+                                    style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+                                    No hay suficientes datos para recomendarte contenido.<br>
+                                    <span style="font-size: 0.8rem; opacity: 0.7;">
+                                        Marca al menos una película o serie como vista para activar las recomendaciones.
+                                    </span>
+                                </p>
                             </div>
 
+                            <!-- CONTENEDOR DINÁMICO DONDE SE INYECTARÁN LAS RECOMENDACIONES -->
+                            <div id="rec-dynamic-container"></div>
                         </div>
                     </div>
                 </div>
@@ -1511,7 +1487,7 @@
 
                 <!-- Contenedor del ojo y menú contextual + FAVORITOS -->
                 <div
-                    style="position: absolute; top: 90px; right: 20px; z-index: 100; display: flex; align-items: center; gap: 10px;">
+                    style="position: absolute;top: 90px;right: 20px;z-index: 100;display: flex;gap: 10px;align-items: flex-end;">
                     <!-- BOTÓN DE FAVORITOS (SOLO ICONO) -->
                     <div id="favorite-button-container" style="display: none; transform: translateY(4px);">
                         <button id="btn-add-to-favorites" class="favorite-btn-icon-only" title="Añadir a favoritos"

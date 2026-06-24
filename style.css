@@ -4689,6 +4689,44 @@ cast-carousel::-webkit-scrollbar {
     min-width: 0;
 }
 
+/* ==========================================================================
+   RECOMENDACIONES (DINÁMICAS)
+   ========================================================================== */
+
+.recommendations-section .watchlist-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+}
+
+.recommendations-section .watchlist-tabs .watchlist-tab {
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    cursor: default;
+    transition: color 0.3s ease;
+}
+
+.recommendations-section .watchlist-tabs .watchlist-tab.active {
+    color: var(--neon-white);
+}
+
+#rec-empty-message {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    font-weight: 400;
+}
+
 .watchlist-tabs {
     display: flex;
     align-items: center;
@@ -4991,6 +5029,53 @@ cast-carousel::-webkit-scrollbar {
 }
 
 /* ==========================================================================
+   ESTADOS DE CARGA Y VACÍO PARA RECOMENDACIONES
+   ========================================================================== */
+
+.watchlist-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+    gap: 12px;
+}
+
+.watchlist-loading i {
+    font-size: 1.8rem;
+    color: var(--text-muted);
+}
+
+.watchlist-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 30px;
+    text-align: center;
+    gap: 12px;
+}
+
+.watchlist-empty i {
+    font-size: 2.8rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+}
+
+.watchlist-empty p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.watchlist-empty .empty-sub {
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* ==========================================================================
    DIBUJO DE FILTROS - MÓVIL
    ========================================================================== */
 
@@ -5137,15 +5222,15 @@ cast-carousel::-webkit-scrollbar {
    ========================================================================== */
 
 .favorite-btn-icon-only {
-    width: 38px;
-    height: 38px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: 1.5px solid rgba(255, 255, 255, 0.15);
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     color: rgba(255, 255, 255, 0.4);
-    font-size: 1rem;
+    font-size: 1.3rem;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex;
