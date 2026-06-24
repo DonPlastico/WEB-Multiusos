@@ -1414,6 +1414,49 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         if (extraList) extraList.innerHTML = '';
     }
 
+    // Función para verificar si hay países seleccionados (ocultos o visibles)
+    function hasHiddenCountriesSelected() {
+        const selected = [];
+        document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
+            selected.push(c.value);
+        });
+        // Verificar si alguno de los seleccionados está en PAISES_OCULTOS
+        return selected.some(code => PAISES_OCULTOS.some(p => p.code === code));
+    }
+
+    // Función para actualizar la visibilidad según los checkboxes seleccionados
+    function updateVisibilityBasedOnSelection() {
+        const hiddenSelected = hasHiddenCountriesSelected();
+        if (hiddenSelected) {
+            // Si hay países ocultos seleccionados, ocultamos los defaults y mostramos solo los seleccionados
+            toggleGroups(true);
+            // Pero solo mostramos los países seleccionados (los ocultos)
+            // Los defaults se ocultan
+            if (extraContainer) {
+                extraContainer.style.display = 'block';
+                extraList.innerHTML = '';
+                // Mostrar SOLO los países ocultos que están seleccionados
+                const selectedHidden = [];
+                document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
+                    const code = c.value;
+                    const isHidden = PAISES_OCULTOS.some(p => p.code === code);
+                    if (isHidden) {
+                        selectedHidden.push(code);
+                    }
+                });
+                // No mostramos nada en extraList porque ya están marcados en el DOM
+                // Pero ocultamos los grupos normales
+                langGroups.forEach(group => {
+                    group.style.display = 'none';
+                });
+                if (extraContainer) extraContainer.style.display = 'none';
+            }
+        } else {
+            // Si no hay países ocultos seleccionados, restaurar estado normal
+            restoreNormalState();
+        }
+    }
+
     // Función para actualizar la lista de búsqueda
     function updateSearchResults(query) {
         if (!extraList) return;
@@ -1429,8 +1472,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         });
 
         if (q === '') {
-            // Si no hay búsqueda, restaurar estado normal
-            restoreNormalState();
+            // Si no hay búsqueda, actualizar según selección
+            updateVisibilityBasedOnSelection();
             return;
         }
 
@@ -1478,8 +1521,9 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
                 // Recargar
                 cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
 
-                // Restaurar estado normal después de seleccionar
-                restoreNormalState();
+                // Limpiar búsqueda y actualizar visibilidad
+                searchInput.value = '';
+                updateVisibilityBasedOnSelection();
             });
 
             extraList.appendChild(label);
@@ -1491,39 +1535,50 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         updateSearchResults(this.value);
     });
 
-    // También escuchar cambios en los checkboxes existentes (los visibles por defecto)
-    items.forEach(item => {
-        const cb = item.querySelector('input[type="checkbox"]');
-        if (cb) {
-            cb.addEventListener('change', function () {
-                // Si estamos en modo búsqueda, restaurar primero
-                if (isSearchActive) {
-                    restoreNormalState();
-                }
+    // Escuchar cambios en TODOS los checkboxes (visibles y ocultos)
+    document.addEventListener('change', function (e) {
+        const cb = e.target.closest(`.${itemClass} input[type="checkbox"]`);
+        if (!cb) return;
 
-                const selected = [];
-                document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
-                    selected.push(c.value);
-                });
-
-                if (tipo === 'movie') {
-                    countryFilterMovie = selected;
-                } else {
-                    countryFilterSeries = selected;
-                }
-
-                cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
-            });
+        // Si estamos en modo búsqueda, limpiar
+        if (isSearchActive) {
+            searchInput.value = '';
+            extraList.innerHTML = '';
         }
+
+        // Recolectar países seleccionados
+        const selected = [];
+        document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
+            selected.push(c.value);
+        });
+
+        // Actualizar la variable global
+        if (tipo === 'movie') {
+            countryFilterMovie = selected;
+        } else {
+            countryFilterSeries = selected;
+        }
+
+        // Recargar
+        cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
+
+        // Actualizar visibilidad
+        updateVisibilityBasedOnSelection();
     });
 
     // Si el usuario hace clic fuera del buscador, limpiar la búsqueda
     document.addEventListener('click', function (e) {
         const container = searchInput.closest('.accordion-content');
         if (container && !container.contains(e.target) && searchInput.value !== '') {
-            restoreNormalState();
+            searchInput.value = '';
+            updateVisibilityBasedOnSelection();
         }
     });
+
+    // Inicializar visibilidad
+    setTimeout(() => {
+        updateVisibilityBasedOnSelection();
+    }, 100);
 }
 
 // Inicializar cuando se carga la página
