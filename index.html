@@ -1509,9 +1509,19 @@
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- Contenedor del ojo y menú contextual -->
-                <div style="position: absolute; top: 75px; right: 20px; z-index: 100;">
-                    <!-- Botón de OJO (estado de vista) - Flotante a la derecha -->
+                <!-- Contenedor del ojo y menú contextual + FAVORITOS -->
+                <div
+                    style="position: absolute; top: 75px; right: 20px; z-index: 100; display: flex; align-items: center; gap: 10px;">
+
+                    <!-- BOTÓN DE FAVORITOS (SOLO ICONO) - Ahora a la izquierda del ojo -->
+                    <div id="favorite-button-container" style="display: none;">
+                        <button id="btn-add-to-favorites" class="favorite-btn-icon-only" title="Añadir a favoritos"
+                            aria-label="Favoritos">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <!-- Botón de OJO (estado de vista) -->
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
                         style="position: relative; top: 0; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
@@ -1533,21 +1543,12 @@
                     </div>
                 </div>
 
+                <!-- Hero section -->
                 <div class="game-hero-section" id="media-detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
                         <h1 id="media-detail-title" class="glitch-text" style="font-size: 3.5rem;">Título</h1>
                         <div id="media-detail-info" class="detail-platforms-badges"></div>
-
-                        <!-- BOTÓN DE FAVORITOS REDISEÑADO -->
-                        <div id="favorite-button-container" style="margin-top: 24px; display: none;">
-                            <div class="favorite-btn-wrapper" id="btn-add-to-favorites" role="button" tabindex="0">
-                                <span class="favorite-btn-icon">
-                                    <i class="fas fa-heart"></i>
-                                </span>
-                                <span class="favorite-btn-text" id="favorite-btn-text">AÑADIR A FAVORITOS</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
