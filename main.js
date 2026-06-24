@@ -3465,7 +3465,7 @@ async function cargarPerfilPublico(usernameTarget) {
 // ==========================================================================
 
 async function cargarRecomendaciones(userId) {
-    const container = document.getElementById('rec-dynamic-container');
+    const container = document.getElementById('recommendations-list');
     const loading = document.getElementById('rec-loading');
     const empty = document.getElementById('rec-empty');
     const emptyMsg = document.getElementById('rec-empty-message');
