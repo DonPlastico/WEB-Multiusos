@@ -247,16 +247,7 @@ export default async function handler(req, res) {
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
         const country = req.query.country || '';
-        let genres = req.query.genres || '';
-
-        // Mapeo de "Romance" para series
-        if (tipo === 'tv' && genres.includes('10749')) {
-            // Reemplazar Romance (10749) por Drama (18) y Comedia (35)
-            const genreArray = genres.split(',').filter(g => g.trim() !== '10749');
-            // Añadir Drama (18) y Comedia (35) para simular Romance
-            genreArray.push('18', '35');
-            genres = genreArray.join(',');
-        }
+        const genres = req.query.genres || '';
 
         let urlLista;
         if (busqueda) {
@@ -270,9 +261,19 @@ export default async function handler(req, res) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
             }
 
+            // --- NUEVO: Manejo de países con OR ---
             if (country) {
-                const countryCodes = country.split(',').map(c => c.trim().toUpperCase()).join(',');
-                discoverParams += `&with_origin_country=${countryCodes}`;
+                const countryCodes = country.split(',').map(c => c.trim().toUpperCase());
+                if (countryCodes.length === 1) {
+                    // Un solo país: filtro normal
+                    discoverParams += `&with_origin_country=${countryCodes[0]}`;
+                } else {
+                    // Múltiples países: necesitamos hacer una consulta especial
+                    // Usamos with_origin_country con OR (separado por |)
+                    // TMDB soporta OR con el operador | en discover
+                    const countryOr = countryCodes.join('|');
+                    discoverParams += `&with_origin_country=${countryOr}`;
+                }
             }
 
             // Añadir géneros 
@@ -284,7 +285,7 @@ export default async function handler(req, res) {
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
         }
 
-        console.log('📡 TMDB URL:', urlLista); // Para depuración
+        console.log('📡 TMDB URL:', urlLista);
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
