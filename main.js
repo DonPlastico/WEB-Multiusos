@@ -4299,7 +4299,6 @@ window.actualizarUIMediaPersonal = async function (data) {
         const completada = totalEpisodios > 0 && vistos >= totalEpisodios;
 
         if (completada && window.estadoMediaActual?.visto) {
-            // Mostrar el botón de favoritos
             const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
             const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
@@ -4315,7 +4314,7 @@ window.actualizarUIMediaPersonal = async function (data) {
             const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
             const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
-            actualizarBotonFavorito(memoInfo.id, 'movie', titulo, poster);
+            await actualizarBotonFavorito(memoInfo.id, 'movie', titulo, poster);
             mostrarBotonFavorito(true);
         } else {
             mostrarBotonFavorito(false);
@@ -4325,23 +4324,20 @@ window.actualizarUIMediaPersonal = async function (data) {
     }
 
     // Para favoritos, verificar si está marcado como favorito
-    // Pero solo si hay sesión (no lanzar error)
     try {
         const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
         if (memoInfo.id && memoInfo.tipo) {
             const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
             const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
-            // Verificar favoritos de forma segura
             const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
             if (userId) {
-                const isFav = esFavorito(memoInfo.id, memoInfo.tipo);
-                actualizarBotonFavorito(memoInfo.id, memoInfo.tipo, titulo, poster);
+                const isFav = await esFavorito(memoInfo.id, memoInfo.tipo);
+                await actualizarBotonFavorito(memoInfo.id, memoInfo.tipo, titulo, poster);
                 mostrarBotonFavorito(true);
             }
         }
     } catch (e) {
-        // Si falla, simplemente no mostramos el botón de favoritos
         console.debug('Favoritos no disponibles:', e);
         mostrarBotonFavorito(false);
     }
@@ -6689,24 +6685,25 @@ async function toggleFavorito(mediaId, tipo, titulo, poster) {
 
 // Actualizar el botón de favoritos
 async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
-    const container = document.getElementById('favorite-button-container');
     const btn = document.getElementById('btn-add-to-favorites');
-    const btnText = document.getElementById('favorite-btn-text');
+    const container = document.getElementById('favorite-button-container');
 
-    if (!container || !btn || !btnText) return;
+    if (!btn || !container) return;
 
     const isFav = await esFavorito(mediaId, tipo);
 
-    // Remover clase anterior con animación
+    // Remover clase anterior
     btn.classList.remove('is-favorite');
 
     if (isFav) {
         // Forzar reflow para reiniciar animación
         void btn.offsetWidth;
         btn.classList.add('is-favorite');
-        btnText.textContent = 'QUITAR DE FAVORITOS';
+        btn.title = 'Quitar de favoritos';
+        btn.setAttribute('aria-label', 'Quitar de favoritos');
     } else {
-        btnText.textContent = 'AÑADIR A FAVORITOS';
+        btn.title = 'Añadir a favoritos';
+        btn.setAttribute('aria-label', 'Añadir a favoritos');
     }
 
     // Guardar estado actual
@@ -6727,27 +6724,32 @@ function mostrarBotonFavorito(mostrar) {
             container.style.display = 'block';
             // Pequeña animación de entrada
             container.style.opacity = '0';
-            container.style.transform = 'translateY(10px)';
+            container.style.transform = 'scale(0.8)';
             requestAnimationFrame(() => {
-                container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                container.style.transition = 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 container.style.opacity = '1';
-                container.style.transform = 'translateY(0)';
+                container.style.transform = 'scale(1)';
             });
         } else {
             container.style.opacity = '0';
-            container.style.transform = 'translateY(10px)';
+            container.style.transform = 'scale(0.8)';
             setTimeout(() => {
                 container.style.display = 'none';
-            }, 400);
+            }, 300);
         }
     }
 }
 
 // Evento para el botón de favoritos
-document.getElementById('btn-add-to-favorites')?.addEventListener('click', async function () {
+document.getElementById('btn-add-to-favorites')?.addEventListener('click', async function (e) {
+    e.stopPropagation(); // Evita que se abra el modal
     if (!mediaFavoritoActual) return;
 
     const { id, tipo, titulo, poster, esFavorito } = mediaFavoritoActual;
+
+    // Deshabilitar botón temporalmente para evitar spam
+    this.style.pointerEvents = 'none';
+    this.style.opacity = '0.6';
 
     if (esFavorito) {
         await quitarFavorito(id, tipo);
@@ -6758,4 +6760,8 @@ document.getElementById('btn-add-to-favorites')?.addEventListener('click', async
     }
 
     await actualizarBotonFavorito(id, tipo, titulo, poster);
+
+    // Re-habilitar botón
+    this.style.pointerEvents = 'auto';
+    this.style.opacity = '1';
 });
