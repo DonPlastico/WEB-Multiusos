@@ -222,10 +222,21 @@ export default async function handler(req, res) {
         }
 
         // =========================================================
+        // OBTENER LISTA DE GÉNEROS (para el filtro)
+        // =========================================================
+        if (req.query.generos) {
+            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=es`;
+            const genreRes = await fetch(genreUrl, { headers });
+            const genreData = await genreRes.json();
+            return res.status(200).json(genreData);
+        }
+
+        // =========================================================
         // LISTADOS (Para las tarjetas iniciales y búsquedas)
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
         const country = req.query.country || '';
+        const genres = req.query.genres || '';
 
         let urlLista;
         if (busqueda) {
@@ -240,9 +251,14 @@ export default async function handler(req, res) {
             }
 
             if (country) {
-                // Los códigos de país deben estar en mayúsculas
                 const countryCodes = country.split(',').map(c => c.trim().toUpperCase()).join(',');
                 discoverParams += `&with_origin_country=${countryCodes}`;
+            }
+
+            // Añadir géneros 
+            if (genres) {
+                const genreIds = genres.split(',').map(g => g.trim()).join(',');
+                discoverParams += `&with_genres=${genreIds}`;
             }
 
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
@@ -253,7 +269,7 @@ export default async function handler(req, res) {
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
 
-        // --- VERIFICACIÓN DE SEGURIDAD ---
+        // VERIFICACIÓN DE SEGURIDAD
         if (!listData || !listData.results || listData.results.length === 0) {
             return res.status(200).json([]);
         }

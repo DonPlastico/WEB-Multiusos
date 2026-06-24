@@ -93,9 +93,11 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
+        cargarGeneros('movie');
     } else if (target === 'series' && !seriesCargadas) {
         cargarTMDB('tv');
         seriesCargadas = true;
+        cargarGeneros('tv');
     } else if (target === 'profile') {
         // Si no hay usernameUrl, usamos el de la sesión
         if (!usernameUrl) {
@@ -300,7 +302,6 @@ function setTheme(theme) {
 
     // detecto si el sistema prefiere oscuro
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    console.log(`tema cambiado a: ${theme} | sistema prefiere: ${isDarkMode ? 'oscuro' : 'claro'}`);
 }
 
 // cargo el tema guardado o el default
@@ -604,8 +605,6 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         if (filtrosGlobales.dateMin) url += `&dateMin=${filtrosGlobales.dateMin}`;
         if (filtrosGlobales.dateMax) url += `&dateMax=${filtrosGlobales.dateMax}`;
         if (filtrosGlobales.modes) url += `&modes=${filtrosGlobales.modes}`;
-
-        console.log('📡 Llamada a:', url);
 
         // Le pasamos la señal a la llamada de red
         const respuesta = await fetch(url, { signal: miAbort.signal });
@@ -920,8 +919,6 @@ function aplicarFiltros() {
         // GUARDAR ESTADO EN LA MEMORIA
         guardarFiltros();
 
-        console.log("Plataformas:", platSeleccionadas, "| Tiendas:", tiendasSeleccionadas, "| Generos:", generosSeleccionados, "| Precio:", precioMin, "-", precioMax, "| Fechas:", dateMin, "-", dateMax);
-
         // Lanzar carga pasando todos los filtros
         cargarJuegosIGDB(busquedaActual, true, {
             platforms: platSeleccionadas,
@@ -995,6 +992,12 @@ let searchSeriesActual = '';
 let cargandoTMDB = false;
 let countryFilterMovie = [];
 let countryFilterSeries = [];
+let genreFilterMovie = [];
+let genreFilterSeries = [];
+let generosCargadosMovie = false;
+let generosCargadosSeries = false;
+let listaGenerosMovie = [];
+let listaGenerosSeries = [];
 
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
@@ -1135,7 +1138,6 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
     // FORZAMOS a que sea 'true' o 'false' en minúsculas, sin excepciones
     const isAdult = checkboxAdulto && checkboxAdulto.checked ? 'true' : 'false';
-    console.log(`🔞 Filtro +18 para ${tipo}: ${isAdult}`); // Para depuración
 
     try {
         // Le pasamos el &adult=true o false al servidor
@@ -1147,8 +1149,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
 
         // Leer filtros de país
         const countryCodes = tipo === 'movie' ? countryFilterMovie : countryFilterSeries;
-        // Asegurarnos de que es un array válido
         const countryParam = (countryCodes && countryCodes.length > 0) ? countryCodes.join(',') : '';
+
+        // Leer filtros de géneros
+        const genreCodes = tipo === 'movie' ? genreFilterMovie : genreFilterSeries;
+        const genreParam = (genreCodes && genreCodes.length > 0) ? genreCodes.join(',') : '';
 
         // Construir URL base
         let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}`;
@@ -1156,6 +1161,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         // Añadir país SOLO si hay algo seleccionado
         if (countryParam) {
             url += `&country=${countryParam}`;
+        }
+
+        // Añadir géneros SOLO si hay algo seleccionado
+        if (genreParam) {
+            url += `&genres=${genreParam}`;
         }
 
         // Añadir búsqueda si existe
@@ -1370,6 +1380,133 @@ function initCountryFilters() {
 
     // --- SERIES ---
     initCountryFilterForType('tv', 'lang-item-tv', 'search-lang-tv', 'lang-extra-list-tv', 'lang-extra-tv');
+}
+
+// ==========================================================================
+//   FILTROS DE GÉNEROS (PELÍCULAS Y SERIES)
+// ==========================================================================
+
+async function cargarGeneros(tipo) {
+    const isMovie = tipo === 'movie';
+    const containerId = isMovie ? 'genre-list-movie' : 'genre-list-tv';
+    const container = document.getElementById(containerId);
+
+    if (!container) return;
+
+    // Si ya están cargados, no volver a cargar
+    if (isMovie && generosCargadosMovie) {
+        renderGeneros('movie');
+        return;
+    }
+    if (!isMovie && generosCargadosSeries) {
+        renderGeneros('tv');
+        return;
+    }
+
+    // Mostrar loading
+    container.innerHTML = `
+        <div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
+            <i class="fas fa-spinner fa-spin"></i> Cargando géneros...
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/tmdb?tipo=${tipo}&generos=1`);
+        const data = await response.json();
+
+        if (data && data.genres) {
+            if (isMovie) {
+                listaGenerosMovie = data.genres;
+                generosCargadosMovie = true;
+                renderGeneros('movie');
+            } else {
+                listaGenerosSeries = data.genres;
+                generosCargadosSeries = true;
+                renderGeneros('tv');
+            }
+        } else {
+            container.innerHTML = `
+                <div style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
+                    <i class="fas fa-exclamation-circle"></i> No se pudieron cargar los géneros
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error cargando géneros:', error);
+        container.innerHTML = `
+            <div style="color:var(--error); font-size:0.8rem; text-align:center; padding:10px;">
+                <i class="fas fa-exclamation-triangle"></i> Error al cargar géneros
+            </div>
+        `;
+    }
+}
+
+function renderGeneros(tipo) {
+    const isMovie = tipo === 'movie';
+    const containerId = isMovie ? 'genre-list-movie' : 'genre-list-tv';
+    const container = document.getElementById(containerId);
+    const searchId = isMovie ? 'search-genre-movie' : 'search-genre-tv';
+    const searchInput = document.getElementById(searchId);
+    const listaGeneros = isMovie ? listaGenerosMovie : listaGenerosSeries;
+    const generosSeleccionados = isMovie ? genreFilterMovie : genreFilterSeries;
+
+    if (!container) return;
+
+    // Ordenar géneros alfabéticamente
+    const generosOrdenados = [...listaGeneros].sort((a, b) => a.name.localeCompare(b.name));
+
+    let html = '';
+    generosOrdenados.forEach(genero => {
+        const checked = generosSeleccionados.includes(genero.id.toString()) ? 'checked' : '';
+        html += `
+            <label class="custom-check genre-item-${tipo}">
+                <input type="checkbox" value="${genero.id}" ${checked}>
+                <span class="box"></span> ${genero.name}
+            </label>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    // Añadir eventos a los checkboxes
+    container.querySelectorAll(`input[type="checkbox"]`).forEach(cb => {
+        cb.addEventListener('change', function () {
+            const selected = [];
+            container.querySelectorAll(`input[type="checkbox"]:checked`).forEach(c => {
+                selected.push(c.value);
+            });
+
+            if (isMovie) {
+                genreFilterMovie = selected;
+            } else {
+                genreFilterSeries = selected;
+            }
+
+            // Recargar con los filtros
+            cargarTMDB(tipo, isMovie ? searchMoviesActual : searchSeriesActual, true);
+        });
+    });
+
+    // Configurar buscador de géneros
+    if (searchInput) {
+        // Remover event listeners anteriores
+        const newSearchInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+        newSearchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            const items = container.querySelectorAll('.genre-item-' + tipo);
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (query === '') {
+                    item.style.display = '';
+                } else {
+                    item.style.display = text.includes(query) ? '' : 'none';
+                }
+            });
+        });
+    }
 }
 
 function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraContainerId) {
@@ -1780,8 +1917,6 @@ if (editProfileBtn) {
         cambiarVista('edit-profile');
         userMenu.classList.remove('show');
         userMenuOpen = false;
-
-        console.log('✅ Navegando a Editar Perfil desde:', vistaAnteriorAlEditar);
     });
 } else {
     console.warn('⚠️ No se encontró el botón "Editar perfil" en el menú');
@@ -2577,13 +2712,11 @@ window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
 // LISTENERS PARA FILTROS +18 Y BOTONES LIMPIAR
 // ============================================
 document.getElementById('adult-filter-movie')?.addEventListener('change', (e) => {
-    console.log('🔞 Cambio en filtro +18 de películas:', e.target.checked);
     guardarFiltros();
     cargarTMDB('movie', searchMoviesActual, true);
 });
 
 document.getElementById('adult-filter-series')?.addEventListener('change', (e) => {
-    console.log('🔞 Cambio en filtro +18 de series:', e.target.checked);
     guardarFiltros();
     cargarTMDB('tv', searchSeriesActual, true);
 });
@@ -2659,6 +2792,8 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             if (display) display.textContent = '0 votos';
             document.querySelectorAll('.lang-item-movie input:checked').forEach(c => c.checked = false);
             countryFilterMovie = [];
+            document.querySelectorAll('.genre-item-movie input:checked').forEach(c => c.checked = false);
+            genreFilterMovie = [];
             guardarFiltros();
             cargarTMDB('movie', searchMoviesActual, true);
         } else if (target === 'tv') {
@@ -2670,6 +2805,8 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             if (display) display.textContent = '0 votos';
             document.querySelectorAll('.lang-item-tv input:checked').forEach(c => c.checked = false);
             countryFilterSeries = [];
+            document.querySelectorAll('.genre-item-tv input:checked').forEach(c => c.checked = false);
+            genreFilterSeries = [];
             guardarFiltros();
             cargarTMDB('tv', searchSeriesActual, true);
         }
@@ -6028,8 +6165,6 @@ function limpiarVistaEditarPerfil() {
 
     // Limpiar el color temporal
     localStorage.removeItem('dp_user_color_temp');
-
-    console.log('🔄 Color restaurado al guardado:', colorGuardado);
 }
 
 // === INICIALIZACIÓN DE LISTENERS ===
@@ -6172,8 +6307,6 @@ function aplicarColorDinamicoLocal(colorHex) {
     style.id = 'dynamic-scrollbar-style';
     style.textContent = `*::-webkit-scrollbar-thumb { background: ${colorHex} !important; }`;
     document.head.appendChild(style);
-
-    console.log(`🎨 Color aplicado en pantalla (sin guardar): ${colorHex}`);
 }
 
 function handleColorPresetClick(e) {
@@ -6270,8 +6403,6 @@ function aplicarColorDinamico(colorHex) {
     if (bar) {
         bar.style.background = colorHex;
     }
-
-    console.log(`🎨 Color cargado permanentemente: ${colorHex}`);
 }
 
 // === Convertir HEX a RGB ===
