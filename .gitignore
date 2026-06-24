@@ -6,3 +6,4 @@ node_modules/
 ./
 .PORHACER.md
 .gemini.md
+.env*
