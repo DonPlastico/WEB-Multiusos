@@ -36,4 +36,4 @@ X-Content-Type-Options = "nosniff" # Evita que navegadores interpreten archivos 
 Referrer-Policy = "strict-origin-when-cross-origin" # Controla qué información se envía en el referer
 Permissions-Policy = "geolocation=(), microphone=(), camera=()" # Desactiva APIs de navegador que no usas
 Strict-Transport-Security = "max-age=31536000; includeSubDomains" # Fuerza HTTPS
-Content-Security-Policy = "default-src 'self'" # (Avanzado) Controla qué recursos puede cargar tu web
+Content-Security-Policy = "default-src 'self'; img-src 'self' https://image.tmdb.org https://placehold.co https://dbxce1spal1df.cloudfront.net https://*.supabase.co; script-src 'self' https://www.googletagmanager.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.igdb.com https://api.isthereanydeal.com https://api.themoviedb.org https://id.twitch.tv https://*.supabase.co https://*.supabase.co; font-src 'self' data:;"
