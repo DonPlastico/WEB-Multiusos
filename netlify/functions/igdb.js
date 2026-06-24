@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        // === TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
+        // TRADUCTOR DE FECHAS A UNIX TIMESTAMP
         if (dateMin) {
             const minTimestamp = Math.floor(new Date(parseInt(dateMin) * 1000).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);
