@@ -228,6 +228,17 @@ export default async function handler(req, res) {
             const genreUrl = `${baseUrl}/genre/${tipo}/list?language=es`;
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
+
+            // Añadir "Romance" como género personalizado para series
+            if (tipo === 'tv') {
+                // Añadir Romance como género personalizado (ID 10749 es el de Romance en TMDB para películas)
+                // Pero lo añadimos como un género "falso" que en realidad filtra por Drama + Comedia
+                genreData.genres.push({
+                    id: 10749, // ID de Romance en TMDB (existe para películas)
+                    name: 'Romance'
+                });
+            }
+
             return res.status(200).json(genreData);
         }
 
@@ -236,7 +247,16 @@ export default async function handler(req, res) {
         // =========================================================
         const minVotes = parseInt(req.query.minVotes) || 0;
         const country = req.query.country || '';
-        const genres = req.query.genres || '';
+        let genres = req.query.genres || '';
+
+        // Mapeo de "Romance" para series
+        if (tipo === 'tv' && genres.includes('10749')) {
+            // Reemplazar Romance (10749) por Drama (18) y Comedia (35)
+            const genreArray = genres.split(',').filter(g => g.trim() !== '10749');
+            // Añadir Drama (18) y Comedia (35) para simular Romance
+            genreArray.push('18', '35');
+            genres = genreArray.join(',');
+        }
 
         let urlLista;
         if (busqueda) {
