@@ -29,8 +29,4 @@ desktop.ini
 # Archivos específicos del proyecto
 .PORHACER.md
 .gemini.md
-vercel.json
 .vercel/
-
-# Netlify
-.netlify/
