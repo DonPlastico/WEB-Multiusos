@@ -998,7 +998,6 @@ function crearTarjetaTrend(juego, posicion) {
     card.innerHTML = `
         <div class="game-cover-container">
             <div class="trend-position ${posClass}">${posText}</div>
-            <div class="trending-badge">🔥 Trend</div>
             ${tienePortada
             ? `<img src="${portada}" alt="${juego.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas fa-gamepad\\' style=\\'font-size:3rem;color:var(--text-muted);\\'></i></div>'">`
             : `<div class="no-cover" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);"><i class="fas fa-gamepad" style="font-size:3rem;color:var(--text-muted);"></i></div>`

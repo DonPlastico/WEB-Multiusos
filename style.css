@@ -5336,20 +5336,6 @@ cast-carousel::-webkit-scrollbar {
     background-clip: text;
 }
 
-.trends-badge {
-    display: inline-block;
-    font-size: 0.6rem;
-    padding: 3px 10px;
-    border-radius: 20px;
-    background: var(--error);
-    color: white;
-    letter-spacing: 2px;
-    animation: pulse-badge 1.5s ease-in-out infinite;
-    -webkit-text-fill-color: white;
-    text-transform: uppercase;
-    font-weight: 700;
-}
-
 /* TABS RETRO */
 .trends-tabs {
     display: flex;
@@ -5527,24 +5513,6 @@ cast-carousel::-webkit-scrollbar {
     background: #cd7f32;
     border-color: #cd7f32;
     color: #1a1a24;
-}
-
-/* BADGE DE TRENDING */
-.trending-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: pulse-badge 2s ease-in-out infinite;
 }
 
 /* INFO DE LA TARJETA */
