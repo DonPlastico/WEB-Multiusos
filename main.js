@@ -1,13 +1,13 @@
 // traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
-// // Vercel Analytics
-// import { inject } from '@vercel/analytics';
-// inject();
+// Vercel Analytics
+import { inject } from '@vercel/analytics';
+inject();
 
-// // Vercel Speed Insights
-// import { injectSpeedInsights } from '@vercel/speed-insights';
-// injectSpeedInsights();
+// Vercel Speed Insights
+import { injectSpeedInsights } from '@vercel/speed-insights';
+injectSpeedInsights();
 
 // ==========================================================================
 //   FAVORITOS
