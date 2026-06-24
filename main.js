@@ -3465,81 +3465,160 @@ async function cargarPerfilPublico(usernameTarget) {
 // ==========================================================================
 
 async function cargarRecomendaciones(userId) {
-    const container = document.getElementById('recommendations-list');
+    const container = document.getElementById('rec-dynamic-container');
     const loading = document.getElementById('rec-loading');
     const empty = document.getElementById('rec-empty');
     const emptyMsg = document.getElementById('rec-empty-message');
 
     if (!container) return;
 
-    // Mostrar loading
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
     if (emptyMsg) emptyMsg.style.display = 'none';
-
     container.innerHTML = '';
 
-    // Forzar el gap directamente en el contenedor dinámico
+    // Forzar gap
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER ÚLTIMOS 7 VISIONADOS (PELÍCULAS Y SERIES)
-        const { data: vistos, error } = await supabase
+        // 1. OBTENER TODOS LOS VISIONADOS (películas y series)
+        const { data: todosVistos, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista, veces_vista')
             .eq('user_id', userId)
             .eq('visto', true)
             .in('tipo', ['movie', 'tv'])
-            .order('fecha_vista', { ascending: false })
-            .limit(7);
+            .order('fecha_vista', { ascending: false });
 
         if (error) throw error;
 
-        // Si no hay nada visto, ocultar sección
-        if (!vistos || vistos.length === 0) {
+        if (!todosVistos || todosVistos.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) empty.style.display = 'flex';
             if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
-        // 2. OBTENER GÉNEROS DE CADA CONTENIDO VISTO (desde TMDB)
+        // 2. SEPARAR: Películas (siempre completas) y Series (necesitan verificación)
+        const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
+        const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
+
+        // 3. OBTENER EPISODIOS VISTOS POR SERIE
+        const { data: episodiosVistos } = await supabase
+            .from('user_media')
+            .select('media_id')
+            .eq('user_id', userId)
+            .eq('tipo', 'tv_episode')
+            .eq('visto', true);
+
+        // Crear un Set con los IDs de episodios vistos
+        const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
+
+        // 4. VERIFICAR QUÉ SERIES ESTÁN COMPLETADAS
+        const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
+        const seriesCompletadas = [];
+
+        for (const serieId of idsSeriesUnicas) {
+            try {
+                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv`);
+                if (!res.ok) continue;
+                const data = await res.json();
+
+                // Calcular total de episodios (excluyendo especiales)
+                const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
+                const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+
+                if (totalEpisodios === 0) continue;
+
+                // Contar episodios vistos de esta serie
+                let vistosSerie = 0;
+                for (const temp of temporadasReales) {
+                    for (let ep = 1; ep <= temp.episode_count; ep++) {
+                        const mediaId = `${serieId}_T${temp.season_number}_E${ep}`;
+                        if (episodiosSet.has(mediaId)) vistosSerie++;
+                    }
+                }
+
+                // Si ha visto TODOS los episodios, está completada
+                if (vistosSerie >= totalEpisodios) {
+                    // Buscar la fecha del último visionado de esta serie
+                    const ultimoVisionado = seriesConEpisodios
+                        .filter(s => s.media_id === serieId)
+                        .sort((a, b) => new Date(b.fecha_vista) - new Date(a.fecha_vista))[0];
+
+                    seriesCompletadas.push({
+                        media_id: serieId,
+                        tipo: 'tv',
+                        fecha_vista: ultimoVisionado?.fecha_vista || new Date().toISOString().split('T')[0],
+                        totalEpisodios,
+                        vistosSerie
+                    });
+                }
+
+            } catch (e) {
+                console.warn('Error verificando serie', serieId, e);
+            }
+        }
+
+        // 5. COMBINAR: Películas (todas vistas) + Series (solo completadas)
+        const contenidoCompletado = [
+            ...peliculasVistas.map(p => ({ media_id: p.media_id, tipo: 'movie', fecha_vista: p.fecha_vista })),
+            ...seriesCompletadas.map(s => ({ media_id: s.media_id, tipo: 'tv', fecha_vista: s.fecha_vista }))
+        ];
+
+        // Ordenar por fecha (más reciente primero)
+        contenidoCompletado.sort((a, b) => new Date(b.fecha_vista) - new Date(a.fecha_vista));
+
+        // Tomar los últimos 7 COMPLETADOS
+        const ultimosCompletados = contenidoCompletado.slice(0, 7);
+
+        console.log('📺 Últimos COMPLETADOS:', ultimosCompletados);
+
+        if (ultimosCompletados.length === 0) {
+            if (loading) loading.style.display = 'none';
+            if (empty) empty.style.display = 'flex';
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            return;
+        }
+
+        // 6. OBTENER GÉNEROS DE LOS COMPLETADOS
         const generosDetalle = [];
         const idsVistos = new Set();
 
-        for (const item of vistos) {
+        for (const item of ultimosCompletados) {
             try {
                 const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.tipo}`);
                 if (!res.ok) continue;
                 const data = await res.json();
 
-                // Ver qué devuelve TMDB
-                console.log(`📺 ${item.tipo} ${item.media_id}:`, data.generos);
+                console.log(`📺 ${item.tipo} ${item.media_id} (COMPLETADA):`, data.titulo, '→', data.generos);
 
-                // Extraer géneros de forma más robusta
                 let generosTexto = data.generos || '';
 
-                // Si es "N/A" o vacío, intentar obtener de otra forma (respuesta alternativa)
-                if (generosTexto === 'N/A' || generosTexto === '' || !generosTexto) {
-                    // Si el título tiene "K-Drama" o "Korea", forzamos Romance
-                    if (data.titulo && (data.titulo.includes('K-Drama') || data.titulo.includes('Corea') || data.titulo.includes('Korean'))) {
-                        generosTexto = 'Romance, Drama';
-                        console.log(`🔧 Forzando géneros para K-Drama: ${data.titulo} → Romance, Drama`);
-                    } else {
-                        // Si no hay géneros, saltamos este item para no contaminar
-                        console.warn(`⚠️ Sin géneros para ${data.titulo || item.media_id}, saltando...`);
-                        continue;
-                    }
+                // Detectar K-Drama por título o descripción
+                const titulo = data.titulo || '';
+                const sinopsis = data.sinopsis || '';
+                const esKdrama = titulo.includes('K-Drama') ||
+                    titulo.includes('Corea') ||
+                    titulo.includes('Korean') ||
+                    sinopsis.includes('coreano') ||
+                    sinopsis.includes('K-drama');
+
+                if (esKdrama) {
+                    generosTexto = 'Romance, Drama, Comedia';
+                    console.log(`🔧 Forzando géneros para K-Drama: ${titulo} → Romance, Drama, Comedia`);
                 }
 
-                // Limpiar y procesar géneros
+                if (generosTexto === 'N/A' || generosTexto === '' || !generosTexto) {
+                    continue;
+                }
+
                 const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
 
-                // Agrupar por género con peso (cuántas veces aparece)
                 generosList.forEach(g => {
-                    if (g && g !== 'N/A') {
+                    if (g) {
                         const existente = generosDetalle.find(d => d.nombre === g);
                         if (existente) {
                             existente.peso = (existente.peso || 0) + 1;
@@ -3549,7 +3628,6 @@ async function cargarRecomendaciones(userId) {
                     }
                 });
 
-                // Guardar IDs vistos para no recomendar lo mismo
                 idsVistos.add(item.media_id.toString());
 
             } catch (e) {
@@ -3557,35 +3635,29 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // Ordenar géneros por peso (los más vistos primero)
         generosDetalle.sort((a, b) => (b.peso || 0) - (a.peso || 0));
 
-        // Ver qué géneros se detectaron
-        console.log('📊 Géneros detectados:', generosDetalle);
+        console.log('📊 Géneros detectados (de completados):', generosDetalle);
 
-        // Si no hay géneros detectados, mostrar mensaje
         if (generosDetalle.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
-                if (p) p.textContent = 'No se pudieron detectar géneros de tus visionados. Marca más contenido como visto.';
+                if (p) p.textContent = 'No se pudieron detectar géneros de tus series/películas completadas.';
             }
             if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
-        // Tomar TOP 3 géneros para recomendaciones (o todos si son menos)
         const topGeneros = generosDetalle.slice(0, 3).map(g => g.nombre);
 
-        // 3. BUSCAR RECOMENDACIONES POR GÉNERO
+        // 7. BUSCAR RECOMENDACIONES POR GÉNERO
         const recomendaciones = [];
 
-        // Para cada género top, buscar películas y series
         for (const genero of topGeneros) {
-            // Buscar películas de este género (con un límite más alto para tener variedad)
             try {
-                const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(genero)}&limit=6`);
+                const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(genero)}&limit=5`);
                 if (resMovie.ok) {
                     const movies = await resMovie.json();
                     movies.forEach(m => {
@@ -3602,9 +3674,8 @@ async function cargarRecomendaciones(userId) {
                 }
             } catch (e) { /* ignorar */ }
 
-            // Buscar series de este género
             try {
-                const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(genero)}&limit=6`);
+                const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(genero)}&limit=5`);
                 if (resTv.ok) {
                     const series = await resTv.json();
                     series.forEach(s => {
@@ -3621,14 +3692,11 @@ async function cargarRecomendaciones(userId) {
                 }
             } catch (e) { /* ignorar */ }
 
-            // Si ya tenemos suficientes, paramos
             if (recomendaciones.length >= 12) break;
         }
 
-        // Limitar a 10 recomendaciones máximo
         const finalRecomendaciones = recomendaciones.slice(0, 10);
 
-        // 4. PINTAR LAS RECOMENDACIONES
         if (loading) loading.style.display = 'none';
         container.innerHTML = '';
 
@@ -3638,7 +3706,6 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // Mostrar mensaje de "basado en tus últimos visionados" con el género principal
         if (emptyMsg) {
             emptyMsg.style.display = 'inline-flex';
             const generoPrincipal = generosDetalle[0]?.nombre || 'tu estilo';
@@ -3646,13 +3713,11 @@ async function cargarRecomendaciones(userId) {
             emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en ${generoPrincipal}${generoSecundario}`;
         }
 
-        // Generar HTML para cada recomendación
         finalRecomendaciones.forEach((item) => {
             const poster = item.poster || '';
             const titulo = item.titulo || 'Sin título';
             const generoMatch = item.generoCoincidencia || 'recomendado';
             const puntuacion = item.puntuacion || 85;
-
             const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
             const esPelicula = item.tipo === 'movie';
 
