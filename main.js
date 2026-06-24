@@ -6367,6 +6367,7 @@ async function guardarBannerCustom() {
 // ==========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Botones del hero
     const btnGames = document.getElementById('btn-hero-games');
     if (btnGames) {
         btnGames.addEventListener('click', (e) => {
@@ -6388,6 +6389,15 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSeries.addEventListener('click', (e) => {
             e.preventDefault();
             cambiarVista('series');
+        });
+    }
+
+    // ===== BOTÓN VOLVER AL LOGIN (waiting-confirmation) =====
+    const btnWaitingLogin = document.getElementById('btn-waiting-login');
+    if (btnWaitingLogin) {
+        btnWaitingLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            cambiarVista('login');
         });
     }
 });
