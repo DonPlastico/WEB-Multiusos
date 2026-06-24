@@ -1049,7 +1049,6 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
             <div class="game-cover-container">
                 <div class="top-platform-tag">
                     <i class="fas fa-star" style="color:gold;"></i> ${media.nota}
-                    ${media.votos ? `<span style="font-size:0.55rem; margin-left:4px; color:var(--text-muted);">(${media.votos} votos)</span>` : ''}
                 </div>
                 ${nsfwTag} 
                 <img src="${media.poster}" alt="${media.titulo}" class="game-cover">
@@ -1299,83 +1298,177 @@ function initVoteFilters() {
 }
 
 // ==========================================================================
-//   FILTROS DE PAÍS / IDIOMA (PELÍCULAS Y SERIES)
+//   FILTROS DE PAÍS / IDIOMA (PELÍCULAS Y SERIES) - CON BÚSQUEDA DINÁMICA
 // ==========================================================================
+
+// Lista completa de países para búsqueda (código ISO 3166-1 + nombre)
+const PAISES_DISPONIBLES = [
+    // Occidentales
+    { code: 'ES', name: 'España' },
+    { code: 'US', name: 'Estados Unidos' },
+    { code: 'GB', name: 'Reino Unido' },
+    { code: 'FR', name: 'Francia' },
+    { code: 'DE', name: 'Alemania' },
+    { code: 'IT', name: 'Italia' },
+    { code: 'PT', name: 'Portugal' },
+    { code: 'NL', name: 'Países Bajos' },
+    { code: 'SE', name: 'Suecia' },
+    { code: 'NO', name: 'Noruega' },
+    { code: 'DK', name: 'Dinamarca' },
+    { code: 'FI', name: 'Finlandia' },
+    { code: 'PL', name: 'Polonia' },
+    { code: 'RU', name: 'Rusia' },
+    { code: 'UA', name: 'Ucrania' },
+    { code: 'GR', name: 'Grecia' },
+    { code: 'TR', name: 'Turquía' },
+    { code: 'IL', name: 'Israel' },
+    { code: 'AR', name: 'Argentina' },
+    { code: 'MX', name: 'México' },
+    { code: 'CO', name: 'Colombia' },
+    { code: 'BR', name: 'Brasil' },
+    { code: 'CL', name: 'Chile' },
+    { code: 'PE', name: 'Perú' },
+    { code: 'VE', name: 'Venezuela' },
+    { code: 'CU', name: 'Cuba' },
+    { code: 'PR', name: 'Puerto Rico' },
+    { code: 'DO', name: 'República Dominicana' },
+    // Asiáticos
+    { code: 'KR', name: 'Corea del Sur' },
+    { code: 'JP', name: 'Japón' },
+    { code: 'CN', name: 'China' },
+    { code: 'TW', name: 'Taiwán' },
+    { code: 'HK', name: 'Hong Kong' },
+    { code: 'TH', name: 'Tailandia' },
+    { code: 'VN', name: 'Vietnam' },
+    { code: 'PH', name: 'Filipinas' },
+    { code: 'MY', name: 'Malasia' },
+    { code: 'ID', name: 'Indonesia' },
+    { code: 'IN', name: 'India' },
+    { code: 'PK', name: 'Pakistán' },
+    { code: 'IR', name: 'Irán' },
+    { code: 'SA', name: 'Arabia Saudita' },
+    { code: 'AE', name: 'Emiratos Árabes' },
+    { code: 'EG', name: 'Egipto' },
+    // Otros (África, Oceanía, etc.)
+    { code: 'ZA', name: 'Sudáfrica' },
+    { code: 'NG', name: 'Nigeria' },
+    { code: 'KE', name: 'Kenia' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'NZ', name: 'Nueva Zelanda' },
+    { code: 'CA', name: 'Canadá' },
+];
 
 function initCountryFilters() {
     // --- PELÍCULAS ---
-    const langItemsMovie = document.querySelectorAll('.lang-item-movie input[type="checkbox"]');
-    const searchLangMovie = document.getElementById('search-lang-movie');
-
-    if (langItemsMovie.length > 0) {
-        langItemsMovie.forEach(cb => {
-            cb.addEventListener('change', function () {
-                // Recolectar países seleccionados
-                const selected = [];
-                document.querySelectorAll('.lang-item-movie input:checked').forEach(c => {
-                    selected.push(c.value);
-                });
-                countryFilterMovie = selected;
-
-                // Recargar películas con el filtro
-                cargarTMDB('movie', searchMoviesActual, true);
-            });
-        });
-    }
-
-    // Buscador de países (películas)
-    if (searchLangMovie) {
-        searchLangMovie.addEventListener('input', function () {
-            const query = this.value.toLowerCase().trim();
-            const items = document.querySelectorAll('.lang-item-movie');
-
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (query === '') {
-                    item.style.display = '';
-                } else {
-                    item.style.display = text.includes(query) ? '' : 'none';
-                }
-            });
-        });
-    }
+    initCountryFilterForType('movie', 'lang-item-movie', 'search-lang-movie', 'lang-extra-list-movie', 'lang-extra-movie');
 
     // --- SERIES ---
-    const langItemsSeries = document.querySelectorAll('.lang-item-tv input[type="checkbox"]');
-    const searchLangSeries = document.getElementById('search-lang-tv');
+    initCountryFilterForType('tv', 'lang-item-tv', 'search-lang-tv', 'lang-extra-list-tv', 'lang-extra-tv');
+}
 
-    if (langItemsSeries.length > 0) {
-        langItemsSeries.forEach(cb => {
+function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraContainerId) {
+    const searchInput = document.getElementById(searchId);
+    const items = document.querySelectorAll(`.${itemClass}`);
+    const extraList = document.getElementById(extraListId);
+    const extraContainer = document.getElementById(extraContainerId);
+
+    // Si no hay items o no hay buscador, salimos
+    if (!searchInput || items.length === 0) return;
+
+    // Mapear los códigos que ya existen en el DOM
+    const existingCodes = new Set();
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb) existingCodes.add(cb.value);
+    });
+
+    // Función para actualizar la lista de búsqueda
+    function updateSearchResults(query) {
+        if (!extraList) return;
+
+        const q = query.toLowerCase().trim();
+        extraList.innerHTML = '';
+
+        if (q === '') {
+            if (extraContainer) extraContainer.style.display = 'none';
+            return;
+        }
+
+        // Buscar países que coincidan con la búsqueda
+        const matches = PAISES_DISPONIBLES.filter(p =>
+            p.name.toLowerCase().includes(q) &&
+            !existingCodes.has(p.code) // Excluir los que ya están visibles
+        );
+
+        if (matches.length === 0) {
+            if (extraContainer) extraContainer.style.display = 'none';
+            return;
+        }
+
+        // Mostrar resultados
+        if (extraContainer) extraContainer.style.display = 'block';
+
+        matches.forEach(p => {
+            const label = document.createElement('label');
+            label.className = `custom-check ${itemClass}`;
+            label.innerHTML = `
+                <input type="checkbox" value="${p.code}">
+                <span class="box"></span> ${p.name}
+            `;
+
+            // Añadir evento al checkbox
+            const cb = label.querySelector('input[type="checkbox"]');
             cb.addEventListener('change', function () {
                 // Recolectar países seleccionados
                 const selected = [];
-                document.querySelectorAll('.lang-item-tv input:checked').forEach(c => {
+                document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
                     selected.push(c.value);
                 });
-                countryFilterSeries = selected;
 
-                // Recargar series con el filtro
-                cargarTMDB('tv', searchSeriesActual, true);
-            });
-        });
-    }
-
-    // Buscador de países (series)
-    if (searchLangSeries) {
-        searchLangSeries.addEventListener('input', function () {
-            const query = this.value.toLowerCase().trim();
-            const items = document.querySelectorAll('.lang-item-tv');
-
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (query === '') {
-                    item.style.display = '';
+                // Actualizar la variable global
+                if (tipo === 'movie') {
+                    countryFilterMovie = selected;
                 } else {
-                    item.style.display = text.includes(query) ? '' : 'none';
+                    countryFilterSeries = selected;
                 }
+
+                // Recargar
+                cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
+
+                // Ocultar resultados después de seleccionar
+                if (extraContainer) extraContainer.style.display = 'none';
+                if (searchInput) searchInput.value = '';
             });
+
+            extraList.appendChild(label);
         });
     }
+
+    // Evento de búsqueda
+    searchInput.addEventListener('input', function () {
+        updateSearchResults(this.value);
+    });
+
+    // También escuchar cambios en los checkboxes existentes
+    items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        if (cb) {
+            cb.addEventListener('change', function () {
+                const selected = [];
+                document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
+                    selected.push(c.value);
+                });
+
+                if (tipo === 'movie') {
+                    countryFilterMovie = selected;
+                } else {
+                    countryFilterSeries = selected;
+                }
+
+                cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
+            });
+        }
+    });
 }
 
 // Inicializar cuando se carga la página
