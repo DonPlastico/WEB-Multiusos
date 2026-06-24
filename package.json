@@ -17,9 +17,7 @@
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/edge-config": "^1.4.3",
-    "@vercel/speed-insights": "^2.0.0"
+    "@vercel/edge-config": "^1.4.3"
   },
   "devDependencies": {
     "@cypress/react": "^9.0.2",
