@@ -5304,6 +5304,16 @@ cast-carousel::-webkit-scrollbar {
     padding: 0 20px;
 }
 
+.trends-container .horizontal-scroll {
+    padding-left: 24px;
+    /* Más espacio a la izquierda */
+    padding-right: 24px;
+}
+
+.trends-container .horizontal-scroll .trend-card:first-child {
+    margin-left: 8px;
+}
+
 .trends-header {
     display: flex;
     justify-content: space-between;
@@ -5460,44 +5470,41 @@ cast-carousel::-webkit-scrollbar {
 /* POSICIÓN RETRO (estilo arcade) */
 .trend-position {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 32px;
-    height: 32px;
+    top: -8px;
+    left: -8px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
     font-weight: 900;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.75);
-    color: white;
-    font-family: 'Courier New', monospace;
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    font-size: 0.9rem;
+    color: var(--primary);
+    z-index: 5;
     backdrop-filter: blur(4px);
-    z-index: 2;
+    font-family: var(--font-cyber);
 }
 
 .trend-position.top1 {
+    background: gold;
     border-color: gold;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-    background: rgba(255, 215, 0, 0.2);
-    color: gold;
+    color: #1a1a24;
+    font-size: 1.2rem;
 }
 
 .trend-position.top2 {
+    background: silver;
     border-color: silver;
-    box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
-    background: rgba(192, 192, 192, 0.15);
-    color: silver;
+    color: #1a1a24;
 }
 
 .trend-position.top3 {
+    background: #cd7f32;
     border-color: #cd7f32;
-    box-shadow: 0 0 15px rgba(205, 127, 50, 0.4);
-    background: rgba(205, 127, 50, 0.15);
-    color: #cd7f32;
+    color: #1a1a24;
 }
 
 /* BADGE DE TRENDING */
