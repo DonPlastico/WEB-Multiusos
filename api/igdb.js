@@ -37,8 +37,11 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Solo exigimos juegos con rating si estamos en vista general y sin filtros, Y si no es una búsqueda de tendencias
-        if (!busqueda && whereClauses.length === 0 && !sortField.includes('rating')) {
+        // Solo exigimos juegos con rating si NO hay búsqueda, NO hay filtros de fecha y NO es una ordenación por rating
+        const tieneFiltrosFecha = dateMin || dateMax;
+        const esOrdenRating = sortField.includes('rating');
+
+        if (!busqueda && whereClauses.length === 0 && !esOrdenRating && !tieneFiltrosFecha) {
             whereClauses.push('total_rating > 80');
         }
 

@@ -731,7 +731,10 @@ function getDateRange(period) {
             startDate.setDate(now.getDate() - 1);
     }
 
-    // Formato Unix timestamp (segundos)
+    // Poner a 00:00:00 para evitar problemas de zona horaria
+    startDate.setHours(0, 0, 0, 0);
+    now.setHours(23, 59, 59, 999);
+
     return {
         from: Math.floor(startDate.getTime() / 1000),
         to: Math.floor(now.getTime() / 1000)
@@ -758,17 +761,25 @@ async function cargarTendencias(period = 'day', resetear = true) {
     try {
         const dateRange = getDateRange(period);
 
-        // Usamos IGDB con filtro de fecha para obtener juegos lanzados recientemente
-        // Y los ordenamos por rating (puntuación) descendente
         let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc`;
-
-        // Añadir filtro de fecha
         url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
 
         console.log('📡 Tendencias URL:', url); // Para depuración
 
         const response = await fetch(url);
+
+        // Verificar que la respuesta es OK
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
+
+        // Verificar que data es un array
+        if (!Array.isArray(data)) {
+            console.error('La respuesta no es un array:', data);
+            throw new Error('Formato de respuesta inválido');
+        }
 
         if (resetear) {
             container.innerHTML = '';
