@@ -6044,33 +6044,69 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 //   SUBIDA Y RECORTE DE AVATAR CUSTOM
 // ==========================================================================
 
-let cropperAvatar = null; // ← Variable SEPARADA para avatar
+let cropperAvatar = null;
+let cropperBanner = null;
+
 const avatarInput = document.getElementById('avatar-upload-input');
+const bannerInput = document.getElementById('banner-upload-input');
 const cropModal = document.getElementById('crop-modal');
 const imageToCrop = document.getElementById('image-to-crop');
-const btnSaveCrop = document.getElementById('btn-save-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
-const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
+
+// 🔥 OBTENER EL BOTÓN DE FORMA SEGURA (con verificación)
+let btnSaveCrop = document.getElementById('btn-save-crop');
 
 function setModalTitle(text) {
     const titleEl = document.getElementById('crop-modal-title');
     if (titleEl) {
         titleEl.textContent = text;
     } else {
-        console.warn('⚠️ No se encontró #crop-modal-title');
         const fallbackTitle = document.querySelector('#crop-modal .modal-header h2');
         if (fallbackTitle) fallbackTitle.textContent = text;
     }
 }
 
-// 1. Abrir explorador de archivos al hacer clic en el botón custom
+// 🔥 FUNCIÓN PARA RECREAR EL BOTÓN DE FORMA SEGURA
+function recrearBoton(html) {
+    // Buscar el botón actual
+    let btn = document.getElementById('btn-save-crop');
+    if (!btn) {
+        // Si no existe, crearlo
+        const container = document.querySelector('#crop-modal .modal-body > div:last-child');
+        if (container) {
+            btn = document.createElement('button');
+            btn.id = 'btn-save-crop';
+            btn.className = 'auth-btn primary full-width';
+            btn.style.cssText = 'padding: 10px 20px; font-size: 0.85rem; letter-spacing: 1.5px; border-radius: 8px;';
+            container.appendChild(btn);
+        } else {
+            console.error('❌ No se encontró el contenedor del botón');
+            return null;
+        }
+    }
+    btn.innerHTML = html;
+    return btn;
+}
+
+// 1. Abrir explorador de archivos para AVATAR
+const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
 if (btnTriggerUpload) {
-    btnTriggerUpload.addEventListener('click', () => {
+    btnTriggerUpload.addEventListener('click', (e) => {
+        e.preventDefault();
         avatarInput.click();
     });
 }
 
-// 2. Al seleccionar archivo, abrir modal e iniciar Cropper para AVATAR
+// 2. Abrir explorador de archivos para BANNER
+const btnTriggerBanner = document.querySelector('.custom-card-item.special-custom[onclick*="banner"]');
+if (btnTriggerBanner) {
+    btnTriggerBanner.addEventListener('click', (e) => {
+        e.preventDefault();
+        bannerInput.click();
+    });
+}
+
+// 3. AVATAR: Al seleccionar archivo
 avatarInput.addEventListener('change', function (e) {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -6080,16 +6116,20 @@ avatarInput.addEventListener('change', function (e) {
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR AVATAR");
-            btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
+            
+            // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
+            const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR AVATAR');
+            if (!btn) return;
+            btnSaveCrop = btn;
 
             cropModal.classList.add('show');
             cropModal.classList.add('crop-avatar');
 
-            // 🔥 DESTRUIR EL CROPPER ANTERIOR SI EXISTE
+            // Destruir croppers anteriores
             if (cropperAvatar) cropperAvatar.destroy();
             if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
 
-            // 🔥 CREAR UN NUEVO CROPPER PARA AVATAR
+            // Crear cropper para avatar
             cropperAvatar = new Cropper(imageToCrop, {
                 aspectRatio: 1,
                 viewMode: 1,
@@ -6104,38 +6144,89 @@ avatarInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            const newBtn = btnSaveCrop.cloneNode(true);
-            btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
-            const activeBtn = document.getElementById('btn-save-crop');
-
-            activeBtn.onclick = null;
-            activeBtn.onclick = guardarAvatarCustom;
+            // Asignar evento
+            btn.onclick = guardarAvatarCustom;
         };
         reader.readAsDataURL(file);
     }
     avatarInput.value = '';
 });
 
-// 3. Cerrar Modal
+// 4. BANNER: Al seleccionar archivo
+bannerInput.addEventListener('change', function (e) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+            imageToCrop.src = event.target.result;
+            setModalTitle("RECORTAR PORTADA");
+            
+            // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
+            const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR PORTADA');
+            if (!btn) return;
+            btnSaveCrop = btn;
+
+            cropModal.classList.add('show');
+            cropModal.classList.remove('crop-avatar');
+
+            // Destruir croppers anteriores
+            if (cropperBanner) cropperBanner.destroy();
+            if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
+
+            // Crear cropper para banner
+            cropperBanner = new Cropper(imageToCrop, {
+                aspectRatio: 16 / 9,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
+
+            // Asignar evento
+            btn.onclick = guardarBannerCustom;
+        };
+        reader.readAsDataURL(file);
+    }
+    bannerInput.value = '';
+});
+
+// 5. Cerrar Modal
 if (btnCloseCrop) {
     btnCloseCrop.addEventListener('click', () => {
         cropModal.classList.remove('show');
         cropModal.classList.remove('crop-avatar');
-        if (cropperAvatar) cropperAvatar.destroy();
-        if (cropperBanner) cropperBanner.destroy();
-        cropperAvatar = null;
-        cropperBanner = null;
+        if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
+        if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
     });
 }
 
-// 4. Guardar AVATAR
+// Cerrar al hacer clic fuera
+cropModal.addEventListener('click', function (e) {
+    if (e.target === cropModal) {
+        cropModal.classList.remove('show');
+        cropModal.classList.remove('crop-avatar');
+        if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
+        if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
+    }
+});
+
+// 6. Guardar AVATAR
 async function guardarAvatarCustom() {
-    // 🔥 USAR cropperAvatar, NO cropper
     if (!cropperAvatar) return;
 
     const btn = document.getElementById('btn-save-crop');
+    if (!btn) return;
+    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO...';
 
     cropperAvatar.getCroppedCanvas({
         width: 500,
@@ -6153,7 +6244,6 @@ async function guardarAvatarCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
-            // 🔥 SUBIR AL BUCKET 'avatares'
             const { error } = await supabase.storage
                 .from('avatares')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -6167,7 +6257,6 @@ async function guardarAvatarCustom() {
                 .from('avatares')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
-            // 🔥 ACTUALIZAR COLUMNA 'avatar'
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ avatar: publicUrl })
@@ -6199,80 +6288,23 @@ async function guardarAvatarCustom() {
 
         } catch (error) {
             console.error('Error subiendo avatar:', error);
-            alert('Error al subir el avatar. Revisa la consola.');
+            alert('Error al subir el avatar: ' + (error.message || error));
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR AVATAR';
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR AVATAR';
         }
     }, 'image/png', 1.0);
 }
 
-// ==========================================================================
-//   SUBIDA Y RECORTE DE BANNER CUSTOM
-// ==========================================================================
-
-let cropperBanner = null; // ← Variable SEPARADA para banner
-const bannerInput = document.getElementById('banner-upload-input');
-const btnTriggerBanner = document.querySelector('.custom-card-item.special-custom[onclick*="banner"]');
-
-if (btnTriggerBanner) {
-    btnTriggerBanner.addEventListener('click', () => {
-        bannerInput.click();
-    });
-}
-
-bannerInput.addEventListener('change', function (e) {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-        const file = files[0];
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-            imageToCrop.src = event.target.result;
-            setModalTitle("RECORTAR PORTADA");
-            btnSaveCrop.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR PORTADA';
-
-            cropModal.classList.add('show');
-            cropModal.classList.remove('crop-avatar');
-
-            // 🔥 DESTRUIR EL CROPPER ANTERIOR SI EXISTE
-            if (cropperBanner) cropperBanner.destroy();
-            if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
-
-            // 🔥 CREAR UN NUEVO CROPPER PARA BANNER
-            cropperBanner = new Cropper(imageToCrop, {
-                aspectRatio: 16 / 9,
-                viewMode: 1,
-                dragMode: 'move',
-                autoCropArea: 0.9,
-                restore: false,
-                guides: true,
-                center: true,
-                highlight: false,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                toggleDragModeOnDblclick: false,
-            });
-
-            const newBtn = btnSaveCrop.cloneNode(true);
-            btnSaveCrop.parentNode.replaceChild(newBtn, btnSaveCrop);
-            const activeBtn = document.getElementById('btn-save-crop');
-
-            activeBtn.onclick = null;
-            activeBtn.onclick = guardarBannerCustom;
-        };
-        reader.readAsDataURL(file);
-    }
-    bannerInput.value = '';
-});
-
+// 7. Guardar BANNER
 async function guardarBannerCustom() {
-    // 🔥 USAR cropperBanner, NO cropper
     if (!cropperBanner) return;
 
     const btn = document.getElementById('btn-save-crop');
+    if (!btn) return;
+    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBIENDO BANNER...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO BANNER...';
 
     cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
@@ -6285,7 +6317,6 @@ async function guardarBannerCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
-            // 🔥 SUBIR AL BUCKET 'banners'
             const { error } = await supabase.storage
                 .from('banners')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -6299,7 +6330,6 @@ async function guardarBannerCustom() {
                 .from('banners')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
-            // 🔥 ACTUALIZAR COLUMNA 'banner'
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ banner: publicUrl })
@@ -6327,7 +6357,7 @@ async function guardarBannerCustom() {
             alert('Error subiendo banner: ' + (error.message || error));
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> SUBIR BANNER';
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR BANNER';
         }
     }, 'image/png', 1.0);
 }
