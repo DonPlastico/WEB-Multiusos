@@ -5569,6 +5569,486 @@ cast-carousel::-webkit-scrollbar {
     opacity: 0.3;
 }
 
+/* ==========================================
+   TENDENCIAS PELÍCULAS - ESTILO TMDB + CYBERPUNK
+   ========================================== */
+
+/* SELECTOR DE PERÍODOS (estilo TMDB) */
+.selector_wrap {
+    display: inline-flex;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 4px;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.05);
+}
+
+.selector {
+    display: flex;
+    gap: 2px;
+    position: relative;
+}
+
+.selector .anchor {
+    position: relative;
+    padding: 8px 22px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selector .anchor h3 {
+    margin: 0;
+    font-family: var(--font-cyber);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.selector .anchor h3 a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.selector .anchor:hover h3 a {
+    color: var(--neon-white);
+}
+
+.selector .anchor.selected {
+    background: var(--primary);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.35), inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.selector .anchor.selected h3 a {
+    color: white;
+}
+
+.selector .anchor .background {
+    display: none;
+}
+
+.selector .anchor.selected .background {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border-radius: 25px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+}
+
+.chevron-down {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.6rem;
+    opacity: 0.6;
+}
+
+/* SCROLLER WRAP (contenedor del scroll) */
+#trending_movies_scroller {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    padding: 15px 0;
+}
+
+#trending_movies_scroller .column_content {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 8px 20px 20px 20px;
+    gap: 16px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+#trending_movies_scroller .column_content::-webkit-scrollbar {
+    height: 4px;
+}
+
+#trending_movies_scroller .column_content::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+#trending_movies_scroller .column_content::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+/* MEDIA CARD LIST (grid horizontal) */
+.media-card-list {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    width: auto !important;
+}
+
+/* POSTER ITEM (tarjeta individual) */
+.media-card-list .comp\:poster-item {
+    flex: 0 0 150px;
+    width: 150px;
+    scroll-snap-align: start;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+}
+
+.media-card-list .comp\:poster-item:hover {
+    transform: translateY(-6px) scale(1.02);
+    filter: drop-shadow(0 8px 30px rgba(99, 102, 241, 0.25));
+    z-index: 2;
+}
+
+/* Contenedor de la tarjeta (flex) */
+.media-card-list .comp\:poster-item .flex {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+/* Contenedor de la imagen (relative para overlay) */
+.media-card-list .comp\:poster-item .relative {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.media-card-list .comp\:poster-item:hover .relative {
+    border-color: var(--primary);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+}
+
+/* Enlace de la tarjeta */
+.media-card-list .comp\:poster-item .relative a {
+    display: flex;
+    aspect-ratio: 2 / 3;
+    width: 150px;
+    height: auto;
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+/* Imagen del poster */
+.media-card-list .comp\:poster-item .relative a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.media-card-list .comp\:poster-item:hover .relative a img {
+    transform: scale(1.08);
+}
+
+/* Info inferior (título + fecha) */
+.media-card-list .comp\:poster-item .mt-2 {
+    margin-top: 10px;
+    padding: 0 4px 4px 4px;
+}
+
+.media-card-list .comp\:poster-item .mt-2 a {
+    text-decoration: none;
+}
+
+.media-card-list .comp\:poster-item .mt-2 a h2 {
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.2s ease;
+}
+
+.media-card-list .comp\:poster-item .mt-2 a:hover h2 {
+    color: var(--primary);
+}
+
+.media-card-list .comp\:poster-item .release_date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+/* Badge de opciones (3 puntos) - estilizado cyberpunk */
+.media-card-list .comp\:poster-item .options {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.media-card-list .comp\:poster-item:hover .options {
+    opacity: 1;
+}
+
+.media-card-list .comp\:poster-item .options a {
+    display: inline-block;
+    background: rgba(10, 10, 15, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    text-decoration: none !important;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.media-card-list .comp\:poster-item .options a:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.media-card-list .comp\:poster-item .options a .glyphicons_v2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: -2px;
+    transition: color 0.2s ease;
+}
+
+.media-card-list .comp\:poster-item .options a:hover .glyphicons_v2 {
+    color: white;
+}
+
+/* ==========================================
+   VARIANTE: TARJETA MODO NEON (alternativo)
+   ========================================== */
+.trend-movie-card-neon {
+    flex: 0 0 150px;
+    width: 150px;
+    scroll-snap-align: start;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.trend-movie-card-neon:hover {
+    transform: translateY(-8px) scale(1.03);
+    border-color: var(--primary);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.2), 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.trend-movie-card-neon .poster-wrap {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    background: var(--bg-elevated);
+}
+
+.trend-movie-card-neon .poster-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.trend-movie-card-neon:hover .poster-wrap img {
+    transform: scale(1.08);
+}
+
+.trend-movie-card-neon .poster-wrap .neon-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(99, 102, 241, 0.05));
+    pointer-events: none;
+}
+
+.trend-movie-card-neon .card-info {
+    padding: 10px 12px 12px;
+}
+
+.trend-movie-card-neon .card-info .movie-title {
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--neon-white);
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.trend-movie-card-neon .card-info .movie-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.media-card-list .comp\:poster-item {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+.media-card-list .comp\:poster-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(2) {
+    animation-delay: 0.10s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(4) {
+    animation-delay: 0.20s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(6) {
+    animation-delay: 0.30s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(7) {
+    animation-delay: 0.35s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(8) {
+    animation-delay: 0.40s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(9) {
+    animation-delay: 0.45s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(10) {
+    animation-delay: 0.50s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(11) {
+    animation-delay: 0.55s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(12) {
+    animation-delay: 0.60s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(13) {
+    animation-delay: 0.65s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(14) {
+    animation-delay: 0.70s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(15) {
+    animation-delay: 0.75s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(16) {
+    animation-delay: 0.80s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(17) {
+    animation-delay: 0.85s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(18) {
+    animation-delay: 0.90s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(19) {
+    animation-delay: 0.95s;
+}
+
+.media-card-list .comp\:poster-item:nth-child(20) {
+    animation-delay: 1.00s;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5819,6 +6299,18 @@ cast-carousel::-webkit-scrollbar {
     50% {
         opacity: 0.6;
         transform: scale(0.95);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -6447,6 +6939,51 @@ cast-carousel::-webkit-scrollbar {
     .trends-header .section-title {
         font-size: 1.1rem;
     }
+
+
+    .selector .anchor {
+        padding: 6px 14px;
+    }
+
+    .selector .anchor h3 {
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+    }
+
+    .media-card-list .comp\:poster-item {
+        flex: 0 0 120px;
+        width: 120px;
+    }
+
+    .media-card-list .comp\:poster-item .relative a {
+        width: 120px;
+    }
+
+    .media-card-list .comp\:poster-item .mt-2 a h2 {
+        font-size: 0.75rem;
+    }
+
+    .media-card-list .comp\:poster-item .release_date {
+        font-size: 0.6rem;
+    }
+
+    #trending_movies_scroller .column_content {
+        padding: 8px 12px 16px 12px;
+        gap: 12px;
+    }
+
+    .selector_wrap {
+        width: 100%;
+    }
+
+    .selector {
+        width: 100%;
+    }
+
+    .selector .anchor {
+        flex: 1;
+        text-align: center;
+    }
 }
 
 /* ===== MÓVILES PEQUEÑOS (max 600px) ===== */
@@ -6753,5 +7290,28 @@ cast-carousel::-webkit-scrollbar {
     .hero-section .hero-badge-dot {
         width: 8px !important;
         height: 8px !important;
+    }
+
+
+    .media-card-list .comp\:poster-item {
+        flex: 0 0 100px;
+        width: 100px;
+    }
+
+    .media-card-list .comp\:poster-item .relative a {
+        width: 100px;
+    }
+
+    .media-card-list .comp\:poster-item .mt-2 a h2 {
+        font-size: 0.7rem;
+    }
+
+    .selector .anchor {
+        padding: 5px 10px;
+    }
+
+    .selector .anchor h3 {
+        font-size: 0.55rem;
+        letter-spacing: 0.5px;
     }
 }
