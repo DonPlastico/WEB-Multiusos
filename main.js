@@ -4249,7 +4249,6 @@ window.actualizarUIMediaPersonal = async function (data) {
             btnWatchToggle.classList.add('watched');
         }
 
-        // Actualizar texto de valoración (SOLO TEXTO, las estrellas las pinta resetearEstrellasPersonal)
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
             personalText.textContent = "Tu nota personal";
         } else {
@@ -4281,64 +4280,31 @@ window.actualizarUIMediaPersonal = async function (data) {
         personalText.textContent = "Haz clic para puntuar";
     }
 
-    // Resetear las estrellas según el estado actual (NUEVO)
     resetearEstrellasPersonal();
 
-    // Verificar si el media está completado al 100%
+    // ============================================================
+    // 🔥 NUEVA LÓGICA SIMPLIFICADA PARA FAVORITOS
+    // ============================================================
     const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
     const tipo = memoInfo.tipo;
 
-    if (tipo === 'tv' && window.serieInfoActual) {
-        // Es una serie: calcular total de episodios
-        let totalEpisodios = 0;
-        window.serieInfoActual.temporadas.forEach(temp => {
-            if (temp.season_number > 0) totalEpisodios += temp.episode_count;
-        });
+    // SOLO mostrar el botón de favoritos SI:
+    // 1. El usuario ha marcado el contenido como visto (window.estadoMediaActual.visto === true)
+    // 2. Y hay sesión iniciada (userId existe)
+    const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
 
-        const vistos = window.episodiosVistosActuales ? window.episodiosVistosActuales.size : 0;
-        const completada = totalEpisodios > 0 && vistos >= totalEpisodios;
+    if (window.estadoMediaActual?.visto === true && userId) {
+        const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || 'Sin título';
+        const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
-        if (completada && window.estadoMediaActual?.visto) {
-            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
-            const poster = document.getElementById('media-detail-cover-img')?.src || '';
-
-            await actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster);
+        try {
+            await actualizarBotonFavorito(memoInfo.id, tipo, titulo, poster);
             mostrarBotonFavorito(true);
-        } else {
-            mostrarBotonFavorito(false);
-        }
-
-    } else if (tipo === 'movie') {
-        // Es una película: solo necesita estar marcada como vista
-        if (window.estadoMediaActual?.visto) {
-            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
-            const poster = document.getElementById('media-detail-cover-img')?.src || '';
-
-            await actualizarBotonFavorito(memoInfo.id, 'movie', titulo, poster);
-            mostrarBotonFavorito(true);
-        } else {
+        } catch (e) {
+            console.debug('Error al actualizar favoritos:', e);
             mostrarBotonFavorito(false);
         }
     } else {
-        mostrarBotonFavorito(false);
-    }
-
-    // Para favoritos, verificar si está marcado como favorito
-    try {
-        const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
-        if (memoInfo.id && memoInfo.tipo) {
-            const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
-            const poster = document.getElementById('media-detail-cover-img')?.src || '';
-
-            const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
-            if (userId) {
-                const isFav = await esFavorito(memoInfo.id, memoInfo.tipo);
-                await actualizarBotonFavorito(memoInfo.id, memoInfo.tipo, titulo, poster);
-                mostrarBotonFavorito(true);
-            }
-        }
-    } catch (e) {
-        console.debug('Favoritos no disponibles:', e);
         mostrarBotonFavorito(false);
     }
 };
