@@ -37,8 +37,8 @@
     --bg-elevated: #1a1a24;
 
     --text-main: #ededee;
-    --text-secondary: #a0a0b0;
-    --text-muted: #6b6b7a;
+    --text-secondary: #b0b0c0;
+    --text-muted: #8888a0;
     --text-inverse: #0a0a0f;
 
     --primary: #6366f1;
@@ -5305,6 +5305,7 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .trends-container .horizontal-scroll {
+    direction: ltr;
     padding: 16px 20px 16px 4px;
     display: flex;
     overflow-x: auto;

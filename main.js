@@ -35,7 +35,7 @@ const mapaRutas = {
     'waiting-confirmation': '/esperando-confirmacion',
     'verified-account': '/cuenta-verificada'
 };
- 
+
 // banderas para no cargar 2 veces lo mismo de la api
 let juegosCargados = false;
 let peliculasCargadas = false;
@@ -367,28 +367,28 @@ const langMenu = document.createElement('div');
 langMenu.className = 'theme-menu lang-menu';
 langMenu.innerHTML = `
     <button class="theme-option lang-option active" data-lang="es" data-flag="es">
-        <img src="https://flagcdn.com/24x18/es.png" alt="ES"> <span>Español</span>
+        <img src="https://flagcdn.com/48x36/es.png" alt="ES"> <span>Español</span>
     </button>
     <button class="theme-option lang-option" data-lang="en" data-flag="us">
-        <img src="https://flagcdn.com/24x18/us.png" alt="EN"> <span>English (EE.UU)</span>
+        <img src="https://flagcdn.com/48x36/us.png" alt="EN"> <span>English (EE.UU)</span>
     </button>
     <button class="theme-option lang-option" data-lang="fr" data-flag="fr">
-        <img src="https://flagcdn.com/24x18/fr.png" alt="FR"> <span>Français</span>
+        <img src="https://flagcdn.com/48x36/fr.png" alt="FR"> <span>Français</span>
     </button>
     <button class="theme-option lang-option" data-lang="it" data-flag="it">
-        <img src="https://flagcdn.com/24x18/it.png" alt="IT"> <span>Italiano</span>
+        <img src="https://flagcdn.com/48x36/it.png" alt="IT"> <span>Italiano</span>
     </button>
     <button class="theme-option lang-option" data-lang="de" data-flag="de">
-        <img src="https://flagcdn.com/24x18/de.png" alt="DE"> <span>Deutsch</span>
+        <img src="https://flagcdn.com/48x36/de.png" alt="DE"> <span>Deutsch</span>
     </button>
     <button class="theme-option lang-option" data-lang="zh" data-flag="cn">
-        <img src="https://flagcdn.com/24x18/cn.png" alt="ZH"> <span>简体中文</span>
+        <img src="https://flagcdn.com/48x36/cn.png" alt="ZH"> <span>简体中文</span>
     </button>
     <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
-        <img src="https://flagcdn.com/24x18/jp.png" alt="JA"> <span>日本語</span>
+        <img src="https://flagcdn.com/48x36/jp.png" alt="JA"> <span>日本語</span>
     </button>
-    <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
-        <img src="https://flagcdn.com/24x18/kr.png" alt="KR"> <span>한국인</span>
+    <button class="theme-option lang-option" data-lang="ko" data-flag="kr">
+        <img src="https://flagcdn.com/48x36/kr.png" alt="KR"> <span>한국인</span>
     </button>
 `;
 
@@ -425,8 +425,8 @@ document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
         const lang = opt.dataset.lang;
         const flag = opt.dataset.flag;
 
-        // actualiza la bandera del botón
-        langFlagImg.src = `https://flagcdn.com/24x18/${flag}.png`;
+        // ACTUALIZAR TAMAÑO DE LA BANDERA A 48x36
+        langFlagImg.src = `https://flagcdn.com/48x36/${flag}.png`;
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
@@ -740,8 +740,14 @@ async function cargarTendencias(period = 'day', resetear = true) {
     if (trendCargando) return;
     trendCargando = true;
 
+    // Forzar scroll al principio
     const container = document.getElementById('trend-games');
-    if (!container) return;
+    if (container) {
+        // Pequeño retraso para asegurar que el DOM se ha actualizado
+        setTimeout(() => {
+            container.scrollLeft = 0;
+        }, 50);
+    }
 
     if (resetear) {
         trendOffset = 0;
@@ -831,6 +837,13 @@ async function cargarTendencias(period = 'day', resetear = true) {
 
         trendPeriod = period;
 
+        const container = document.getElementById('trend-games');
+        if (container) {
+            setTimeout(() => {
+                container.scrollLeft = 0;
+            }, 50);
+        }
+
     } catch (error) {
         console.error('Error cargando tendencias:', error);
         if (resetear) {
@@ -842,6 +855,15 @@ async function cargarTendencias(period = 'day', resetear = true) {
             </div>
         `;
         }
+    }
+
+    // Forzar scroll al inicio para mostrar las primeras tarjetas
+    const container = document.getElementById('trend-games');
+    if (container) {
+        // Esperar a que el DOM se actualice
+        requestAnimationFrame(() => {
+            container.scrollLeft = 0;
+        });
     }
 
     trendCargando = false;
@@ -1063,6 +1085,12 @@ function initTrendTabs() {
                     container.style.opacity = '1';
                 }
             }, 300);
+
+            // Reiniciar scroll al principio
+            const container = document.getElementById('trend-games');
+            if (container) {
+                container.scrollLeft = 0;
+            }
         });
     });
 }
@@ -2942,9 +2970,9 @@ async function cargarDisenoPerfil(email) {
     if (avatarId === 'default' || avatarId === 'custom') {
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
     } else if (avatarId.startsWith('http')) {
-        avatarHtml = `<img src="${avatarId}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="${avatarId}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
-        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
     // Cambiar el icono del botón de la navbar
@@ -3129,7 +3157,7 @@ async function buscarAmigos() {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
@@ -4271,9 +4299,9 @@ async function cargarPerfilPublico(usernameTarget) {
                 avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
             } else if (avatarDB.startsWith('http')) {
                 // 👉 NUEVO: Si detecta que es un enlace de Supabase
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
         }
 
@@ -5311,7 +5339,7 @@ window.cargarAlertas = async function () {
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             areaNotifs.innerHTML += `
                 <div class="notif-card">
@@ -5467,7 +5495,7 @@ async function cargarDatosSociales() {
             const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             // Botón de Dejar de Seguir (Comparamos MI ID con el TARGET ID)
             let actionBtnHtml = '';
@@ -7772,12 +7800,12 @@ async function guardarAvatarCustom() {
                 const overlay = profileAvatarDiv.querySelector('.edit-overlay-avatar');
                 profileAvatarDiv.innerHTML = '';
                 if (overlay) profileAvatarDiv.appendChild(overlay);
-                profileAvatarDiv.insertAdjacentHTML('beforeend', `<img src="${publicUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`);
+                profileAvatarDiv.insertAdjacentHTML('beforeend', `<img src="${publicUrl}" alt="URL" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`);
             }
 
             const navAvatar = document.getElementById('user-profile');
             if (navAvatar) {
-                navAvatar.innerHTML = `<img src="${publicUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                navAvatar.innerHTML = `<img src="${publicUrl}" alt="URL" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             }
 
             cropModal.classList.remove('show');
@@ -8097,3 +8125,7 @@ window.recargarRecomendaciones = async function () {
     await cargarRecomendaciones(userId);
     showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
 };
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+}

@@ -1,0 +1,16 @@
+{
+  "name": "DP-SYS Nexus",
+  "short_name": "DP-SYS",
+  "description": "Tu nexus personal de juegos, películas y series",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/img/Logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
