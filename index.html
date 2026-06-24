@@ -211,45 +211,21 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS PELÍCULAS - ESTILO TMDB + CYBERPUNK -->
+            <!-- SECCIÓN TENDENCIAS PELÍCULAS - MISMO ESTILO QUE JUEGOS -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Películas
                     </h2>
-                    <div class="selector_wrap">
-                        <div class="selector" id="trending-movies-selector">
-                            <div class="anchor selected" data-period="day">
-                                <h3 class="leading-5">
-                                    <a href="#" class="no_click" data-panel="trending_movies_scroller" data-group="day">
-                                        Hoy <span class="glyphicons_v2 chevron-down"></span>
-                                    </a>
-                                </h3>
-                                <div class="background"></div>
-                            </div>
-                            <div class="anchor" data-period="week">
-                                <h3 class="leading-5">
-                                    <a href="#" class="no_click" data-panel="trending_movies_scroller"
-                                        data-group="week">
-                                        Esta semana <span class="glyphicons_v2 chevron-down"></span>
-                                    </a>
-                                </h3>
-                            </div>
-                        </div>
+                    <div class="trends-tabs">
+                        <button class="trend-tab active" data-period="day">Hoy</button>
+                        <button class="trend-tab" data-period="week">Esta semana</button>
                     </div>
                 </div>
-
-                <div id="trending_movies_scroller" class="media discover scroller_wrap should_fade is_fading">
-                    <div class="column_content flex scroller loaded" id="trend-movies-content">
-                        <!-- ESTADO DE CARGA -->
-                        <div class="trends-loading" id="trend-movies-loading">
-                            <i class="fas fa-circle-notch fa-spin"></i>
-                            <span>Cargando tendencias...</span>
-                        </div>
-
-                        <!-- CONTENEDOR DE PELÍCULAS (se llena desde JS) -->
-                        <div id="trend-movies-grid" class="media-card-list inline-flex flex-nowrap gap-4"
-                            style="display: none;"></div>
+                <div class="horizontal-scroll glass-panel" id="trend-movies">
+                    <div class="trends-loading" id="trend-movies-loading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>Cargando tendencias...</span>
                     </div>
                 </div>
             </div>
