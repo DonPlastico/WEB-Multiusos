@@ -6116,7 +6116,7 @@ avatarInput.addEventListener('change', function (e) {
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR AVATAR");
-            
+
             // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
             const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR AVATAR');
             if (!btn) return;
@@ -6162,7 +6162,7 @@ bannerInput.addEventListener('change', function (e) {
         reader.onload = function (event) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR PORTADA");
-            
+
             // 🔥 RECREAR EL BOTÓN EN LUGAR DE CLONAR
             const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR PORTADA');
             if (!btn) return;
@@ -6224,7 +6224,7 @@ async function guardarAvatarCustom() {
 
     const btn = document.getElementById('btn-save-crop');
     if (!btn) return;
-    
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO...';
 
@@ -6302,7 +6302,7 @@ async function guardarBannerCustom() {
 
     const btn = document.getElementById('btn-save-crop');
     if (!btn) return;
-    
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO BANNER...';
 
