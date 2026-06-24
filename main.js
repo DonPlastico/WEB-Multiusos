@@ -740,13 +740,15 @@ async function cargarTendencias(period = 'day', resetear = true) {
     if (trendCargando) return;
     trendCargando = true;
 
-    // Forzar scroll al principio
     const container = document.getElementById('trend-games');
-    if (container) {
-        // Pequeño retraso para asegurar que el DOM se ha actualizado
-        setTimeout(() => {
-            container.scrollLeft = 0;
-        }, 50);
+    if (!container) {
+        trendCargando = false;
+        return;
+    }
+
+    // Forzar scroll al principio solo si estamos reseteando
+    if (resetear) {
+        container.scrollLeft = 0;
     }
 
     if (resetear) {
@@ -762,98 +764,58 @@ async function cargarTendencias(period = 'day', resetear = true) {
             <i class="fas fa-circle-notch fa-spin"></i>
             <span>Cargando tendencias ${textos[period] || 'de esta semana'}...</span>
         </div>
-    `;
+        `;
     }
 
     try {
         const dateRange = getDateRange(period);
-
-        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc`;
-        url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
-
-        console.log('📡 Tendencias URL:', url); // Para depuración
+        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
 
         const response = await fetch(url);
-
-        // Verificar que la respuesta es OK
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Formato de respuesta inválido');
 
-        // Verificar que data es un array
-        if (!Array.isArray(data)) {
-            console.error('La respuesta no es un array:', data);
-            throw new Error('Formato de respuesta inválido');
-        }
-
-        if (resetear) {
-            container.innerHTML = '';
-        }
+        if (resetear) container.innerHTML = '';
 
         if (!data || data.length === 0) {
             if (resetear) {
-                container.innerHTML = `
-                    <div class="trends-empty">
-                        <i class="fas fa-gamepad"></i>
-                        <span>No hay tendencias en este período</span>
-                    </div>
-                `;
+                container.innerHTML = `<div class="trends-empty"><i class="fas fa-gamepad"></i><span>No hay tendencias</span></div>`;
             }
             trendCargando = false;
             return;
         }
 
-        // Ordenar por rating (mejores primero) - ya viene ordenado de la API, pero por si acaso
         const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-
-        // Tomar los 15 primeros para tendencias (o todos si son menos)
         const topGames = sorted.slice(0, 15);
 
         topGames.forEach((juego, index) => {
-            const card = crearTarjetaTrend(juego, index + 1);
+            const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
         });
 
-        // Si hay más juegos de los que mostramos, añadir botón "Cargar más"
         if (data.length > 15) {
             const moreIndicator = document.createElement('div');
             moreIndicator.className = 'trend-more-indicator';
-            moreIndicator.style.cursor = 'pointer';
-            moreIndicator.onclick = function () {
-                cargarMasTendencias(period);
-            };
+            moreIndicator.onclick = () => cargarMasTendencias(period);
             moreIndicator.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--text-muted);font-size:0.8rem;text-align:center;min-width:120px;transition: all 0.3s ease;" 
-                    onmouseover="this.style.color='var(--primary)'; this.querySelector('i').style.transform='scale(1.2)';" 
-                    onmouseout="this.style.color='var(--text-muted)'; this.querySelector('i').style.transform='scale(1)';">
-                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);transition: transform 0.3s ease;"></i>
-                    <span style="margin-top:8px;font-weight:600;">+${data.length - 15} más</span>
-                </div>
-            `;
+                <div style="display:flex;flex-direction:column;align-items:center;padding:20px;color:var(--text-muted);">
+                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);"></i>
+                    <span>+${data.length - 15} más</span>
+                </div>`;
             container.appendChild(moreIndicator);
         }
 
         trendPeriod = period;
 
-        if (container) {
-            setTimeout(() => {
-                container.scrollLeft = 0;
-            }, 50);
-        }
-
     } catch (error) {
         console.error('Error cargando tendencias:', error);
         if (resetear) {
-            container.innerHTML = `
-            <div class="trends-empty">
-                <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                <span>No hay tendencias disponibles en este período</span>
-                <span style="font-size: 0.7rem; opacity: 0.6; margin-top: 4px;">Intenta con otro filtro</span>
-            </div>
-        `;
+            container.innerHTML = `<div class="trends-empty"><i class="fas fa-exclamation-triangle"></i><span>Error al cargar</span></div>`;
         }
+    } finally {
+        trendCargando = false;
     }
 
     // Forzar scroll al inicio para mostrar las primeras tarjetas
