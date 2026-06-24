@@ -9,6 +9,9 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Falta ITAD_API_KEY' });
     }
 
+    // Configurar caché - los precios cambian, pero podemos cachear 5 minutos
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+
     try {
         const searchRes = await fetch(
             `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1&key=${API_KEY}`

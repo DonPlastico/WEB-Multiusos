@@ -20,6 +20,11 @@ export default async function handler(req, res) {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
+        // ✅ CACHÉ - Configurar al principio
+        const esBusqueda = busqueda || sortField || dateMin || dateMax || platforms || genres;
+        const cacheTime = esBusqueda ? 1800 : 7200; // 30min búsquedas, 2h tendencias
+        res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
+
         let whereClauses = [];
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
@@ -135,8 +140,7 @@ export default async function handler(req, res) {
             return { ...juego, itad: infoPrecio };
         });
 
-        res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-
+        // El caché duplicado de aquí
         res.status(200).json(jsonFinal);
 
     } catch (error) {

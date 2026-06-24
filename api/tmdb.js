@@ -15,7 +15,10 @@ export default async function handler(req, res) {
     };
 
     try {
-        res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+        // Caché general para la mayoría de peticiones
+        const esBusqueda = busqueda || query.genero || query.generos;
+        const cacheTime = esBusqueda ? 1800 : 3600; // 30 min para búsquedas, 1h para detalles
+        res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
         // Temporadas
         if (tipo === 'tv_season' && id && query.season) {
