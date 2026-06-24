@@ -229,16 +229,6 @@ export default async function handler(req, res) {
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
 
-            // Añadir "Romance" como género personalizado para series
-            if (tipo === 'tv') {
-                // Añadir Romance como género personalizado (ID 10749 es el de Romance en TMDB para películas)
-                // Pero lo añadimos como un género "falso" que en realidad filtra por Drama + Comedia
-                genreData.genres.push({
-                    id: 10749, // ID de Romance en TMDB (existe para películas)
-                    name: 'Romance'
-                });
-            }
-
             return res.status(200).json(genreData);
         }
 
@@ -248,6 +238,8 @@ export default async function handler(req, res) {
         const minVotes = parseInt(req.query.minVotes) || 0;
         const country = req.query.country || '';
         const genres = req.query.genres || '';
+        const dateMin = req.query.dateMin || '';
+        const dateMax = req.query.dateMax || '';
 
         let urlLista;
         if (busqueda) {
@@ -261,16 +253,12 @@ export default async function handler(req, res) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
             }
 
-            // --- NUEVO: Manejo de países con OR ---
+            // Manejo de países con OR
             if (country) {
                 const countryCodes = country.split(',').map(c => c.trim().toUpperCase());
                 if (countryCodes.length === 1) {
-                    // Un solo país: filtro normal
                     discoverParams += `&with_origin_country=${countryCodes[0]}`;
                 } else {
-                    // Múltiples países: necesitamos hacer una consulta especial
-                    // Usamos with_origin_country con OR (separado por |)
-                    // TMDB soporta OR con el operador | en discover
                     const countryOr = countryCodes.join('|');
                     discoverParams += `&with_origin_country=${countryOr}`;
                 }
@@ -282,10 +270,18 @@ export default async function handler(req, res) {
                 discoverParams += `&with_genres=${genreIds}`;
             }
 
+            // Añadir filtros de fecha
+            if (dateMin) {
+                const paramName = tipo === 'movie' ? 'primary_release_date.gte' : 'first_air_date.gte';
+                discoverParams += `&${paramName}=${dateMin}`;
+            }
+            if (dateMax) {
+                const paramName = tipo === 'movie' ? 'primary_release_date.lte' : 'first_air_date.lte';
+                discoverParams += `&${paramName}=${dateMax}`;
+            }
+
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
         }
-
-        console.log('📡 TMDB URL:', urlLista);
 
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();

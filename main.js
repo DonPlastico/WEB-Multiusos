@@ -998,6 +998,10 @@ let generosCargadosMovie = false;
 let generosCargadosSeries = false;
 let listaGenerosMovie = [];
 let listaGenerosSeries = [];
+let dateMinMovie = '';
+let dateMaxMovie = '';
+let dateMinSeries = '';
+let dateMaxSeries = '';
 
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
@@ -1155,6 +1159,10 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const genreCodes = tipo === 'movie' ? genreFilterMovie : genreFilterSeries;
         const genreParam = (genreCodes && genreCodes.length > 0) ? genreCodes.join(',') : '';
 
+        // Leer filtros de fechas
+        const dateMin = tipo === 'movie' ? window.dateMinMovie : window.dateMinSeries;
+        const dateMax = tipo === 'movie' ? window.dateMaxMovie : window.dateMaxSeries;
+
         // Construir URL base
         let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}`;
 
@@ -1166,6 +1174,14 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         // Añadir géneros SOLO si hay algo seleccionado
         if (genreParam) {
             url += `&genres=${genreParam}`;
+        }
+
+        // Añadir fechas
+        if (dateMin) {
+            url += `&dateMin=${dateMin}`;
+        }
+        if (dateMax) {
+            url += `&dateMax=${dateMax}`;
         }
 
         // Añadir búsqueda si existe
@@ -1380,6 +1396,92 @@ function initCountryFilters() {
 
     // --- SERIES ---
     initCountryFilterForType('tv', 'lang-item-tv', 'search-lang-tv', 'lang-extra-list-tv', 'lang-extra-tv');
+}
+
+// ==========================================================================
+//   FILTROS DE FECHAS (PELÍCULAS Y SERIES) - CON FLATPICKR
+// ==========================================================================
+
+function initDateFilters() {
+    // --- PELÍCULAS ---
+    const dateMinMovie = document.getElementById('date-min-movie');
+    const dateMaxMovie = document.getElementById('date-max-movie');
+
+    if (dateMinMovie) {
+        flatpickr(dateMinMovie, {
+            locale: "es",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d / m / Y",
+            maxDate: "today",
+            disableMobile: true,
+            onChange: function (selectedDates, dateStr) {
+                window.dateMinMovie = dateStr || '';
+                aplicarFechas('movie');
+            }
+        });
+    }
+
+    if (dateMaxMovie) {
+        flatpickr(dateMaxMovie, {
+            locale: "es",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d / m / Y",
+            maxDate: "today",
+            disableMobile: true,
+            onChange: function (selectedDates, dateStr) {
+                window.dateMaxMovie = dateStr || '';
+                aplicarFechas('movie');
+            }
+        });
+    }
+
+    // --- SERIES ---
+    const dateMinSeries = document.getElementById('date-min-tv');
+    const dateMaxSeries = document.getElementById('date-max-tv');
+
+    if (dateMinSeries) {
+        flatpickr(dateMinSeries, {
+            locale: "es",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d / m / Y",
+            maxDate: "today",
+            disableMobile: true,
+            onChange: function (selectedDates, dateStr) {
+                window.dateMinSeries = dateStr || '';
+                aplicarFechas('tv');
+            }
+        });
+    }
+
+    if (dateMaxSeries) {
+        flatpickr(dateMaxSeries, {
+            locale: "es",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d / m / Y",
+            maxDate: "today",
+            disableMobile: true,
+            onChange: function (selectedDates, dateStr) {
+                window.dateMaxSeries = dateStr || '';
+                aplicarFechas('tv');
+            }
+        });
+    }
+}
+
+// Función para aplicar filtros de fecha
+function aplicarFechas(tipo) {
+    const isMovie = tipo === 'movie';
+    const dateMin = isMovie ? window.dateMinMovie : window.dateMinSeries;
+    const dateMax = isMovie ? window.dateMaxMovie : window.dateMaxSeries;
+
+    // Solo recargar si hay al menos una fecha seleccionada
+    if (dateMin || dateMax) {
+        cargarTMDB(tipo, isMovie ? searchMoviesActual : searchSeriesActual, true);
+    }
 }
 
 // ==========================================================================
@@ -1722,6 +1824,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
 document.addEventListener('DOMContentLoaded', function () {
     initVoteFilters();
     initCountryFilters();
+    initCountryFilterForType();
+    initDateFilters();
 });
 
 // listeners para pelis
@@ -2794,6 +2898,16 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             countryFilterMovie = [];
             document.querySelectorAll('.genre-item-movie input:checked').forEach(c => c.checked = false);
             genreFilterMovie = [];
+            const dateMinMovie = document.getElementById('date-min-movie');
+            const dateMaxMovie = document.getElementById('date-max-movie');
+            if (dateMinMovie) {
+                dateMinMovie._flatpickr?.clear();
+                window.dateMinMovie = '';
+            }
+            if (dateMaxMovie) {
+                dateMaxMovie._flatpickr?.clear();
+                window.dateMaxMovie = '';
+            }
             guardarFiltros();
             cargarTMDB('movie', searchMoviesActual, true);
         } else if (target === 'tv') {
@@ -2807,6 +2921,16 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             countryFilterSeries = [];
             document.querySelectorAll('.genre-item-tv input:checked').forEach(c => c.checked = false);
             genreFilterSeries = [];
+            const dateMinTv = document.getElementById('date-min-tv');
+            const dateMaxTv = document.getElementById('date-max-tv');
+            if (dateMinTv) {
+                dateMinTv._flatpickr?.clear();
+                window.dateMinSeries = '';
+            }
+            if (dateMaxTv) {
+                dateMaxTv._flatpickr?.clear();
+                window.dateMaxSeries = '';
+            }
             guardarFiltros();
             cargarTMDB('tv', searchSeriesActual, true);
         }
