@@ -671,13 +671,13 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .horizontal-scroll {
-    padding: 30px;
     min-height: 220px;
     color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
     border-radius: 16px;
+    align-items: center;
+    padding: 10px;
+    font-size: 1rem;
+    display: flex;
 }
 
 .scanlines {
@@ -5304,23 +5304,15 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .trends-container .horizontal-scroll {
-    direction: ltr;
-    padding: 10px;
-    display: flex;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: visible;
-    gap: 10px;
-    border-radius: 10px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
-    align-items: stretch;
+    border-radius: 10px;
+    gap: 10px;
+    overflow: auto visible;
 }
 
 .trends-container .horizontal-scroll .trend-card:first-child {
-    margin-left: 8px;
+    margin: 0;
 }
 
 /* Y asegurar que la última también tenga margen derecho */
@@ -5396,6 +5388,7 @@ cast-carousel::-webkit-scrollbar {
 .horizontal-scroll>*:last-child {
     margin-right: 20px;
     scroll-snap-align: end;
+    align-content: center;
 }
 
 /* Estilo personalizado para las tarjetas dentro del scroll */
