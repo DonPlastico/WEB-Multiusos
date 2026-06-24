@@ -1198,29 +1198,53 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             const idsTMDB = datosUnicos.map(d => d.id.toString());
             const { data: vistosData } = await supabase
                 .from('user_media')
-                .select('media_id, veces_vista, id')
+                .select('media_id, veces_vista, id, visto') // <-- Aseguramos traer la columna 'visto'
                 .eq('user_id', session.user.id)
                 .eq('tipo', tipo)
                 .in('media_id', idsTMDB); // Pide solo los que están en pantalla de golpe
 
             if (vistosData) {
-                vistosData.forEach(v => vistosMap[v.media_id] = v);
+                // Guardamos solo los que realmente tienen la bandera 'visto' en true
+                vistosData.forEach(v => {
+                    if (v.visto) vistosMap[v.media_id] = v;
+                });
             }
         }
+
+        // === LEER FILTRO DE ESTADO ===
+        const estadoVisto = document.querySelector(`.estado-item-${tipo}[value="visto"]`)?.checked;
+        const estadoNoVisto = document.querySelector(`.estado-item-${tipo}[value="no_visto"]`)?.checked;
+
+        let itemsMostrados = 0; // Contador para saber si la pantalla se quedó en blanco
 
         datosUnicos.forEach(item => {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
 
             // Bloquea ÚNICAMENTE si TMDB lo clasifica oficialmente como contenido para adultos
-            const esContenidoAdulto = item.adult;
-
-            if (esContenidoAdulto && !isAdultFilterActive) return;
+            if (item.adult && !isAdultFilterActive) return;
 
             // Pasamos la variable de si está vista a la función  
             const userMediaInfo = vistosMap[item.id.toString()];
+            const estaVisto = !!userMediaInfo;
+
+            // === FILTRO LOCAL MÁGICO (HE VISTO / NO HE VISTO) ===
+            if (estadoVisto && !estadoNoVisto && !estaVisto) return; // Quiere vistos, pero NO lo está
+            if (estadoNoVisto && !estadoVisto && estaVisto) return;  // Quiere NO vistos, pero SÍ lo está
+
+            // Si sobrevive a los filtros, lo pintamos
             grid.innerHTML += crearTarjetaTMDB(item, tipo, userMediaInfo);
+            itemsMostrados++;
         });
+
+        // === AUTO-AVANCE INTELIGENTE ===
+        // Si el filtro local ocultó TODOS los resultados, pero TMDB sí nos dio películas, 
+        // avanzamos de página automáticamente de fondo para que la pantalla no se quede vacía.
+        if (datosUnicos.length > 0 && itemsMostrados === 0) {
+            if (tipo === 'movie') pageMovies++; else pageSeries++;
+            cargarTMDB(tipo, searchActual, false);
+            return; // Cortamos aquí para que no dibuje el botón
+        }
 
         if (datosUnicos.length > 0) {
             const btnMas = document.createElement('div');
