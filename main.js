@@ -1208,11 +1208,16 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             console.log(`🔍 [${tipo}] Datos de user_media recibidos:`, vistosData);
             console.log(`🔍 [${tipo}] IDs solicitados:`, idsTMDB);
 
-            if (vistosData) {
+            if (vistosData && vistosData.length > 0) {
+                // Consideramos "visto" si el registro EXISTE en user_media. El campo 'visto' puede ser null, false o true - lo que importa es que el registro existe
                 vistosData.forEach(v => {
-                    if (v.visto) vistosMap[v.media_id] = v;
+                    // Si el registro existe, lo marcamos como visto
+                    vistosMap[v.media_id] = v;
                 });
-                console.log(`🔍 [${tipo}] vistosMap generado:`, vistosMap);
+                console.log(`🔍 [${tipo}] vistosMap generado (CORREGIDO):`, vistosMap);
+                console.log(`🔍 [${tipo}] Total de registros marcados como vistos:`, Object.keys(vistosMap).length);
+            } else {
+                console.log(`🔍 [${tipo}] No se encontraron registros en user_media para estos IDs`);
             }
         }
 
