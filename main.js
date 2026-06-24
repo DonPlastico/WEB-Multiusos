@@ -1381,8 +1381,12 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     // Si no hay items o no hay buscador, salimos
     if (!searchInput || items.length === 0) return;
 
-    // Guardar referencia a los grupos y sus elementos para ocultar/mostrar
-    const langGroups = document.querySelectorAll(`#${searchInput.closest('.accordion-content').id} .lang-group:not(#${extraContainerId})`);
+    // Guardar referencia a los grupos normales (excluyendo el grupo extra)
+    const accordionContent = searchInput.closest('.accordion-content');
+    const langGroups = accordionContent ? accordionContent.querySelectorAll(`.lang-group:not(#${extraContainerId})`) : [];
+
+    // Estado de búsqueda activa
+    let isSearchActive = false;
 
     // Función para mostrar/ocultar los grupos según la búsqueda
     function toggleGroups(showExtraOnly) {
@@ -1400,6 +1404,14 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
                 extraContainer.style.display = 'none';
             }
         }
+        isSearchActive = showExtraOnly;
+    }
+
+    // Función para restaurar el estado normal (mostrar grupos, ocultar extra)
+    function restoreNormalState() {
+        toggleGroups(false);
+        if (searchInput) searchInput.value = '';
+        if (extraList) extraList.innerHTML = '';
     }
 
     // Función para actualizar la lista de búsqueda
@@ -1417,8 +1429,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         });
 
         if (q === '') {
-            // Si no hay búsqueda, mostrar TODO (grupos visibles + ocultar extra)
-            toggleGroups(false);
+            // Si no hay búsqueda, restaurar estado normal
+            restoreNormalState();
             return;
         }
 
@@ -1429,9 +1441,9 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         );
 
         if (matches.length === 0) {
-            // No hay resultados: ocultamos todo excepto el contenedor de extra (vacío)
+            // No hay resultados: mostrar mensaje
             toggleGroups(true);
-            extraContainer.style.display = 'block';
+            if (extraContainer) extraContainer.style.display = 'block';
             extraList.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem; padding:8px 0; text-align:center; opacity:0.5;">No se encontraron países con "${q}"</div>`;
             return;
         }
@@ -1466,11 +1478,8 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
                 // Recargar
                 cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, true);
 
-                // Limpiar búsqueda y restaurar vista
-                searchInput.value = '';
-                toggleGroups(false);
-                extraContainer.style.display = 'none';
-                extraList.innerHTML = '';
+                // Restaurar estado normal después de seleccionar
+                restoreNormalState();
             });
 
             extraList.appendChild(label);
@@ -1487,6 +1496,11 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         const cb = item.querySelector('input[type="checkbox"]');
         if (cb) {
             cb.addEventListener('change', function () {
+                // Si estamos en modo búsqueda, restaurar primero
+                if (isSearchActive) {
+                    restoreNormalState();
+                }
+
                 const selected = [];
                 document.querySelectorAll(`.${itemClass} input:checked`).forEach(c => {
                     selected.push(c.value);
@@ -1507,10 +1521,7 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     document.addEventListener('click', function (e) {
         const container = searchInput.closest('.accordion-content');
         if (container && !container.contains(e.target) && searchInput.value !== '') {
-            searchInput.value = '';
-            toggleGroups(false);
-            extraContainer.style.display = 'none';
-            extraList.innerHTML = '';
+            restoreNormalState();
         }
     });
 }
