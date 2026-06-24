@@ -708,54 +708,36 @@ function cargarMas() {
 //   TENDENCIAS EN JUEGOS (RETRO + NEON)
 // ==========================================================================
 
-let trendPeriod = 'day'; // 'day', 'week', 'month'
+let trendPeriod = 'week'; // 'week', 'month', year
 let trendOffset = 0;
 let trendCargando = false;
 
 // Mapeo de períodos a fecha de inicio
 function getDateRange(period) {
     const now = new Date();
-    let startDate = new Date(now); // Copia exacta
+    let startDate = new Date(now);
 
-    // Ajustar según el período
     switch (period) {
-        case 'day':
-            startDate.setDate(now.getDate() - 1);
-            break;
         case 'week':
             startDate.setDate(now.getDate() - 7);
             break;
         case 'month':
             startDate.setMonth(now.getMonth() - 1);
             break;
+        case 'year':
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
         default:
-            startDate.setDate(now.getDate() - 1);
+            startDate.setDate(now.getDate() - 7);
     }
 
-    // Usar fechas en formato UTC para evitar desfases
-    const startUTC = Date.UTC(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        startDate.getDate(),
-        0, 0, 0, 0
-    );
-
-    const endUTC = Date.UTC(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23, 59, 59, 999
-    );
-
-    console.log('📅 Rango de fechas:', {
-        period,
-        start: new Date(startUTC).toISOString(),
-        end: new Date(endUTC).toISOString()
-    });
+    // Poner a 00:00:00 y 23:59:59 para evitar problemas
+    startDate.setHours(0, 0, 0, 0);
+    now.setHours(23, 59, 59, 999);
 
     return {
-        from: Math.floor(startUTC / 1000),
-        to: Math.floor(endUTC / 1000)
+        from: Math.floor(startDate.getTime() / 1000),
+        to: Math.floor(now.getTime() / 1000)
     };
 }
 
@@ -768,12 +750,18 @@ async function cargarTendencias(period = 'day', resetear = true) {
 
     if (resetear) {
         trendOffset = 0;
+        const textos = {
+            'day': 'de hoy',
+            'week': 'de esta semana',
+            'month': 'de este mes',
+            'year': 'de este año'
+        };
         container.innerHTML = `
-            <div class="trends-loading">
-                <i class="fas fa-circle-notch fa-spin"></i>
-                <span>Cargando tendencias ${period === 'day' ? 'de hoy' : period === 'week' ? 'de esta semana' : 'de este mes'}...</span>
-            </div>
-        `;
+        <div class="trends-loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span>Cargando tendencias ${textos[period] || 'de esta semana'}...</span>
+        </div>
+    `;
     }
 
     try {
