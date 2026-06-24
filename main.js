@@ -1136,7 +1136,12 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     try {
         // Le pasamos el &adult=true o false al servidor
         const timestamp = Date.now();
-        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
+        // Leer el valor del slider de votos
+        const minVotes = tipo === 'movie'
+            ? parseInt(document.getElementById('votes-slider-movie')?.value || 0)
+            : parseInt(document.getElementById('votes-slider-tv')?.value || 0);
+
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
@@ -1236,6 +1241,44 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
 window.cargarMasTMDB = function (tipo) {
     cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, false);
 };
+
+// ==========================================================================
+//   FILTROS DE VOTOS MÍNIMOS (PELÍCULAS Y SERIES)
+// ==========================================================================
+
+function initVoteFilters() {
+    // Slider de Películas
+    const sliderMovie = document.getElementById('votes-slider-movie');
+    const displayMovie = document.getElementById('votes-display-movie');
+
+    if (sliderMovie && displayMovie) {
+        sliderMovie.addEventListener('input', function () {
+            const value = parseInt(this.value);
+            displayMovie.textContent = `${value} votos`;
+            // Recargar películas con el nuevo filtro
+            cargarTMDB('movie', searchMoviesActual, true);
+        });
+    }
+
+    // Slider de Series
+    const sliderTv = document.getElementById('votes-slider-tv');
+    const displayTv = document.getElementById('votes-display-tv');
+
+    if (sliderTv && displayTv) {
+        sliderTv.addEventListener('input', function () {
+            const value = parseInt(this.value);
+            displayTv.textContent = `${value} votos`;
+            // Recargar series con el nuevo filtro
+            cargarTMDB('tv', searchSeriesActual, true);
+        });
+    }
+}
+
+// Inicializar cuando se carga la página
+document.addEventListener('DOMContentLoaded', function () {
+    // ... tu código existente ...
+    initVoteFilters();
+});
 
 // listeners para pelis
 const inputMovies = document.getElementById('search-movies');
@@ -2303,11 +2346,19 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
         if (target === 'movie') {
             const cb = document.getElementById('adult-filter-movie');
             if (cb) cb.checked = false;
+            const slider = document.getElementById('votes-slider-movie');
+            const display = document.getElementById('votes-display-movie');
+            if (slider) slider.value = 0;
+            if (display) display.textContent = '0 votos';
             guardarFiltros();
             cargarTMDB('movie', searchMoviesActual, true);
         } else if (target === 'tv') {
             const cb = document.getElementById('adult-filter-series');
             if (cb) cb.checked = false;
+            const slider = document.getElementById('votes-slider-tv');
+            const display = document.getElementById('votes-display-tv');
+            if (slider) slider.value = 0;
+            if (display) display.textContent = '0 votos';
             guardarFiltros();
             cargarTMDB('tv', searchSeriesActual, true);
         }
