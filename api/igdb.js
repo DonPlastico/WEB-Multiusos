@@ -1,17 +1,17 @@
-exports.handler = async (event, context) => {
+export default async function handler(req, res) {
     const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
     const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
     const ITAD_API_KEY = process.env.ITAD_API_KEY;
 
-    const busqueda = event.queryStringParameters.query || '';
-    const offset = parseInt(event.queryStringParameters.offset) || 0;
-    const limit = parseInt(event.queryStringParameters.limit) || 50;
-    const sortField = event.queryStringParameters.sort || '';
-    const platforms = event.queryStringParameters.platforms || '';
-    const genres = event.queryStringParameters.genres || '';
-    const dateMin = event.queryStringParameters.dateMin || '';
-    const dateMax = event.queryStringParameters.dateMax || '';
-    const modes = event.queryStringParameters.modes || '';
+    const busqueda = req.query.query || '';
+    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 50;
+    const sortField = req.query.sort || '';
+    const platforms = req.query.platforms || '';
+    const genres = req.query.genres || '';
+    const dateMin = req.query.dateMin || '';
+    const dateMax = req.query.dateMax || '';
+    const modes = req.query.modes || '';
 
     console.log('🔍 Tendencias - Parámetros:', { dateMin, dateMax, sortField, busqueda });
 
@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        // TRADUCTOR DE FECHAS A UNIX TIMESTAMP
+        // === TRADUCTOR DE FECHAS A UNIX TIMESTAMP ===
         if (dateMin) {
             const minTimestamp = Math.floor(new Date(parseInt(dateMin) * 1000).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);
@@ -35,6 +35,7 @@ exports.handler = async (event, context) => {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
+        // ⚠️ CORRECCIÓN: Si hay fechas, NO aplicar el filtro de rating
         const tieneFechas = dateMin || dateMax;
         const esOrdenRating = sortField.includes('rating');
 
@@ -70,7 +71,7 @@ exports.handler = async (event, context) => {
                 'Accept': 'application/json',
                 'Client-ID': TWITCH_CLIENT_ID,
                 'Authorization': `Bearer ${access_token}`,
-                'Language': '169'
+                'Language': '169' // <--- ESTO FUERZA EL ESPAÑOL
             },
             body: bodyQuery
         });
@@ -80,24 +81,23 @@ exports.handler = async (event, context) => {
 
         // 3. EL FILTRO SEGURO DE CATEGORÍAS LOCAL
         const juegosIGDB = dataRaw.filter(j => {
+            // Primero, filtro de categoría que ya tenías
             const categoriaCorrecta = j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10;
+
+            // Segundo, filtro de modos (si el usuario eligió alguno)
             let modoCorrecto = true;
             if (modes && j.game_modes) {
                 const modoSeleccionadoArray = modes.split(',');
+                // Comprobamos si el juego tiene AL MENOS uno de los modos seleccionados
                 modoCorrecto = j.game_modes.some(m => modoSeleccionadoArray.includes(m.id.toString()));
             } else if (modes) {
-                modoCorrecto = false;
+                modoCorrecto = false; // Si elegiste modo pero el juego no tiene info de modos
             }
+
             return categoriaCorrecta && modoCorrecto;
         });
 
-        if (juegosIGDB.length === 0) {
-            return {
-                statusCode: 200,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-                body: JSON.stringify([])
-            };
-        }
+        if (juegosIGDB.length === 0) return res.status(200).json([]);
 
         // 4. Buscar las IDs de ITAD
         const promesasITAD = juegosIGDB.map(async (juego) => {
@@ -114,7 +114,7 @@ exports.handler = async (event, context) => {
         const resultadosITAD = (await Promise.all(promesasITAD)).filter(r => r !== null);
         const itadIds = resultadosITAD.map(r => r.itadId);
 
-        // 5. Precios de ITAD
+        // 5. Precios de ITAD (Llamada Masiva Rápida)
         let mapaPrecios = {};
         if (itadIds.length > 0) {
             const preciosRes = await fetch(`https://api.isthereanydeal.com/games/prices/v3?country=ES&key=${ITAD_API_KEY}`, {
@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
         // 6. Fusión Final
         const jsonFinal = juegosIGDB.map(juego => {
             const matchITAD = resultadosITAD.find(r => r.igdbId === juego.id);
-            let infoPrecio = { precio: null, stores: 'none', url: '' };
+            let infoPrecio = { precio: null, stores: 'none', url: '' }; // <-- Añadimos url vacío por defecto
 
             if (matchITAD && mapaPrecios[matchITAD.itadId] && mapaPrecios[matchITAD.itadId].length > 0) {
                 const deals = mapaPrecios[matchITAD.itadId].sort((a, b) => a.price.amount - b.price.amount);
@@ -145,24 +145,9 @@ exports.handler = async (event, context) => {
             return { ...juego, itad: infoPrecio };
         });
 
-        return {
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify(jsonFinal)
-        };
+        res.status(200).json(jsonFinal);
 
     } catch (error) {
-        console.error('Error en IGDB:', error);
-        return {
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({ error: 'Fallo crítico en el servidor' })
-        };
+        res.status(500).json({ error: 'Fallo crítico en el servidor' });
     }
-};
+}
