@@ -1035,14 +1035,27 @@ function crearTarjetaTrend(juego, posicion) {
     return card;
 }
 
-// Inicializar tabs de tendencias
+// Inicializar tabs de tendencias (JUEGOS)
 function initTrendTabs() {
-    const tabs = document.querySelectorAll('.trend-tab');
     const container = document.getElementById('trend-games');
+    const tabs = document.querySelectorAll('#home .trend-tab');
 
+    // Eliminar event listeners antiguos clonando y reemplazando
     tabs.forEach(tab => {
-        tab.addEventListener('click', function () {
-            tabs.forEach(t => t.classList.remove('active'));
+        const newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+    });
+
+    // Obtener los nuevos tabs
+    const newTabs = document.querySelectorAll('#home .trend-tab');
+
+    newTabs.forEach(tab => {
+        tab.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Solo afecta a los tabs de juegos
+            newTabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
             const period = this.getAttribute('data-period');
@@ -1060,7 +1073,6 @@ function initTrendTabs() {
             setTimeout(() => {
                 if (container) {
                     container.style.opacity = '1';
-                    // 🔥 FORZAR SCROLL AL PRINCIPIO
                     container.scrollLeft = 0;
                 }
             }, 300);
@@ -1068,12 +1080,11 @@ function initTrendTabs() {
     });
 }
 
-// Cargar tendencias al iniciar
+// Cargar tendencias de JUEGOS al iniciar
 function cargarTendenciasInicial() {
     setTimeout(() => {
         cargarTendencias('day', true);
         initTrendTabs();
-        // 🔥 FORZAR SCROLL AL PRINCIPIO DESPUÉS DE INICIALIZAR
         const container = document.getElementById('trend-games');
         if (container) {
             setTimeout(() => { container.scrollLeft = 0; }, 100);
@@ -1083,10 +1094,11 @@ function cargarTendenciasInicial() {
 
 // Ejecutar cuando se carga la página
 document.addEventListener('DOMContentLoaded', function () {
-    // ... tu código existente ...
-
-    // Cargar tendencias
+    // Cargar tendencias de juegos
     cargarTendenciasInicial();
+
+    // Cargar tendencias de películas
+    cargarTendenciasPeliculasInicial();
 });
 
 // También cargar cuando se cambie a la vista de juegos
@@ -8224,9 +8236,22 @@ function initTrendMoviesTabs() {
     const container = document.getElementById('trend-movies');
     const tabs = document.querySelectorAll('#movies .trend-tab');
 
+    // Eliminar event listeners antiguos clonando y reemplazando
     tabs.forEach(tab => {
-        tab.addEventListener('click', function () {
-            tabs.forEach(t => t.classList.remove('active'));
+        const newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+    });
+
+    // Obtener los nuevos tabs
+    const newTabs = document.querySelectorAll('#movies .trend-tab');
+
+    newTabs.forEach(tab => {
+        tab.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Solo afecta a los tabs de películas
+            newTabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
             const period = this.dataset.period;
 
@@ -8273,7 +8298,7 @@ cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = 
 
     // Si es la vista de películas, cargar tendencias de películas
     if (target === 'movies') {
-        const container = document.getElementById('trend-movies-grid');
+        const container = document.getElementById('trend-movies');
         // Solo cargar si no hay contenido o está vacío
         if (container && container.children.length === 0) {
             cargarTendenciasPeliculas('day', true);
