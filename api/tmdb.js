@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-    const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.TMDB_TOKEN; // Fallback si usas el mismo
+    const TMDB_TOKEN = process.env.TMDB_TOKEN;
 
     const tipo = req.query.tipo || 'movie';
     const id = req.query.id; // Detectamos si se pide un detalle específico
@@ -186,10 +186,10 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            // 2. Buscar contenido por género (usando discover)
-            const searchUrl = `${baseUrl}/discover/${tipo}?api_key=${process.env.TMDB_API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=es&page=1&include_adult=false`;
+            // 2. Buscar contenido por género (usando discover con el token)
+            const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=es&page=1&include_adult=false`;
 
-            const searchRes = await fetch(searchUrl);
+            const searchRes = await fetch(searchUrl, { headers });
             const searchData = await searchRes.json();
 
             if (!searchData.results || searchData.results.length === 0) {
@@ -202,7 +202,6 @@ export default async function handler(req, res) {
                 const titulo = isMovie ? item.title : item.name;
                 const fecha = isMovie ? item.release_date : item.first_air_date;
                 const poster = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '';
-                const nota = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
 
                 return {
                     id: item.id,
@@ -210,12 +209,12 @@ export default async function handler(req, res) {
                     titulo: titulo || 'Sin título',
                     poster: poster || 'https://via.placeholder.com/264x374?text=SIN+POSTER',
                     fecha: fecha || 'TBA',
-                    nota: nota || '0.0',
+                    nota: item.vote_average ? item.vote_average.toFixed(1) : '0.0',
                     duracion: null,
                     temporadas: null,
                     episodios: null,
                     plataformas: 'No disponible en streaming',
-                    generoCoincidencia: genero // Para saber por qué se recomendó
+                    generoCoincidencia: genero
                 };
             });
 
