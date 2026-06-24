@@ -744,7 +744,7 @@ function getDateRange(period) {
     };
 }
 
-async function cargarTendencias(period = 'day', resetear = true) {
+async function cargarTendencias(period = 'week', resetear = true) {
     if (trendCargando) return;
     trendCargando = true;
 
@@ -760,7 +760,6 @@ async function cargarTendencias(period = 'day', resetear = true) {
     if (resetear) {
         trendOffset = 0;
         const textos = {
-            'day': 'de hoy',
             'week': 'de esta semana',
             'month': 'de este mes',
             'year': 'de este año'
