@@ -8122,7 +8122,3 @@ window.recargarRecomendaciones = async function () {
     await cargarRecomendaciones(userId);
     showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
 };
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-}
