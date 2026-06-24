@@ -4303,9 +4303,8 @@ window.actualizarUIMediaPersonal = async function (data) {
             const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || '';
             const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
-            actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster).then(() => {
-                mostrarBotonFavorito(true);
-            });
+            await actualizarBotonFavorito(memoInfo.id, 'tv', titulo, poster);
+            mostrarBotonFavorito(true);
         } else {
             mostrarBotonFavorito(false);
         }
@@ -6696,17 +6695,18 @@ async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
 
     if (!container || !btn || !btnText) return;
 
-    // ✅ AHORA CON AWAIT
     const isFav = await esFavorito(mediaId, tipo);
 
+    // Remover clase anterior con animación
+    btn.classList.remove('is-favorite');
+
     if (isFav) {
+        // Forzar reflow para reiniciar animación
+        void btn.offsetWidth;
         btn.classList.add('is-favorite');
         btnText.textContent = 'QUITAR DE FAVORITOS';
-        btn.querySelector('.fa-heart').className = 'fas fa-heart';
     } else {
-        btn.classList.remove('is-favorite');
         btnText.textContent = 'AÑADIR A FAVORITOS';
-        btn.querySelector('.fa-heart').className = 'fas fa-heart';
     }
 
     // Guardar estado actual
@@ -6724,11 +6724,21 @@ function mostrarBotonFavorito(mostrar) {
     const container = document.getElementById('favorite-button-container');
     if (container) {
         if (mostrar) {
-            container.classList.add('show');
             container.style.display = 'block';
+            // Pequeña animación de entrada
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(10px)';
+            requestAnimationFrame(() => {
+                container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            });
         } else {
-            container.classList.remove('show');
-            container.style.display = 'none';
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                container.style.display = 'none';
+            }, 400);
         }
     }
 }

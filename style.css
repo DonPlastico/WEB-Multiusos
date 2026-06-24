@@ -5133,65 +5133,130 @@ cast-carousel::-webkit-scrollbar {
 }
 
 /* ==========================================================================
-   BOTÓN AÑADIR A FAVORITOS (MODAL SERIES/PELÍCULAS)
+   BOTÓN DE FAVORITOS - DISEÑO GLASSMORPHISM
    ========================================================================== */
 
-#favorite-button-container {
-    display: none;
-    padding: 4px 40px 8px 40px;
-    background: var(--bg-main);
-    border-bottom: 1px solid var(--border-color);
-}
-
-#favorite-button-container.show {
-    display: block;
-}
-
-#btn-add-to-favorites {
-    padding: 8px 20px;
-    font-size: 0.8rem;
-    letter-spacing: 1.5px;
-    border-radius: 8px;
-    background: var(--gradient-primary);
-    transition: all 0.3s ease;
-    width: 100%;
-    text-align: center;
+.favorite-btn-wrapper {
+    display: flex;
+    align-items: center;
     justify-content: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 12px 28px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+    user-select: none;
 }
 
-#btn-add-to-favorites:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+/* Efecto de brillo en hover */
+.favorite-btn-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(255, 255, 255, 0.08) 0%,
+            transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
 
-#btn-add-to-favorites .fa-heart {
-    margin-right: 8px;
-    transition: transform 0.3s ease;
+.favorite-btn-wrapper:hover::before {
+    opacity: 1;
 }
 
-#btn-add-to-favorites:hover .fa-heart {
-    transform: scale(1.2);
+.favorite-btn-wrapper:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(99, 102, 241, 0.15);
 }
 
-/* Cuando ya es favorito */
-#btn-add-to-favorites.is-favorite {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid var(--error);
-    color: var(--error);
+.favorite-btn-wrapper:active {
+    transform: scale(0.96);
 }
 
-#btn-add-to-favorites.is-favorite .fa-heart {
-    color: var(--error);
+/* Icono del corazón */
+.favorite-btn-icon {
+    font-size: 1.3rem;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
 }
 
-#btn-add-to-favorites.is-favorite:hover {
-    background: var(--error);
-    color: white;
-    border-color: var(--error);
+.favorite-btn-icon .fa-heart {
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    color: rgba(255, 255, 255, 0.4);
 }
 
-#btn-add-to-favorites.is-favorite:hover .fa-heart {
-    color: white;
+/* Estado activo (favorito) */
+.favorite-btn-wrapper.is-favorite {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
+}
+
+.favorite-btn-wrapper.is-favorite .favorite-btn-icon {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.favorite-btn-wrapper.is-favorite .favorite-btn-icon .fa-heart {
+    color: #ef4444;
+    animation: heartPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.favorite-btn-wrapper.is-favorite .favorite-btn-text {
+    color: #ef4444;
+}
+
+/* Texto del botón */
+.favorite-btn-text {
+    font-family: var(--font-cyber, 'Courier New', monospace);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease;
+}
+
+.favorite-btn-wrapper:hover .favorite-btn-text {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.favorite-btn-wrapper.is-favorite:hover .favorite-btn-text {
+    color: #ef4444;
+}
+
+/* Contador (si tiene varias veces visto, opcional) */
+.favorite-btn-count {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-left: 4px;
 }
 
 
@@ -5409,6 +5474,42 @@ cast-carousel::-webkit-scrollbar {
 
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* Animación del corazón */
+@keyframes heartPop {
+    0% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(1.4);
+    }
+
+    50% {
+        transform: scale(0.9);
+    }
+
+    75% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Partículas al añadir favorito (opcional) */
+@keyframes heartParticles {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
     }
 }
 
@@ -5994,13 +6095,21 @@ cast-carousel::-webkit-scrollbar {
         height: 4px;
     }
 
-    #favorite-button-container {
-        padding: 4px 20px 8px 20px;
+    .favorite-btn-wrapper {
+        padding: 10px 20px;
+        min-width: 160px;
+        border-radius: 12px;
     }
 
-    #btn-add-to-favorites {
+    .favorite-btn-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+
+    .favorite-btn-text {
         font-size: 0.7rem;
-        padding: 6px 16px;
+        letter-spacing: 1.5px;
     }
 }
 
