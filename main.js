@@ -2803,7 +2803,7 @@ function openCustomizationModal(type) {
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.png" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
                 </div>
             `;
         }
@@ -2833,7 +2833,7 @@ function openCustomizationModal(type) {
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.png" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
@@ -2956,7 +2956,7 @@ async function cargarDisenoPerfil(email) {
         }
         // Caso 3: Banner es un número predefinido (1-5)
         else {
-            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.png')`;
+            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.webp')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
         }
@@ -2969,7 +2969,7 @@ async function cargarDisenoPerfil(email) {
     } else if (avatarId.startsWith('http')) {
         avatarHtml = `<img src="${avatarId}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
-        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
     // Cambiar el icono del botón de la navbar
@@ -3154,7 +3154,7 @@ async function buscarAmigos() {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
@@ -4298,7 +4298,7 @@ async function cargarPerfilPublico(usernameTarget) {
                 // 👉 NUEVO: Si detecta que es un enlace de Supabase
                 avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
         }
 
@@ -4315,7 +4315,7 @@ async function cargarPerfilPublico(usernameTarget) {
                 bannerElement.style.backgroundPosition = 'center';
             } else {
                 // Banner predefinido numérico
-                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.png')`;
+                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.webp')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             }
@@ -5336,7 +5336,7 @@ window.cargarAlertas = async function () {
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             areaNotifs.innerHTML += `
                 <div class="notif-card">
@@ -5492,7 +5492,7 @@ async function cargarDatosSociales() {
             const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.png" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             // Botón de Dejar de Seguir (Comparamos MI ID con el TARGET ID)
             let actionBtnHtml = '';
