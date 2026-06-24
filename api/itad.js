@@ -1,20 +1,12 @@
-exports.handler = async function (event, context) {
-    const query = event.queryStringParameters || {};
-    const { title } = query;
-
+export default async function handler(req, res) {
+    const { title } = req.query;
     if (!title) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Falta el título' })
-        };
+        return res.status(400).json({ error: 'Falta el título' });
     }
 
     const API_KEY = process.env.ITAD_API_KEY;
     if (!API_KEY) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Falta ITAD_API_KEY' })
-        };
+        return res.status(500).json({ error: 'Falta ITAD_API_KEY' });
     }
 
     try {
@@ -24,10 +16,7 @@ exports.handler = async function (event, context) {
         const searchData = await searchRes.json();
 
         if (!searchData?.length) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ precio: null })
-            };
+            return res.status(200).json({ precio: null });
         }
 
         const gameId = searchData[0].id;
@@ -43,31 +32,23 @@ exports.handler = async function (event, context) {
         const preciosData = await preciosRes.json();
 
         if (!preciosData?.[0]?.deals?.length) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify({ precio: null })
-            };
+            return res.status(200).json({ precio: null });
         }
 
         const deals = preciosData[0].deals.sort((a, b) => a.price.amount - b.price.amount);
         const mejor = deals[0];
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                precio: mejor.price.amount,
-                moneda: mejor.price.currency,
-                tienda: mejor.shop.name,
-                voucher: mejor.voucher || null,
-                url: mejor.url,
-                todos: deals.slice(0, 5)
-            })
-        };
+        return res.status(200).json({
+            precio: mejor.price.amount,
+            moneda: mejor.price.currency,
+            tienda: mejor.shop.name,
+            voucher: mejor.voucher || null,
+            url: mejor.url,
+            todos: deals.slice(0, 5)
+        });
 
     } catch (err) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Error interno', mensaje: err.message })
-        };
+        console.error('Error:', err);
+        return res.status(500).json({ error: 'Error interno', mensaje: err.message });
     }
-};
+}

@@ -746,10 +746,8 @@ async function cargarTendencias(period = 'day', resetear = true) {
         return;
     }
 
-    // Forzar scroll al principio solo si estamos reseteando
-    if (resetear) {
-        container.scrollLeft = 0;
-    }
+    // 🔥 FORZAR SCROLL AL PRINCIPIO ANTES DE CARGAR
+    container.scrollLeft = 0;
 
     if (resetear) {
         trendOffset = 0;
@@ -818,15 +816,10 @@ async function cargarTendencias(period = 'day', resetear = true) {
         trendCargando = false;
     }
 
-    // Forzar scroll al inicio para mostrar las primeras tarjetas
-    if (container) {
-        // Esperar a que el DOM se actualice
-        requestAnimationFrame(() => {
-            container.scrollLeft = 0;
-        });
-    }
-
-    trendCargando = false;
+    // 🔥 FORZAR SCROLL AL PRINCIPIO DESPUÉS DE CARGAR
+    requestAnimationFrame(() => {
+        container.scrollLeft = 0;
+    });
 }
 
 // Cargar más juegos en tendencias (botón +5 más)
@@ -1043,23 +1036,24 @@ function initTrendTabs() {
             setTimeout(() => {
                 if (container) {
                     container.style.opacity = '1';
+                    // 🔥 FORZAR SCROLL AL PRINCIPIO
+                    container.scrollLeft = 0;
                 }
             }, 300);
-
-            // Reiniciar scroll al principio
-            if (container) {
-                container.scrollLeft = 0;
-            }
         });
     });
 }
 
 // Cargar tendencias al iniciar
 function cargarTendenciasInicial() {
-    // Esperar a que se cargue la vista de juegos
     setTimeout(() => {
         cargarTendencias('day', true);
         initTrendTabs();
+        // 🔥 FORZAR SCROLL AL PRINCIPIO DESPUÉS DE INICIALIZAR
+        const container = document.getElementById('trend-games');
+        if (container) {
+            setTimeout(() => { container.scrollLeft = 0; }, 100);
+        }
     }, 500);
 }
 

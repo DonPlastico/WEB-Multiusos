@@ -1,9 +1,9 @@
-exports.handler = async function (event, context) {
+export default async function handler(req, res) {
     const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
     const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
     const ITAD_API_KEY = process.env.ITAD_API_KEY;
 
-    const query = event.queryStringParameters || {};
+    const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
     const limit = parseInt(query.limit) || 50;
@@ -89,10 +89,7 @@ exports.handler = async function (event, context) {
         });
 
         if (juegosIGDB.length === 0) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify([])
-            };
+            return res.status(200).json([]);
         }
 
         const promesasITAD = juegosIGDB.map(async (juego) => {
@@ -138,15 +135,10 @@ exports.handler = async function (event, context) {
             return { ...juego, itad: infoPrecio };
         });
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify(jsonFinal)
-        };
+        res.status(200).json(jsonFinal);
 
     } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Fallo crítico en el servidor' })
-        };
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Fallo crítico en el servidor' });
     }
-};
+}

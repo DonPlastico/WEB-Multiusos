@@ -1,6 +1,6 @@
-exports.handler = async function (event, context) {
+export default async function handler(req, res) {
     const TMDB_TOKEN = process.env.TMDB_TOKEN;
-    const query = event.queryStringParameters || {};
+    const query = req.query;
 
     const tipo = query.tipo || 'movie';
     const id = query.id;
@@ -20,10 +20,7 @@ exports.handler = async function (event, context) {
             const seasonNum = query.season;
             const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=es-ES`, { headers });
             const seasonData = await resSeason.json();
-            return {
-                statusCode: 200,
-                body: JSON.stringify(seasonData)
-            };
+            return res.status(200).json(seasonData);
         }
 
         // Detalles
@@ -111,36 +108,33 @@ exports.handler = async function (event, context) {
                     });
             }
 
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    id: data.id,
-                    adult: data.adult,
-                    titulo: tipo === 'movie' ? data.title : data.name,
-                    original_title: tipo === 'movie' ? data.original_title : data.original_name,
-                    tagline: data.tagline || '',
-                    sinopsis: sinopsisExtendida,
-                    status: data.status,
-                    budget: tipo === 'movie' ? data.budget : null,
-                    last_air_date: tipo === 'tv' ? data.last_air_date : null,
-                    in_production: tipo === 'tv' ? data.in_production : null,
-                    episodios: tipo === 'tv' ? data.number_of_episodes : null,
-                    poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
-                    backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
-                    fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
-                    nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
-                    votos: data.vote_count || 0,
-                    generos: data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A',
-                    suscripcion: suscripcion,
-                    alquiler: alquiler,
-                    compra: compra,
-                    trailer_id: trailerId,
-                    reparto: repartoFormateado,
-                    temporadas: data.number_of_seasons,
-                    temporadas_info: temporadasInfo,
-                    duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 45)
-                })
-            };
+            return res.status(200).json({
+                id: data.id,
+                adult: data.adult,
+                titulo: tipo === 'movie' ? data.title : data.name,
+                original_title: tipo === 'movie' ? data.original_title : data.original_name,
+                tagline: data.tagline || '',
+                sinopsis: sinopsisExtendida,
+                status: data.status,
+                budget: tipo === 'movie' ? data.budget : null,
+                last_air_date: tipo === 'tv' ? data.last_air_date : null,
+                in_production: tipo === 'tv' ? data.in_production : null,
+                episodios: tipo === 'tv' ? data.number_of_episodes : null,
+                poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
+                backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
+                fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
+                nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
+                votos: data.vote_count || 0,
+                generos: data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A',
+                suscripcion: suscripcion,
+                alquiler: alquiler,
+                compra: compra,
+                trailer_id: trailerId,
+                reparto: repartoFormateado,
+                temporadas: data.number_of_seasons,
+                temporadas_info: temporadasInfo,
+                duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 45)
+            });
         }
 
         // Géneros
@@ -166,10 +160,7 @@ exports.handler = async function (event, context) {
             }
 
             if (!genreId) {
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify([])
-                };
+                return res.status(200).json([]);
             }
 
             const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=es&page=1&include_adult=false`;
@@ -178,10 +169,7 @@ exports.handler = async function (event, context) {
             const searchData = await searchRes.json();
 
             if (!searchData.results || searchData.results.length === 0) {
-                return {
-                    statusCode: 200,
-                    body: JSON.stringify([])
-                };
+                return res.status(200).json([]);
             }
 
             const results = searchData.results.slice(0, limit).map(item => {
@@ -205,10 +193,7 @@ exports.handler = async function (event, context) {
                 };
             });
 
-            return {
-                statusCode: 200,
-                body: JSON.stringify(results)
-            };
+            return res.status(200).json(results);
         }
 
         // Lista de géneros
@@ -217,10 +202,7 @@ exports.handler = async function (event, context) {
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
 
-            return {
-                statusCode: 200,
-                body: JSON.stringify(genreData)
-            };
+            return res.status(200).json(genreData);
         }
 
         // Listados
@@ -271,10 +253,7 @@ exports.handler = async function (event, context) {
         const listData = await listRes.json();
 
         if (!listData || !listData.results || listData.results.length === 0) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify([])
-            };
+            return res.status(200).json([]);
         }
 
         const promesasDetalles = listData.results.map(async (item) => {
@@ -290,10 +269,7 @@ exports.handler = async function (event, context) {
         const detallesRAW = (await Promise.all(promesasDetalles)).filter(d => d !== null);
 
         if (!detallesRAW || detallesRAW.length === 0) {
-            return {
-                statusCode: 200,
-                body: JSON.stringify([])
-            };
+            return res.status(200).json([]);
         }
 
         const jsonFinal = detallesRAW.map(data => {
@@ -328,15 +304,10 @@ exports.handler = async function (event, context) {
             };
         });
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify(jsonFinal)
-        };
+        res.status(200).json(jsonFinal);
+
     } catch (error) {
-        console.error(error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Fallo al conectar con TMDB' })
-        };
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Fallo al conectar con TMDB' });
     }
-};
+}
