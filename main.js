@@ -2999,6 +2999,9 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         window.serieInfoActual = { id: id, temporadas: data.temporadas_info || [] };
         window.episodiosVistosActuales = new Set();
 
+        // Actualizar barra de progreso
+        actualizarBarraProgresoSeries();
+
         // 11. OBTENER ESTADO PERSONAL DEL USUARIO (Mi Nota y Visto)
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -3041,31 +3044,39 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                             }
                         }
                     }, 300);
+
+                    setTimeout(() => {
+                        actualizarBarraProgresoSeries();
+                    }, 100);
                 }
             }
-
-            const { data: userMedia } = await supabase
-                .from('user_media')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .eq('media_id', id.toString())
-                .eq('tipo', tipo)
-                .maybeSingle();
-
-            actualizarUIMediaPersonal(userMedia);
-        } else {
-            actualizarUIMediaPersonal(null);
         }
 
-    } catch (err) {
-        console.error(err);
-        document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
-        document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
+        const { data: userMedia } = await supabase
+            .from('user_media')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('media_id', id.toString())
+            .eq('tipo', tipo)
+            .maybeSingle();
+
+        actualizarUIMediaPersonal(userMedia);
+    } else {
+        actualizarUIMediaPersonal(null);
     }
+
+} catch (err) {
+    console.error(err);
+    document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
+    document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
+}
 }
 
 // Cierre del modal y limpieza
 function cerrarModalMedia() {
+    const container = document.getElementById('series-progress-container');
+    if (container) container.style.display = 'none';
+
     if (!modalMedia.classList.contains('show')) return;
     modalMedia.classList.remove('show');
     document.body.classList.remove('no-scroll');
@@ -4530,6 +4541,8 @@ window.refrescarUIEpisodiosYTemporadas = function () {
             btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
         }
     });
+
+    actualizarBarraProgresoSeries();
 };
 
 // 2. FUNCIÓN MAESTRA DE INYECCIÓN (Sirve para 1 Temporada o TODA la serie)
@@ -4596,6 +4609,8 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
 
     // --- Sincronizar Watchlist al instante ---
     if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
+
+    actualizarBarraProgresoSeries();
 };
 
 // 3. LISTENERS GLOBALES (Clics de UI)
@@ -4651,6 +4666,8 @@ document.addEventListener('click', async (e) => {
 
             // Sincronizar
             if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
+
+            actualizarBarraProgresoSeries();
         } else {
             // Marcar este y TODOS LOS ANTERIORES (Magia cascada)
             const miId = session.user.id;
@@ -4680,6 +4697,8 @@ document.addEventListener('click', async (e) => {
 
             // Sincronizar
             if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
+
+            actualizarBarraProgresoSeries();
         }
     }
 });
@@ -4848,7 +4867,85 @@ function formatearTiempo(minutos) {
 }
 
 // ==========================================================================
-//   ATAJO: MARCAR COMO VISTA DESDE LA TARJETA (SOLO PELÍCULAS)
+//   BARRA DE PROGRESO DE EPISODIOS (MODAL SERIES)
+// ==========================================================================
+
+function actualizarBarraProgresoSeries() {
+    // Solo ejecutar si estamos en una serie
+    const tipo = modalMedia.getAttribute('data-current-type');
+    if (tipo !== 'tv') {
+        const container = document.getElementById('series-progress-container');
+        if (container) container.style.display = 'none';
+        return;
+    }
+
+    // Obtener elementos de la UI
+    const container = document.getElementById('series-progress-container');
+    const bar = document.getElementById('series-progress-bar');
+    const countEl = document.getElementById('series-progress-count');
+    const totalEl = document.getElementById('series-progress-total');
+    const percentEl = document.getElementById('series-progress-percent');
+    const statusEl = document.getElementById('series-progress-status');
+
+    if (!container || !bar) return;
+
+    // Calcular total de episodios de la serie
+    let totalEpisodios = 0;
+    if (window.serieInfoActual && window.serieInfoActual.temporadas) {
+        window.serieInfoActual.temporadas.forEach(temp => {
+            if (temp.season_number > 0) { // Saltamos especiales (season 0)
+                totalEpisodios += temp.episode_count;
+            }
+        });
+    }
+
+    // Si no hay datos o es 0, ocultar la barra
+    if (totalEpisodios === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    // Contar episodios vistos
+    let vistos = 0;
+    if (window.episodiosVistosActuales) {
+        vistos = window.episodiosVistosActuales.size || 0;
+    }
+
+    // Calcular porcentaje
+    const porcentaje = Math.min(100, (vistos / totalEpisodios) * 100);
+    const porcentajeRedondeado = Math.round(porcentaje);
+
+    // Actualizar textos
+    if (countEl) countEl.textContent = vistos;
+    if (totalEl) totalEl.textContent = totalEpisodios;
+    if (percentEl) percentEl.textContent = porcentajeRedondeado;
+
+    // Actualizar barra (con animación suave)
+    bar.style.width = `${porcentaje}%`;
+
+    // Actualizar color de la barra según el color del usuario
+    const color = localStorage.getItem('dp_user_color') || '#6366f1';
+    bar.style.background = color;
+
+    // Mostrar el contenedor
+    container.style.display = 'block';
+
+    // Actualizar estado y etiqueta
+    if (statusEl) {
+        if (vistos >= totalEpisodios && totalEpisodios > 0) {
+            statusEl.textContent = 'COMPLETADA';
+            statusEl.className = 'completed';
+            bar.classList.add('completed');
+        } else {
+            statusEl.textContent = 'EN PROGRESO';
+            statusEl.className = 'in-progress';
+            bar.classList.remove('completed');
+        }
+    }
+}
+
+// ==========================================================================
+//   MARCAR COMO VISTA DESDE LA TARJETA (SOLO PELÍCULAS)
 // ==========================================================================
 window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
     e.stopPropagation(); // Evita que se abra el modal gigante
@@ -5420,6 +5517,12 @@ function aplicarColorDinamico(colorHex) {
     style.id = 'dynamic-scrollbar-style';
     style.textContent = `*::-webkit-scrollbar-thumb { background: ${colorHex} !important; }`;
     document.head.appendChild(style);
+
+    // Actualizar color de la barra de progreso si está visible
+    const bar = document.getElementById('series-progress-bar');
+    if (bar) {
+        bar.style.background = colorHex;
+    }
 
     console.log(`🎨 Color cargado permanentemente: ${colorHex}`);
 }
@@ -6401,3 +6504,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+

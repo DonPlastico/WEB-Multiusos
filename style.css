@@ -5039,9 +5039,99 @@ cast-carousel::-webkit-scrollbar {
     opacity: 0.85;
 }
 
+/* ==========================================================================
+   BARRA DE PROGRESO DE EPISODIOS (MODAL SERIES)
+   ========================================================================== */
 
+/* Contenedor principal de la barra de progreso */
+#series-progress-container {
+    display: none;
+    padding: 0 40px;
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--border-color);
+}
 
+/* Cuando el modal está abierto y es una serie, se muestra */
+#media-details-modal[data-current-type="tv"] #series-progress-container {
+    display: block;
+}
 
+/* Fila superior: texto y etiqueta de estado */
+#series-progress-text {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#series-progress-text i {
+    margin-right: 4px;
+}
+
+#series-progress-count,
+#series-progress-total {
+    color: var(--neon-white);
+    font-weight: 700;
+}
+
+#series-progress-percent {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Etiqueta de estado (EN PROGRESO / COMPLETADA) */
+#series-progress-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#series-progress-status.completed {
+    color: var(--success);
+}
+
+#series-progress-status.in-progress {
+    color: var(--warning);
+}
+
+/* Track de la barra (fondo) */
+#series-progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+/* Barra de progreso (se anima con JS) */
+#series-progress-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--primary);
+}
+
+/* Efecto de brillo suave en la barra (opcional) */
+#series-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    animation: shimmer 2s infinite;
+}
+
+/* Cuando la serie está completada, la barra cambia de color */
+#series-progress-bar.completed {
+    background: var(--success) !important;
+}
 
 
 
@@ -5258,6 +5348,16 @@ cast-carousel::-webkit-scrollbar {
 
     to {
         transform: rotate(360deg);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
     }
 }
 
@@ -5480,6 +5580,10 @@ cast-carousel::-webkit-scrollbar {
 
     .hero-section .auth-btn.secondary {
         border-color: var(--border-color);
+    }
+
+    #series-progress-container {
+        padding: 0 20px;
     }
 }
 
@@ -5821,6 +5925,22 @@ cast-carousel::-webkit-scrollbar {
 
     .hero-graphic {
         display: none !important;
+    }
+
+    #series-progress-container {
+        padding: 0 15px;
+    }
+
+    #series-progress-text {
+        font-size: 0.6rem;
+    }
+
+    #series-progress-label {
+        font-size: 0.55rem;
+    }
+
+    #series-progress-track {
+        height: 4px;
     }
 }
 
