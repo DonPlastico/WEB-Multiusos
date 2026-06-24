@@ -1146,7 +1146,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             ? parseInt(document.getElementById('votes-slider-movie')?.value || 0)
             : parseInt(document.getElementById('votes-slider-tv')?.value || 0);
 
-        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
+        // Leer filtros de país
+        const countryCodes = tipo === 'movie' ? countryFilterMovie : countryFilterSeries;
+        const countryParam = countryCodes.length > 0 ? countryCodes.join(',') : '';
+
+        const url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}${countryParam ? `&country=${countryParam}` : ''}${searchActual ? `&query=${encodeURIComponent(searchActual)}` : ''}&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
