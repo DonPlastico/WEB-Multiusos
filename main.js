@@ -3050,26 +3050,25 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     }, 100);
                 }
             }
+
+            const { data: userMedia } = await supabase
+                .from('user_media')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .eq('media_id', id.toString())
+                .eq('tipo', tipo)
+                .maybeSingle();
+
+            actualizarUIMediaPersonal(userMedia);
+        } else {
+            actualizarUIMediaPersonal(null);
         }
 
-        const { data: userMedia } = await supabase
-            .from('user_media')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .eq('media_id', id.toString())
-            .eq('tipo', tipo)
-            .maybeSingle();
-
-        actualizarUIMediaPersonal(userMedia);
-    } else {
-        actualizarUIMediaPersonal(null);
+    } catch (err) {
+        console.error(err);
+        document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
+        document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
     }
-
-} catch (err) {
-    console.error(err);
-    document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
-    document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
-}
 }
 
 // Cierre del modal y limpieza
