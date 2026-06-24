@@ -818,14 +818,20 @@ async function cargarTendencias(period = 'day', resetear = true) {
             container.appendChild(card);
         });
 
-        // Si hay más juegos de los que mostramos, añadir indicador
+        // Si hay más juegos de los que mostramos, añadir botón "Cargar más"
         if (data.length > 15) {
             const moreIndicator = document.createElement('div');
             moreIndicator.className = 'trend-more-indicator';
+            moreIndicator.style.cursor = 'pointer';
+            moreIndicator.onclick = function () {
+                cargarMasTendencias(period);
+            };
             moreIndicator.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--text-muted);font-size:0.8rem;text-align:center;min-width:120px;">
-                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);"></i>
-                    <span style="margin-top:8px;">+${data.length - 15} más</span>
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--text-muted);font-size:0.8rem;text-align:center;min-width:120px;transition: all 0.3s ease;" 
+                    onmouseover="this.style.color='var(--primary)'; this.querySelector('i').style.transform='scale(1.2)';" 
+                    onmouseout="this.style.color='var(--text-muted)'; this.querySelector('i').style.transform='scale(1)';">
+                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);transition: transform 0.3s ease;"></i>
+                    <span style="margin-top:8px;font-weight:600;">+${data.length - 15} más</span>
                 </div>
             `;
             container.appendChild(moreIndicator);
@@ -844,6 +850,118 @@ async function cargarTendencias(period = 'day', resetear = true) {
             </div>
         `;
         }
+    }
+
+    trendCargando = false;
+}
+
+// Cargar más juegos en tendencias (botón +5 más)
+async function cargarMasTendencias(period = 'day') {
+    if (trendCargando) return;
+    trendCargando = true;
+
+    const container = document.getElementById('trend-games');
+    if (!container) return;
+
+    // Eliminar el indicador "más" para que no se duplique
+    const moreIndicator = container.querySelector('.trend-more-indicator');
+    if (moreIndicator) {
+        moreIndicator.remove();
+    }
+
+    // Añadir loader en su lugar
+    const loader = document.createElement('div');
+    loader.className = 'trend-load-more';
+    loader.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;';
+    loader.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;color:var(--text-muted);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:2rem;color:var(--primary);"></i>
+            <span style="margin-top:8px;font-size:0.7rem;">Cargando...</span>
+        </div>
+    `;
+    container.appendChild(loader);
+
+    try {
+        // Aumentar el offset para cargar más
+        trendOffset += 15; // Ya hemos mostrado 15, ahora cargamos los siguientes
+
+        const dateRange = getDateRange(period);
+        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc`;
+        url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Formato inválido');
+
+        // Eliminar el loader
+        loader.remove();
+
+        if (data.length === 0) {
+            // Mostrar mensaje de que no hay más
+            const emptyMsg = document.createElement('div');
+            emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;color:var(--text-muted);font-size:0.7rem;text-align:center;';
+            emptyMsg.innerHTML = `
+                <div>
+                    <i class="fas fa-ellipsis-h" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:0.5;"></i>
+                    No hay más
+                </div>
+            `;
+            container.appendChild(emptyMsg);
+            trendCargando = false;
+            return;
+        }
+
+        // Ordenar por rating y tomar hasta 5 juegos
+        const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        const newGames = sorted.slice(0, 5);
+
+        // Crear y añadir las nuevas tarjetas
+        newGames.forEach((juego, index) => {
+            const card = crearTarjetaTrend(juego, trendOffset + index + 1);
+            container.appendChild(card);
+        });
+
+        // Si hay más juegos, añadir nuevo botón "+X más"
+        if (data.length > 5) {
+            const remaining = data.length - 5;
+            const moreBtn = document.createElement('div');
+            moreBtn.className = 'trend-more-indicator';
+            moreBtn.style.cursor = 'pointer';
+            moreBtn.onclick = function () {
+                cargarMasTendencias(period);
+            };
+            moreBtn.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--text-muted);font-size:0.8rem;text-align:center;min-width:120px;transition: all 0.3s ease;"
+                     onmouseover="this.style.color='var(--primary)'; this.querySelector('i').style.transform='scale(1.2)';"
+                     onmouseout="this.style.color='var(--text-muted)'; this.querySelector('i').style.transform='scale(1)';">
+                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);transition: transform 0.3s ease;"></i>
+                    <span style="margin-top:8px;font-weight:600;">+${remaining} más</span>
+                </div>
+            `;
+            container.appendChild(moreBtn);
+        }
+
+        trendOffset += data.length;
+
+    } catch (error) {
+        console.error('Error cargando más tendencias:', error);
+        // Si falla, restaurar el botón
+        loader.remove();
+        const retryBtn = document.createElement('div');
+        retryBtn.className = 'trend-more-indicator';
+        retryBtn.style.cursor = 'pointer';
+        retryBtn.onclick = function () {
+            cargarMasTendencias(period);
+        };
+        retryBtn.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;color:var(--error);font-size:0.8rem;text-align:center;min-width:120px;">
+                <i class="fas fa-redo" style="font-size:1.5rem;color:var(--error);"></i>
+                <span style="margin-top:8px;">Reintentar</span>
+            </div>
+        `;
+        container.appendChild(retryBtn);
     }
 
     trendCargando = false;
@@ -934,13 +1052,14 @@ function initTrendTabs() {
 
     tabs.forEach(tab => {
         tab.addEventListener('click', function () {
-            // Quitar active de todos
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
             const period = this.getAttribute('data-period');
 
-            // Animación de cambio
+            // Reiniciar offset al cambiar de pestaña
+            trendOffset = 0;
+
             if (container) {
                 container.style.opacity = '0.5';
                 container.style.transition = 'opacity 0.2s';

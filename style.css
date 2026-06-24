@@ -5441,6 +5441,28 @@ cast-carousel::-webkit-scrollbar {
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.trend-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.trend-card:nth-child(2) {
+    animation-delay: 0.10s;
+}
+
+.trend-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.trend-card:nth-child(4) {
+    animation-delay: 0.20s;
+}
+
+.trend-card:nth-child(5) {
+    animation-delay: 0.25s;
 }
 
 .trend-card:hover {
@@ -5555,6 +5577,21 @@ cast-carousel::-webkit-scrollbar {
 .trend-card .game-price {
     margin-top: 6px;
     font-size: 0.75rem;
+}
+
+/* Estilo para el botón de cargar más */
+.trend-more-indicator:hover {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+.trend-more-indicator:active {
+    transform: scale(0.95);
+}
+
+/* Loader de carga */
+.trend-load-more .fa-spin {
+    animation: fa-spin 1s linear infinite;
 }
 
 /* LOADING */
@@ -5839,6 +5876,18 @@ cast-carousel::-webkit-scrollbar {
     50% {
         opacity: 0.6;
         transform: scale(0.95);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
