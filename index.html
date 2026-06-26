@@ -1429,19 +1429,18 @@
                             </div>
 
                             <div class="field-group">
-                                <label class="field-label" id="edit-profile-username"><i class="fas fa-at"></i> Nombre
-                                    de usuario <span class="required">*</span></label>
+                                <label class="field-label" id="edit-profile-username"></label>
                                 <div class="field-wrapper">
                                     <i class="fas fa-user field-icon"></i>
-                                    <input type="text" id="edit-username" class="cyber-input" placeholder="nexus_user42"
-                                        required minlength="3">
+                                    <input type="text" id="edit-username" class="cyber-input" placeholder="" required
+                                        minlength="3">
                                 </div>
                             </div>
 
                             <div class="fields-row">
                                 <div class="field-group">
-                                    <label class="field-label" id="edit-profile-firstname"><i
-                                            class="fas fa-user-tag"></i> Nombre</label>
+                                    <label class="field-label" id="edit-profile-firstname">
+                                        <i class="fas fa-user-tag"></i> Nombre</label>
                                     <div class="field-wrapper">
                                         <i class="fas fa-user field-icon"></i>
                                         <input type="text" id="edit-firstname" class="cyber-input"
@@ -1449,8 +1448,8 @@
                                     </div>
                                 </div>
                                 <div class="field-group">
-                                    <label class="field-label" id="edit-profile-lastname"><i
-                                            class="fas fa-user-tag"></i> Apellidos</label>
+                                    <label class="field-label" id="edit-profile-lastname">
+                                        <i class="fas fa-user-tag"></i> Apellidos</label>
                                     <div class="field-wrapper">
                                         <i class="fas fa-user field-icon"></i>
                                         <input type="text" id="edit-lastname" class="cyber-input"
@@ -1460,41 +1459,35 @@
                             </div>
 
                             <div class="field-group">
-                                <label class="field-label" id="edit-profile-gender"><i class="fas fa-venus-mars"></i>
-                                    Sexo</label>
+                                <label class="field-label" id="edit-profile-gender"></label>
                                 <div class="cyber-select-wrapper" id="gender-select-wrapper">
                                     <div class="cyber-select-trigger" id="gender-select-trigger">
-                                        <span id="gender-select-label">--</span>
+                                        <span id="gender-select-label"></span>
                                         <i class="fas fa-chevron-down cyber-select-arrow"></i>
                                     </div>
                                     <div class="cyber-select-dropdown" id="gender-select-dropdown">
-                                        <div class="cyber-select-option selected" data-value="--">
-                                            <i class="fas fa-circle"></i> --
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Femenino">
-                                            <i class="fas fa-venus"></i> Femenino
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Masculino">
-                                            <i class="fas fa-mars"></i> Masculino
-                                        </div>
-                                        <div class="cyber-select-option" data-value="No binario">
-                                            <i class="fas fa-genderless"></i> No binario
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Prefiero no decirlo">
-                                            <i class="fas fa-user-secret"></i> Prefiero no decirlo
-                                        </div>
+                                        <div class="cyber-select-option selected" data-value="--"
+                                            id="gender-option-none">--</div>
+                                        <div class="cyber-select-option" data-value="Femenino"
+                                            id="gender-option-female">Femenino</div>
+                                        <div class="cyber-select-option" data-value="Masculino" id="gender-option-male">
+                                            Masculino</div>
+                                        <div class="cyber-select-option" data-value="No binario"
+                                            id="gender-option-nonbinary">No binario</div>
+                                        <div class="cyber-select-option" data-value="Prefiero no decirlo"
+                                            id="gender-option-prefer">Prefiero no decirlo</div>
                                     </div>
                                 </div>
                                 <input type="hidden" id="edit-gender" value="--">
                             </div>
 
                             <div class="field-group">
-                                <label class="field-label" id="edit-profile-color"><i class="fas fa-palette"></i> Color
-                                    destacado</label>
+                                <label class="field-label" id="edit-profile-color"></label>
 
                                 <div class="color-picker-row">
                                     <div class="color-picker-custom">
-                                        <label class="color-picker-sub-label">🎨 RGB Custom</label>
+                                        <label class="color-picker-sub-label" id="edit-color-custom-label">🎨 RGB
+                                            Custom</label>
                                         <div class="color-picker-custom-inner">
                                             <input type="color" id="edit-color-picker" value="#6366f1">
                                             <span class="color-picker-hex" id="edit-color-hex-display">#6366f1</span>
@@ -1504,7 +1497,8 @@
                                     <div class="color-picker-divider"></div>
 
                                     <div class="color-picker-presets">
-                                        <label class="color-picker-sub-label">⚡ Preseleccionados</label>
+                                        <label class="color-picker-sub-label" id="edit-color-presets-label">⚡
+                                            Preseleccionados</label>
                                         <div class="color-presets">
                                             <button type="button" class="color-preset-btn" data-color="#000000"
                                                 style="background: #000000;" title="Negro">
@@ -1545,12 +1539,10 @@
                             </div>
 
                             <div class="field-group">
-                                <label class="field-label" id="edit-profile-description"><i
-                                        class="fas fa-align-left"></i> Descripción</label>
+                                <label class="field-label" id="edit-profile-description"></label>
                                 <div class="textarea-wrapper">
                                     <textarea id="edit-description" class="cyber-input edit-description-textarea"
-                                        placeholder="Cuéntanos sobre ti... (máx. 1500 caracteres)" maxlength="1500"
-                                        rows="5"></textarea>
+                                        placeholder="" maxlength="1500" rows="5"></textarea>
                                     <div id="edit-char-counter" class="char-counter">0/1500</div>
                                 </div>
                             </div>
@@ -1564,7 +1556,7 @@
                     <div class="edit-profile-admin-side">
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
+                                <h2 id="edit-security-title"><i class="fas fa-shield-alt"></i></h2>
                             </div>
 
                             <div class="edit-profile-admin-side-actions">
@@ -1588,7 +1580,7 @@
 
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
+                                <h2 id="edit-info-title"><i class="fas fa-info-circle"></i></h2>
                             </div>
                             <div class="edit-profile-admin-info-list">
                                 <div class="edit-profile-admin-info-item">
@@ -1610,7 +1602,8 @@
                                 </div>
                                 <div class="edit-profile-admin-info-item">
                                     <span id="edit-profile-status-label">Estado</span>
-                                    <span><i class="fas fa-check-circle"></i> Verificado</span>
+                                    <span id="edit-profile-verified-status"><i class="fas fa-check-circle"></i>
+                                        Verificado</span>
                                 </div>
                             </div>
                         </div>
@@ -1637,14 +1630,14 @@
         <!-- Modal de detalles del juego -->
         <div id="game-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
-                <button id="close-game-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
+                <button id="close-game-modal" class="icon-btn close-floating-btn" title="${t('modal.close')}">
                     <i class="fas fa-times"></i>
                 </button>
 
                 <div class="game-hero-section" id="detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
-                        <h1 id="detail-title" class="glitch-text" style="font-size: 3.5rem;">Título del Juego</h1>
+                        <h3 class="detail-section-title" id="detail-description-label">Descripción</h3>
                         <div id="detail-platforms" class="detail-platforms-badges">
                         </div>
                     </div>
@@ -1659,14 +1652,13 @@
                         <div class="detail-desc-col glass-panel">
                             <h3 class="detail-section-title" id="detail-description-label">Descripción</h3>
                             <div class="desc-scroll-area">
-                                <p id="detail-description" class="game-desc-text">Estableciendo conexión con la base de
-                                    datos...</p>
+                                <p id="detail-description" class="game-desc-text"></p>
                             </div>
                         </div>
                     </div>
 
                     <div class="detail-advanced-info glass-panel">
-                        <h3 class="detail-section-title">Detalles</h3>
+                        <h3 class="detail-section-title" id="detail-tech-title">Detalles</h3>
                         <div class="advanced-grid">
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-calendar-alt"></i></span>
@@ -1712,7 +1704,7 @@
         <!-- Modal de detalles de películas/series -->
         <div id="media-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
-                <button id="close-media-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
+                <button id="close-media-modal" class="icon-btn close-floating-btn" title="${t('modal.close')}">
                     <i class="fas fa-times"></i>
                 </button>
 
@@ -1793,13 +1785,12 @@
                         <div class="detail-desc-col glass-panel padded-panel">
                             <h3 class="detail-section-title" id="media-detail-description-label">Sinopsis</h3>
                             <div class="desc-scroll-area">
-                                <p id="media-detail-description" class="game-desc-text">Cargando datos del servidor...
-                                </p>
+                                <p id="media-detail-description" class="game-desc-text"></p>
                             </div>
                         </div>
 
                         <div class="detail-tech-col glass-panel padded-panel">
-                            <h3 class="detail-section-title">Detalles Técnicos</h3>
+                            <h3 class="detail-section-title" id="media-tech-title">Detalles Técnicos</h3>
                             <div class="tech-info-content">
                                 <div class="tech-item" id="row-original-title">
                                     <i class="fas fa-language"></i> <span id="media-detail-original-title-label">Título
@@ -1866,7 +1857,7 @@
                         <h3 class="detail-section-title" id="media-detail-providers-label">Dónde verlo</h3>
                         <div class="providers-3col-grid">
                             <div class="provider-col">
-                                <h4 class="provider-col-title">Retransmisión</h4>
+                                <h4 class="provider-col-title" id="media-provider-streaming">Retransmisión</h4>
                                 <div id="providers-flatrate" class="providers-icon-grid"></div>
                             </div>
 
@@ -1903,9 +1894,10 @@
                         <div class="media-cast-col glass-panel padded-panel">
                             <h3 class="detail-section-title" id="media-detail-cast-label">Reparto Principal</h3>
                             <div class="cast-carousel" id="media-detail-cast">
-                                <div
+                                <div id="cast-loading-text"
                                     style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; width: 100%;">
-                                    <i class="fas fa-circle-notch fa-spin"></i> Cargando actores...
+                                    <i class="fas fa-circle-notch fa-spin"></i> <span id="cast-loading-message">Cargando
+                                        actores...</span>
                                 </div>
                             </div>
                         </div>
@@ -1923,8 +1915,7 @@
                                         <i class="far fa-star" data-value="4"></i>
                                         <i class="far fa-star" data-value="5"></i>
                                     </div>
-                                    <div id="media-detail-personal-text" class="rating-count">Debes marcarla como vista
-                                    </div>
+                                    <div id="media-detail-personal-text" class="rating-count"></div>
                                 </div>
                             </div>
 
@@ -1940,7 +1931,7 @@
                                     <div class="rating-stars" id="media-detail-rating-stars" style="font-size: 1.2rem;">
                                     </div>
                                     <div id="media-detail-rating-count" class="rating-count"
-                                        style="font-size: 0.75rem;">-- valoraciones</div>
+                                        style="font-size: 0.75rem;">--</div>
                                 </div>
                             </div>
                         </div>
@@ -1961,20 +1952,21 @@
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div>
-                        <h2 class="announce-title glitch-text">AÑADIR CONTACTO</h2>
-                        <p class="announce-subtitle">Rastrea usuarios en la base de datos del Nexus</p>
+                        <h2 class="announce-title glitch-text" id="add-friend-title">AÑADIR CONTACTO</h2>
+                        <p class="announce-subtitle" id="add-friend-subtitle">Rastrea usuarios en la base de datos del
+                            Nexus</p>
                     </div>
                 </div>
 
                 <div class="search-box glass-panel add-friend-search">
-                    <input type="text" id="search-friend-input" placeholder="Escribe el nombre de usuario...">
+                    <input type="text" id="search-friend-input" placeholder="">
                     <button id="btn-search-friend"><i class="fas fa-search"></i></button>
                 </div>
 
                 <div id="friend-results-area" class="friend-results-scroll-area">
                     <div id="friend-search-empty" class="empty-state-centered">
                         <i class="fas fa-satellite-dish fa-fade empty-icon"></i>
-                        <p id="friend-empty-text">Esperando parámetros de búsqueda...</p>
+                        <p id="friend-empty-text"></p>
                     </div>
 
                     <div id="friend-results-grid" class="friend-results-grid" style="display: none;">
@@ -2212,16 +2204,16 @@
 
         <div id="chat-view-messages" class="chatbox-view active">
             <div class="chatbox-messages-area" id="chatbox-messages-scroll">
-                <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
+                <div id="chat-empty-state"
+                    style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
                     <i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Selecciona un amigo para chatear
+                    <span id="chat-empty-text">Selecciona un amigo para chatear</span>
                 </div>
             </div>
 
             <div class="chatbox-sender-area">
                 <div class="chatbox-input-place">
-                    <input placeholder="Escribe un mensaje..." class="chatbox-send-input" id="chatbox-input"
-                        type="text">
+                    <input placeholder="" class="chatbox-send-input" id="chatbox-input" type="text">
                     <div class="chatbox-send" id="chatbox-send-btn">
                         <svg class="chatbox-send-icon" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
                             xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512"
@@ -2241,9 +2233,10 @@
 
         <div id="chat-view-notifs" class="chatbox-view" style="display: none;">
             <div class="chatbox-messages-area notifs-area" id="chatbox-notifs-scroll" style="height: 280px;">
-                <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
+                <div id="notifs-empty-state"
+                    style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
                     <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Sin alertas pendientes
+                    <span id="notifs-empty-text">Sin alertas pendientes</span>
                 </div>
             </div>
         </div>

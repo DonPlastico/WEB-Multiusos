@@ -12,7 +12,11 @@
     "description": "Descubre, sigue y comparte tus juegos, películas y series favoritos en un solo lugar",
     "btn_games": "EXPLORAR JUEGOS",
     "btn_movies": "VER PELÍCULAS",
-    "btn_series": "VER SERIES"
+    "btn_series": "VER SERIES",
+    "online_status": "NEXUS EN LÍNEA",
+    "stats_games": "Juegos",
+    "stats_movies": "Películas",
+    "stats_series": "Series"
   },
   "trends": {
     "games_title": "Tendencias en Juegos",
@@ -46,7 +50,15 @@
     "reset": "Limpiar",
     "see_all": "+ Ver todo",
     "price_min": "Min",
-    "price_max": "Max"
+    "price_max": "Max",
+    "watched": "He visto",
+    "not_watched": "No he visto",
+    "genre_loading": "Cargando géneros...",
+    "occidental": "OCCIDENTALES",
+    "asian": "ASIÁTICOS",
+    "other": "OTROS",
+    "votes": "VOTOS MÍNIMOS",
+    "votes_display": "{value} votos"
   },
   "modal": {
     "select_title": "Seleccionar portada",
@@ -128,13 +140,26 @@
     "announce_send": "ENVIAR ALERTA",
     "announce_all": "Todos los Usuarios",
     "announce_admins": "Solo Administradores",
-    "announce_specific_label": "Usuario Específico..."
+    "announce_specific_label": "Usuario Específico...",
+    "online_status": "SISTEMA EN LÍNEA",
+    "description": "Centro de control unificado de la plataforma. Desde aquí puedes gestionar las identidades y roles de los usuarios en la base de datos (Supabase), supervisar la telemetría y peticiones de red en tiempo real, y administrar acciones críticas del servidor.",
+    "metric_total": "USUARIOS EN BBDD",
+    "metric_total_desc": "Cuentas registradas en Supabase",
+    "metric_edge": "EDGE REQUESTS",
+    "metric_edge_desc": "Peticiones de red procesadas hoy",
+    "metric_func": "FUNCTION CALLS",
+    "metric_func_desc": "Llamadas internas a las APIs externas",
+    "metric_error": "ERROR RATE",
+    "metric_error_desc": "Infraestructura estable y sin bloqueos",
+    "tools_title": "HERRAMIENTAS GLOBALES"
   },
   "chat": {
     "chat_tab": "Mensajes",
     "notifs_tab": "Alertas",
     "input_placeholder": "Escribe un mensaje...",
-    "send_btn": "Enviar"
+    "send_btn": "Enviar",
+    "empty": "Selecciona un amigo para chatear",
+    "notifs_empty": "Sin alertas pendientes"
   },
   "favorites": {
     "add_btn": "Añadir a favoritos"
@@ -297,5 +322,43 @@
     "movie_marked": "Película marcada como vista.",
     "error": "Error BD",
     "movie_error": "No se pudo guardar la película."
+  },
+  "popular": {
+    "title": "Lo Más Popular"
+  },
+  "edit": {
+    "active_status": "PERFIL ACTIVO",
+    "personal_data": "DATOS PERSONALES",
+    "secure": "Seguro",
+    "email_hint": "El correo se oculta automáticamente tras 5 minutos o al salir.",
+    "color_custom": "🎨 RGB Custom",
+    "color_presets": "⚡ Preseleccionados",
+    "security": "SEGURIDAD",
+    "information": "INFORMACIÓN",
+    "verified": "Verificado"
+  },
+  "add_friend": {
+    "title": "AÑADIR CONTACTO",
+    "subtitle": "Rastrea usuarios en la base de datos del Nexus",
+    "empty": "Esperando parámetros de búsqueda..."
+  },
+  "social": {
+    "title": "CONTACTOS",
+    "subtitle": "Red de usuarios"
+  },
+  "announce": {
+    "title": "TRANSMISIÓN GLOBAL",
+    "subtitle": "Envía una alerta a los operadores del Nexus",
+    "target": "Destinatarios",
+    "all_users": "Todos los Usuarios",
+    "admins": "Solo Administradores",
+    "specific": "Usuario Específico...",
+    "specific_user": "Nombre de Usuario Destino",
+    "message": "Cuerpo del Mensaje",
+    "placeholder": "Escribe la notificación aquí...",
+    "send": "ENVIAR ALERTA"
+  },
+  "cast": {
+    "loading": "Cargando actores..."
   }
 }
