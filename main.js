@@ -365,6 +365,534 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 loadSavedTheme();
 
 // ==========================================================================
+//   SISTEMA DE TRADUCCIONES (INTERNACIONALIZACIÓN)
+// ==========================================================================
+
+let currentLang = 'es';
+let translations = {};
+
+// 1. Cargar idioma guardado
+function loadSavedLanguage() {
+    const saved = localStorage.getItem('dp_sys_lang');
+    if (saved && ['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(saved)) {
+        currentLang = saved;
+    } else {
+        currentLang = 'es';
+    }
+    return currentLang;
+}
+
+// 2. Cargar archivo de traducciones
+async function loadTranslations(lang) {
+    // Si es español, NO cargamos nada (es el default nativo)
+    if (lang === 'es') {
+        translations = {};
+        return translations;
+    }
+
+    try {
+        const response = await fetch(`/locales/${lang}.json`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        translations = await response.json();
+        return translations;
+    } catch (error) {
+        console.error(`❌ Error cargando traducciones para ${lang}:`, error);
+        translations = {};
+        return {};
+    }
+}
+
+// 3. Función de traducción t(key, params)
+function t(key, params = {}) {
+    // Navegación por puntos: "nav.home" -> translations.nav.home
+    const keys = key.split('.');
+    let value = translations;
+    for (const k of keys) {
+        if (value && typeof value === 'object' && k in value) {
+            value = value[k];
+        } else {
+            console.warn(`⚠️ Traducción faltante: "${key}"`);
+            return key;
+        }
+    }
+
+    if (typeof value !== 'string') {
+        console.warn(`⚠️ Traducción no es string: "${key}"`);
+        return key;
+    }
+
+    // Reemplazar parámetros {param}
+    for (const [param, val] of Object.entries(params)) {
+        value = value.replace(new RegExp(`\\{${param}\\}`, 'g'), val);
+    }
+
+    return value;
+}
+
+// 4. Aplicar traducciones al DOM
+function applyTranslations() {
+    // Si no hay traducciones (español o error), NO hacer nada
+    if (!translations || Object.keys(translations).length === 0) {
+        return;
+    }
+
+    // --- NAVEGACIÓN ---
+    const navMap = {
+        'nav-home': 'nav.home',
+        'nav-games': 'nav.games',
+        'nav-movies': 'nav.movies',
+        'nav-series': 'nav.series',
+        'nav-profile': 'nav.profile',
+    };
+    for (const [id, key] of Object.entries(navMap)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(key);
+    }
+
+    // --- HERO ---
+    const heroMap = {
+        'hero-title': 'hero.title',
+        'hero-subtitle': 'hero.subtitle',
+        'hero-description': 'hero.description',
+        'btn-hero-games': 'hero.btn_games',
+        'btn-hero-movies': 'hero.btn_movies',
+        'btn-hero-series': 'hero.btn_series',
+    };
+    for (const [id, key] of Object.entries(heroMap)) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = t(key);
+    }
+
+    // --- TENDENCIAS (títulos de sección) ---
+    const trendsMap = {
+        'trends-games-title': 'trends.games_title',
+        'trends-movies-title': 'trends.movies_title',
+        'trends-series-title': 'trends.series_title',
+        'trailers-title': 'trends.trailers_title',
+        'watchlist-title': 'watchlist.title',
+    };
+    for (const [id, key] of Object.entries(trendsMap)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(key);
+    }
+
+    // --- BOTONES DE TENDENCIAS (día, semana, mes) ---
+    document.querySelectorAll('.trend-tab').forEach(tab => {
+        const period = tab.dataset.period;
+        if (period === 'day') {
+            tab.textContent = t('trends.today');
+        } else if (period === 'week') {
+            tab.textContent = t('trends.this_week');
+        } else if (period === 'month') {
+            tab.textContent = t('trends.this_month');
+        } else if (period === 'year') {
+            tab.textContent = t('trends.this_year');
+        }
+    });
+
+    // --- BUSCADORES ---
+    const searchMap = {
+        'search-juegos': 'search.games_placeholder',
+        'search-movies': 'search.movies_placeholder',
+        'search-series': 'search.series_placeholder',
+        'btn-buscar-juegos': 'search.btn_search',
+        'btn-buscar-movies': 'search.btn_search',
+        'btn-buscar-series': 'search.btn_search',
+        'search-genre': 'search.genre_placeholder',
+        'search-lang-movie': 'search.country_placeholder',
+        'search-lang-tv': 'search.country_placeholder',
+        'search-genre-movie': 'search.genre_placeholder',
+        'search-genre-tv': 'search.genre_placeholder',
+    };
+    for (const [id, key] of Object.entries(searchMap)) {
+        const el = document.getElementById(id);
+        if (el && el.tagName === 'INPUT') {
+            el.placeholder = t(key);
+        } else if (el) {
+            el.textContent = t(key);
+        }
+    }
+
+    // --- FILTROS (acordeones) ---
+    const filterMap = {
+        'filter-plats': 'filters.platforms',
+        'filter-stores': 'filters.stores',
+        'filter-genres': 'filters.genres',
+        'filter-modes': 'filters.modes',
+        'filter-price': 'filters.price',
+        'filter-date': 'filters.date',
+        'filter-adult': 'filters.adult_content',
+        'filter-countries': 'filters.countries',
+        'filter-votes': 'filters.min_votes',
+        'btn-reset-filters': 'filters.reset',
+        'btn-ver-plats': 'filters.see_all',
+    };
+    for (const [id, key] of Object.entries(filterMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            // Si es label dentro de un accordion-header
+            const label = el.querySelector('label');
+            if (label) {
+                label.textContent = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- PRECIO ---
+    const priceMap = {
+        'price-min': 'filters.price_min',
+        'price-max': 'filters.price_max',
+    };
+    for (const [id, key] of Object.entries(priceMap)) {
+        const el = document.getElementById(id);
+        if (el && el.tagName === 'INPUT') {
+            el.placeholder = t(key);
+        }
+    }
+
+    // --- MODALES ---
+    const modalMap = {
+        'modal-title': 'modal.select_title',
+        'close-modal': 'modal.close',
+        'btn-save-crop': 'modal.upload',
+        'crop-modal-title': 'modal.crop_title',
+    };
+    for (const [id, key] of Object.entries(modalMap)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(key);
+    }
+
+    // --- LOGIN / REGISTRO ---
+    const authMap = {
+        'login-title': 'auth.login_title',
+        'login-identifier': 'auth.login_identifier',
+        'login-password': 'auth.login_password',
+        'btn-login-submit': 'auth.login_btn',
+        'login-message': 'auth.login_message',
+        'register-title': 'auth.register_title',
+        'register-username': 'auth.register_username',
+        'register-email': 'auth.register_email',
+        'register-email-confirm': 'auth.register_email_confirm',
+        'register-password': 'auth.register_password',
+        'register-password-confirm': 'auth.register_password_confirm',
+        'register-birthdate': 'auth.register_birthdate',
+        'btn-register-submit': 'auth.register_btn',
+        'register-message': 'auth.register_message',
+        'btn-go-login': 'auth.go_login',
+        'btn-go-register': 'auth.go_register',
+        'btn-go-home-verified': 'auth.go_home',
+        'btn-waiting-login': 'auth.go_login',
+        'waiting-title': 'auth.waiting_title',
+        'waiting-subtitle': 'auth.waiting_subtitle',
+        'verified-title': 'auth.verified_title',
+        'verified-subtitle': 'auth.verified_subtitle',
+        'btn-go-login-verified': 'auth.go_login',
+    };
+    for (const [id, key] of Object.entries(authMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'INPUT') {
+                el.placeholder = t(key);
+            } else if (el.tagName === 'BUTTON') {
+                el.innerHTML = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- PERFIL ---
+    const profileMap = {
+        'profile-username': 'profile.username',
+        'profile-stats-following': 'profile.following',
+        'profile-stats-followers': 'profile.followers',
+        'profile-stats-messages': 'profile.messages',
+        'btn-add-friend': 'profile.add_friend',
+        'profile-stats': 'profile.stats_title',
+        'profile-series': 'profile.series_title',
+        'profile-movies': 'profile.movies_title',
+        'stat-series-episodes': 'profile.series_episodes',
+        'stat-series-months': 'profile.months',
+        'stat-series-days': 'profile.days',
+        'stat-series-hours': 'profile.hours',
+        'stat-movies-count': 'profile.movies_count',
+        'stat-movies-months': 'profile.months',
+        'stat-movies-days': 'profile.days',
+        'stat-movies-hours': 'profile.hours',
+        'edit-profile-title': 'profile.edit_title',
+        'edit-profile-username': 'profile.edit_username',
+        'edit-profile-firstname': 'profile.edit_firstname',
+        'edit-profile-lastname': 'profile.edit_lastname',
+        'edit-profile-description': 'profile.edit_description',
+        'edit-profile-gender': 'profile.edit_gender',
+        'edit-profile-color': 'profile.edit_color',
+        'edit-profile-email': 'profile.edit_email',
+        'edit-profile-joined': 'profile.edit_joined',
+        'edit-profile-status': 'profile.edit_status',
+        'btn-save-profile': 'profile.save_btn',
+        'btn-back-to-profile': 'profile.back_btn',
+    };
+    for (const [id, key] of Object.entries(profileMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- ADMIN ---
+    const adminMap = {
+        'admin-title': 'admin.title',
+        'admin-search': 'admin.search',
+        'admin-users': 'admin.users',
+        'admin-username': 'admin.username',
+        'admin-email': 'admin.email',
+        'admin-joined': 'admin.joined',
+        'admin-verified': 'admin.verified',
+        'admin-role': 'admin.role',
+        'admin-actions': 'admin.actions',
+        'admin-total-users': 'admin.total_users',
+        'admin-total-admins': 'admin.total_admins',
+        'admin-terminal-title': 'admin.terminal_title',
+        'btn-admin-clear-cache': 'admin.clear_cache',
+        'btn-admin-lockdown': 'admin.lockdown',
+        'btn-admin-announce': 'admin.announce',
+        'btn-admin-create-test-user': 'admin.create_test',
+        'announce-title': 'admin.announce_title',
+        'announce-select': 'admin.announce_select',
+        'announce-message': 'admin.announce_message',
+        'announce-specific-user': 'admin.announce_specific',
+        'btn-send-announce': 'admin.announce_send',
+        'announce-all-users': 'admin.announce_all',
+        'announce-admins': 'admin.announce_admins',
+        'announce-specific': 'admin.announce_specific_label',
+    };
+    for (const [id, key] of Object.entries(adminMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'INPUT') {
+                el.placeholder = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- CHATBOX ---
+    const chatMap = {
+        'tab-btn-chat': 'chat.chat_tab',
+        'tab-btn-notifs': 'chat.notifs_tab',
+        'chatbox-input': 'chat.input_placeholder',
+        'btn-chat-send': 'chat.send_btn',
+    };
+    for (const [id, key] of Object.entries(chatMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'INPUT') {
+                el.placeholder = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- FAVORITOS ---
+    const favMap = {
+        'btn-add-to-favorites': 'favorites.add_btn',
+    };
+    for (const [id, key] of Object.entries(favMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.title = t(key);
+            el.setAttribute('aria-label', t(key));
+        }
+    }
+
+    // --- CARGAR MÁS ---
+    const loadMoreMap = {
+        'btn-cargar-mas': 'search.load_more',
+        'btn-cargar-mas-movie': 'search.load_more',
+        'btn-cargar-mas-tv': 'search.load_more',
+    };
+    for (const [id, key] of Object.entries(loadMoreMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            const btn = el.querySelector('button');
+            if (btn) btn.textContent = t(key);
+        }
+    }
+
+    // --- MODAL DE DETALLES (juegos) ---
+    const detailMap = {
+        'detail-price-label': 'details.price',
+        'detail-dev-label': 'details.developer',
+        'detail-pub-label': 'details.publisher',
+        'detail-genres-label': 'details.genres',
+        'detail-modes-label': 'details.modes',
+        'detail-links-label': 'details.links',
+        'detail-description-label': 'details.description',
+        'detail-trailer-label': 'details.trailer',
+    };
+    for (const [id, key] of Object.entries(detailMap)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(key);
+    }
+
+    // --- MODAL DE MEDIA (películas/series) ---
+    const mediaMap = {
+        'media-detail-rating-label': 'details.rating',
+        'media-detail-original-title-label': 'details.original_title',
+        'media-detail-release-date-label': 'details.release_date',
+        'media-detail-status-label': 'details.status',
+        'media-detail-budget-label': 'details.budget',
+        'media-detail-duration-label': 'details.duration',
+        'media-detail-seasons-label': 'details.seasons',
+        'media-detail-episodes-label': 'details.episodes',
+        'media-detail-remaining-label': 'details.remaining',
+        'media-detail-watch-date-label': 'details.watch_date',
+        'media-detail-watch-status-label': 'details.watch_status',
+        'media-detail-trailer-label': 'details.trailer',
+        'media-detail-cast-label': 'details.cast',
+        'media-detail-personal-label': 'details.personal_rating',
+        'media-detail-watch-btn': 'details.watch_btn',
+        'media-detail-providers-label': 'details.providers',
+        'media-detail-rent-label': 'details.rent',
+        'media-detail-buy-label': 'details.buy',
+        'media-detail-seasons-title': 'details.seasons_title',
+        'btn-watch-toggle': 'details.watch_btn',
+        'btn-context-rewatch': 'details.rewatch_btn',
+        'btn-context-unwatch': 'details.unwatch_btn',
+    };
+    for (const [id, key] of Object.entries(mediaMap)) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (el.tagName === 'BUTTON') {
+                el.textContent = t(key);
+            } else {
+                el.textContent = t(key);
+            }
+        }
+    }
+
+    // --- GÉNEROS (checkbox labels) ---
+    document.querySelectorAll('.genre-item input, .genre-item-movie input, .genre-item-tv input').forEach(cb => {
+        const label = cb.closest('label');
+        if (label) {
+            const textNode = label.childNodes[2];
+            if (textNode) {
+                // No traducimos nombres de géneros porque vienen de la API
+            }
+        }
+    });
+
+    // --- ESTADOS DE VISTO (watch status) ---
+    const watchStatusMap = {
+        'media-detail-watch-status': 'details.not_watched',
+    };
+    for (const [id, key] of Object.entries(watchStatusMap)) {
+        const el = document.getElementById(id);
+        if (el && !window.estadoMediaActual?.visto) {
+            el.textContent = t(key);
+        }
+    }
+
+    // --- TOASTS (mensajes dinámicos se traducen desde las funciones) ---
+}
+
+// 5. Cambiar idioma y recargar
+async function setLanguage(lang) {
+    if (!['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(lang)) return;
+    currentLang = lang;
+    localStorage.setItem('dp_sys_lang', lang);
+
+    // Cargar traducciones
+    await loadTranslations(lang);
+
+    // Aplicar al DOM
+    applyTranslations();
+
+    // Actualizar API de IGDB y TMDB con el nuevo idioma
+    // Las funciones ya leerán currentLang al hacer fetch
+    document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
+
+    // Recargar tendencias y datos si es necesario
+    if (vistaActualGlobal === 'games') {
+        cargarTendencias(trendPeriod, true);
+        cargarJuegosIGDB(busquedaActual, true, filtrosGlobales);
+    } else if (vistaActualGlobal === 'movies') {
+        cargarTendenciasPeliculas(trendMoviesPeriod, true);
+        cargarTMDB('movie', searchMoviesActual, true);
+    } else if (vistaActualGlobal === 'series') {
+        cargarTendenciasSeries(trendSeriesPeriod, true);
+        cargarTMDB('tv', searchSeriesActual, true);
+    }
+}
+
+// 6. Inicializar idioma al cargar
+async function initLanguage() {
+    const saved = loadSavedLanguage();
+    await loadTranslations(saved);
+    applyTranslations();
+
+    // Sincronizar el menú de idiomas con el idioma actual
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === saved);
+    });
+
+    // Actualizar bandera en el botón
+    const flagBtn = document.querySelector('.lang-option.active');
+    if (flagBtn) {
+        const flagImg = document.getElementById('lang-toggle').querySelector('img');
+        if (flagImg) {
+            flagImg.src = `https://flagcdn.com/48x36/${flagBtn.dataset.flag || flagBtn.dataset.lang}.png`;
+        }
+    }
+}
+
+// 7. MODIFICAR EL MENÚ DE IDIOMAS (reemplazar el existente)
+document.addEventListener('DOMContentLoaded', function () {
+    // El menú ya existe en el HTML, solo añadimos el evento de cambio
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const lang = this.dataset.lang;
+            const flag = this.dataset.flag;
+
+            // Actualizar bandera en el botón
+            const flagImg = document.getElementById('lang-toggle').querySelector('img');
+            if (flagImg) {
+                flagImg.src = `https://flagcdn.com/48x36/${flag || lang}.png`;
+                flagImg.alt = lang.toUpperCase();
+            }
+
+            // Marcar como activo
+            document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+
+            // Cambiar idioma
+            await setLanguage(lang);
+
+            // Cerrar el menú
+            document.querySelector('.lang-menu')?.classList.remove('show');
+            langMenuOpen = false;
+        });
+    });
+
+    // Inicializar idioma
+    initLanguage();
+});
+
+// 8. Exponer funciones globalmente
+window.t = t;
+window.setLanguage = setLanguage;
+window.currentLang = currentLang;
+
+// ==========================================================================
 //   IDIOMA - MENU DESPLEGABLE (igual que el de tema)
 // ==========================================================================
 
@@ -429,20 +957,21 @@ document.addEventListener('click', (e) => {
 });
 
 document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-        const lang = opt.dataset.lang;
-        const flag = opt.dataset.flag;
+    opt.addEventListener('click', async function (e) {
+        e.preventDefault();
+        const lang = this.dataset.lang;
+        const flag = this.dataset.flag;
 
         // ACTUALIZAR TAMAÑO DE LA BANDERA A 48x36
-        langFlagImg.src = `https://flagcdn.com/48x36/${flag}.png`;
+        langFlagImg.src = `https://flagcdn.com/48x36/${flag || lang}.png`;
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
         document.querySelectorAll('.theme-option.lang-option').forEach(o => o.classList.remove('active'));
-        opt.classList.add('active');
+        this.classList.add('active');
 
-        // guarda en localStorage
-        localStorage.setItem('dp_sys_lang', lang);
+        // Cambiar idioma (llama a setLanguage)
+        await setLanguage(lang);
 
         langMenu.classList.remove('show');
         langMenuOpen = false;
@@ -598,7 +1127,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
     peticionAbort = miAbort;
 
     try {
-        let url = `/api/igdb?offset=${offsetActual}`;
+        let url = `/api/igdb?offset=${offsetActual}&lang=${currentLang}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
         if (filtrosGlobales.genres) url += `&genres=${filtrosGlobales.genres}`;
@@ -812,7 +1341,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
     try {
         const dateRange = getDateRange(period);
-        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
+        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}&lang=${currentLang}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1626,7 +2155,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const dateMax = tipo === 'movie' ? window.dateMaxMovie : window.dateMaxSeries;
 
         // Construir URL base
-        let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}`;
+        let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}&lang=${currentLang}`;
 
         // Añadir país SOLO si hay algo seleccionado
         if (countryParam) {
@@ -3566,7 +4095,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}`);
+        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
         const datos = await respuesta.json();
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
@@ -3765,7 +4294,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
     // 3. Llamada al servidor
     try {
-        const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}`);
+        const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}&lang=${currentLang}`);
         const data = await respuesta.json();
 
         // ====================================================
@@ -8214,7 +8743,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
     }
 
     try {
-        const url = `/api/tmdb?trending=true&period=${period}&limit=20&_=${Date.now()}`;
+        const url = `/api/tmdb?tipo=movie&trending=true&period=${period}&limit=20&lang=${currentLang}&_=${Date.now()}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -8434,7 +8963,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
 
     try {
         // Asegúrate de enviar tipo=tv para que el backend de TMDB sepa que son series
-        const url = `/api/tmdb?tipo=tv&trending=true&period=${period}&limit=20&_=${Date.now()}`;
+        const url = `/api/tmdb?tipo=tv&trending=true&period=${period}&limit=20&lang=${currentLang}&_=${Date.now()}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
@@ -8556,9 +9085,9 @@ async function cargarUltimosTrailers() {
         const dateRange = getDateRange('week');
 
         // 2. Definir URLs - pedimos 5 de cada uno
-        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
-        const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&_=${Date.now()}`;
-        const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&_=${Date.now()}`;
+        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}&lang=${currentLang}`;
+        const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
+        const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
 
         // 3. Disparamos las 3 peticiones en paralelo
         const [resJuegos, resPelis, resSeries] = await Promise.all([

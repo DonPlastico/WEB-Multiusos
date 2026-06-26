@@ -7,6 +7,20 @@ export default async function handler(req, res) {
     const busqueda = query.query || '';
     const page = parseInt(query.page) || 1;
     const includeAdult = query.adult === 'true' ? 'true' : 'false';
+    const lang = query.lang || 'es';
+
+    // Mapeo de idiomas a códigos TMDB
+    const langMap = {
+        'es': 'es-ES',
+        'en': 'en-US',
+        'fr': 'fr-FR',
+        'it': 'it-IT',
+        'de': 'de-DE',
+        'zh': 'zh-CN',
+        'ja': 'ja-JP',
+        'ko': 'ko-KR'
+    };
+    const tmdbLang = langMap[lang] || 'es-ES';
 
     const baseUrl = 'https://api.themoviedb.org/3';
     const headers = {
@@ -15,39 +29,39 @@ export default async function handler(req, res) {
     };
 
     try {
-        // Caché general para la mayoría de peticiones
         const esBusqueda = busqueda || query.genero || query.generos;
-        const cacheTime = esBusqueda ? 1800 : 3600; // 30 min para búsquedas, 1h para detalles
+        const cacheTime = esBusqueda ? 1800 : 3600;
         res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
         // Temporadas
         if (tipo === 'tv_season' && id && query.season) {
             const seasonNum = query.season;
-            const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=es-ES`, { headers });
+            const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=${tmdbLang}`, { headers });
             const seasonData = await resSeason.json();
             return res.status(200).json(seasonData);
         }
 
         // Detalles
         if (id) {
-            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=es-ES&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`, { headers });
+            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=${tmdbLang}&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`, { headers });
             const data = await resDetalle.json();
 
             let sinopsisExtendida = data.overview || '';
 
+            // Si el idioma no es español y hay traducción al español, intentamos usarla
+            if (lang !== 'es' && data.translations && data.translations.translations) {
+                const targetTranslation = data.translations.translations.find(t => t.iso_639_1 === lang);
+                if (targetTranslation && targetTranslation.data && targetTranslation.data.overview) {
+                    const targetOverview = targetTranslation.data.overview;
+                    if (targetOverview.length > sinopsisExtendida.length) {
+                        sinopsisExtendida = targetOverview;
+                    }
+                }
+            }
+
             if (data.keywords && data.keywords.keywords && data.keywords.keywords.length > 0) {
                 const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
                 sinopsisExtendida += `\n\nTemas: ${keywordsList}.`;
-            }
-
-            if (data.translations && data.translations.translations) {
-                const spanishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'es');
-                if (spanishTranslation && spanishTranslation.data && spanishTranslation.data.overview) {
-                    const spanishOverview = spanishTranslation.data.overview;
-                    if (spanishOverview.length > sinopsisExtendida.length) {
-                        sinopsisExtendida = spanishOverview;
-                    }
-                }
             }
 
             if (sinopsisExtendida.length < 150 && data.translations) {
@@ -147,7 +161,7 @@ export default async function handler(req, res) {
             const genero = query.genero;
             const limit = parseInt(query.limit) || 6;
 
-            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=es`;
+            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
 
@@ -168,7 +182,7 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=es&page=1&include_adult=false`;
+            const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=${tmdbLang}&page=1&include_adult=false`;
 
             const searchRes = await fetch(searchUrl, { headers });
             const searchData = await searchRes.json();
@@ -203,22 +217,19 @@ export default async function handler(req, res) {
 
         // Lista de géneros
         if (query.generos) {
-            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=es`;
+            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
 
             return res.status(200).json(genreData);
         }
 
-        // ==========================================
         // TENDENCIAS
-        // ==========================================
         if (query.trending === 'true') {
-            const period = query.period || 'day'; // 'day' o 'week'
+            const period = query.period || 'day';
             const limit = parseInt(query.limit) || 20;
 
-            // 1. Usar la variable ${tipo} en lugar de "movie"
-            const trendingUrl = `${baseUrl}/trending/${tipo}/${period}?language=es-ES`;
+            const trendingUrl = `${baseUrl}/trending/${tipo}/${period}?language=${tmdbLang}`;
 
             const trendingRes = await fetch(trendingUrl, { headers });
             const trendingData = await trendingRes.json();
@@ -227,11 +238,9 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            // 2. Obtener detalles adicionales usando también ${tipo}
             const trendingPromesas = trendingData.results.slice(0, limit).map(async (item) => {
                 try {
-                    // También añadimos content_ratings para las series
-                    const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
+                    const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
                     return await detailRes.json();
                 } catch (e) {
                     console.warn('⚠️ Error obteniendo detalles de trending:', item.id, e.message);
@@ -248,7 +257,6 @@ export default async function handler(req, res) {
                     providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
                 }
 
-                // 3. Mapear dinámicamente según sea película o serie
                 return {
                     id: data.id,
                     adult: data.adult || false,
@@ -275,9 +283,9 @@ export default async function handler(req, res) {
 
         let urlLista;
         if (busqueda) {
-            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=es-ES&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
         } else {
-            let discoverParams = `language=es-ES&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
+            let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
@@ -319,7 +327,7 @@ export default async function handler(req, res) {
 
         const promesasDetalles = listData.results.map(async (item) => {
             try {
-                const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
+                const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
                 return await detailRes.json();
             } catch (e) {
                 console.warn('⚠️ Error obteniendo detalles de:', item.id, e.message);

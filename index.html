@@ -10,7 +10,6 @@
     <meta name="description"
         content="DP-SYS - Tu nexus personal de juegos, películas y series. Descubre tendencias, guarda tu progreso y conecta con otros usuarios.">
 
-
     <title>DP-SYS | Nexus</title>
 
     <link rel="icon" href="img/Logo.webp" type="image/webp" alt="DP-SYS Logo - Nexus de entretenimiento">
@@ -35,70 +34,56 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-BQ9SP8WMME');
     </script>
 </head>
 
 <body>
-    <!-- este div q deja las rayitas retro en la web -->
     <div class="scanlines"></div>
 
-    <!-- barra de navegacion en 3 partes -->
     <nav class="cyber-nav">
-        <!-- el logo a la izquierda -->
         <div class="logo" id="logo-home" title="Ir al Inicio">DP<span>-SYS</span></div>
 
-        <!-- los enlaces del menu en el centro -->
         <ul class="nav-links">
-            <li><a href="#" data-target="games">JUEGOS</a></li>
-            <li><a href="#" data-target="movies">PELICULAS</a></li>
-            <li><a href="#" data-target="series">SERIES</a></li>
+            <li><a href="#" data-target="games" id="nav-games">JUEGOS</a></li>
+            <li><a href="#" data-target="movies" id="nav-movies">PELICULAS</a></li>
+            <li><a href="#" data-target="series" id="nav-series">SERIES</a></li>
         </ul>
 
-        <!-- botones a la derecha -->
         <div class="nav-right">
-            <!-- boton pa cambiar el tema -->
             <button class="icon-btn" id="theme-toggle" title="Tema del sistema">
                 <i class="fas fa-desktop"></i>
             </button>
 
-            <!-- la bandera pa cambiar idioma -->
             <button class="icon-btn" id="lang-toggle" title="Idioma">
                 <img src="https://flagcdn.com/32x24/es.webp" alt="ES">
             </button>
 
-            <!-- boton del admin q esta oculto -->
             <button class="icon-btn" id="btn-admin" title="Panel de Control" style="display: none;">
                 <i class="fas fa-user-shield"></i>
             </button>
 
-            <!-- el perfil del usuario -->
             <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
                 <i class="fas fa-user-circle"></i>
             </button>
         </div>
     </nav>
 
-    <!-- el contenedor principal pa todas las vistas -->
     <main class="cyber-container">
 
-        <!-- vista de inicio -->
+        <!-- ===== HOME ===== -->
         <section id="home" class="view active">
             <div class="hero-section glass-panel"
                 style="padding: 60px 50px; display: flex; gap: 40px; text-align: left; justify-content: space-between; align-items: center; position: relative; overflow: hidden; min-height: 350px;">
 
-                <!-- Línea decorativa superior (igual que en admin-panel) -->
                 <div
                     style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary); z-index: 2;">
                 </div>
 
-                <!-- Degradado de fondo sutil -->
                 <div
                     style="position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 70% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 40%, rgba(45, 212, 191, 0.05) 0%, transparent 60%); z-index: 1;">
                 </div>
 
-                <!-- Partículas decorativas (círculos flotantes) -->
                 <div
                     style="position: absolute; top: 20%; right: 15%; width: 80px; height: 80px; border-radius: 50%; background: rgba(99, 102, 241, 0.05); z-index: 1; animation: floatHero 8s ease-in-out infinite;">
                 </div>
@@ -109,9 +94,7 @@
                     style="position: absolute; top: 50%; left: 10%; width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 102, 241, 0.04); z-index: 1; animation: floatHero 10s ease-in-out infinite 4s;">
                 </div>
 
-                <!-- Contenido izquierdo -->
                 <div style="position: relative; z-index: 2; flex: 1;">
-                    <!-- Badge de estado (como el de admin) -->
                     <div
                         style="display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.08); padding: 8px 18px; border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.15); margin-bottom: 20px;">
                         <div
@@ -122,20 +105,17 @@
                             EN LÍNEA</span>
                     </div>
 
-                    <!-- Título principal con gradiente -->
-                    <h1
+                    <h1 id="hero-title"
                         style="font-size: 4rem; font-weight: 700; font-family: var(--font-cyber); line-height: 1.1; margin-bottom: 15px; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -1px;">
                         Te doy la <br><span
                             style="background: none; -webkit-background-clip: unset; background-clip: unset; color: var(--neon-white);">bienvenida.</span>
                     </h1>
 
-                    <!-- Subtítulo -->
-                    <p
+                    <p id="hero-subtitle"
                         style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 25px;">
                         Millones de películas, series y gente por descubrir. <br>Explora ya.
                     </p>
 
-                    <!-- Botones de acción -->
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <a href="#" id="btn-hero-games" class="auth-btn primary"
                             style="padding: 12px 32px; font-size: 0.9rem;">
@@ -151,7 +131,6 @@
                         </a>
                     </div>
 
-                    <!-- Estadísticas rápidas -->
                     <div
                         style="display: flex; gap: 40px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-color);">
                         <div>
@@ -175,7 +154,6 @@
                     </div>
                 </div>
 
-                <!-- Contenido derecho: Icono decorativo / Gráfico -->
                 <div
                     style="position: relative; z-index: 2; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);">
                     <div
@@ -191,16 +169,17 @@
                 </div>
             </div>
 
-            <!--  SECCIÓN TENDENCIAS JUEGOS -->
+            <!-- TENDENCIAS JUEGOS -->
             <div class="trends-container">
                 <div class="trends-header">
-                    <h2 class="section-title">
+                    <h2 class="section-title" id="trends-games-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Juegos
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="week">Esta semana</button>
-                        <button class="trend-tab" data-period="month">Este mes</button>
-                        <button class="trend-tab" data-period="year">Este año</button>
+                        <button class="trend-tab active" data-period="week" id="trend-tab-games-week">Esta
+                            semana</button>
+                        <button class="trend-tab" data-period="month" id="trend-tab-games-month">Este mes</button>
+                        <button class="trend-tab" data-period="year" id="trend-tab-games-year">Este año</button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-games">
@@ -211,15 +190,15 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS PELÍCULAS -->
+            <!-- TENDENCIAS PELÍCULAS -->
             <div class="trends-container">
                 <div class="trends-header">
-                    <h2 class="section-title">
+                    <h2 class="section-title" id="trends-movies-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Películas
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="day">Hoy</button>
-                        <button class="trend-tab" data-period="week">Esta semana</button>
+                        <button class="trend-tab active" data-period="day" id="trend-tab-movies-day">Hoy</button>
+                        <button class="trend-tab" data-period="week" id="trend-tab-movies-week">Esta semana</button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-movies">
@@ -230,15 +209,15 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS SERIES -->
+            <!-- TENDENCIAS SERIES -->
             <div class="trends-container">
                 <div class="trends-header">
-                    <h2 class="section-title">
+                    <h2 class="section-title" id="trends-series-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Series
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="day">Hoy</button>
-                        <button class="trend-tab" data-period="week">Esta semana</button>
+                        <button class="trend-tab active" data-period="day" id="trend-tab-series-day">Hoy</button>
+                        <button class="trend-tab" data-period="week" id="trend-tab-series-week">Esta semana</button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-series">
@@ -249,10 +228,10 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN ÚLTIMOS TRÁILERS -->
+            <!-- ÚLTIMOS TRÁILERS -->
             <div class="trends-container">
                 <div class="trends-header">
-                    <h2 class="section-title">
+                    <h2 class="section-title" id="trailers-title">
                         <i class="fas fa-play-circle" style="color: var(--primary);"></i> Últimos Tráilers
                     </h2>
                 </div>
@@ -271,11 +250,10 @@
             </div>
         </section>
 
-        <!-- vista de juegos -->
+        <!-- ===== GAMES ===== -->
         <section id="games" class="view">
             <div class="games-layout">
 
-                <!-- zona izquierda con los juegos -->
                 <div class="games-content">
                     <div class="search-box glass-panel">
                         <input type="text" id="search-juegos" placeholder="Buscar juegos..." autocomplete="off">
@@ -288,12 +266,9 @@
                     <div id="games-grid" class="cyber-grid" data-needs-init="true"></div>
                 </div>
 
-                <!-- overlay oscuro para cerrar el drawer -->
                 <div id="filters-overlay" class="filters-overlay"></div>
 
-                <!-- zona derecha con los filtros -->
                 <aside class="filter-sidebar glass-panel">
-                    <!-- botón cerrar — solo visible en móvil dentro del drawer -->
                     <div class="filter-drawer-close-row">
                         <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
                         <button id="btn-close-filters-drawer" aria-label="Cerrar filtros">
@@ -306,9 +281,8 @@
                     </div>
 
                     <div class="filters-scroll-area">
-                        <!-- filtro de tiendas -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-stores">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
                             </div>
                             <div class="accordion-content">
@@ -335,9 +309,8 @@
                             </div>
                         </div>
 
-                        <!-- filtro de plataformas -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-plats">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
                             </div>
                             <div class="accordion-content">
@@ -376,18 +349,11 @@
                             </div>
                         </div>
 
-                        <!-- filtro de precios -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-price">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PRECIO</span>
                             </div>
                             <div class="accordion-content">
-                                <!-- <div class="fake-range-slider">
-                                    <div class="track"></div>
-                                    <div class="thumb left"></div>
-                                    <div class="thumb right"></div>
-                                </div> -->
-
                                 <div class="price-inputs-row">
                                     <div class="price-box">
                                         <label>Min</label>
@@ -407,9 +373,8 @@
                             </div>
                         </div>
 
-                        <!-- filtro de generos -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-genres">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TOP GÉNEROS</span>
                             </div>
                             <div class="accordion-content">
@@ -512,9 +477,8 @@
                             </div>
                         </div>
 
-                        <!-- filtro de fechas de salida -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-date">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE SALIDA</span>
                             </div>
                             <div class="accordion-content">
@@ -528,9 +492,8 @@
                             </div>
                         </div>
 
-                        <!-- filtro de jugadores -->
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-modes">
                                 <span>
                                     <i class="fas fa-chevron-down chevron-icon"></i> JUGADORES
                                 </span>
@@ -567,7 +530,7 @@
             </div>
         </section>
 
-        <!-- vista de peliculas -->
+        <!-- ===== MOVIES ===== -->
         <section id="movies" class="view">
             <div class="games-layout">
                 <div class="games-content">
@@ -601,7 +564,7 @@
                         style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
                         <div class="accordion-header"
                             style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <span style="color: var(--error);">
+                            <span style="color: var(--error);" id="filter-adult">
                                 <i class="fas fa-exclamation-triangle"
                                     style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
                             </span>
@@ -675,7 +638,6 @@
                                 <input type="text" id="search-lang-movie" class="cyber-input mini-search"
                                     placeholder="Buscar idioma/país...">
                                 <div id="lang-list-movie">
-                                    <!-- Grupo OCCIDENTALES - Solo Español e Inglés -->
                                     <div class="lang-group">
                                         <div class="lang-group-title"
                                             style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
@@ -687,7 +649,6 @@
                                                 value="US"><span class="box"></span> Inglés (EE.UU)</label>
                                     </div>
 
-                                    <!-- Grupo ASIÁTICOS - Solo Corea, Japón, China -->
                                     <div class="lang-group">
                                         <div class="lang-group-title"
                                             style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
@@ -701,7 +662,6 @@
                                                 value="CN"><span class="box"></span> China</label>
                                     </div>
 
-                                    <!-- Grupo OTROS (solo aparece al buscar) -->
                                     <div class="lang-group" id="lang-extra-movie" style="display: none;">
                                         <div class="lang-group-title"
                                             style="color:var(--text-muted); font-size:0.7rem; margin:15px 0 5px; font-weight:bold; opacity:0.6;">
@@ -714,7 +674,7 @@
                         </div>
 
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-votes">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
                             </div>
                             <div class="accordion-content">
@@ -736,7 +696,7 @@
             </div>
         </section>
 
-        <!-- vista de series -->
+        <!-- ===== SERIES ===== -->
         <section id="series" class="view">
             <div class="games-layout">
                 <div class="games-content">
@@ -769,7 +729,7 @@
                         style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
                         <div class="accordion-header"
                             style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                            <span style="color: var(--error);">
+                            <span style="color: var(--error);" id="filter-adult-series">
                                 <i class="fas fa-exclamation-triangle"
                                     style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
                             </span>
@@ -843,7 +803,6 @@
                                 <input type="text" id="search-lang-tv" class="cyber-input mini-search"
                                     placeholder="Buscar idioma/país...">
                                 <div id="lang-list-tv">
-                                    <!-- Grupo OCCIDENTALES - Solo Español e Inglés -->
                                     <div class="lang-group">
                                         <div class="lang-group-title"
                                             style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
@@ -855,7 +814,6 @@
                                                 class="box"></span> Inglés (EE.UU)</label>
                                     </div>
 
-                                    <!-- Grupo ASIÁTICOS - Solo Corea, Japón, China -->
                                     <div class="lang-group">
                                         <div class="lang-group-title"
                                             style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
@@ -869,7 +827,6 @@
                                                 class="box"></span> China</label>
                                     </div>
 
-                                    <!-- Grupo OTROS (solo aparece al buscar) -->
                                     <div class="lang-group" id="lang-extra-tv" style="display: none;">
                                         <div class="lang-group-title"
                                             style="color:var(--text-muted); font-size:0.7rem; margin:15px 0 5px; font-weight:bold; opacity:0.6;">
@@ -882,7 +839,7 @@
                         </div>
 
                         <div class="accordion-item">
-                            <div class="accordion-header">
+                            <div class="accordion-header" id="filter-votes-series">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
                             </div>
                             <div class="accordion-content">
@@ -904,13 +861,13 @@
             </div>
         </section>
 
-        <!-- panel de control pa los admin -->
+        <!-- ===== ADMIN PANEL ===== -->
         <section id="admin-panel" class="view">
             <div class="cyber-container" style="max-width: 96%; width: 100%; margin: 0 auto; padding: 20px 0;">
                 <div class="hero-section glass-panel"
                     style="padding: 25px;margin-bottom: 7.5px;display: flex;gap: 7.5px;text-align: left;justify-content: space-between;align-items: center;">
                     <div>
-                        <h1
+                        <h1 id="admin-title"
                             style="color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; font-family: var(--font-cyber); font-weight: bold;">
                             PANEL DE ADMINISTRACIÓN <span style="color: var(--text-muted);">//</span> <span
                                 style="color: var(--primary);">NEXUS</span>
@@ -939,12 +896,13 @@
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
-                            <span>USUARIOS EN BBDD</span>
+                            <span id="admin-total-users">USUARIOS EN BBDD</span>
                             <i class="fas fa-users" style="color: var(--text-secondary);"></i>
                         </div>
                         <div id="metric-total-users"
                             style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
-                            --</div>
+                            --
+                        </div>
 
                         <svg viewBox="0 0 100 20"
                             style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
@@ -1024,8 +982,8 @@
                             style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
                             <h2
                                 style="font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-id-card-alt" style="color: var(--text-secondary);"></i> GESTIÓN DE
-                                USUARIOS Y ROLES
+                                <i class="fas fa-id-card-alt" style="color: var(--text-secondary);"></i> <span
+                                    id="admin-users">GESTIÓN DE USUARIOS Y ROLES</span>
                             </h2>
                             <div style="display: flex; gap: 12px; align-items: center;">
                                 <button id="btn-admin-create-test-user" class="auth-btn primary"
@@ -1047,22 +1005,22 @@
                             <table class="cyber-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr>
-                                        <th
+                                        <th id="admin-username"
                                             style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             USUARIO</th>
-                                        <th
+                                        <th id="admin-email"
                                             style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             EMAIL</th>
-                                        <th
+                                        <th id="admin-joined"
                                             style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             REGISTRO</th>
-                                        <th
+                                        <th id="admin-verified"
                                             style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ESTADO</th>
-                                        <th
+                                        <th id="admin-role"
                                             style="padding: 15px; text-align: left; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ROL</th>
-                                        <th
+                                        <th id="admin-actions"
                                             style="padding: 15px; text-align: right; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; border-bottom: 1px solid var(--border-color);">
                                             ACCIONES</th>
                                     </tr>
@@ -1087,8 +1045,8 @@
                                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
                                 <h2
                                     style="font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-terminal" style="color: var(--text-secondary);"></i> REGISTRO DE
-                                    EVENTOS
+                                    <i class="fas fa-terminal" style="color: var(--text-secondary);"></i> <span
+                                        id="admin-terminal-title">REGISTRO DE EVENTOS</span>
                                 </h2>
                             </div>
 
@@ -1128,7 +1086,7 @@
             </div>
         </section>
 
-        <!-- vista pa loguearse -->
+        <!-- ===== LOGIN ===== -->
         <section id="login" class="view auth-page">
             <div class="auth-page-inner">
                 <div class="auth-brand">
@@ -1136,11 +1094,12 @@
                     <p class="auth-tagline">Tu nexus personal de entretenimiento.</p>
                 </div>
                 <div class="auth-card glass-panel">
-                    <h2 class="auth-title">Bienvenido de nuevo</h2>
-                    <p class="auth-subtitle">Introduce tu usuario o correo y contraseña para acceder.</p>
+                    <h2 class="auth-title" id="login-title">Bienvenido de nuevo</h2>
+                    <p class="auth-subtitle" id="login-subtitle">Introduce tu usuario o correo y contraseña para
+                        acceder.</p>
                     <form id="form-login" class="auth-form" method="post">
                         <div class="field-group">
-                            <label class="field-label">Usuario o Correo electrónico</label>
+                            <label class="field-label" id="login-identifier-label">Usuario o Correo electrónico</label>
                             <div class="field-wrapper">
                                 <i class="fas fa-user field-icon"></i>
                                 <input type="text" id="login-identifier" name="identifier" class="cyber-input"
@@ -1148,7 +1107,7 @@
                             </div>
                         </div>
                         <div class="field-group">
-                            <label class="field-label">Contraseña</label>
+                            <label class="field-label" id="login-password-label">Contraseña</label>
                             <div class="field-wrapper password-wrapper">
                                 <i class="fas fa-lock field-icon"></i>
                                 <input type="password" id="login-password" name="password" class="cyber-input"
@@ -1171,7 +1130,7 @@
             </div>
         </section>
 
-        <!-- vista pa registrarse -->
+        <!-- ===== REGISTER ===== -->
         <section id="register" class="view auth-page">
             <div class="auth-page-inner">
                 <div class="auth-brand">
@@ -1179,12 +1138,14 @@
                     <p class="auth-tagline">Únete al nexus. Es gratis.</p>
                 </div>
                 <div class="auth-card glass-panel">
-                    <h2 class="auth-title">Crear una cuenta</h2>
-                    <p class="auth-subtitle">Crear una cuenta es fácil y gratis. Rellena el formulario para empezar.</p>
+                    <h2 class="auth-title" id="register-title">Crear una cuenta</h2>
+                    <p class="auth-subtitle" id="register-subtitle">Crear una cuenta es fácil y gratis. Rellena el
+                        formulario para empezar.</p>
                     <form id="form-register" class="auth-form" method="post">
                         <div class="fields-row">
                             <div class="field-group">
-                                <label class="field-label">Nombre de usuario <span class="required">*</span></label>
+                                <label class="field-label" id="register-username-label">Nombre de usuario <span
+                                        class="required">*</span></label>
                                 <div class="field-wrapper">
                                     <i class="fas fa-at field-icon"></i>
                                     <input type="text" id="register-username" name="username" class="cyber-input"
@@ -1192,7 +1153,8 @@
                                 </div>
                             </div>
                             <div class="field-group">
-                                <label class="field-label">Fecha de nacimiento <span class="required">*</span></label>
+                                <label class="field-label" id="register-birthdate-label">Fecha de nacimiento <span
+                                        class="required">*</span></label>
                                 <div class="field-wrapper">
                                     <i class="fas fa-calendar field-icon"></i>
                                     <input type="date" id="register-birthdate" name="birthdate"
@@ -1201,7 +1163,8 @@
                             </div>
                         </div>
                         <div class="field-group">
-                            <label class="field-label">Correo electrónico <span class="required">*</span></label>
+                            <label class="field-label" id="register-email-label">Correo electrónico <span
+                                    class="required">*</span></label>
                             <div class="field-wrapper">
                                 <i class="fas fa-envelope field-icon"></i>
                                 <input type="email" id="register-email" name="email" class="cyber-input"
@@ -1209,7 +1172,8 @@
                             </div>
                         </div>
                         <div class="field-group">
-                            <label class="field-label">Confirmar correo <span class="required">*</span></label>
+                            <label class="field-label" id="register-email-confirm-label">Confirmar correo <span
+                                    class="required">*</span></label>
                             <div class="field-wrapper">
                                 <i class="fas fa-envelope-open field-icon"></i>
                                 <input type="email" id="register-email-confirm" name="email_confirm" class="cyber-input"
@@ -1218,7 +1182,8 @@
                         </div>
                         <div class="fields-row">
                             <div class="field-group">
-                                <label class="field-label">Contraseña <span class="required">*</span></label>
+                                <label class="field-label" id="register-password-label">Contraseña <span
+                                        class="required">*</span></label>
                                 <div class="field-wrapper password-wrapper">
                                     <i class="fas fa-lock field-icon"></i>
                                     <input type="password" id="register-password" name="password" class="cyber-input"
@@ -1229,7 +1194,8 @@
                                 </div>
                             </div>
                             <div class="field-group">
-                                <label class="field-label">Confirmar contraseña <span class="required">*</span></label>
+                                <label class="field-label" id="register-password-confirm-label">Confirmar contraseña
+                                    <span class="required">*</span></label>
                                 <div class="field-wrapper password-wrapper">
                                     <i class="fas fa-lock field-icon"></i>
                                     <input type="password" id="register-password-confirm" name="password_confirm"
@@ -1258,7 +1224,7 @@
             </div>
         </section>
 
-        <!-- esperando a que confirme el correo -->
+        <!-- ===== WAITING CONFIRMATION ===== -->
         <section id="waiting-confirmation" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -1267,8 +1233,9 @@
                 <div class="auth-card glass-panel">
                     <i class="fas fa-envelope-open-text"
                         style="font-size: 4rem; color: var(--warning); margin-bottom: 10px; text-shadow: 0 0 15px var(--warning);"></i>
-                    <h2 class="auth-title">Verifica tu correo</h2>
-                    <p class="auth-subtitle">Hemos enviado un enlace de confirmación a tu correo electrónico. Por favor,
+                    <h2 class="auth-title" id="waiting-title">Verifica tu correo</h2>
+                    <p class="auth-subtitle" id="waiting-subtitle">Hemos enviado un enlace de confirmación a tu correo
+                        electrónico. Por favor,
                         haz clic en él para activar tu cuenta y acceder al Nexus.</p>
                     <button class="auth-btn secondary" id="btn-waiting-login" style="margin-top: 10px;">
                         <i class="fas fa-arrow-left"></i> VOLVER AL LOGIN
@@ -1277,7 +1244,7 @@
             </div>
         </section>
 
-        <!-- la cuenta ya esta verificada -->
+        <!-- ===== VERIFIED ACCOUNT ===== -->
         <section id="verified-account" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -1286,8 +1253,9 @@
                 <div class="auth-card glass-panel">
                     <i class="fas fa-check-circle"
                         style="font-size: 4rem; color: var(--success); margin-bottom: 10px; text-shadow: 0 0 15px var(--success);"></i>
-                    <h2 class="auth-title">¡Identidad Confirmada!</h2>
-                    <p class="auth-subtitle">Tu correo ha sido verificado en el sistema. Ya tienes acceso total al
+                    <h2 class="auth-title" id="verified-title">¡Identidad Confirmada!</h2>
+                    <p class="auth-subtitle" id="verified-subtitle">Tu correo ha sido verificado en el sistema. Ya
+                        tienes acceso total al
                         Nexus.</p>
 
                     <button class="auth-btn primary" id="btn-go-home-verified" style="margin-top: 10px;">
@@ -1297,7 +1265,7 @@
             </div>
         </section>
 
-        <!-- el perfil del usuario -->
+        <!-- ===== PROFILE ===== -->
         <section id="profile" class="view">
             <div class="profile-layout">
                 <div class="profile-banner glass-panel" id="banner-edit-trigger">
@@ -1317,29 +1285,26 @@
                     </div>
                 </div>
                 <div class="profile-stats-wrapper">
-                    <!-- boton pa agregar amigos -->
                     <button class="icon-btn add-friend-btn" id="btn-add-friend" title="Añadir nuevo amigo">
                         <i class="fas fa-user-plus"></i>
                     </button>
 
-                    <!-- estadisticas sociales -->
                     <div class="profile-stats">
                         <div class="stat-box" id="btn-ver-siguiendo">
                             <span class="stat-num">0</span>
-                            <span class="stat-label">Siguiendo</span>
+                            <span class="stat-label" id="profile-stats-following">Siguiendo</span>
                         </div>
                         <div class="stat-divider"></div>
                         <div class="stat-box" id="btn-ver-seguidores">
                             <span class="stat-num">0</span>
-                            <span class="stat-label">Seguidores</span>
+                            <span class="stat-label" id="profile-stats-followers">Seguidores</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- estadisticas principales -->
                 <div class="profile-detailed-stats">
                     <div class="stats-header">
-                        <h2>Estadísticas</h2>
+                        <h2 id="profile-stats">Estadísticas</h2>
                         <button class="icon-btn stats-arrow-btn" id="btn-open-stats-modal">
                             <i class="fas fa-chevron-right"></i>
                         </button>
@@ -1347,17 +1312,22 @@
 
                     <div class="stats-cards-wrapper">
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-tv"></i> Tiempo de series</div>
+                            <div class="stats-card-header"><i class="fas fa-tv"></i> <span id="profile-series">Tiempo de
+                                    series</span></div>
                             <div class="stats-card-body multi-number">
-                                <div><span class="num" id="stat-series-months">0</span><span class="lbl">MESES</span>
+                                <div><span class="num" id="stat-series-months">0</span><span class="lbl"
+                                        id="profile-months">MESES</span>
                                 </div>
-                                <div><span class="num" id="stat-series-days">0</span><span class="lbl">DÍAS</span></div>
-                                <div><span class="num" id="stat-series-hours">0</span><span class="lbl">HORAS</span>
+                                <div><span class="num" id="stat-series-days">0</span><span class="lbl"
+                                        id="profile-days">DÍAS</span></div>
+                                <div><span class="num" id="stat-series-hours">0</span><span class="lbl"
+                                        id="profile-hours">HORAS</span>
                                 </div>
                             </div>
                         </div>
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-tv"></i> Episodios vistos</div>
+                            <div class="stats-card-header"><i class="fas fa-tv"></i> <span
+                                    id="profile-series-episodes">Episodios vistos</span></div>
                             <div class="stats-card-body single-number">
                                 <span class="num" id="stat-series-episodes">0</span>
                             </div>
@@ -1366,17 +1336,22 @@
                         <div class="stats-main-divider"></div>
 
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-film"></i> Tiempo de cine</div>
+                            <div class="stats-card-header"><i class="fas fa-film"></i> <span id="profile-movies">Tiempo
+                                    de cine</span></div>
                             <div class="stats-card-body multi-number">
-                                <div><span class="num" id="stat-movies-months">0</span><span class="lbl">MESES</span>
+                                <div><span class="num" id="stat-movies-months">0</span><span class="lbl"
+                                        id="profile-movies-months">MESES</span>
                                 </div>
-                                <div><span class="num" id="stat-movies-days">0</span><span class="lbl">DÍAS</span></div>
-                                <div><span class="num" id="stat-movies-hours">0</span><span class="lbl">HORAS</span>
+                                <div><span class="num" id="stat-movies-days">0</span><span class="lbl"
+                                        id="profile-movies-days">DÍAS</span></div>
+                                <div><span class="num" id="stat-movies-hours">0</span><span class="lbl"
+                                        id="profile-movies-hours">HORAS</span>
                                 </div>
                             </div>
                         </div>
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-film"></i> Películas vistas</div>
+                            <div class="stats-card-header"><i class="fas fa-film"></i> <span
+                                    id="profile-movies-count">Películas vistas</span></div>
                             <div class="stats-card-body single-number">
                                 <span class="num" id="stat-movies-count">0</span>
                             </div>
@@ -1388,7 +1363,8 @@
 
                     <div id="watchlist-section" class="watchlist-section">
                         <div class="watchlist-tabs">
-                            <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
+                            <button class="watchlist-tab active" data-tab="pendiente" id="watchlist-title">LISTA
+                                PENDIENTE</button>
                             <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
                                 <i class="fas fa-th-large"></i>
                             </button>
@@ -1411,14 +1387,12 @@
                         </div>
 
                         <div id="recommendations-list" class="watchlist-list">
-                            <!-- ESTADO DE CARGA -->
                             <div id="rec-loading" class="watchlist-loading"
                                 style="display: flex; justify-content: center; padding: 40px 0;">
                                 <i class="fas fa-circle-notch fa-spin"
                                     style="font-size: 1.8rem; color: var(--text-muted);"></i>
                             </div>
 
-                            <!-- ESTADO VACÍO -->
                             <div id="rec-empty" class="watchlist-empty"
                                 style="display: none; text-align: center; padding: 40px 20px;">
                                 <i class="fas fa-compass"
@@ -1437,15 +1411,12 @@
             </div>
         </section>
 
-        <!-- ============================================================ -->
-        <!-- VISTA: EDITAR PERFIL (ESTILO ADMIN)                          -->
-        <!-- ============================================================ -->
+        <!-- ===== EDIT PROFILE ===== -->
         <section id="edit-profile" class="view">
             <div class="edit-profile-admin-container">
-                <!-- HEADER como el de admin -->
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
-                        <h1>
+                        <h1 id="edit-profile-title">
                             EDITAR PERFIL <span class="edit-profile-admin-divider">//</span> <span
                                 class="edit-profile-admin-nexus">NEXUS</span>
                         </h1>
@@ -1460,10 +1431,8 @@
                     </div>
                 </div>
 
-                <!-- GRID PRINCIPAL como el admin-dashboard-layout -->
                 <div class="edit-profile-admin-grid">
 
-                    <!-- COLUMNA IZQUIERDA: FORMULARIO -->
                     <div class="edit-profile-admin-form glass-panel">
                         <div class="edit-profile-admin-section-header">
                             <h2>
@@ -1474,9 +1443,8 @@
 
                         <form id="form-edit-profile" class="auth-form">
 
-                            <!-- Correo electrónico (BORROSO) -->
                             <div class="field-group">
-                                <label class="field-label">
+                                <label class="field-label" id="edit-profile-email">
                                     <i class="fas fa-envelope"></i> Correo electrónico
                                     <span class="edit-profile-reveal-hint">(clic para revelar)</span>
                                 </label>
@@ -1489,10 +1457,9 @@
                                 </p>
                             </div>
 
-                            <!-- Nombre de usuario -->
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-at"></i> Nombre de usuario <span
-                                        class="required">*</span></label>
+                                <label class="field-label" id="edit-profile-username"><i class="fas fa-at"></i> Nombre
+                                    de usuario <span class="required">*</span></label>
                                 <div class="field-wrapper">
                                     <i class="fas fa-user field-icon"></i>
                                     <input type="text" id="edit-username" class="cyber-input" placeholder="nexus_user42"
@@ -1500,10 +1467,10 @@
                                 </div>
                             </div>
 
-                            <!-- Nombre y Apellidos (2 columnas) -->
                             <div class="fields-row">
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-user-tag"></i> Nombre</label>
+                                    <label class="field-label" id="edit-profile-firstname"><i
+                                            class="fas fa-user-tag"></i> Nombre</label>
                                     <div class="field-wrapper">
                                         <i class="fas fa-user field-icon"></i>
                                         <input type="text" id="edit-firstname" class="cyber-input"
@@ -1511,7 +1478,8 @@
                                     </div>
                                 </div>
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-user-tag"></i> Apellidos</label>
+                                    <label class="field-label" id="edit-profile-lastname"><i
+                                            class="fas fa-user-tag"></i> Apellidos</label>
                                     <div class="field-wrapper">
                                         <i class="fas fa-user field-icon"></i>
                                         <input type="text" id="edit-lastname" class="cyber-input"
@@ -1520,9 +1488,9 @@
                                 </div>
                             </div>
 
-                            <!-- Selector de Sexo (CUSTOM) -->
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-venus-mars"></i> Sexo</label>
+                                <label class="field-label" id="edit-profile-gender"><i class="fas fa-venus-mars"></i>
+                                    Sexo</label>
                                 <div class="cyber-select-wrapper" id="gender-select-wrapper">
                                     <div class="cyber-select-trigger" id="gender-select-trigger">
                                         <span id="gender-select-label">--</span>
@@ -1549,26 +1517,21 @@
                                 <input type="hidden" id="edit-gender" value="--">
                             </div>
 
-                            <!-- COLOR DESTACADO (Selector de colores) -->
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-palette"></i> Color destacado</label>
+                                <label class="field-label" id="edit-profile-color"><i class="fas fa-palette"></i> Color
+                                    destacado</label>
 
-                                <!-- FILA 1: Selector RGB Custom -->
                                 <div class="color-picker-row">
                                     <div class="color-picker-custom">
                                         <label class="color-picker-sub-label">🎨 RGB Custom</label>
                                         <div class="color-picker-custom-inner">
                                             <input type="color" id="edit-color-picker" value="#6366f1">
                                             <span class="color-picker-hex" id="edit-color-hex-display">#6366f1</span>
-                                            <!-- <div id="edit-color-preview" class="color-preview"
-                                                style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--border-color); background-color: #6366f1;">
-                                            </div> -->
                                         </div>
                                     </div>
 
                                     <div class="color-picker-divider"></div>
 
-                                    <!-- FILA 2: Colores Preseleccionados -->
                                     <div class="color-picker-presets">
                                         <label class="color-picker-sub-label">⚡ Preseleccionados</label>
                                         <div class="color-presets">
@@ -1610,9 +1573,9 @@
                                 </div>
                             </div>
 
-                            <!-- Descripción -->
                             <div class="field-group">
-                                <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
+                                <label class="field-label" id="edit-profile-description"><i
+                                        class="fas fa-align-left"></i> Descripción</label>
                                 <div class="textarea-wrapper">
                                     <textarea id="edit-description" class="cyber-input edit-description-textarea"
                                         placeholder="Cuéntanos sobre ti... (máx. 1500 caracteres)" maxlength="1500"
@@ -1621,14 +1584,12 @@
                                 </div>
                             </div>
 
-                            <!-- BOTÓN GUARDAR -->
                             <button type="submit" id="btn-save-profile" class="auth-btn primary full-width">
                                 <i class="fas fa-save"></i> GUARDAR CAMBIOS
                             </button>
                         </form>
                     </div>
 
-                    <!-- COLUMNA DERECHA: ACCIONES (como el side panel del admin) -->
                     <div class="edit-profile-admin-side">
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
@@ -1654,22 +1615,21 @@
                             </div>
                         </div>
 
-                        <!-- Panel de información adicional -->
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
                                 <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
                             </div>
                             <div class="edit-profile-admin-info-list">
                                 <div class="edit-profile-admin-info-item">
-                                    <span>Usuario</span>
+                                    <span id="edit-profile-username-label">Usuario</span>
                                     <span id="edit-profile-username-display">--</span>
                                 </div>
                                 <div class="edit-profile-admin-info-item">
-                                    <span>Miembro desde</span>
+                                    <span id="edit-profile-joined-label">Miembro desde</span>
                                     <span id="edit-profile-joined-display">--</span>
                                 </div>
                                 <div class="edit-profile-admin-info-item">
-                                    <span>Color destacado</span>
+                                    <span id="edit-profile-color-label">Color destacado</span>
                                     <span id="edit-profile-color-display"
                                         style="display: flex; align-items: center; gap: 8px;">
                                         <span id="edit-profile-color-dot"
@@ -1678,7 +1638,7 @@
                                     </span>
                                 </div>
                                 <div class="edit-profile-admin-info-item">
-                                    <span>Estado</span>
+                                    <span id="edit-profile-status-label">Estado</span>
                                     <span><i class="fas fa-check-circle"></i> Verificado</span>
                                 </div>
                             </div>
@@ -1688,7 +1648,9 @@
             </div>
         </section>
 
-        <!-- modal pa editar avatar o banner -->
+        <!-- ===== MODALS ===== -->
+
+        <!-- Modal de edición avatar/banner -->
         <div id="edit-modal" class="cyber-modal">
             <div class="modal-content glass-panel">
                 <div class="modal-header">
@@ -1701,7 +1663,7 @@
             </div>
         </div>
 
-        <!-- modal de detalles del juego -->
+        <!-- Modal de detalles del juego -->
         <div id="game-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
                 <button id="close-game-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
@@ -1724,7 +1686,7 @@
                         </div>
 
                         <div class="detail-desc-col glass-panel">
-                            <h3 class="detail-section-title">Descripción</h3>
+                            <h3 class="detail-section-title" id="detail-description-label">Descripción</h3>
                             <div class="desc-scroll-area">
                                 <p id="detail-description" class="game-desc-text">Estableciendo conexión con la base de
                                     datos...</p>
@@ -1737,37 +1699,37 @@
                         <div class="advanced-grid">
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-calendar-alt"></i></span>
-                                <span class="adv-label">Lanzamiento:</span>
+                                <span class="adv-label" id="detail-date-label">Lanzamiento:</span>
                                 <span class="adv-value" id="detail-date">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-code"></i></span>
-                                <span class="adv-label">Desarrollador:</span>
+                                <span class="adv-label" id="detail-dev-label">Desarrollador:</span>
                                 <span class="adv-value" id="detail-dev">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-building"></i></span>
-                                <span class="adv-label">Editor:</span>
+                                <span class="adv-label" id="detail-pub-label">Editor:</span>
                                 <span class="adv-value" id="detail-pub">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-tags"></i></span>
-                                <span class="adv-label">Géneros:</span>
+                                <span class="adv-label" id="detail-genres-label">Géneros:</span>
                                 <span class="adv-value" id="detail-genres">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-users"></i></span>
-                                <span class="adv-label">Modos:</span>
+                                <span class="adv-label" id="detail-modes-label">Modos:</span>
                                 <span class="adv-value" id="detail-modes">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-link"></i></span>
-                                <span class="adv-label">Enlaces:</span>
+                                <span class="adv-label" id="detail-links-label">Enlaces:</span>
                                 <span class="adv-value" id="detail-links">--</span>
                             </div>
                             <div class="advanced-item">
                                 <span class="adv-icon"><i class="fas fa-shopping-cart"></i></span>
-                                <span class="adv-label">Mejor Precio:</span>
+                                <span class="adv-label" id="detail-price-label">Mejor Precio:</span>
                                 <span class="adv-value" id="detail-price">--</span>
                             </div>
                         </div>
@@ -1776,18 +1738,15 @@
             </div>
         </div>
 
-        <!-- modal de detalles de peliculas/series -->
+        <!-- Modal de detalles de películas/series -->
         <div id="media-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
-                <!-- Botón de Cerrar -->
                 <button id="close-media-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- Contenedor del ojo y menú contextual + FAVORITOS -->
                 <div
                     style="position: absolute;top: 90px;right: 20px;z-index: 100;display: flex;gap: 10px;align-items: flex-end;">
-                    <!-- BOTÓN DE FAVORITOS (SOLO ICONO) -->
                     <div id="favorite-button-container" style="display: none; transform: translateY(4px);">
                         <button id="btn-add-to-favorites" class="favorite-btn-icon-only" title="Añadir a favoritos"
                             aria-label="Favoritos">
@@ -1795,7 +1754,6 @@
                         </button>
                     </div>
 
-                    <!-- Botón de OJO (estado de vista) -->
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
                         style="position: relative; top: 0; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
@@ -1803,7 +1761,6 @@
                         <span id="watch-count-badge" class="watch-count-badge"></span>
                     </button>
 
-                    <!-- Menú contextual para el ojo (flotante) -->
                     <div id="watch-context-menu" class="theme-menu user-menu-panel"
                         style="position: absolute; top: 50px; right: 0; min-width: 180px; z-index: 100;">
                         <button class="theme-option" id="btn-context-rewatch">
@@ -1817,7 +1774,6 @@
                     </div>
                 </div>
 
-                <!-- Hero section -->
                 <div class="game-hero-section" id="media-detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
@@ -1826,7 +1782,6 @@
                     </div>
                 </div>
 
-                <!-- BARRA DE PROGRESO DE EPISODIOS (SOLO SERIES) -->
                 <div id="series-progress-container" style="display: none; padding: 0 40px; background: var(--bg-main);">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0 4px 0; gap: 15px;">
@@ -1849,7 +1804,6 @@
                     </div>
                 </div>
 
-                <!-- BOTÓN AÑADIR A FAVORITOS -->
                 <div id="favorite-button-container"
                     style="display: none; padding: 4px 40px 8px 40px; background: var(--bg-main); border-bottom: 1px solid var(--border-color);">
                     <button id="btn-add-to-favorites" class="auth-btn primary full-width"
@@ -1866,7 +1820,7 @@
                         </div>
 
                         <div class="detail-desc-col glass-panel padded-panel">
-                            <h3 class="detail-section-title">Sinopsis</h3>
+                            <h3 class="detail-section-title" id="media-detail-description-label">Sinopsis</h3>
                             <div class="desc-scroll-area">
                                 <p id="media-detail-description" class="game-desc-text">Cargando datos del servidor...
                                 </p>
@@ -1877,54 +1831,68 @@
                             <h3 class="detail-section-title">Detalles Técnicos</h3>
                             <div class="tech-info-content">
                                 <div class="tech-item" id="row-original-title">
-                                    <i class="fas fa-language"></i> <span id="media-detail-original-title">--</span>
+                                    <i class="fas fa-language"></i> <span id="media-detail-original-title-label">Título
+                                        original:</span> <span id="media-detail-original-title">--</span>
                                 </div>
                                 <div class="tech-item" id="row-release-date">
-                                    <i class="fas fa-calendar-day"></i> <span id="media-detail-release-date">--</span>
+                                    <i class="fas fa-calendar-day"></i> <span id="media-detail-release-date-label">Fecha
+                                        estreno:</span> <span id="media-detail-release-date">--</span>
                                 </div>
                                 <div class="tech-item" id="row-status">
-                                    <i class="fas fa-info-circle"></i> <span id="media-detail-status">--</span>
+                                    <i class="fas fa-info-circle"></i> <span
+                                        id="media-detail-status-label">Estado:</span> <span
+                                        id="media-detail-status">--</span>
                                 </div>
                                 <div class="tech-item" id="row-budget">
-                                    <i class="fas fa-dollar-sign"></i> <span id="media-detail-budget">--</span>
+                                    <i class="fas fa-dollar-sign"></i> <span
+                                        id="media-detail-budget-label">Presupuesto:</span> <span
+                                        id="media-detail-budget">--</span>
                                 </div>
 
                                 <div class="tech-divider" id="divider-tech-1"></div>
 
                                 <div class="tech-item" id="row-seasons" style="display: none;">
-                                    <i class="fas fa-layer-group"></i> <span id="media-detail-seasons-count">--</span>
+                                    <i class="fas fa-layer-group"></i> <span
+                                        id="media-detail-seasons-label">Temporadas:</span> <span
+                                        id="media-detail-seasons-count">--</span>
                                 </div>
                                 <div class="tech-item" id="row-episodes" style="display: none;">
-                                    <i class="fas fa-list-ol"></i> <span id="media-detail-episodes-count">--</span>
+                                    <i class="fas fa-list-ol"></i> <span
+                                        id="media-detail-episodes-label">Episodios:</span> <span
+                                        id="media-detail-episodes-count">--</span>
                                 </div>
                                 <div class="tech-item" id="row-duration">
-                                    <i class="fas fa-clock"></i> <span id="media-detail-duration">--</span>
+                                    <i class="fas fa-clock"></i> <span id="media-detail-duration-label">Duración:</span>
+                                    <span id="media-detail-duration">--</span>
                                 </div>
                                 <div class="tech-item" id="row-genres">
-                                    <i class="fas fa-tags"></i> <span id="media-detail-genres">--</span>
+                                    <i class="fas fa-tags"></i> <span id="media-detail-genres-label">Géneros:</span>
+                                    <span id="media-detail-genres">--</span>
                                 </div>
 
                                 <div class="tech-divider" id="divider-tech-2"></div>
 
                                 <div class="tech-item" id="row-remaining-time">
-                                    <i class="fas fa-hourglass-half"></i> <span
-                                        id="media-detail-remaining-time">--</span>
+                                    <i class="fas fa-hourglass-half"></i> <span id="media-detail-remaining-label">Tiempo
+                                        restante:</span> <span id="media-detail-remaining-time">--</span>
                                 </div>
                                 <div class="tech-item" id="row-watch-date">
-                                    <i class="fas fa-calendar-alt"></i> <span id="media-detail-watch-date">--</span>
+                                    <i class="fas fa-calendar-alt"></i> <span id="media-detail-watch-date-label">Visto
+                                        el:</span> <span id="media-detail-watch-date">--</span>
                                 </div>
                                 <div class="tech-item" id="row-watch-status"
                                     style="display: flex; align-items: center; gap: 12px; opacity: 0.7;">
                                     <i id="icon-watch-status-text" class="fas fa-eye-slash"
                                         style="color: var(--text-muted);"></i>
-                                    <span id="media-detail-watch-status">No vista</span>
+                                    <span id="media-detail-watch-status-label">Estado:</span> <span
+                                        id="media-detail-watch-status">No vista</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="media-where-to-watch glass-panel padded-panel">
-                        <h3 class="detail-section-title">Dónde verlo</h3>
+                        <h3 class="detail-section-title" id="media-detail-providers-label">Dónde verlo</h3>
                         <div class="providers-3col-grid">
                             <div class="provider-col">
                                 <h4 class="provider-col-title">Retransmisión</h4>
@@ -1932,12 +1900,12 @@
                             </div>
 
                             <div class="provider-col">
-                                <h4 class="provider-col-title">Alquiler</h4>
+                                <h4 class="provider-col-title" id="media-detail-rent-label">Alquiler</h4>
                                 <div id="providers-rent" class="providers-icon-grid"></div>
                             </div>
 
                             <div class="provider-col">
-                                <h4 class="provider-col-title">Compra</h4>
+                                <h4 class="provider-col-title" id="media-detail-buy-label">Compra</h4>
                                 <div id="providers-buy" class="providers-icon-grid"></div>
                             </div>
                         </div>
@@ -1947,11 +1915,9 @@
                         style="display: none; margin-top: 15px;">
                     </div>
 
-                    <!-- FILA 3: TRÁILER, REPARTO Y VALORACIÓN (3 Columnas) -->
                     <div class="media-bottom-grid">
-                        <!-- Columna Izquierda: Tráiler -->
                         <div class="media-trailer-col glass-panel padded-panel">
-                            <h3 class="detail-section-title">Tráiler</h3>
+                            <h3 class="detail-section-title" id="media-detail-trailer-label">Tráiler</h3>
                             <div class="trailer-content">
                                 <div class="trailer-thumbnail-container">
                                     <img id="media-detail-trailer-img" src="" alt="Miniatura Trailer">
@@ -1963,9 +1929,8 @@
                             </div>
                         </div>
 
-                        <!-- Columna Central: Reparto Principal -->
                         <div class="media-cast-col glass-panel padded-panel">
-                            <h3 class="detail-section-title">Reparto Principal</h3>
+                            <h3 class="detail-section-title" id="media-detail-cast-label">Reparto Principal</h3>
                             <div class="cast-carousel" id="media-detail-cast">
                                 <div
                                     style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; width: 100%;">
@@ -1974,30 +1939,26 @@
                             </div>
                         </div>
 
-                        <!-- Columna 3: Valoración y Estado -->
                         <div class="media-rating-col glass-panel padded-panel"
                             style="display: flex; flex-direction: column; gap: 15px;">
-                            <!-- Mi Valoración Personal (DIV 1) -->
                             <div class="personal-rating-section"
                                 style="flex: 1; display: flex; flex-direction: column;">
-                                <h3 class="detail-section-title">Mi Valoración</h3>
+                                <h3 class="detail-section-title" id="media-detail-personal-label">Mi Valoración</h3>
                                 <div class="personal-rating-content" id="btn-personal-rating" style="flex: 1;">
-                                    <!-- 5 estrellas (cada entera = 2 puntos, media = 1 punto) -->
                                     <div class="rating-stars personal-stars" id="media-detail-personal-stars">
-                                        <i class="far fa-star" data-value="1"></i> <!-- 1 punto -->
-                                        <i class="far fa-star" data-value="2"></i> <!-- 2 puntos -->
-                                        <i class="far fa-star" data-value="3"></i> <!-- 3 puntos -->
-                                        <i class="far fa-star" data-value="4"></i> <!-- 4 puntos -->
-                                        <i class="far fa-star" data-value="5"></i> <!-- 5 puntos -->
+                                        <i class="far fa-star" data-value="1"></i>
+                                        <i class="far fa-star" data-value="2"></i>
+                                        <i class="far fa-star" data-value="3"></i>
+                                        <i class="far fa-star" data-value="4"></i>
+                                        <i class="far fa-star" data-value="5"></i>
                                     </div>
                                     <div id="media-detail-personal-text" class="rating-count">Debes marcarla como vista
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Valoración Global (DIV 2) -->
                             <div class="global-rating-section" style="flex: 1; display: flex; flex-direction: column;">
-                                <h3 class="detail-section-title">Valoración Global</h3>
+                                <h3 class="detail-section-title" id="media-detail-rating-label">Valoración Global</h3>
                                 <div class="rating-content global-rating-mini"
                                     style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div class="rating-score">
@@ -2017,7 +1978,7 @@
             </div>
         </div>
 
-        <!-- modal pa buscar y agregar amigos -->
+        <!-- Modal añadir amigos -->
         <div id="add-friend-modal" class="cyber-modal">
             <div class="modal-content glass-panel add-friend-panel">
                 <button id="close-add-friend-modal" class="icon-btn close-floating-btn" title="Cerrar búsqueda">
@@ -2051,7 +2012,7 @@
             </div>
         </div>
 
-        <!-- modal para seguidores y siguiendo -->
+        <!-- Modal social (siguiendo/seguidores) -->
         <div id="social-list-modal" class="cyber-modal">
             <div class="modal-content glass-panel social-list-panel" style="display: flex; flex-direction: column;">
                 <button id="close-social-list-modal" class="icon-btn close-floating-btn" title="Cerrar lista">
@@ -2092,65 +2053,63 @@
             </div>
         </div>
 
-        <!-- modal pa enviar anuncios globales -->
+        <!-- Modal anuncios -->
         <div id="announce-modal" class="cyber-modal">
             <div class="modal-content glass-panel announce-panel">
                 <button id="btn-close-announce" class="icon-btn close-floating-btn" title="Cerrar">
                     <i class="fas fa-times"></i>
                 </button>
 
-                <!-- cabecera -->
                 <div class="announce-header">
                     <div class="announce-icon-wrap">
                         <i class="fas fa-bullhorn"></i>
                     </div>
                     <div>
-                        <h2 class="announce-title glitch-text">TRANSMISIÓN GLOBAL</h2>
+                        <h2 class="announce-title glitch-text" id="announce-title">TRANSMISIÓN GLOBAL</h2>
                         <p class="announce-subtitle">Envía una alerta a los operadores del Nexus</p>
                     </div>
                 </div>
 
-                <!-- cuerpo -->
                 <div class="announce-body">
 
-                    <!-- SELECT CUSTOM: Destinatarios -->
                     <div class="field-group">
-                        <label class="field-label"><i class="fas fa-satellite-dish"></i> Destinatarios</label>
+                        <label class="field-label" id="announce-select"><i class="fas fa-satellite-dish"></i>
+                            Destinatarios</label>
                         <div class="cyber-select-wrapper" id="announce-select-wrapper">
                             <div class="cyber-select-trigger" id="announce-select-trigger">
                                 <span id="announce-select-label">Todos los Usuarios</span>
                                 <i class="fas fa-chevron-down cyber-select-arrow"></i>
                             </div>
                             <div class="cyber-select-dropdown" id="announce-select-dropdown">
-                                <div class="cyber-select-option selected" data-value="all_users">
+                                <div class="cyber-select-option selected" data-value="all_users"
+                                    id="announce-all-users">
                                     <i class="fas fa-users"></i> Todos los Usuarios
                                 </div>
-                                <div class="cyber-select-option" data-value="all_admins">
+                                <div class="cyber-select-option" data-value="all_admins" id="announce-admins">
                                     <i class="fas fa-user-shield"></i> Solo Administradores
                                 </div>
-                                <div class="cyber-select-option" data-value="specific_user">
+                                <div class="cyber-select-option" data-value="specific_user" id="announce-specific">
                                     <i class="fas fa-user-tag"></i> Usuario Específico...
                                 </div>
                             </div>
                         </div>
-                        <!-- input oculto real para leer el valor en JS -->
                         <input type="hidden" id="announce-target" value="all_users">
                     </div>
 
-                    <!-- campo usuario específico (oculto por defecto) -->
                     <div id="announce-specific-user-group" class="field-group" style="display: none;">
-                        <label class="field-label"><i class="fas fa-at"></i> Nombre de Usuario Destino</label>
+                        <label class="field-label" id="announce-specific-user"><i class="fas fa-at"></i> Nombre de
+                            Usuario Destino</label>
                         <div class="field-wrapper">
                             <i class="fas fa-user field-icon"></i>
-                            <input type="text" id="announce-specific-user" class="cyber-input"
+                            <input type="text" id="announce-specific-user-input" class="cyber-input"
                                 placeholder="Ej. Pacoporras">
                         </div>
                     </div>
 
-                    <!-- textarea del mensaje -->
                     <div class="field-group">
-                        <label class="field-label"><i class="fas fa-terminal"></i> Cuerpo del Mensaje</label>
-                        <textarea id="announce-message" class="cyber-input announce-textarea"
+                        <label class="field-label" id="announce-message"><i class="fas fa-terminal"></i> Cuerpo del
+                            Mensaje</label>
+                        <textarea id="announce-message-textarea" class="cyber-input announce-textarea"
                             placeholder="Escribe la notificación aquí..."></textarea>
                     </div>
 
@@ -2161,12 +2120,11 @@
             </div>
         </div>
 
-        <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
+        <!-- Modal de recorte -->
         <div id="crop-modal" class="cyber-modal">
             <div class="modal-content glass-panel"
                 style="max-width: 550px; max-height: 85vh; width: 92%; padding: 0; border-radius: 16px; overflow: hidden;">
 
-                <!-- Cabecera con botón de cerrar -->
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
                     <h2 id="crop-modal-title" class="glitch-text"
@@ -2179,17 +2137,14 @@
                     </button>
                 </div>
 
-                <!-- Cuerpo -->
                 <div style="padding: 20px 24px 24px 24px;">
 
-                    <!-- Contenedor de imagen -->
                     <div
                         style="width: 100%; aspect-ratio: 1 / 1; max-height: 320px; background: var(--bg-secondary); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img id="image-to-crop" src="" alt="Imagen a recortar"
                             style="width: 100%; height: 100%; object-fit: contain; display: block;">
                     </div>
 
-                    <!-- Botón -->
                     <button id="btn-save-crop" class="auth-btn primary full-width"
                         style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 1.5px; border-radius: 8px;">
                         <i class="fas fa-cloud-upload-alt" style="margin-right: 8px;"></i> SUBIR AVATAR
@@ -2203,19 +2158,19 @@
             </div>
         </div>
 
-        <!-- Inputs ocultos fuera del modal -->
+        <!-- Inputs ocultos -->
         <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
         <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
 
-        <!-- boton pa volver al tope -->
+        <!-- Botón scroll top -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
         </button>
 
-        <!-- contenedor de notificaciones -->
+        <!-- Toast container -->
         <div id="toast-container" class="toast-container"></div>
 
-        <!-- templates de notificaciones -->
+        <!-- Toast templates -->
         <template id="toast-success-template">
             <div class="toast-wrapper">
                 <div class="toast-alert toast-success">
@@ -2241,7 +2196,6 @@
             </div>
         </template>
 
-        <!-- template de notificacion de error -->
         <template id="toast-error-template">
             <div class="toast-wrapper">
                 <div class="toast-alert toast-error">
@@ -2270,7 +2224,7 @@
         </template>
     </main>
 
-    <!-- chat box para mensajes y notificaciones -->
+    <!-- Chatbox -->
     <div id="nexus-chatbox" class="chatbox-container collapsed">
         <div class="chatbox-nav-bar">
             <div class="chatbox-tabs" style="flex-grow: 1; width: auto;">

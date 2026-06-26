@@ -13,16 +13,30 @@ export default async function handler(req, res) {
     const dateMin = query.dateMin || '';
     const dateMax = query.dateMax || '';
     const modes = query.modes || '';
+    const lang = query.lang || 'es';
 
-    console.log('🔍 Tendencias - Parámetros:', { dateMin, dateMax, sortField, busqueda });
+    // Mapeo de idiomas a códigos IGDB (https://api-docs.igdb.com/#language)
+    // 169 = Español, 1 = Inglés, 3 = Francés, 4 = Italiano, 2 = Alemán, 28 = Chino simplificado, 9 = Japonés, 11 = Coreano
+    const langMap = {
+        'es': 169,
+        'en': 1,
+        'fr': 3,
+        'it': 4,
+        'de': 2,
+        'zh': 28,
+        'ja': 9,
+        'ko': 11
+    };
+    const igdbLang = langMap[lang] || 169; // Fallback a español
+
+    console.log('🔍 IGDB - Parámetros:', { dateMin, dateMax, sortField, busqueda, lang, igdbLang });
 
     try {
         const tokenRes = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`, { method: 'POST' });
         const { access_token } = await tokenRes.json();
 
-        // ✅ CACHÉ - Configurar al principio
         const esBusqueda = busqueda || sortField || dateMin || dateMax || platforms || genres;
-        const cacheTime = esBusqueda ? 1800 : 7200; // 30min búsquedas, 2h tendencias
+        const cacheTime = esBusqueda ? 1800 : 7200;
         res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
         let whereClauses = [];
@@ -73,7 +87,7 @@ export default async function handler(req, res) {
                 'Accept': 'application/json',
                 'Client-ID': TWITCH_CLIENT_ID,
                 'Authorization': `Bearer ${access_token}`,
-                'Language': '169'
+                'Language': igdbLang
             },
             body: bodyQuery
         });
@@ -140,7 +154,6 @@ export default async function handler(req, res) {
             return { ...juego, itad: infoPrecio };
         });
 
-        // El caché duplicado de aquí
         res.status(200).json(jsonFinal);
 
     } catch (error) {
