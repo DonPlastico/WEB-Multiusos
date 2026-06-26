@@ -1035,47 +1035,55 @@ function crearTarjetaTrend(juego, posicion) {
     return card;
 }
 
-// Inicializar tabs de tendencias (JUEGOS)
+// Inicializar tabs de tendencias de forma INDEPENDIENTE
 function initTrendTabs() {
-    const container = document.getElementById('trend-games');
-    const tabs = document.querySelectorAll('#home .trend-tab');
+    // 1. Buscamos todas las secciones de tendencias por separado
+    const seccionesTendencias = document.querySelectorAll('.trends-container');
 
-    // Eliminar event listeners antiguos clonando y reemplazando
-    tabs.forEach(tab => {
-        const newTab = tab.cloneNode(true);
-        tab.parentNode.replaceChild(newTab, tab);
-    });
+    seccionesTendencias.forEach(seccion => {
+        // 2. Buscamos las pestañas y el contenedor SOLO dentro de esta sección
+        const tabs = seccion.querySelectorAll('.trend-tab');
+        const scrollContainer = seccion.querySelector('.horizontal-scroll');
 
-    // Obtener los nuevos tabs
-    const newTabs = document.querySelectorAll('#home .trend-tab');
+        // Si esta sección no tiene pestañas, la ignoramos y pasamos a la siguiente
+        if (tabs.length === 0 || !scrollContainer) return;
 
-    newTabs.forEach(tab => {
-        tab.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
+        // 3. Averiguamos si esta sección es de juegos o de películas mirando su ID
+        const tipoTendencia = scrollContainer.id; // Será 'trend-games' o 'trend-movies'
 
-            // Solo afecta a los tabs de juegos
-            newTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Quitamos el 'active' SOLO a las pestañas de ESTA sección
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
 
-            const period = this.getAttribute('data-period');
+                const period = this.getAttribute('data-period');
 
-            // Reiniciar offset al cambiar de pestaña
-            trendOffset = 0;
-
-            if (container) {
-                container.style.opacity = '0.5';
-                container.style.transition = 'opacity 0.2s';
-            }
-
-            cargarTendencias(period, true);
-
-            setTimeout(() => {
-                if (container) {
-                    container.style.opacity = '1';
-                    container.scrollLeft = 0;
+                // Efecto visual de opacidad
+                if (scrollContainer) {
+                    scrollContainer.style.opacity = '0.5';
+                    scrollContainer.style.transition = 'opacity 0.2s';
                 }
-            }, 300);
+
+                // 4. LÓGICA DIVIDIDA: Dependiendo de la sección, llamamos a una API u otra
+                if (tipoTendencia === 'trend-games') {
+                    trendOffset = 0; // Solo reseteamos esto para juegos
+                    cargarTendencias(period, true);
+                }
+                else if (tipoTendencia === 'trend-movies') {
+                    // Llamamos a tu función de películas
+                    cargarTendenciasPeliculas(period, true);
+                }
+
+                // Restaurar opacidad y scroll
+                setTimeout(() => {
+                    if (scrollContainer) {
+                        scrollContainer.style.opacity = '1';
+                        // 🔥 FORZAR SCROLL AL PRINCIPIO
+                        scrollContainer.scrollLeft = 0;
+                    }
+                }, 300);
+            });
         });
     });
 }
