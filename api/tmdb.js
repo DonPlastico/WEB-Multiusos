@@ -217,8 +217,8 @@ export default async function handler(req, res) {
             const period = query.period || 'day'; // 'day' o 'week'
             const limit = parseInt(query.limit) || 20;
 
-            // Usar el endpoint real de trending de TMDB
-            const trendingUrl = `${baseUrl}/trending/movie/${period}?language=es-ES`;
+            // 1. Usar la variable ${tipo} en lugar de "movie"
+            const trendingUrl = `${baseUrl}/trending/${tipo}/${period}?language=es-ES`;
 
             const trendingRes = await fetch(trendingUrl, { headers });
             const trendingData = await trendingRes.json();
@@ -227,10 +227,11 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
-            // Obtener detalles adicionales para cada película (proveedores, etc.)
+            // 2. Obtener detalles adicionales usando también ${tipo}
             const trendingPromesas = trendingData.results.slice(0, limit).map(async (item) => {
                 try {
-                    const detailRes = await fetch(`${baseUrl}/movie/${item.id}?append_to_response=watch/providers,release_dates&language=es-ES`, { headers });
+                    // También añadimos content_ratings para las series
+                    const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=es-ES`, { headers });
                     return await detailRes.json();
                 } catch (e) {
                     console.warn('⚠️ Error obteniendo detalles de trending:', item.id, e.message);
@@ -247,15 +248,16 @@ export default async function handler(req, res) {
                     providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
                 }
 
+                // 3. Mapear dinámicamente según sea película o serie
                 return {
                     id: data.id,
                     adult: data.adult || false,
-                    titulo: data.title || 'Sin título',
+                    titulo: tipo === 'movie' ? data.title : data.name,
                     poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
-                    fecha: data.release_date || null,
+                    fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
                     nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
                     votos: data.vote_count || 0,
-                    duracion: data.runtime || null,
+                    duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || null),
                     plataformas: plataformas.length > 0 ? plataformas.join(', ') : 'No disponible en streaming',
                     generos: data.genres ? data.genres.map(g => g.name).join(', ') : 'N/A'
                 };
