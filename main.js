@@ -1073,51 +1073,53 @@ function crearTarjetaTrend(juego, posicion) {
     return card;
 }
 
-// Inicializar tabs de tendencias de forma INDEPENDIENTE
+// ==========================================================================
+//   SISTEMA UNIFICADO DE PESTAÑAS (GAMES, MOVIES Y SERIES)
+// ==========================================================================
 function initTrendTabs() {
-    // 1. Buscamos todas las secciones de tendencias por separado
     const seccionesTendencias = document.querySelectorAll('.trends-container');
 
     seccionesTendencias.forEach(seccion => {
-        // 2. Buscamos las pestañas y el contenedor SOLO dentro de esta sección
         const tabs = seccion.querySelectorAll('.trend-tab');
         const scrollContainer = seccion.querySelector('.horizontal-scroll');
 
-        // Si esta sección no tiene pestañas, la ignoramos y pasamos a la siguiente
         if (tabs.length === 0 || !scrollContainer) return;
 
-        // 3. Averiguamos si esta sección es de juegos o de películas mirando su ID
-        const tipoTendencia = scrollContainer.id; // Será 'trend-games' o 'trend-movies'
+        const tipoTendencia = scrollContainer.id;
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', function () {
-                // Quitamos el 'active' SOLO a las pestañas de ESTA sección
-                tabs.forEach(t => t.classList.remove('active'));
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
+
+            newTab.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const allTabsThisSection = seccion.querySelectorAll('.trend-tab');
+                allTabsThisSection.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
 
                 const period = this.getAttribute('data-period');
 
-                // Efecto visual de opacidad
                 if (scrollContainer) {
                     scrollContainer.style.opacity = '0.5';
                     scrollContainer.style.transition = 'opacity 0.2s';
                 }
 
-                // 4. LÓGICA DIVIDIDA: Dependiendo de la sección, llamamos a una API u otra
                 if (tipoTendencia === 'trend-games') {
-                    trendOffset = 0; // Solo reseteamos esto para juegos
+                    trendOffset = 0;
                     cargarTendencias(period, true);
                 }
                 else if (tipoTendencia === 'trend-movies') {
-                    // Llamamos a tu función de películas
                     cargarTendenciasPeliculas(period, true);
                 }
+                else if (tipoTendencia === 'trend-series') {
+                    cargarTendenciasSeries(period, true);
+                }
 
-                // Restaurar opacidad y scroll
                 setTimeout(() => {
                     if (scrollContainer) {
                         scrollContainer.style.opacity = '1';
-                        // 🔥 FORZAR SCROLL AL PRINCIPIO
                         scrollContainer.scrollLeft = 0;
                     }
                 }, 300);
@@ -8376,14 +8378,171 @@ cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = 
             cargarTendenciasPeliculas('day', true);
         }
     }
+
+    // Si es la vista de series, cargar tendencias de series
+    if (target === 'series') {
+        const containerSeries = document.getElementById('trend-series');
+        if (containerSeries && containerSeries.children.length === 0) {
+            cargarTendenciasSeries('day', true);
+        }
+    }
 };
 
-// ==========================================================================
-//   INICIALIZAR TENDENCIAS DE PELÍCULAS AL CARGAR LA PÁGINA
-// ==========================================================================
+// Variables de memoria y control para Series
+let trendSeriesCargando = false;
+let cacheTendenciasSeries = {}; // Memoria RAM (Caché)
+let trendSeriesPeriod = 'day';
 
-// Añadir al DOMContentLoaded existente o crear uno nuevo
+// Función para cargar tendencias de Series (Idéntica a Películas pero apuntando a TV)
+async function cargarTendenciasSeries(period = 'day', resetear = true) {
+    if (trendSeriesCargando) return;
+    trendSeriesCargando = true;
+
+    const container = document.getElementById('trend-series');
+    if (!container) {
+        trendSeriesCargando = false;
+        return;
+    }
+
+    // 🔥 1. INTERCEPTOR DE CACHÉ: Memoria instantánea
+    if (resetear && cacheTendenciasSeries[period]) {
+        container.innerHTML = '';
+
+        const seriesGuardadas = cacheTendenciasSeries[period].slice(0, 20);
+
+        seriesGuardadas.forEach((serie, index) => {
+            // Usamos la función de creación de tarjetas (debes tener una o usar la misma adaptada)
+            const card = crearTarjetaTrendSerie(serie, index + 1);
+            container.appendChild(card);
+        });
+
+        trendSeriesPeriod = period;
+        setTimeout(() => { container.scrollLeft = 0; }, 50);
+
+        trendSeriesCargando = false;
+        return; // Cortamos conexión a internet
+    }
+
+    if (resetear) {
+        container.innerHTML = `
+            <div class="trends-loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Cargando tendencias de series...</span>
+            </div>
+        `;
+    }
+
+    try {
+        // Asegúrate de enviar tipo=tv para que el backend de TMDB sepa que son series
+        const url = `/api/tmdb?tipo=tv&trending=true&period=${period}&limit=20&_=${Date.now()}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            container.innerHTML = `
+                <div class="trends-empty">
+                    <i class="fas fa-tv"></i>
+                    <span>No hay tendencias de series disponibles</span>
+                </div>
+            `;
+            trendSeriesCargando = false;
+            return;
+        }
+
+        // 🔥 2. GUARDAMOS EN CACHÉ
+        if (resetear) {
+            cacheTendenciasSeries[period] = data;
+        }
+
+        container.innerHTML = '';
+        const series = data.slice(0, 20);
+        series.forEach((serie, index) => {
+            // Pintamos
+            const card = crearTarjetaTrendSerie(serie, index + 1);
+            container.appendChild(card);
+        });
+
+        trendSeriesPeriod = period;
+
+        setTimeout(() => { container.scrollLeft = 0; }, 100);
+
+    } catch (error) {
+        console.error('Error cargando tendencias de series:', error);
+        container.innerHTML = `
+            <div class="trends-empty">
+                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                <span>Error al cargar tendencias</span>
+                <button onclick="cargarTendenciasSeries('${period}', true)" 
+                        style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+    }
+    trendSeriesCargando = false;
+}
+
+// Función para crear tarjeta de tendencia de película (usa trend-card)
+function crearTarjetaTrendSerie(serie, posicion) {
+    const card = document.createElement('div');
+    card.className = 'trend-card';
+    card.dataset.id = serie.id;
+    card.dataset.tipo = 'tv';
+    card.style.cursor = 'pointer';
+
+    const posterUrl = serie.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
+    const titulo = serie.titulo || 'Sin título';
+    const fecha = serie.fecha ? new Date(serie.fecha).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }) : 'Próximamente';
+
+    const rating = serie.nota || '0.0';
+
+    card.innerHTML = `
+        <div class="game-cover-container">
+            <div class="trend-position">#${posicion}</div>
+            <img src="${posterUrl}" alt="${titulo}" loading="lazy" 
+                 onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas fa-tv\\' style=\\'font-size:3rem;color:var(--text-muted);\\'></i></div>'">
+        </div>
+        <div class="game-info">
+            <h3 class="game-title">${titulo}</h3>
+            <div class="game-release-info">
+                <span class="date">${fecha}</span>
+                <span class="dot">•</span>
+                <span style="color:gold;font-size:0.7rem;">⭐ ${rating}</span>
+            </div>
+        </div>
+    `;
+
+    card.addEventListener('click', () => {
+        abrirModalMedia(serie.id, 'tv');
+    });
+
+    return card;
+}
+
+// Cargar tendencias de series al inicio
+function cargarTendenciasSeriesInicial() {
+    setTimeout(() => {
+        cargarTendenciasSeries('day', true);
+        const container = document.getElementById('trend-series');
+        if (container) {
+            setTimeout(() => { container.scrollLeft = 0; }, 100);
+        }
+    }, 700); // 100ms después de las pelis para no saturar la red de golpe
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar tendencias de películas
+    // 1. Inicializamos las funciones de carga de datos
+    cargarTendenciasInicial(); // La de juegos (asumo que la tienes arriba)
     cargarTendenciasPeliculasInicial();
+    cargarTendenciasSeriesInicial();
+
+    // 2. Activamos el vigilante de pestañas unificado para TODAS las secciones
+    setTimeout(() => {
+        initTrendTabs();
+    }, 800);
 });

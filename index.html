@@ -211,7 +211,7 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS PELÍCULAS - MISMO ESTILO QUE JUEGOS -->
+            <!-- SECCIÓN TENDENCIAS PELÍCULAS -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title">
@@ -230,10 +230,22 @@
                 </div>
             </div>
 
+            <!-- SECCIÓN TENDENCIAS SERIES -->
             <div class="trends-container">
-                <h2 class="section-title">Tendencias en Series</h2>
-                <div class="horizontal-scroll glass-panel" id="trend-series"><img src="img/prox.webp"
-                        alt="proximamente">
+                <div class="trends-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Series
+                    </h2>
+                    <div class="trends-tabs">
+                        <button class="trend-tab active" data-period="day">Hoy</button>
+                        <button class="trend-tab" data-period="week">Esta semana</button>
+                    </div>
+                </div>
+                <div class="horizontal-scroll glass-panel" id="trend-series">
+                    <div class="trends-loading" id="trend-series-loading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>Cargando tendencias...</span>
+                    </div>
                 </div>
             </div>
 
