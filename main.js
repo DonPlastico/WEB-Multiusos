@@ -8524,100 +8524,6 @@ function crearTarjetaTrendSerie(serie, posicion) {
     return card;
 }
 
-// ==========================================================================
-//   ÚLTIMOS TRÁILERS (CARRUSEL MIXTO: JUEGO > PELI > SERIE)
-// ==========================================================================
-
-async function cargarUltimosTrailers() {
-    const container = document.getElementById('latest-trailers');
-    if (!container) return;
-
-    try {
-        // 1. Obtenemos las fechas para los juegos (usamos la misma semana de tendencias)
-        const dateRange = getDateRange('week');
-
-        // 2. Definimos las 3 URLs
-        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
-        const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=day&limit=5&_=${Date.now()}`;
-        const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=day&limit=5&_=${Date.now()}`;
-
-        // 3. Disparamos las 3 peticiones A LA VEZ para que cargue rapidísimo
-        const [resJuegos, resPelis, resSeries] = await Promise.all([
-            fetch(urlJuegos).catch(() => ({ ok: false })),
-            fetch(urlPelis).catch(() => ({ ok: false })),
-            fetch(urlSeries).catch(() => ({ ok: false }))
-        ]);
-
-        // 4. Transformamos a JSON los que no hayan fallado
-        const dataJuegos = resJuegos.ok ? await resJuegos.json() : [];
-        const dataPelis = resPelis.ok ? await resPelis.json() : [];
-        const dataSeries = resSeries.ok ? await resSeries.json() : [];
-
-        // Cortamos en 5 por si la API nos devuelve de más
-        const juegos = Array.isArray(dataJuegos) ? dataJuegos.slice(0, 5) : [];
-        const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 5) : [];
-        const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 5) : [];
-
-        // 5. Intercalamos los arrays (1 juego, 1 peli, 1 serie...
-        const mezclados = [];
-        for (let i = 0; i < 5; i++) {
-            if (juegos[i]) mezclados.push({ tipo: 'game', data: juegos[i] });
-            if (pelis[i]) mezclados.push({ tipo: 'movie', data: pelis[i] });
-            if (series[i]) mezclados.push({ tipo: 'tv', data: series[i] });
-        }
-
-        container.innerHTML = '';
-
-        if (mezclados.length === 0) {
-            container.innerHTML = `
-                <div class="trends-empty">
-                    <i class="fas fa-video-slash"></i>
-                    <span>No se pudieron cargar los tráilers</span>
-                </div>
-            `;
-            return;
-        }
-
-        // 6. Pintamos el array mezclado reutilizando tus tarjetas
-        mezclados.forEach((item, index) => {
-            let card;
-
-            // Usamos las funciones que ya tienes
-            if (item.tipo === 'game') {
-                card = crearTarjetaTrend(item.data, index + 1);
-            } else if (item.tipo === 'movie') {
-                card = crearTarjetaTrendPelicula(item.data, index + 1);
-            } else if (item.tipo === 'tv') {
-                card = crearTarjetaTrendSerie(item.data, index + 1);
-            }
-
-            // MODIFICACIÓN VISUAL: Cambiamos el número de top por un icono de Play
-            const badge = card.querySelector('.trend-position');
-            if (badge) {
-                badge.innerHTML = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
-                badge.style.background = 'var(--primary)';
-                badge.style.color = '#fff';
-                badge.style.borderColor = 'var(--primary)';
-                badge.className = 'trend-position'; // Le quitamos las clases top1, top2, top3
-            }
-
-            container.appendChild(card);
-        });
-
-        // Forzar el scroll al inicio
-        setTimeout(() => { container.scrollLeft = 0; }, 100);
-
-    } catch (error) {
-        console.error("Error cargando los últimos tráilers:", error);
-        container.innerHTML = `
-            <div class="trends-empty">
-                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>Fallo al conectar con el servidor de tráilers</span>
-            </div>
-        `;
-    }
-}
-
 // Cargar tendencias de series al inicio
 function cargarTendenciasSeriesInicial() {
     setTimeout(() => {
@@ -8627,6 +8533,144 @@ function cargarTendenciasSeriesInicial() {
             setTimeout(() => { container.scrollLeft = 0; }, 100);
         }
     }, 700); // 100ms después de las pelis para no saturar la red de golpe
+}
+
+// ==========================================================================
+//   ÚLTIMOS TRÁILERS (CARRUSEL MIXTO: 5 JUEGOS + 5 PELIS + 5 SERIES = 15 TOTAL)
+// ==========================================================================
+
+async function cargarUltimosTrailers() {
+    const container = document.getElementById('latest-trailers');
+    if (!container) return;
+
+    // Mostrar loading
+    container.innerHTML = `
+        <div class="trends-loading">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span>Rastreando últimos tráilers...</span>
+        </div>
+    `;
+
+    try {
+        // 1. Obtener fecha para juegos (última semana)
+        const dateRange = getDateRange('week');
+
+        // 2. Definir URLs - pedimos 5 de cada uno
+        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
+        const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&_=${Date.now()}`;
+        const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&_=${Date.now()}`;
+
+        // 3. Disparamos las 3 peticiones en paralelo
+        const [resJuegos, resPelis, resSeries] = await Promise.all([
+            fetch(urlJuegos).catch(() => ({ ok: false })),
+            fetch(urlPelis).catch(() => ({ ok: false })),
+            fetch(urlSeries).catch(() => ({ ok: false }))
+        ]);
+
+        // 4. Convertir a JSON (si falló, array vacío)
+        const dataJuegos = resJuegos.ok ? await resJuegos.json() : [];
+        const dataPelis = resPelis.ok ? await resPelis.json() : [];
+        const dataSeries = resSeries.ok ? await resSeries.json() : [];
+
+        // Asegurar que sean arrays y tener exactamente 5 de cada uno (rellenar con placeholders si faltan)
+        const juegos = Array.isArray(dataJuegos) ? dataJuegos.slice(0, 5) : [];
+        const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 5) : [];
+        const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 5) : [];
+
+        // Rellenar con placeholders si faltan items (para mantener el formato)
+        while (juegos.length < 5) {
+            juegos.push({ id: `placeholder_game_${juegos.length}`, name: 'Próximo juego', cover: { url: '' }, first_release_date: null, placeholder: true });
+        }
+        while (pelis.length < 5) {
+            pelis.push({ id: `placeholder_movie_${pelis.length}`, titulo: 'Próxima película', poster: '', fecha: null, placeholder: true });
+        }
+        while (series.length < 5) {
+            series.push({ id: `placeholder_series_${series.length}`, titulo: 'Próxima serie', poster: '', fecha: null, placeholder: true });
+        }
+
+        // 5. Intercalar: juego1, peli1, serie1, juego2, peli2, serie2...
+        const mezclados = [];
+        for (let i = 0; i < 5; i++) {
+            if (juegos[i]) mezclados.push({ tipo: 'game', data: juegos[i] });
+            if (pelis[i]) mezclados.push({ tipo: 'movie', data: pelis[i] });
+            if (series[i]) mezclados.push({ tipo: 'tv', data: series[i] });
+        }
+
+        container.innerHTML = '';
+
+        // 6. Pintar cada item
+        mezclados.forEach((item, index) => {
+            let card;
+
+            // Si es placeholder, usar una tarjeta especial
+            if (item.data.placeholder) {
+                card = crearTarjetaPlaceholderTrailer(item.tipo);
+            } else if (item.tipo === 'game') {
+                card = crearTarjetaTrend(item.data, index + 1);
+            } else if (item.tipo === 'movie') {
+                card = crearTarjetaTrendPelicula(item.data, index + 1);
+            } else if (item.tipo === 'tv') {
+                card = crearTarjetaTrendSerie(item.data, index + 1);
+            }
+
+            // Si la tarjeta es válida, modificamos el badge por un icono PLAY
+            if (card) {
+                const badge = card.querySelector('.trend-position');
+                if (badge) {
+                    badge.innerHTML = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
+                    badge.style.background = 'var(--primary)';
+                    badge.style.color = '#fff';
+                    badge.style.borderColor = 'var(--primary)';
+                    badge.className = 'trend-position';
+                }
+                container.appendChild(card);
+            }
+        });
+
+        // Forzar scroll al inicio
+        setTimeout(() => { container.scrollLeft = 0; }, 100);
+
+    } catch (error) {
+        console.error("Error cargando los últimos tráilers:", error);
+        container.innerHTML = `
+            <div class="trends-empty">
+                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                <span>Fallo al conectar con el servidor de tráilers</span>
+                <button onclick="cargarUltimosTrailers()" 
+                        style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                    <i class="fas fa-redo"></i> Reintentar
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Función para crear tarjeta placeholder (cuando no hay datos suficientes)
+function crearTarjetaPlaceholderTrailer(tipo) {
+    const card = document.createElement('div');
+    card.className = 'trend-card';
+    card.style.opacity = '0.5';
+    card.style.cursor = 'default';
+
+    const icono = tipo === 'game' ? 'fa-gamepad' : tipo === 'movie' ? 'fa-film' : 'fa-tv';
+    const texto = tipo === 'game' ? 'Próximo juego' : tipo === 'movie' ? 'Próxima película' : 'Próxima serie';
+
+    card.innerHTML = `
+        <div class="game-cover-container" style="background: var(--bg-elevated); display: flex; align-items: center; justify-content: center;">
+            <div class="trend-position" style="background: var(--bg-secondary); border-color: var(--text-muted); color: var(--text-muted);">
+                <i class="fas fa-play" style="margin-left: 2px;"></i>
+            </div>
+            <i class="fas ${icono}" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3;"></i>
+        </div>
+        <div class="game-info">
+            <h3 class="game-title" style="color: var(--text-muted);">${texto}</h3>
+            <div class="game-release-info">
+                <span class="date">Próximamente</span>
+            </div>
+        </div>
+    `;
+
+    return card;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
