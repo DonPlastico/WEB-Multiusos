@@ -35,6 +35,8 @@
 - [📊 Estructura de Base de Datos](#-estructura-de-base-de-datos)
 - [🤝 Contribución](#-contribución)
 - [📄 Licencia](#-licencia)
+- [🗺️ Roadmap — Funcionalidades Futuras](#️-roadmap--funcionalidades-futuras)
+- [♿ Accesibilidad — Mejoras Pendientes](#-accesibilidad--mejoras-pendientes)
 
 ---
 
@@ -662,6 +664,70 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+---
+
+## 🗺️ Roadmap — Funcionalidades Futuras
+
+Este apartado recoge todo lo que está planificado para próximas versiones de DP-SYS NEXUS. Las funciones están agrupadas por área y ordenadas aproximadamente por prioridad de desarrollo.
+
+### 📊 Estadísticas Globales del Usuario
+
+Un modal dedicado donde el usuario podrá ver un resumen completo de su actividad: tiempo total invertido viendo series (presentado de forma legible como meses, días y horas), horas de la última semana, total de episodios vistos, y series añadidas a cualquier lista. Incluirá gráficas interactivas de horas y episodios por semana y por mes, una tabla de géneros más consumidos, y la posibilidad de comparar tus estadísticas con las de los usuarios que sigues mediante un ranking en tiempo real.
+
+### 🏆 Sistema de Insignias y Logros
+
+Un sistema completo de gamificación con más de 50 insignias desbloqueables automáticamente según la actividad del usuario: ver episodios, completar series, escribir reseñas, añadir contactos, hacer maratones, explorar géneros o países, etc. Las insignias tendrán niveles de rareza (normales, especiales, legendarias, míticas y exclusivas), efectos visuales propios para las más raras, y configuración de privacidad individual por insignia. Habrá insignias ocultas tipo easter egg que requerirán descubrir mecánicas secretas dentro de la aplicación.
+
+### 💬 Chat entre Usuarios (NEXUS Chatbox)
+
+Sistema de mensajería directa integrado en la aplicación. Los usuarios podrán buscar a otros, enviar solicitudes de contacto, aceptarlas o rechazarlas, y chatear en tiempo real una vez conectados. Incluirá indicadores de mensajes no leídos, opción de marcar conversaciones como vistas sin abrirlas, y creación de grupos de hasta 10 contactos con nombre y avatar personalizable.
+
+### 🎬 Tendencias de Películas y Series
+
+Secciones dedicadas a mostrar qué películas y series son tendencia en la plataforma TMDB, con filtros por período (hoy, esta semana, este mes) y un diseño de tarjetas coherente con el resto de la aplicación.
+
+### 🎞️ Últimos Tráilers y Lo Más Popular
+
+Dos secciones de descubrimiento: una para explorar los tráilers más recientes de películas, series y juegos en un mismo lugar, y otra para ver qué contenido es más popular en cada momento, con filtros por tipo de disponibilidad (streaming, alquiler, compra).
+
+### ⚙️ Ajustes y Configuración de Cuenta
+
+Panel de configuración completo con las siguientes secciones: preferencias de idioma y país, zona horaria con detección automática, preferencias de notificaciones por correo, gestión de usuarios bloqueados con posibilidad de adjuntar imágenes como prueba, listado de sesiones activas con información del dispositivo e IP (con opción de cerrar sesión remota o reportar acceso no autorizado), y opción de eliminación de cuenta con advertencias claras y transferencia automática de listas compartidas.
+
+### 🔒 Perfil Privado / Público
+
+Opción para que cada usuario decida si su perfil es público (visible y seguible por todos) o privado (invisible en búsquedas, sin posibilidad de ser seguido ni contactado). El modo privado se indicará con un icono de candado junto al nombre, y cualquier intento de acceso externo mostrará una pantalla de perfil privado en lugar del contenido.
+
+### 🧱 Muro de Perfil Personalizable
+
+Tres bloques configurables que aparecen en el perfil del usuario, cada uno con distintas opciones: mostrar favoritos (con estadísticas de visionado y valoración personal), actividad reciente al estilo Steam, contactos destacados con descripción personalizada, galería de fotos de contenido visto, o expositor de insignias con privacidad configurable por cada una. El grid de fotos tendrá una disposición aleatoria única para cada perfil.
+
+### 📋 Listas Propias y Listas Compartidas
+
+Dos secciones diferenciadas: una para gestionar las listas de las que el usuario es propietario (con control total sobre título, miembros, permisos y contenido), y otra para las listas en las que participa como colaborador, donde las acciones disponibles dependerán del rango que le haya asignado el propietario.
+
+### 🌍 Traducciones Completas
+
+Internacionalización total de la interfaz en 8 idiomas (español, inglés, francés, italiano, alemán, chino simplificado, japonés y coreano), incluyendo la sincronización automática del idioma de las APIs externas (TMDB, IGDB) con el idioma seleccionado por el usuario.
+
+### 📢 Panel de Administración — Reportes
+
+Ampliación del panel de admin con una sección dedicada a gestionar reportes de usuarios. Mostrará una tabla filtrable con los datos del reporte (usuarios implicados, motivo, imágenes adjuntas y fecha), y permitirá a los administradores tomar acciones como eliminar cuentas, bloquear correos, enviar avisos formales o abrir un chat privilegiado con cualquiera de las partes implicadas.
+
+---
+
+## ♿ Accesibilidad — Mejoras Pendientes
+
+Hay una serie de mejoras de accesibilidad identificadas que se aplicarán progresivamente:
+
+Todos los botones que contienen únicamente un icono (como los de cerrar modal, navegación lateral o redes sociales) deben incluir el atributo `aria-label` con una descripción textual de su función, para que los lectores de pantalla puedan interpretarlos correctamente. Por ejemplo:
+
+```html
+<button aria-label="Cerrar modal"><i class="fas fa-times"></i></button>
+```
+
+Esto afecta especialmente a los botones de navegación principal, los controles de modales y cualquier elemento interactivo que no tenga texto visible.
 
 ---
 
