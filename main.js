@@ -150,6 +150,7 @@ if (logoHome) {
 
 // boton especial para admin
 const btnAdminTop = document.getElementById('btn-admin');
+btnAdminTop.setAttribute('aria-label', 'Panel de administración');
 if (btnAdminTop) {
     btnAdminTop.addEventListener('click', async () => {
         await cambiarVista('admin-panel', true);
@@ -247,6 +248,7 @@ function arrancarEnrutador() {
 // ==========================================================================
 
 const themeBtn = document.getElementById('theme-toggle');
+themeBtn.setAttribute('aria-label', 'Cambiar tema');
 const themeIcon = themeBtn.querySelector('i');
 
 // creo el menu de temas
@@ -972,6 +974,7 @@ window.currentLang = currentLang;
 // ==========================================================================
 
 const langBtn = document.getElementById('lang-toggle');
+langBtn.setAttribute('aria-label', 'Cambiar idioma');
 const langFlagImg = langBtn.querySelector('img');
 
 const langMenu = document.createElement('div');
@@ -1274,7 +1277,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 }, 800);
 
             } else {
-                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">${t('games.load_more_btn')}</button>`;
+                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;" aria-label="Cargar más juegos">${t('games.load_more_btn')}</button>`;
                 gridJuegos.after(btnMas);
                 observadorScroll.observe(btnMas);
             }
@@ -2327,7 +2330,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             const btnMas = document.createElement('div');
             btnMas.id = `btn-cargar-mas-${tipo}`;
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
-            btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
+            btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;" aria-label="Cargar más ${tipo === 'movie' ? 'películas' : 'series'}">Cargar más</button>`;
             grid.after(btnMas);
 
             // Le decimos al vigilante que vigile este botón
@@ -2933,6 +2936,7 @@ function capturarClicMedia(e, tipo) {
 // ==========================================================================
 
 const btnPerfil = document.getElementById('user-profile');
+btnPerfil.setAttribute('aria-label', 'Perfil de usuario');
 
 // creo el menu para el usuario
 const userMenu = document.createElement('div');
@@ -3402,6 +3406,7 @@ document.getElementById('btn-go-home-verified')?.addEventListener('click', () =>
 //   SCROLL TOP
 // ==========================================================================
 const btnScrollTop = document.getElementById('btn-scroll-top');
+btnScrollTop.setAttribute('aria-label', 'Volver arriba');
 
 if (btnScrollTop) {
     // detecto cuando scrollean
@@ -3427,6 +3432,7 @@ if (btnScrollTop) {
 // ==========================================================================
 const modalEdit = document.getElementById('edit-modal');
 const modalClose = document.getElementById('close-modal');
+modalClose.setAttribute('aria-label', 'Cerrar modal');
 const modalTitle = document.getElementById('modal-title');
 const modalGrid = document.getElementById('modal-grid');
 
@@ -3711,6 +3717,7 @@ document.getElementById('btn-open-stats-modal')?.addEventListener('click', () =>
 // ==========================================================================
 const modalAddFriend = document.getElementById('add-friend-modal');
 const btnCloseAddFriend = document.getElementById('close-add-friend-modal');
+btnCloseAddFriend.setAttribute('aria-label', 'Cerrar búsqueda de amigos');
 const inputSearchFriend = document.getElementById('search-friend-input');
 const btnSearchFriend = document.getElementById('btn-search-friend');
 const friendEmptyState = document.getElementById('friend-search-empty');
@@ -4046,6 +4053,18 @@ configurarDrawer(
     document.querySelector('#games .filter-sidebar')
 );
 
+// Para Juegos
+document.getElementById('btn-mobile-filters')?.setAttribute('aria-label', 'Abrir filtros de juegos');
+document.getElementById('btn-close-filters-drawer')?.setAttribute('aria-label', 'Cerrar filtros de juegos');
+
+// Para Películas
+document.getElementById('btn-filters-movies-mobile')?.setAttribute('aria-label', 'Abrir filtros de películas');
+document.getElementById('btn-close-movies-mobile')?.setAttribute('aria-label', 'Cerrar filtros de películas');
+
+// Para Series
+document.getElementById('btn-filters-series-mobile')?.setAttribute('aria-label', 'Abrir filtros de series');
+document.getElementById('btn-close-series-mobile')?.setAttribute('aria-label', 'Cerrar filtros de series');
+
 // 2. Películas
 configurarDrawer(
     document.getElementById('btn-filters-movies-mobile'),
@@ -4067,6 +4086,7 @@ configurarDrawer(
 // ==========================================================================
 const modalJuego = document.getElementById('game-details-modal');
 const btnCerrarModalJuego = document.getElementById('close-game-modal');
+btnCerrarModalJuego.setAttribute('aria-label', 'Cerrar detalles del juego');
 
 // Escuchamos los clics en toda la grilla de juegos
 document.getElementById('games-grid')?.addEventListener('click', (e) => {
@@ -4234,6 +4254,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
 // ==========================================================================
 const modalMedia = document.getElementById('media-details-modal');
 const btnCerrarMedia = document.getElementById('close-media-modal');
+btnCerrarMedia.setAttribute('aria-label', 'Cerrar detalles');
 
 // Escuchador genérico para ambas grillas
 document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
@@ -5744,6 +5765,7 @@ document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
 // ==========================================================================
 const modalAnnounce = document.getElementById('announce-modal');
 const btnCloseAnnounce = document.getElementById('btn-close-announce');
+btnCloseAnnounce.setAttribute('aria-label', 'Cerrar anuncio');
 const selectWrapper = document.getElementById('announce-select-wrapper');
 const selectTrigger = document.getElementById('announce-select-trigger');
 const selectLabel = document.getElementById('announce-select-label');
@@ -6033,6 +6055,7 @@ document.addEventListener('click', (e) => {
 // ==========================================================================
 const socialModal = document.getElementById('social-list-modal');
 const btnCloseSocial = document.getElementById('close-social-list-modal');
+btnCloseSocial.setAttribute('aria-label', 'Cerrar lista social');
 const socialTitle = document.getElementById('social-list-title');
 const socialSubtitle = document.getElementById('social-list-subtitle');
 const socialGrid = document.getElementById('social-list-grid');
@@ -8244,6 +8267,7 @@ const bannerInput = document.getElementById('banner-upload-input');
 const cropModal = document.getElementById('crop-modal');
 const imageToCrop = document.getElementById('image-to-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
+btnCloseCrop.setAttribute('aria-label', 'Cerrar editor de recorte');
 
 // OBTENER EL BOTÓN DE FORMA SEGURA (con verificación)
 let btnSaveCrop = document.getElementById('btn-save-crop');
