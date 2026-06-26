@@ -712,6 +712,10 @@ let trendPeriod = 'day'; // 'day', 'week', 'month'
 let trendOffset = 0;
 let trendCargando = false;
 
+// SISTEMA DE CACHÉ EN MEMORIA PARA TENDENCIAS
+let cacheTendenciasJuegos = {};
+let cacheTendenciasPelis = {};
+
 // Mapeo de períodos a fecha de inicio
 function getDateRange(period) {
     const now = new Date();
@@ -744,7 +748,6 @@ function getDateRange(period) {
     };
 }
 
-// Añadimos el parámetro intentos = 0
 async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
     if (trendCargando) return;
     trendCargando = true;
@@ -755,7 +758,39 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         return;
     }
 
-    // FORZAR SCROLL AL PRINCIPIO ANTES DE CARGAR (Solo en el primer intento)
+    // 1. INTERCEPTOR DE CACHÉ: Si ya descargamos esto antes, lo pintamos al instante
+    if (resetear && intentos === 0 && cacheTendenciasJuegos[period]) {
+        container.scrollLeft = 0;
+        trendOffset = 0;
+        container.innerHTML = '';
+
+        const sorted = cacheTendenciasJuegos[period];
+        const topGames = sorted.slice(0, 15);
+
+        // Reconstruimos las tarjetas desde la RAM
+        topGames.forEach((juego, index) => {
+            const card = crearTarjetaTrend(juego, trendOffset + index + 1);
+            container.appendChild(card);
+        });
+
+        if (sorted.length > 15) {
+            const moreIndicator = document.createElement('div');
+            moreIndicator.className = 'trend-more-indicator';
+            moreIndicator.onclick = () => cargarMasTendencias(period);
+            moreIndicator.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;padding:20px;color:var(--text-muted);">
+                    <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);"></i>
+                    <span>+${sorted.length - 15} más</span>
+                </div>`;
+            container.appendChild(moreIndicator);
+        }
+
+        trendPeriod = period;
+        trendCargando = false;
+        return; // ¡CORTAMOS AQUÍ! 0 llamadas a internet.
+    }
+
+    // SI NO HAY CACHÉ, HACEMOS LA CARGA NORMAL
     if (intentos === 0) {
         container.scrollLeft = 0;
     }
@@ -796,6 +831,12 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         }
 
         const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+        // 2. GUARDAMOS EN CACHÉ PARA EL FUTURO
+        if (resetear) {
+            cacheTendenciasJuegos[period] = sorted;
+        }
+
         const topGames = sorted.slice(0, 15);
 
         topGames.forEach((juego, index) => {
@@ -820,14 +861,12 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     } catch (error) {
         console.error(`Error cargando tendencias (Intento ${intentos + 1}):`, error);
 
-        // SISTEMA DE AUTO-REINTENTO INVISIBLE
-        if (intentos < 1) { // 1 reintento extra
-            trendCargando = false; // Liberamos el candado para que pueda volver a ejecutarse
+        if (intentos < 1) {
+            trendCargando = false;
             setTimeout(() => cargarTendencias(period, resetear, intentos + 1), 1500);
-            return; // Salimos de la función aquí para no ejecutar el finally ni el scroll final
+            return;
         }
 
-        // Si ya falló 2 veces, mostramos el error visual
         if (resetear) {
             container.innerHTML = `
             <div class="trends-empty">
@@ -840,7 +879,6 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         trendCargando = false;
     }
 
-    // FORZAR SCROLL AL PRINCIPIO DESPUÉS DE CARGAR
     requestAnimationFrame(() => {
         if (container) container.scrollLeft = 0;
     });
@@ -8141,6 +8179,27 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
         return;
     }
 
+    // 1. INTERCEPTOR DE CACHÉ: Si ya descargamos esto antes, lo pintamos al instante
+    if (resetear && cacheTendenciasPelis[period]) {
+        trendMoviesOffset = 0;
+        container.innerHTML = '';
+
+        // Cogemos las películas directamente de la memoria RAM
+        const peliculasGuardadas = cacheTendenciasPelis[period].slice(0, 20);
+
+        peliculasGuardadas.forEach((pelicula, index) => {
+            const card = crearTarjetaTrendPelicula(pelicula, index + 1);
+            container.appendChild(card);
+        });
+
+        trendMoviesPeriod = period;
+        setTimeout(() => { container.scrollLeft = 0; }, 50);
+
+        trendMoviesCargando = false;
+        return; // ¡CORTAMOS AQUÍ! Nos saltamos el "fetch" de internet.
+    }
+
+    // SI NO HAY CACHÉ, CONTINÚA LA CARGA NORMAL
     if (resetear) {
         trendMoviesOffset = 0;
         // Mostrar loading
@@ -8167,6 +8226,11 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
             `;
             trendMoviesCargando = false;
             return;
+        }
+
+        // 2. GUARDAMOS EN CACHÉ PARA EL FUTURO
+        if (resetear) {
+            cacheTendenciasPelis[period] = data;
         }
 
         // Renderizar con trend-card (mismo estilo que juegos)
