@@ -384,12 +384,6 @@ function loadSavedLanguage() {
 
 // 2. Cargar archivo de traducciones
 async function loadTranslations(lang) {
-    // Si es español, NO cargamos nada (es el default nativo)
-    if (lang === 'es') {
-        translations = {};
-        return translations;
-    }
-
     try {
         const response = await fetch(`/locales/${lang}.json`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -397,6 +391,10 @@ async function loadTranslations(lang) {
         return translations;
     } catch (error) {
         console.error(`❌ Error cargando traducciones para ${lang}:`, error);
+        // Fallback a español si falla otro idioma
+        if (lang !== 'es') {
+            return loadTranslations('es');
+        }
         translations = {};
         return {};
     }
@@ -431,7 +429,7 @@ function t(key, params = {}) {
 
 // 4. Aplicar traducciones al DOM
 function applyTranslations() {
-    // Si no hay traducciones (español o error), NO hacer nada
+    // Si no hay traducciones, NO hacer nada (esto ya no debería pasar porque siempre cargamos el JSON)
     if (!translations || Object.keys(translations).length === 0) {
         return;
     }
@@ -810,6 +808,19 @@ async function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('dp_sys_lang', lang);
 
+    // --- GUARDAR EN SUPABASE (si hay sesión) ---
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        try {
+            await supabase
+                .from('usuarios')
+                .update({ idioma: lang })
+                .eq('email', session.user.email);
+        } catch (e) {
+            console.warn('No se pudo guardar idioma en Supabase:', e);
+        }
+    }
+
     // Cargar traducciones
     await loadTranslations(lang);
 
@@ -817,7 +828,6 @@ async function setLanguage(lang) {
     applyTranslations();
 
     // Actualizar API de IGDB y TMDB con el nuevo idioma
-    // Las funciones ya leerán currentLang al hacer fetch
     document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
 
     // Recargar tendencias y datos si es necesario
@@ -3251,6 +3261,17 @@ async function verificarSesion() {
 
         if (perfilColor?.color_destacado) {
             aplicarColorDinamico(perfilColor.color_destacado);
+        }
+
+        // Cargar idioma del usuario desde Supabase
+        if (perfilColor?.idioma) {
+            const idiomaGuardado = perfilColor.idioma;
+            if (['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(idiomaGuardado)) {
+                // Solo si no es el mismo que ya tenemos cargado
+                if (idiomaGuardado !== localStorage.getItem('dp_sys_lang')) {
+                    await setLanguage(idiomaGuardado);
+                }
+            }
         }
     } else {
         // LIMPIAR ID AL CERRAR SESIÓN
