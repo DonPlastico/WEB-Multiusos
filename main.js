@@ -8572,12 +8572,12 @@ async function cargarUltimosTrailers() {
         const dataPelis = resPelis.ok ? await resPelis.json() : [];
         const dataSeries = resSeries.ok ? await resSeries.json() : [];
 
-        // Asegurar que sean arrays y tener exactamente 5 de cada uno (rellenar con placeholders si faltan)
+        // Asegurar que sean arrays y tener exactamente 5 de cada uno
         const juegos = Array.isArray(dataJuegos) ? dataJuegos.slice(0, 5) : [];
         const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 5) : [];
         const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 5) : [];
 
-        // Rellenar con placeholders si faltan items (para mantener el formato)
+        // Rellenar con placeholders si faltan items
         while (juegos.length < 5) {
             juegos.push({ id: `placeholder_game_${juegos.length}`, name: 'Próximo juego', cover: { url: '' }, first_release_date: null, placeholder: true });
         }
@@ -8598,31 +8598,18 @@ async function cargarUltimosTrailers() {
 
         container.innerHTML = '';
 
-        // 6. Pintar cada item
+        // 6. Pintar cada item usando la NUEVA función de tráiler
         mezclados.forEach((item, index) => {
             let card;
 
-            // Si es placeholder, usar una tarjeta especial
             if (item.data.placeholder) {
                 card = crearTarjetaPlaceholderTrailer(item.tipo);
-            } else if (item.tipo === 'game') {
-                card = crearTarjetaTrend(item.data, index + 1);
-            } else if (item.tipo === 'movie') {
-                card = crearTarjetaTrendPelicula(item.data, index + 1);
-            } else if (item.tipo === 'tv') {
-                card = crearTarjetaTrendSerie(item.data, index + 1);
+            } else {
+                // Usar la función específica para tráilers
+                card = crearTarjetaTrendTrailer(item.data, item.tipo, index + 1);
             }
 
-            // Si la tarjeta es válida, modificamos el badge por un icono PLAY
             if (card) {
-                const badge = card.querySelector('.trend-position');
-                if (badge) {
-                    badge.innerHTML = '<i class="fas fa-play" style="margin-left: 2px;"></i>';
-                    badge.style.background = 'var(--primary)';
-                    badge.style.color = '#fff';
-                    badge.style.borderColor = 'var(--primary)';
-                    badge.className = 'trend-position';
-                }
                 container.appendChild(card);
             }
         });
@@ -8648,7 +8635,7 @@ async function cargarUltimosTrailers() {
 // Función para crear tarjeta placeholder (cuando no hay datos suficientes)
 function crearTarjetaPlaceholderTrailer(tipo) {
     const card = document.createElement('div');
-    card.className = 'trend-card';
+    card.className = 'trend-card trailer-card';
     card.style.opacity = '0.5';
     card.style.cursor = 'default';
 
@@ -8656,19 +8643,112 @@ function crearTarjetaPlaceholderTrailer(tipo) {
     const texto = tipo === 'game' ? 'Próximo juego' : tipo === 'movie' ? 'Próxima película' : 'Próxima serie';
 
     card.innerHTML = `
-        <div class="game-cover-container" style="background: var(--bg-elevated); display: flex; align-items: center; justify-content: center;">
+        <div class="game-cover-container" style="background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
             <div class="trend-position" style="background: var(--bg-secondary); border-color: var(--text-muted); color: var(--text-muted);">
                 <i class="fas fa-play" style="margin-left: 2px;"></i>
             </div>
             <i class="fas ${icono}" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3;"></i>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">${texto}</span>
         </div>
         <div class="game-info">
-            <h3 class="game-title" style="color: var(--text-muted);">${texto}</h3>
-            <div class="game-release-info">
-                <span class="date">Próximamente</span>
-            </div>
+            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">Próximamente</h3>
+            <button class="auth-btn secondary" style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: 8px; opacity: 0.3; cursor: not-allowed;" disabled>
+                <i class="fab fa-youtube"></i> SIN TRÁILER
+            </button>
         </div>
     `;
+
+    return card;
+}
+
+// ==========================================================================
+//   TARJETA PARA ÚLTIMOS TRÁILERS (SIN PRECIO, SIN RATING, CON BOTÓN YT)
+// ==========================================================================
+
+function crearTarjetaTrendTrailer(item, tipo, posicion) {
+    const card = document.createElement('div');
+    card.className = 'trend-card trailer-card';
+    card.dataset.id = item.id;
+    card.dataset.tipo = tipo;
+    card.style.cursor = 'default'; // No es clickeable como modal
+
+    // Obtener datos según el tipo
+    let titulo = '';
+    let posterUrl = '';
+    let fecha = 'Próximamente';
+    let rating = '';
+    let trailerId = null;
+    let urlYoutube = '';
+
+    if (tipo === 'game') {
+        titulo = item.name || 'Sin título';
+        posterUrl = item.cover && item.cover.url
+            ? item.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+            : 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
+        fecha = item.first_release_date
+            ? new Date(item.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+            : 'Próximamente';
+        // Para juegos, buscamos un trailer en websites o usamos búsqueda genérica
+        urlYoutube = `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
+    } else {
+        // Película o Serie (TMDB)
+        titulo = item.titulo || 'Sin título';
+        posterUrl = item.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
+        fecha = item.fecha
+            ? new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
+            : 'Próximamente';
+        // Para TMDB, usar trailer_id si existe
+        trailerId = item.trailer_id || null;
+        urlYoutube = trailerId
+            ? `https://www.youtube.com/watch?v=${trailerId}`
+            : `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
+    }
+
+    // Construir HTML de la tarjeta (sin precio, sin rating)
+    card.innerHTML = `
+        <div class="game-cover-container" style="position: relative;">
+            <div class="trend-position" style="background: var(--primary); color: #fff; border-color: var(--primary);">
+                <i class="fas fa-play" style="margin-left: 2px;"></i>
+            </div>
+            <img src="${posterUrl}" alt="${titulo}" loading="lazy" 
+                 onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas ${tipo === 'game' ? 'fa-gamepad' : tipo === 'movie' ? 'fa-film' : 'fa-tv'}\\' style=\\'font-size:3rem;color:var(--text-muted);\\'></i></div>'">
+        </div>
+        <div class="game-info" style="display: flex; flex-direction: column; flex-grow: 1;">
+            <h3 class="game-title" style="font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; color: var(--neon-white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${titulo}
+            </h3>
+            <div class="game-release-info" style="display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px;">
+                <span class="date">${fecha}</span>
+            </div>
+            <!-- BOTÓN VER TRÁILER -->
+            <button class="auth-btn primary btn-trailer-card" 
+                    data-url="${urlYoutube}"
+                    style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: auto; background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);">
+                <i class="fab fa-youtube" style="margin-right: 6px;"></i> VER TRÁILER
+            </button>
+        </div>
+    `;
+
+    // Evento: Click en el botón abre YouTube
+    const btnTrailer = card.querySelector('.btn-trailer-card');
+    if (btnTrailer) {
+        btnTrailer.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita que se propague
+            const url = btnTrailer.dataset.url;
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    }
+
+    // Evento: Click en la imagen también abre YouTube
+    const coverContainer = card.querySelector('.game-cover-container');
+    if (coverContainer) {
+        coverContainer.style.cursor = 'pointer';
+        coverContainer.addEventListener('click', () => {
+            window.open(urlYoutube, '_blank');
+        });
+    }
 
     return card;
 }
