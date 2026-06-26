@@ -27,7 +27,7 @@
   - [🎬 Películas](#-películas)
   - [📺 Series](#-series)
   - [👤 Perfil de Usuario](#-perfil-de-usuario)
-  - [📋 Watchlist (TV Time Style)](#-watchlist-tv-time-style)
+  - [📋 Watchlist](#-watchlist)
   - [💬 Social & Chat](#-social--chat)
   - [🛡️ Panel de Administración](#️-panel-de-administración)
   - [🎨 Personalización](#-personalización)
@@ -42,7 +42,7 @@
 
 ## 🎯 Sobre el Proyecto
 
-**DP-SYS NEXUS** es una aplicación web todo-en-uno que centraliza la gestión de tu entretenimiento digital. Inspirada en plataformas como **TV Time**, **The Movie DB** y **AllKeyshop**, combina lo mejor de cada una en una interfaz única con estilo cyberpunk/neon.
+**DP-SYS NEXUS** es una aplicación web todo-en-uno que centraliza la gestión de tu entretenimiento digital. Inspirada en plataformas como **TV Time**, **The Movie DB**, **Releases**, **LetterBox**, **CDKeys** y **AllKeyshop**, combina lo mejor de cada una en una interfaz única con estilo cyberpunk/neon.
 
 ### 🎯 Misión
 
@@ -82,7 +82,7 @@ Proporcionar un **nexus personal** donde los usuarios puedan:
 - 📊 Estadísticas detalladas de tiempo de visionado
 - 🎯 Recomendaciones personalizadas basadas en tus últimos 7 visionados
 - 👥 Sistema de seguidores y siguiendo
-- 📋 Watchlist estilo **TV Time**
+- 📋 Sistema de Watchlist (Continuar viendo)
 
 ### 💬 Social & Comunidad
 
@@ -418,7 +418,7 @@ VERCEL=1
 
 ---
 
-### 📋 Watchlist (TV Time Style)
+### 📋 Watchlist
 
 #### Funcionalidades
 
