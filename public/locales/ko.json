@@ -172,5 +172,130 @@
     "buy": "구매",
     "seasons_title": "모든 에피소드",
     "not_watched": "미시청"
+  },
+  "common": {
+    "tba": "미정",
+    "untitled": "제목 없음",
+    "not_available": "사용 불가",
+    "movies_uppercase": "영화",
+    "series_uppercase": "시리즈",
+    "retry": "재시도",
+    "retry_manual": "시간이 너무 오래 걸리나요? 수동으로 재시도"
+  },
+  "theme": {
+    "system": "시스템",
+    "light": "라이트",
+    "dark": "다크"
+  },
+  "user": {
+    "guest": "게스트",
+    "view_profile": "프로필 보기",
+    "lists": "리스트",
+    "watchlists": "워치리스트",
+    "edit_profile": "프로필 편집",
+    "settings": "설정",
+    "logout": "로그아웃"
+  },
+  "games": {
+    "loading": "게임 로딩 중...",
+    "loading_more": "더 많은 게임 로딩 중...",
+    "no_results": "결과가 없습니다. 다른 검색어를 시도하세요.",
+    "deep_scan": "심층 스캔 중... (관련 없는 섹터 건너뛰기)",
+    "load_more_btn": "더 보기",
+    "no_more_results": "네트워크 전체에서 더 이상 결과를 찾을 수 없습니다.",
+    "api_error": "API 연결에 실패했습니다.",
+    "from": "부터",
+    "console_edition": "콘솔 에디션",
+    "no_offers": "현재 제안 없음"
+  },
+  "trends_extra": {
+    "no_offers": "제안 없음",
+    "coming_soon": "출시 예정",
+    "watch_trailer": "트레일러 보기",
+    "no_trailer": "트레일러 없음",
+    "movies_loading": "영화 트렌드 로딩 중...",
+    "movies_empty": "사용 가능한 영화 트렌드가 없습니다",
+    "movies_error": "트렌드 로딩 중 오류 발생",
+    "series_loading": "시리즈 트렌드 로딩 중...",
+    "series_empty": "사용 가능한 시리즈 트렌드가 없습니다",
+    "series_error": "트렌드 로딩 중 오류 발생",
+    "trailers_loading": "최신 트레일러 추적 중...",
+    "trailers_error": "트레일러 서버 연결 실패"
+  },
+  "movies": {
+    "not_streaming": "스트리밍 불가",
+    "streaming": "스트리밍 가능",
+    "add_to_list": "리스트에 추가",
+    "loading": "데이터 로딩 중...",
+    "api_error": "TMDB 연결에 실패했습니다."
+  },
+  "filters_extra": {
+    "from": "시작:",
+    "to": "종료:",
+    "adult_content": "Nexus에서 연령 확인(+18)으로 잠금 해제된 모듈.",
+    "adult_toggle": "+18 표시"
+  },
+  "search_extra": {
+    "recent": "📜 최근 검색어",
+    "clear_all": "모두 지우기"
+  },
+  "details_extra": {
+    "no_details": "세부 정보를 가져올 수 없습니다.",
+    "no_description": "데이터베이스에 이 타이틀에 대한 설명이 없습니다.",
+    "unknown": "알 수 없음",
+    "official_site": "공식 사이트",
+    "connecting": "Nexus에 연결 중...",
+    "downloading": "데이터 다운로드 중...",
+    "watched": "시청 완료",
+    "not_watched": "미시청",
+    "your_rating": "나의 평점",
+    "click_to_rate": "클릭하여 평가",
+    "returning": "계속되는 시리즈",
+    "ended": "종료됨",
+    "released": "개봉됨",
+    "planned": "계획 중",
+    "in_production": "제작 중",
+    "post_production": "후반 작업 중",
+    "seasons": "시즌",
+    "episodes": "에피소드",
+    "total": "총합",
+    "completed": "완료!",
+    "official": "공식",
+    "search": "검색",
+    "ratings": "평점",
+    "no_cast": "Nexus에 출연진 정보가 없습니다.",
+    "all_episodes": "모든 에피소드",
+    "no_episode_description": "에피소드 설명이 없습니다.",
+    "error_loading": "세부 정보 로딩 중 오류 발생.",
+    "error_cast": "출연진 로딩 중 오류 발생.",
+    "rewatch_btn": "다시 보기",
+    "unwatch_btn": "미시청으로 표시"
+  },
+  "series": {
+    "completed": "완료",
+    "in_progress": "진행 중"
+  },
+  "chat_extra": {
+    "select_friend": "채팅할 친구 선택",
+    "synchronizing": "네트워크 동기화 중..."
+  },
+  "notifications": {
+    "no_followers": "새로운 팔로워 없음"
+  },
+  "admin_extra": {
+    "init": "데이터베이스 연결 초기화 중...",
+    "validated": "관리자 자격 증명이 확인되었습니다.",
+    "table_updated": "테이블 업데이트됨: {count}개 레코드가 나열되었습니다."
+  },
+  "edit_extra": {
+    "description": "Nexus에서 신원을 구성하세요. 여기에서 프로필을 맞춤설정하고, 개인 정보를 변경하고, 데이터를 관리할 수 있습니다.",
+    "personal_data": "개인 데이터",
+    "member_since": "가입일"
+  },
+  "toast": {
+    "saved": "저장됨",
+    "movie_marked": "영화가 시청 완료로 표시되었습니다.",
+    "error": "DB 오류",
+    "movie_error": "영화를 저장할 수 없습니다."
   }
 }

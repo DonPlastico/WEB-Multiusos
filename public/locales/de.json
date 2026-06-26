@@ -172,5 +172,130 @@
     "buy": "Kaufen",
     "seasons_title": "Alle Episoden",
     "not_watched": "Nicht gesehen"
+  },
+  "common": {
+    "tba": "TBA",
+    "untitled": "Ohne Titel",
+    "not_available": "Nicht verfügbar",
+    "movies_uppercase": "FILME",
+    "series_uppercase": "SERIEN",
+    "retry": "Wiederholen",
+    "retry_manual": "Dauert zu lange? Manuell wiederholen"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "user": {
+    "guest": "Gast",
+    "view_profile": "Profil ansehen",
+    "lists": "Listen",
+    "watchlists": "Watchlists",
+    "edit_profile": "Profil bearbeiten",
+    "settings": "Einstellungen",
+    "logout": "Abmelden"
+  },
+  "games": {
+    "loading": "SPIELE WERDEN GELADEN...",
+    "loading_more": "WEITERE SPIELE WERDEN GELADEN...",
+    "no_results": "Keine Ergebnisse. Versuche eine andere Suche.",
+    "deep_scan": "Tiefenscan... (Irrelevanter Sektor wird übersprungen)",
+    "load_more_btn": "Mehr laden",
+    "no_more_results": "Keine weiteren Ergebnisse im gesamten Netzwerk gefunden.",
+    "api_error": "Verbindung zur API fehlgeschlagen.",
+    "from": "Ab",
+    "console_edition": "Konsolen-Edition",
+    "no_offers": "Keine aktuellen Angebote"
+  },
+  "trends_extra": {
+    "no_offers": "Keine Angebote",
+    "coming_soon": "Demnächst",
+    "watch_trailer": "TRAILER ANSEHEN",
+    "no_trailer": "KEIN TRAILER",
+    "movies_loading": "Lade Film-Trends...",
+    "movies_empty": "Keine Film-Trends verfügbar",
+    "movies_error": "Fehler beim Laden der Trends",
+    "series_loading": "Lade Serien-Trends...",
+    "series_empty": "Keine Serien-Trends verfügbar",
+    "series_error": "Fehler beim Laden der Trends",
+    "trailers_loading": "Suche nach neuesten Trailern...",
+    "trailers_error": "Verbindung zum Trailer-Server fehlgeschlagen"
+  },
+  "movies": {
+    "not_streaming": "Nicht zum Streamen verfügbar",
+    "streaming": "Zum Streamen verfügbar",
+    "add_to_list": "Zur Liste hinzufügen",
+    "loading": "LADE DATEN...",
+    "api_error": "Verbindung zu TMDB fehlgeschlagen."
+  },
+  "filters_extra": {
+    "from": "Von:",
+    "to": "Bis:",
+    "adult_content": "Modul durch Altersverifikation (+18) im Nexus freigeschaltet.",
+    "adult_toggle": "+18 anzeigen"
+  },
+  "search_extra": {
+    "recent": "📜 Aktuelle Suchanfragen",
+    "clear_all": "Alle löschen"
+  },
+  "details_extra": {
+    "no_details": "Details konnten nicht abgerufen werden.",
+    "no_description": "Keine Beschreibung für diesen Titel in unserer Datenbank verfügbar.",
+    "unknown": "Unbekannt",
+    "official_site": "Offizielle Website",
+    "connecting": "Verbinde zum Nexus...",
+    "downloading": "Lade Daten...",
+    "watched": "Gesehen",
+    "not_watched": "Nicht gesehen",
+    "your_rating": "Deine Bewertung",
+    "click_to_rate": "Zum Bewerten klicken",
+    "returning": "Fortgesetzte Serie",
+    "ended": "Beendet",
+    "released": "Veröffentlicht",
+    "planned": "Geplant",
+    "in_production": "In Produktion",
+    "post_production": "Postproduktion",
+    "seasons": "Staffeln",
+    "episodes": "Episoden",
+    "total": "Gesamt",
+    "completed": "Abgeschlossen!",
+    "official": "OFFIZIELL",
+    "search": "SUCHE",
+    "ratings": "Bewertungen",
+    "no_cast": "Keine Besetzungsinformationen im Nexus.",
+    "all_episodes": "Alle Episoden",
+    "no_episode_description": "Keine Episodenbeschreibung verfügbar.",
+    "error_loading": "Fehler beim Laden der Details.",
+    "error_cast": "Fehler beim Laden der Besetzung.",
+    "rewatch_btn": "Erneut sehen",
+    "unwatch_btn": "Als nicht gesehen markieren"
+  },
+  "series": {
+    "completed": "ABGESCHLOSSEN",
+    "in_progress": "IN BEARBEITUNG"
+  },
+  "chat_extra": {
+    "select_friend": "Wähle einen Freund zum Chatten",
+    "synchronizing": "Netzwerk wird synchronisiert..."
+  },
+  "notifications": {
+    "no_followers": "Keine neuen Follower"
+  },
+  "admin_extra": {
+    "init": "Initialisiere Datenbankverbindung...",
+    "validated": "Administrator-Anmeldeinformationen validiert.",
+    "table_updated": "Tabelle aktualisiert: {count} Einträge aufgelistet."
+  },
+  "edit_extra": {
+    "description": "Konfiguriere deine Identität im Nexus. Hier kannst du dein Profil anpassen, deine persönlichen Daten ändern und deine Daten verwalten.",
+    "personal_data": "PERSÖNLICHE DATEN",
+    "member_since": "Mitglied seit"
+  },
+  "toast": {
+    "saved": "Gespeichert",
+    "movie_marked": "Film als gesehen markiert.",
+    "error": "DB-Fehler",
+    "movie_error": "Der Film konnte nicht gespeichert werden."
   }
 }

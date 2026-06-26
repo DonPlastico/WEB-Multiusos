@@ -172,5 +172,130 @@
     "buy": "Buy",
     "seasons_title": "All episodes",
     "not_watched": "Not seen"
+  },
+  "common": {
+    "tba": "TBA",
+    "untitled": "Untitled",
+    "not_available": "Not available",
+    "movies_uppercase": "MOVIES",
+    "series_uppercase": "SERIES",
+    "retry": "Retry",
+    "retry_manual": "Taking too long? Retry manually"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "user": {
+    "guest": "Guest",
+    "view_profile": "View profile",
+    "lists": "Lists",
+    "watchlists": "Watchlists",
+    "edit_profile": "Edit profile",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "games": {
+    "loading": "LOADING GAMES...",
+    "loading_more": "LOADING MORE GAMES...",
+    "no_results": "No results. Try another search.",
+    "deep_scan": "Scanning deep layers... (Skipping irrelevant sector)",
+    "load_more_btn": "Load more",
+    "no_more_results": "No more results found in the entire network.",
+    "api_error": "Failed to connect to the API.",
+    "from": "From",
+    "console_edition": "Console Edition",
+    "no_offers": "No current offers"
+  },
+  "trends_extra": {
+    "no_offers": "No offers",
+    "coming_soon": "Coming soon",
+    "watch_trailer": "WATCH TRAILER",
+    "no_trailer": "NO TRAILER",
+    "movies_loading": "Loading movie trends...",
+    "movies_empty": "No movie trends available",
+    "movies_error": "Error loading trends",
+    "series_loading": "Loading series trends...",
+    "series_empty": "No series trends available",
+    "series_error": "Error loading trends",
+    "trailers_loading": "Tracking latest trailers...",
+    "trailers_error": "Failed to connect to trailer server"
+  },
+  "movies": {
+    "not_streaming": "Not available for streaming",
+    "streaming": "Available for streaming",
+    "add_to_list": "Add to list",
+    "loading": "LOADING DATA...",
+    "api_error": "Failed to connect to TMDB."
+  },
+  "filters_extra": {
+    "from": "From:",
+    "to": "To:",
+    "adult_content": "Module unlocked by age verification (+18) in the Nexus.",
+    "adult_toggle": "Show +18"
+  },
+  "search_extra": {
+    "recent": "📜 Recent searches",
+    "clear_all": "Clear all"
+  },
+  "details_extra": {
+    "no_details": "Could not obtain details.",
+    "no_description": "No description available for this title in our database.",
+    "unknown": "Unknown",
+    "official_site": "Official Site",
+    "connecting": "Connecting to Nexus...",
+    "downloading": "Downloading data...",
+    "watched": "Seen",
+    "not_watched": "Not seen",
+    "your_rating": "Your personal rating",
+    "click_to_rate": "Click to rate",
+    "returning": "Returning Series",
+    "ended": "Ended",
+    "released": "Released",
+    "planned": "Planned",
+    "in_production": "In Production",
+    "post_production": "Post Production",
+    "seasons": "Seasons",
+    "episodes": "Episodes",
+    "total": "Total",
+    "completed": "Completed!",
+    "official": "OFFICIAL",
+    "search": "SEARCH",
+    "ratings": "ratings",
+    "no_cast": "No cast information in the Nexus.",
+    "all_episodes": "All episodes",
+    "no_episode_description": "No episode description available.",
+    "error_loading": "Error loading details.",
+    "error_cast": "Error loading cast.",
+    "rewatch_btn": "Watch again",
+    "unwatch_btn": "Mark as unseen"
+  },
+  "series": {
+    "completed": "COMPLETED",
+    "in_progress": "IN PROGRESS"
+  },
+  "chat_extra": {
+    "select_friend": "Select a friend to chat",
+    "synchronizing": "Synchronizing network..."
+  },
+  "notifications": {
+    "no_followers": "No new followers"
+  },
+  "admin_extra": {
+    "init": "Initializing database connection...",
+    "validated": "Administrator credentials validated.",
+    "table_updated": "Table updated: {count} records listed."
+  },
+  "edit_extra": {
+    "description": "Configure your identity in the Nexus. From here you can customize your profile, change your personal information and manage your data.",
+    "personal_data": "PERSONAL DATA",
+    "member_since": "Member since"
+  },
+  "toast": {
+    "saved": "Saved",
+    "movie_marked": "Movie marked as seen.",
+    "error": "DB Error",
+    "movie_error": "Could not save the movie."
   }
 }

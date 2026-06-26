@@ -255,15 +255,15 @@ themeMenu.className = 'theme-menu';
 themeMenu.innerHTML = `
     <button class="theme-option" data-theme="system">
         <i class="fas fa-desktop"></i>
-        <span>Sistema</span>
+        <span>${t('theme.system')}</span>
     </button>
     <button class="theme-option" data-theme="light">
         <i class="fas fa-sun"></i>
-        <span>Claro</span>
+        <span>${t('theme.light')}</span>
     </button>
     <button class="theme-option" data-theme="dark">
         <i class="fas fa-moon"></i>
-        <span>Oscuro</span>
+        <span>${t('theme.dark')}</span>
     </button>
 `;
 
@@ -477,6 +477,11 @@ function applyTranslations() {
         return;
     }
 
+    const emptyChat = document.querySelector('.chatbox-messages-area .empty-chat-message');
+    if (emptyChat) {
+        emptyChat.textContent = t('chat.select_friend');
+    }
+
     // --- NAVEGACIÓN ---
     const navMap = {
         'nav-home': 'nav.home',
@@ -567,6 +572,10 @@ function applyTranslations() {
         'filter-votes': 'filters.min_votes',
         'btn-reset-filters': 'filters.reset',
         'btn-ver-plats': 'filters.see_all',
+        'filter-from': 'filters.from',
+        'filter-to': 'filters.to',
+        'filter-adult-label': 'filters.adult_content',
+        'filter-adult-toggle': 'filters.adult_toggle',
     };
     for (const [id, key] of Object.entries(filterMap)) {
         const el = document.getElementById(id);
@@ -1088,7 +1097,7 @@ function crearTarjeta(juego) {
         ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
             day: 'numeric', month: 'long', year: 'numeric'
         })
-        : 'TBA';
+        : t('common.tba');
 
     // Obtener todas las plataformas únicas
     let htmlPlataformas = '';
@@ -1109,11 +1118,11 @@ function crearTarjeta(juego) {
 
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
-        htmlPrecio = `<span class="price-badge">Desde <strong>${juego.itad.precio.toFixed(2)} €</strong></span>`;
+        htmlPrecio = `<span class="price-badge">${t('games.from')} <strong>${juego.itad.precio.toFixed(2)} €</strong></span>`;
     } else if (!hasPC) {
-        htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> Edición Consola</span>`;
+        htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> ${t('games.console_edition')}</span>`;
     } else {
-        htmlPrecio = `<span class="price-na">Sin ofertas actuales</span>`;
+        htmlPrecio = `<span class="price-na">${t('games.no_offers')}</span>`;
     }
 
     // 2. Lógica del contenedor de imagen
@@ -1168,7 +1177,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         gridJuegos.innerHTML = `
             <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
-                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO JUEGOS...</h3>
+                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">${t('games.loading')}</h3>
             </div>
         `;
 
@@ -1179,7 +1188,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             btnMas.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
-                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">CARGANDO MÁS JUEGOS...</span>
+                    <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">${t('games.loading_more')}</span>
                 </div>
             `;
         }
@@ -1212,7 +1221,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
 
         if (datos.length === 0) {
             if (resetear) {
-                gridJuegos.innerHTML = '<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">Sin resultados. Intenta otra busqueda.</div>';
+                gridJuegos.innerHTML = `<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">${t('games.no_results')}</div>`;
             }
             if (peticionAbort === miAbort) cargando = false;
             return;
@@ -1251,7 +1260,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             if (datosFiltrados.length === 0) {
                 btnMas.innerHTML = `
                     <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
-                        <i class="fas fa-radar fa-spin"></i> Escaneando capas profundas... (Saltando sector irrelevante)
+                        <i class="fas fa-radar fa-spin"></i> ${t('games.deep_scan')}
                     </div>
                 `;
                 gridJuegos.after(btnMas);
@@ -1265,7 +1274,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 }, 800);
 
             } else {
-                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">Cargar más</button>`;
+                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;">${t('games.load_more_btn')}</button>`;
                 gridJuegos.after(btnMas);
                 observadorScroll.observe(btnMas);
             }
@@ -1288,7 +1297,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         } else {
             console.error("❌ Error cargando juegos:", error);
             if (resetear) {
-                gridJuegos.innerHTML = '<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">Fallo al conectar con la API.</div>';
+                gridJuegos.innerHTML = `<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">${t('games.api_error')}</div>`;
             }
             if (peticionAbort === miAbort) cargando = false;
         }
@@ -1606,7 +1615,7 @@ function crearTarjetaTrend(juego, posicion) {
     // Fecha
     const fecha = juego.first_release_date
         ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
-        : 'TBA';
+        : t('common.tba');
 
     // Precio
     let precioHtml = '';
@@ -1643,7 +1652,7 @@ function crearTarjetaTrend(juego, posicion) {
                 <span style="color:gold;font-size:0.7rem;">⭐ ${rating}</span>
             </div>
             <div class="game-price">
-                ${precioHtml || '<span style="color:var(--text-muted);font-size:0.65rem;">Sin ofertas</span>'}
+                ${precioHtml || `<span style="color:var(--text-muted);font-size:0.65rem;">${t('trends.no_offers')}</span>`}
             </div>
         </div>
     `;
@@ -2063,7 +2072,7 @@ let dateMaxSeries = '';
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
     // FECHA COMPLETA (AÑO-MES-DIA)
-    const fechaFormat = media.fecha ? media.fecha : 'TBA';
+    const fechaFormat = media.fecha ? media.fecha : t('common.tba');
 
     // Filtro nativo de TMDB para mostrar etiqueta NSFW
     const esContenidoAdulto = media.adult;
@@ -2078,10 +2087,9 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     }
 
     // SIMPLIFICACIÓN DE TEXTO DE PLATAFORMAS
-    const textoPlataforma = media.plataformas === 'No disponible en streaming' ? 'No disponible en streaming' : 'Disponible en streaming';
-    const iconoPlataforma = media.plataformas === 'No disponible en streaming'
-        ? '<i class="fas fa-times-circle" style="color:var(--error);"></i>'
-        : '<i class="fas fa-play-circle" style="color:var(--success);"></i>';
+    const textoPlataforma = media.plataformas === 'No disponible en streaming'
+        ? t('movies.not_streaming')
+        : t('movies.streaming');
 
     // LÓGICA DE LOS BOTONES INFERIORES
     let btnVistoHtml = '';
@@ -2128,7 +2136,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                 </div>
                 
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="Añadir a lista" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                     ${btnVistoHtml}
@@ -2169,7 +2177,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         grid.innerHTML = `
             <div id="loader-${tipo}" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
-                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">CARGANDO DATOS...</h3>
+                <h3 class="loading-text" style="color: var(--text-muted); letter-spacing: 3px; font-weight: 600;">${t('movies.loading')}</h3>
             </div>
         `;
 
@@ -2178,14 +2186,14 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         // transformo el boton en loader
         const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
         if (btnMas) {
-            const textoTipo = tipo === 'movie' ? 'PELÍCULAS' : 'SERIES';
+            const textoTipo = tipo === 'movie' ? t('common.movies_uppercase') : t('common.series_uppercase');
             btnMas.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0;">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary); margin-bottom: 10px;"></i>
                     <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; margin-bottom: 15px;">CARGANDO MÁS ${textoTipo}...</span>
                     
-                    <button onclick="cargandoTMDB=false; cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:var(--text-muted); padding:0.5rem 1.5rem; border-radius:40px; cursor:pointer; font-size: 0.8rem; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='rgba(255,255,255,0.1)'">
-                        <i class="fas fa-redo"></i> ¿Tarda mucho? Reintentar manualmente
+                    <button onclick="cargandoTMDB=false; cargarMasTMDB('${tipo}')" ...>
+                        <i class="fas fa-redo"></i> ${t('common.retry_manual')}
                     </button>
                 </div>
             `;
@@ -2331,7 +2339,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     } catch (error) {
         console.error(error);
         if (resetear) {
-            grid.innerHTML = '<div style="color:var(--error); text-align:center; width:100%;">Fallo al conectar con TMDB.</div>';
+            grid.innerHTML = `<div style="color:var(--error); text-align:center; width:100%;">${t('movies.api_error')}</div>`;
         } else {
             // boton de reintento si falla
             const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
@@ -2931,25 +2939,25 @@ const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
     <div class="user-dropdown-header" id="btn-ver-perfil">
-        <span id="dropdown-username" class="dropdown-username">Usuario</span>
-        <span class="dropdown-subtext">Ver perfil</span>
+        <span id="dropdown-username" class="dropdown-username">${t('user.guest')}</span>
+        <span class="dropdown-subtext">${t('user.view_profile')}</span>
     </div>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
-    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Listas de seguimientos</span></button>
+    <button class="theme-option"><i class="fas fa-list"></i><span>${t('user.lists')}</span></button>
+    <button class="theme-option"><i class="fas fa-bookmark"></i><span>${t('user.watchlists')}</span></button>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
-    <button class="theme-option"><i class="fas fa-cog"></i><span>Ajustes</span></button>
+    <button class="theme-option"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
+    <button class="theme-option"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
     
     <div class="dropdown-divider"></div>
     
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
-        <span style="color: var(--error);">Cerrar sesión</span>
+        <span style="color: var(--error);">${t('user.logout')}</span>
     </button>
 `;
 
@@ -4177,7 +4185,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = "No se pudieron obtener los detalles.";
+            document.getElementById('detail-description').textContent = t('details.no_details');
             return;
         }
 
@@ -4186,14 +4194,14 @@ async function llamarDetallesJuego(idJuego, titulo) {
         if (juego.summary) {
             descElement.textContent = juego.summary;
         } else {
-            descElement.textContent = "No hay descripción disponible para este título en nuestra base de datos.";
+            descElement.textContent = t('details.no_description');
             descElement.style.fontStyle = "italic";
         }
 
         // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
-        const dev = empresas.find(e => e.developer)?.company.name || 'Desconocido';
-        const pub = empresas.find(e => e.publisher)?.company.name || 'Desconocido';
+        const dev = empresas.find(e => e.developer)?.company.name || t('details.unknown');
+        const pub = empresas.find(e => e.publisher)?.company.name || t('details.unknown');
 
         document.getElementById('detail-dev').textContent = dev;
         document.getElementById('detail-pub').textContent = pub;
@@ -4211,7 +4219,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
             const web = juego.websites[0];
-            containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">Sitio Oficial</a>`;
+            containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">${t('details.official_site')}</a>`;
         } else {
             containerLinks.textContent = 'N/A';
         }
@@ -4248,12 +4256,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     modalMedia.setAttribute('data-current-type', tipo);
 
     // 1. Resetear y preparar UI
-    document.getElementById('media-detail-title').textContent = "Conectando al Nexus...";
-    document.getElementById('media-detail-description').textContent = "Descargando datos...";
+    document.getElementById('media-detail-title').textContent = t('details.connecting');
+    document.getElementById('media-detail-description').textContent = t('details.downloading');
     document.getElementById('media-detail-duration').textContent = "--";
     document.getElementById('media-detail-genres').textContent = "--";
     document.getElementById('media-detail-watch-date').textContent = "--";
-    document.getElementById('media-detail-watch-status').textContent = "No vista";
+    document.getElementById('media-detail-watch-status').textContent = t('details.not_watched');
 
     // Resetear nuevos campos
     document.getElementById('media-detail-original-title').textContent = "--";
@@ -4429,16 +4437,16 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         document.getElementById('media-detail-original-title').textContent = data.original_title || data.titulo;
 
         // Fecha de lanzamiento
-        document.getElementById('media-detail-release-date').textContent = data.fecha || 'No disponible';
+        document.getElementById('media-detail-release-date').textContent = data.fecha || t('common.not_available');
 
         // Estado (Mapeo de estados de TMDB)
         const estadoMap = {
-            'Returning Series': 'En emisión',
-            'Ended': 'Finalizada',
-            'Released': 'Estrenada',
-            'Planned': 'Próximamente',
-            'In Production': 'En producción',
-            'Post Production': 'En post-producción'
+            'Returning Series': t('details.returning'),
+            'Ended': t('details.ended'),
+            'Released': t('details.released'),
+            'Planned': t('details.planned'),
+            'In Production': t('details.in_production'),
+            'Post Production': t('details.post_production')
         };
         document.getElementById('media-detail-status').textContent = estadoMap[data.status] || data.status || 'Desconocido';
 
@@ -4459,12 +4467,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // ==========================================
         if (tipo === 'tv') {
             // Mostrar temporadas y episodios
-            document.getElementById('media-detail-seasons-count').textContent = `${data.temporadas || '--'} Temporadas`;
-            document.getElementById('media-detail-episodes-count').textContent = `${data.episodios || '--'} Episodios`;
+            document.getElementById('media-detail-seasons-count').textContent = `${data.temporadas || '--'} ${t('details.seasons')}`;
+            document.getElementById('media-detail-episodes-count').textContent = `${data.episodios || '--'} ${t('details.episodes')}`;
 
             // Cálculo total tiempo serie: Episodios * Duración media (45min por defecto)
             const totalMins = (data.episodios || 0) * (data.duracion || 45);
-            document.getElementById('media-detail-duration').textContent = `Total: ${formatearTiempo(totalMins)}`;
+            document.getElementById('media-detail-duration').textContent = `${t('details.total')}: ${formatearTiempo(totalMins)}`;
 
             // ==========================================
             // TIEMPO RESTANTE (PARA SERIES)
@@ -4481,7 +4489,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
                 // Si no hay tiempo restante, mostrar "¡Completada!"
                 if (restantes === 0 && totalEpisodios > 0) {
-                    document.getElementById('media-detail-remaining-time').textContent = '✅ ¡Completada!';
+                    document.getElementById('media-detail-remaining-time').textContent = `✅ ${t('details.completed')}`;
                 }
             } else {
                 document.getElementById('media-detail-remaining-time').textContent = '--';
@@ -4533,7 +4541,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     `;
                 });
             } else {
-                contenedor.innerHTML = '<span class="no-providers">No disponible</span>';
+                contenedor.innerHTML = `<span class="no-providers">${t('common.not_available')}</span>`;
             }
         }
 
@@ -4545,12 +4553,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         let urlTrailer = '';
         if (data.trailer_id) {
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
-            document.getElementById('media-detail-trailer-duration').textContent = "OFICIAL";
+            document.getElementById('media-detail-trailer-duration').textContent = t('details.official');
             document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
         } else {
             const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
             urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
-            document.getElementById('media-detail-trailer-duration').textContent = "BÚSQUEDA";
+            document.getElementById('media-detail-trailer-duration').textContent = t('details.search');
             document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
         }
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
@@ -4560,7 +4568,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
 
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
-        document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} valoraciones`;
+        document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} ${t('details.ratings')}`;
 
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
@@ -4593,7 +4601,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             });
             castContainer.innerHTML = castHtml;
         } else {
-            castContainer.innerHTML = '<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">No hay información del reparto en el Nexus.</div>';
+            castContainer.innerHTML = `<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">${t('details.no_cast')}</div>`;
         }
 
         // 10.5 TEMPORADAS Y EPISODIOS (SOLO PARA SERIES)
@@ -4625,7 +4633,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     `;
                 });
                 seasonsHtml += '</div>';
-                seasonsContainer.innerHTML = `<h3 class="detail-section-title">Todos los episodios</h3>` + seasonsHtml;
+                seasonsContainer.innerHTML = `<h3 class="detail-section-title">${t('details.all_episodes')}</h3>` + seasonsHtml;
 
                 // Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
                 const headers = seasonsContainer.querySelectorAll('.season-header');
@@ -4674,7 +4682,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                                         <span><i class="fas fa-calendar-alt"></i> ${fecha}</span>
                                                         <span><i class="fas fa-star" style="color: gold;"></i> ${nota}</span>
                                                     </div>
-                                                    <p class="ep-overview">${ep.overview || 'Sin descripción del episodio disponible.'}</p>
+                                                    <p class="ep-overview">${ep.overview || t('details.no_episode_description')}</p>
                                                 </div>
                                                 
                                                 <button class="btn-watch-episode" data-season="${seasonNumber}" data-episode="${ep.episode_number}" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: 2px solid ${colorBtn}; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: ${colorBtn}; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
@@ -4782,8 +4790,8 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
     } catch (err) {
         console.error(err);
-        document.getElementById('media-detail-description').textContent = "Error al obtener los detalles.";
-        document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">Error cargando actores.</div>';
+        document.getElementById('media-detail-description').textContent = t('details.error_loading');
+        castContainer.innerHTML = `<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">${t('details.error_cast')}</div>`;
     }
 }
 
@@ -4903,6 +4911,15 @@ async function cargarPerfilPublico(usernameTarget) {
             const { data: miPerfil } = await supabase.from('usuarios').select('username').eq('email', emailLogueado).single();
             if (miPerfil) miPropioUsername = miPerfil.username;
         }
+
+        document.querySelector('.stat-unit.months').textContent = t('profile.months');
+        document.querySelector('.stat-unit.days').textContent = t('profile.days');
+        document.querySelector('.stat-unit.hours').textContent = t('profile.hours');
+
+        document.querySelector('#recommendations-section h3').textContent = t('profile.recommended');
+
+        document.querySelector('.stats-header h3').textContent = t('profile.global_stats');
+
 
         // Si no me pasan usuario por la URL (entrar desde el menú normal), asumo que quiero ver MI perfil
         const usuarioABuscar = usernameTarget || miPropioUsername;
@@ -5422,7 +5439,7 @@ async function cargarRecomendaciones(userId) {
 
 function crearTarjetaRecomendacion(item) {
     const poster = item.poster || '';
-    const titulo = item.titulo || 'Sin título';
+    const titulo = item.titulo || t('common.untitled');
     const generoMatch = item.generoCoincidencia || 'recomendado';
     const puntuacion = Math.round(item.puntuacion || 85);
     const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
@@ -5483,13 +5500,13 @@ async function iniciarPanelAdmin() {
     if (adminPanelIniciado) return; // Solo lo arrancamos la primera vez
     adminPanelIniciado = true;
 
-    addAdminLog("Inicializando conexión con Base de Datos...", "system");
+    addAdminLog(t('admin.init'), "system");
 
     // Obtenemos nuestro usuario para evitar quitarnos el admin a nosotros mismos
     const { data: { session } } = await supabase.auth.getSession();
     miEmailGlobalAdmin = session?.user?.email;
 
-    addAdminLog("Credenciales de administrador validadas.", "success");
+    addAdminLog(t('admin.validated'), "success");
 
     // Arrancamos la carga de la tabla (sin simulador de telemetría falso)
     cargarTablaUsuarios();
@@ -5644,7 +5661,7 @@ async function cargarTablaUsuarios(filtro = "") {
             tbody.appendChild(tr);
         });
 
-        addAdminLog(`Tabla actualizada: ${usuariosFiltrados.length} registros listados.`, "success");
+        addAdminLog(t('admin.table_updated', { count: usuariosFiltrados.length }), "success");
 
     } catch (err) {
         addAdminLog("Error al extraer usuarios: " + err.message, "error");
@@ -5944,7 +5961,7 @@ window.cargarAlertas = async function () {
     const areaNotifs = document.getElementById('chatbox-notifs-scroll');
     if (!areaNotifs) return;
 
-    areaNotifs.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">Sincronizando red...</p></div>';
+    areaNotifs.innerHTML = `<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">${t('chat.synchronizing')}</p></div>`;
 
     try {
         const miId = session.user.id; // Usamos nuestro UUID directamente
@@ -5962,7 +5979,7 @@ window.cargarAlertas = async function () {
             areaNotifs.innerHTML = `
                 <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
                     <i class="fas fa-users-slash" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
-                    Sin nuevos seguidores
+                    ${t('notifications.no_followers')}
                 </div>`;
             return;
         }
@@ -6265,7 +6282,7 @@ window.actualizarUIMediaPersonal = async function (data) {
         }
 
         let badgeStatic = window.estadoMediaActual.veces_vista > 1 ? ` <span class="watch-count-badge">${badgeText}</span>` : '';
-        watchStatus.innerHTML = `Vista ${badgeStatic}`;
+        watchStatus.innerHTML = `${t('details.watched')} ${badgeStatic}`;
         if (iconStatusText) {
             iconStatusText.className = 'fas fa-eye';
             iconStatusText.style.color = 'var(--primary)';
@@ -6280,9 +6297,9 @@ window.actualizarUIMediaPersonal = async function (data) {
         }
 
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
-            personalText.textContent = "Tu nota personal";
+            personalText.textContent = t('details.your_rating');
         } else {
-            personalText.textContent = "Haz clic para puntuar";
+            personalText.textContent = t('details.click_to_rate');
         }
 
     } else {
@@ -6293,7 +6310,7 @@ window.actualizarUIMediaPersonal = async function (data) {
             badgeElement.style.display = 'none';
         }
 
-        watchStatus.textContent = 'No vista';
+        watchStatus.textContent = t('details.not_watched');
         if (iconStatusText) {
             iconStatusText.className = 'fas fa-eye-slash';
             iconStatusText.style.color = 'var(--text-muted)';
@@ -6307,7 +6324,7 @@ window.actualizarUIMediaPersonal = async function (data) {
             btnWatchToggle.classList.remove('watched');
         }
 
-        personalText.textContent = "Haz clic para puntuar";
+        personalText.textContent = t('details.click_to_rate');
     }
 
     resetearEstrellasPersonal();
@@ -6321,7 +6338,7 @@ window.actualizarUIMediaPersonal = async function (data) {
     const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
 
     if (window.estadoMediaActual?.visto === true && userId) {
-        const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || 'Sin título';
+        const titulo = document.getElementById('media-detail-title')?.textContent || memoInfo.titulo || t('common.untitled');
         const poster = document.getElementById('media-detail-cover-img')?.src || '';
 
         try {
@@ -6789,12 +6806,12 @@ cardMenu.id = 'card-watch-menu';
 cardMenu.style.cssText = 'position: absolute; display: none; z-index: 9999; min-width: 180px; width: max-content; max-width: 250px; white-space: nowrap; box-shadow: 0px 8px 20px rgba(0,0,0,0.5);';
 cardMenu.innerHTML = `
     <button class="theme-option" id="btn-card-rewatch">
-        <i class="fas fa-redo"></i><span>Vista de nuevo</span>
+        <i class="fas fa-redo"></i><span>${t('details.rewatch_btn')}</span>
     </button>
     <div class="dropdown-divider"></div>
     <button class="theme-option" id="btn-card-unwatch">
         <i class="fas fa-eye-slash" style="color: var(--error);"></i>
-        <span style="color: var(--error);">Cambiar a NO VISTA</span>
+        <span style="color: var(--error);">${t('details.unwatch_btn')}</span>
     </button>
 `;
 document.body.appendChild(cardMenu);
@@ -7008,11 +7025,11 @@ function actualizarBarraProgresoSeries() {
     // Actualizar estado y etiqueta
     if (statusEl) {
         if (vistos >= totalEpisodios && totalEpisodios > 0) {
-            statusEl.textContent = 'COMPLETADA';
+            statusEl.textContent = t('series.completed');
             statusEl.className = 'completed';
             bar.classList.add('completed');
         } else {
-            statusEl.textContent = 'EN PROGRESO';
+            statusEl.textContent = t('series.in_progress');
             statusEl.className = 'in-progress';
             bar.classList.remove('completed');
         }
@@ -7057,9 +7074,9 @@ window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
         btn.onmouseout = function () { this.style.background = 'var(--primary-soft)'; this.style.color = 'var(--primary)'; };
 
         btn.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>`;
-        showToast('success', 'Guardado', 'Película marcada como vista.');
+        showToast('success', t('toast.saved'), t('toast.movie_marked'));
     } else {
-        showToast('error', 'Error BD', 'No se pudo guardar la película.');
+        showToast('error', t('toast.error'), t('toast.movie_error'));
         btn.innerHTML = `<i class="fas fa-eye-slash" style="font-size: 0.9rem;"></i>`;
     }
 };
@@ -7151,7 +7168,7 @@ async function cargarDatosPerfil() {
 
         if (infoJoined && perfil?.created_at) {
             const fecha = new Date(perfil.created_at);
-            infoJoined.textContent = fecha.toLocaleDateString('es-ES', {
+            infoJoined.textContent = t('edit.member_since') + ' ' + fecha.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -7362,6 +7379,9 @@ function limpiarVistaEditarPerfil() {
 function inicializarEditProfile() {
     // Cargar datos del perfil (rellena los inputs)
     cargarDatosPerfil();
+
+    document.querySelector('.edit-profile-description').textContent = t('edit.description');
+    document.querySelector('.edit-personal-title').textContent = t('edit.personal_data');
 
     // Guardar la vista anterior
     if (vistaActualGlobal !== 'edit-profile') {
@@ -7733,10 +7753,10 @@ function mostrarHistorial(tipo) {
     container.style.display = 'block';
     container.innerHTML = `
         <div class="search-history-header">
-            <span>📜 Búsquedas recientes</span>
+            <span>${t('search.recent')}</span>
             <button class="search-history-clear-all" onclick="limpiarHistorialCompleto('${tipo}')">
                 <i class="fas fa-trash-alt"></i>
-                <span>Limpiar todo</span>
+                <span>${t('search.clear_all')}</span>
             </button>
         </div>
         ${historial.map(item => `
@@ -8814,7 +8834,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-loading">
                 <i class="fas fa-circle-notch fa-spin"></i>
-                <span>Cargando tendencias de películas...</span>
+                <span>${t('trends.movies_loading')}</span>
             </div>
         `;
     }
@@ -8827,11 +8847,11 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
 
         if (!data || data.length === 0) {
             container.innerHTML = `
-                <div class="trends-empty">
-                    <i class="fas fa-film"></i>
-                    <span>No hay tendencias de películas disponibles</span>
-                </div>
-            `;
+            <div class="trends-empty">
+                <i class="fas fa-film"></i>
+                <span>${t('trends.movies_empty')}</span>
+            </div>
+        `;
             trendMoviesCargando = false;
             return;
         }
@@ -8859,10 +8879,10 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>Error al cargar tendencias</span>
+                <span>${t('trends.movies_error')}</span>
                 <button onclick="cargarTendenciasPeliculas('${period}', true)" 
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
-                    <i class="fas fa-redo"></i> Reintentar
+                    <i class="fas fa-redo"></i> ${t('common.retry')}
                 </button>
             </div>
         `;
@@ -8879,12 +8899,12 @@ function crearTarjetaTrendPelicula(pelicula, posicion) {
     card.style.cursor = 'pointer';
 
     const posterUrl = pelicula.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
-    const titulo = pelicula.titulo || 'Sin título';
+    const titulo = pelicula.titulo || t('common.untitled');
     const fecha = pelicula.fecha ? new Date(pelicula.fecha).toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-    }) : 'Próximamente';
+    }) : t('trends.coming_soon');
 
     const rating = pelicula.nota || '0.0';
 
@@ -9033,7 +9053,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-loading">
                 <i class="fas fa-circle-notch fa-spin"></i>
-                <span>Cargando tendencias de series...</span>
+                <span>${t('trends.series_loading')}</span>
             </div>
         `;
     }
@@ -9049,7 +9069,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
             container.innerHTML = `
                 <div class="trends-empty">
                     <i class="fas fa-tv"></i>
-                    <span>No hay tendencias de series disponibles</span>
+                    <span>${t('trends.series_empty')}</span>
                 </div>
             `;
             trendSeriesCargando = false;
@@ -9078,10 +9098,10 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>Error al cargar tendencias</span>
-                <button onclick="cargarTendenciasSeries('${period}', true)" 
+                <span>${t('trends.series_error')}</span>
+                <button onclick="cargarTendenciasSeries('${period}', true)"
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
-                    <i class="fas fa-redo"></i> Reintentar
+                    <i class="fas fa-redo"></i> ${t('common.retry')}
                 </button>
             </div>
         `;
@@ -9098,12 +9118,12 @@ function crearTarjetaTrendSerie(serie, posicion) {
     card.style.cursor = 'pointer';
 
     const posterUrl = serie.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
-    const titulo = serie.titulo || 'Sin título';
+    const titulo = serie.titulo || t('common.untitled');
     const fecha = serie.fecha ? new Date(serie.fecha).toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-    }) : 'Próximamente';
+    }) : t('trends.coming_soon');
 
     const rating = serie.nota || '0.0';
 
@@ -9153,7 +9173,7 @@ async function cargarUltimosTrailers() {
     container.innerHTML = `
         <div class="trends-loading">
             <i class="fas fa-circle-notch fa-spin"></i>
-            <span>Rastreando últimos tráilers...</span>
+            <span>${t('trends.trailers_loading')}</span>
         </div>
     `;
 
@@ -9228,10 +9248,10 @@ async function cargarUltimosTrailers() {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>Fallo al conectar con el servidor de tráilers</span>
+                <span>${t('trends.trailers_error')}</span>
                 <button onclick="cargarUltimosTrailers()" 
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
-                    <i class="fas fa-redo"></i> Reintentar
+                    <i class="fas fa-redo"></i> ${t('common.retry')}
                 </button>
             </div>
         `;
@@ -9257,9 +9277,9 @@ function crearTarjetaPlaceholderTrailer(tipo) {
             <span style="font-size: 0.7rem; color: var(--text-muted);">${texto}</span>
         </div>
         <div class="game-info">
-            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">Próximamente</h3>
+            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">t('trends.coming_soon')</h3>
             <button class="auth-btn secondary" style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: 8px; opacity: 0.3; cursor: not-allowed;" disabled>
-                <i class="fab fa-youtube"></i> SIN TRÁILER
+                <i class="fab fa-youtube"></i> t('trends.no_trailer')
             </button>
         </div>
     `;
@@ -9281,28 +9301,28 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
     // Obtener datos según el tipo
     let titulo = '';
     let posterUrl = '';
-    let fecha = 'Próximamente';
+    let fecha = t('trends.coming_soon');
     let rating = '';
     let trailerId = null;
     let urlYoutube = '';
 
     if (tipo === 'game') {
-        titulo = item.name || 'Sin título';
+        titulo = item.name || t('common.untitled');
         posterUrl = item.cover && item.cover.url
             ? item.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
             : 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.first_release_date
             ? new Date(item.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
-            : 'Próximamente';
+            : t('trends.coming_soon');
         // Para juegos, buscamos un trailer en websites o usamos búsqueda genérica
         urlYoutube = `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
     } else {
         // Película o Serie (TMDB)
-        titulo = item.titulo || 'Sin título';
+        titulo = item.titulo || t('common.untitled');
         posterUrl = item.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.fecha
             ? new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
-            : 'Próximamente';
+            : t('trends.coming_soon');
         // Para TMDB, usar trailer_id si existe
         trailerId = item.trailer_id || null;
         urlYoutube = trailerId
@@ -9330,7 +9350,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
             <button class="auth-btn primary btn-trailer-card" 
                     data-url="${urlYoutube}"
                     style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: auto; background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);">
-                <i class="fab fa-youtube" style="margin-right: 6px;"></i> VER TRÁILER
+                <i class="fab fa-youtube" style="margin-right: 6px;"></i> t('trends.watch_trailer')
             </button>
         </div>
     `;

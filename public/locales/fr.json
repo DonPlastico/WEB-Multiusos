@@ -172,5 +172,130 @@
     "buy": "Achat",
     "seasons_title": "Tous les épisodes",
     "not_watched": "Non vu"
+  },
+  "common": {
+    "tba": "À venir",
+    "untitled": "Sans titre",
+    "not_available": "Non disponible",
+    "movies_uppercase": "FILMS",
+    "series_uppercase": "SÉRIES",
+    "retry": "Réessayer",
+    "retry_manual": "Ça prend trop de temps ? Réessayer manuellement"
+  },
+  "theme": {
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "user": {
+    "guest": "Invité",
+    "view_profile": "Voir le profil",
+    "lists": "Listes",
+    "watchlists": "Listes de suivi",
+    "edit_profile": "Modifier le profil",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "games": {
+    "loading": "CHARGEMENT DES JEUX...",
+    "loading_more": "CHARGEMENT DE PLUS DE JEUX...",
+    "no_results": "Aucun résultat. Essaie une autre recherche.",
+    "deep_scan": "Analyse des couches profondes... (Saut du secteur non pertinent)",
+    "load_more_btn": "Charger plus",
+    "no_more_results": "Aucun autre résultat trouvé sur tout le réseau.",
+    "api_error": "Échec de la connexion à l'API.",
+    "from": "À partir de",
+    "console_edition": "Édition Console",
+    "no_offers": "Aucune offre actuelle"
+  },
+  "trends_extra": {
+    "no_offers": "Aucune offre",
+    "coming_soon": "Bientôt disponible",
+    "watch_trailer": "VOIR LA BANDE-ANNONCE",
+    "no_trailer": "PAS DE BANDE-ANNONCE",
+    "movies_loading": "Chargement des tendances films...",
+    "movies_empty": "Aucune tendance film disponible",
+    "movies_error": "Erreur lors du chargement des tendances",
+    "series_loading": "Chargement des tendances séries...",
+    "series_empty": "Aucune tendance série disponible",
+    "series_error": "Erreur lors du chargement des tendances",
+    "trailers_loading": "Recherche des dernières bandes-annonces...",
+    "trailers_error": "Échec de la connexion au serveur de bandes-annonces"
+  },
+  "movies": {
+    "not_streaming": "Non disponible en streaming",
+    "streaming": "Disponible en streaming",
+    "add_to_list": "Ajouter à la liste",
+    "loading": "CHARGEMENT DES DONNÉES...",
+    "api_error": "Échec de la connexion à TMDB."
+  },
+  "filters_extra": {
+    "from": "De :",
+    "to": "À :",
+    "adult_content": "Module débloqué par vérification d'âge (+18) dans le Nexus.",
+    "adult_toggle": "Afficher +18"
+  },
+  "search_extra": {
+    "recent": "📜 Recherches récentes",
+    "clear_all": "Tout effacer"
+  },
+  "details_extra": {
+    "no_details": "Impossible d'obtenir les détails.",
+    "no_description": "Aucune description disponible pour ce titre dans notre base de données.",
+    "unknown": "Inconnu",
+    "official_site": "Site officiel",
+    "connecting": "Connexion au Nexus...",
+    "downloading": "Téléchargement des données...",
+    "watched": "Vu",
+    "not_watched": "Non vu",
+    "your_rating": "Ta note personnelle",
+    "click_to_rate": "Clique pour noter",
+    "returning": "Série en cours",
+    "ended": "Terminée",
+    "released": "Sorti",
+    "planned": "Prévu",
+    "in_production": "En production",
+    "post_production": "Post-production",
+    "seasons": "Saisons",
+    "episodes": "Épisodes",
+    "total": "Total",
+    "completed": "Terminée !",
+    "official": "OFFICIEL",
+    "search": "RECHERCHE",
+    "ratings": "notes",
+    "no_cast": "Aucune information sur le casting dans le Nexus.",
+    "all_episodes": "Tous les épisodes",
+    "no_episode_description": "Aucune description d'épisode disponible.",
+    "error_loading": "Erreur lors du chargement des détails.",
+    "error_cast": "Erreur lors du chargement du casting.",
+    "rewatch_btn": "Revoir",
+    "unwatch_btn": "Marquer comme non vu"
+  },
+  "series": {
+    "completed": "TERMINÉE",
+    "in_progress": "EN COURS"
+  },
+  "chat_extra": {
+    "select_friend": "Sélectionne un ami pour discuter",
+    "synchronizing": "Synchronisation du réseau..."
+  },
+  "notifications": {
+    "no_followers": "Aucun nouvel abonné"
+  },
+  "admin_extra": {
+    "init": "Initialisation de la connexion à la base de données...",
+    "validated": "Identifiants d'administrateur validés.",
+    "table_updated": "Tableau mis à jour : {count} enregistrements listés."
+  },
+  "edit_extra": {
+    "description": "Configure ton identité dans le Nexus. Ici, tu peux personnaliser ton profil, modifier tes informations personnelles et gérer tes données.",
+    "personal_data": "DONNÉES PERSONNELLES",
+    "member_since": "Membre depuis"
+  },
+  "toast": {
+    "saved": "Enregistré",
+    "movie_marked": "Film marqué comme vu.",
+    "error": "Erreur BD",
+    "movie_error": "Impossible d'enregistrer le film."
   }
 }

@@ -172,5 +172,130 @@
     "buy": "購入",
     "seasons_title": "全エピソード",
     "not_watched": "未視聴"
+  },
+  "common": {
+    "tba": "未定",
+    "untitled": "無題",
+    "not_available": "利用不可",
+    "movies_uppercase": "映画",
+    "series_uppercase": "シリーズ",
+    "retry": "再試行",
+    "retry_manual": "時間がかかりすぎる？手動で再試行"
+  },
+  "theme": {
+    "system": "システム",
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "user": {
+    "guest": "ゲスト",
+    "view_profile": "プロフィールを見る",
+    "lists": "リスト",
+    "watchlists": "ウォッチリスト",
+    "edit_profile": "プロフィールを編集",
+    "settings": "設定",
+    "logout": "ログアウト"
+  },
+  "games": {
+    "loading": "ゲームを読み込み中...",
+    "loading_more": "さらにゲームを読み込み中...",
+    "no_results": "結果がありません。別の検索を試してください。",
+    "deep_scan": "ディープスキャン中... (無関係なセクターをスキップ)",
+    "load_more_btn": "さらに読み込む",
+    "no_more_results": "ネットワーク全体でこれ以上の結果は見つかりませんでした。",
+    "api_error": "APIへの接続に失敗しました。",
+    "from": "から",
+    "console_edition": "コンソール版",
+    "no_offers": "現在のオファーはありません"
+  },
+  "trends_extra": {
+    "no_offers": "オファーなし",
+    "coming_soon": "近日公開",
+    "watch_trailer": "トレーラーを見る",
+    "no_trailer": "トレーラーなし",
+    "movies_loading": "映画のトレンドを読み込み中...",
+    "movies_empty": "映画のトレンドはありません",
+    "movies_error": "トレンドの読み込み中にエラーが発生しました",
+    "series_loading": "シリーズのトレンドを読み込み中...",
+    "series_empty": "シリーズのトレンドはありません",
+    "series_error": "トレンドの読み込み中にエラーが発生しました",
+    "trailers_loading": "最新トレーラーを追跡中...",
+    "trailers_error": "トレーラーサーバーへの接続に失敗しました"
+  },
+  "movies": {
+    "not_streaming": "ストリーミング不可",
+    "streaming": "ストリーミング可能",
+    "add_to_list": "リストに追加",
+    "loading": "データを読み込み中...",
+    "api_error": "TMDBへの接続に失敗しました。"
+  },
+  "filters_extra": {
+    "from": "開始:",
+    "to": "終了:",
+    "adult_content": "Nexusで年齢確認（+18）によりロック解除されたモジュール。",
+    "adult_toggle": "+18を表示"
+  },
+  "search_extra": {
+    "recent": "📜 最近の検索",
+    "clear_all": "すべてクリア"
+  },
+  "details_extra": {
+    "no_details": "詳細を取得できませんでした。",
+    "no_description": "このタイトルの説明はデータベースにありません。",
+    "unknown": "不明",
+    "official_site": "公式サイト",
+    "connecting": "Nexusに接続中...",
+    "downloading": "データをダウンロード中...",
+    "watched": "視聴済み",
+    "not_watched": "未視聴",
+    "your_rating": "あなたの評価",
+    "click_to_rate": "クリックして評価",
+    "returning": "続編あり",
+    "ended": "終了",
+    "released": "公開済み",
+    "planned": "計画中",
+    "in_production": "制作中",
+    "post_production": "ポストプロダクション",
+    "seasons": "シーズン",
+    "episodes": "エピソード",
+    "total": "合計",
+    "completed": "完了！",
+    "official": "公式",
+    "search": "検索",
+    "ratings": "評価",
+    "no_cast": "Nexusにキャスト情報はありません。",
+    "all_episodes": "全エピソード",
+    "no_episode_description": "エピソードの説明はありません。",
+    "error_loading": "詳細の読み込み中にエラーが発生しました。",
+    "error_cast": "キャストの読み込み中にエラーが発生しました。",
+    "rewatch_btn": "もう一度見る",
+    "unwatch_btn": "未視聴に変更"
+  },
+  "series": {
+    "completed": "完了",
+    "in_progress": "進行中"
+  },
+  "chat_extra": {
+    "select_friend": "チャットする友達を選択",
+    "synchronizing": "ネットワークを同期中..."
+  },
+  "notifications": {
+    "no_followers": "新しいフォロワーはいません"
+  },
+  "admin_extra": {
+    "init": "データベース接続を初期化中...",
+    "validated": "管理者認証情報が検証されました。",
+    "table_updated": "テーブルが更新されました: {count} 件のレコードがリストされました。"
+  },
+  "edit_extra": {
+    "description": "Nexusでアイデンティティを設定します。ここからプロフィールをカスタマイズし、個人情報を変更し、データを管理できます。",
+    "personal_data": "個人データ",
+    "member_since": "登録日"
+  },
+  "toast": {
+    "saved": "保存されました",
+    "movie_marked": "映画が視聴済みとしてマークされました。",
+    "error": "DBエラー",
+    "movie_error": "映画を保存できませんでした。"
   }
 }

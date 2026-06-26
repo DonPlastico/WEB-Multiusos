@@ -172,5 +172,130 @@
     "buy": "购买",
     "seasons_title": "全部剧集",
     "not_watched": "未看"
+  },
+  "common": {
+    "tba": "待定",
+    "untitled": "无标题",
+    "not_available": "不可用",
+    "movies_uppercase": "电影",
+    "series_uppercase": "剧集",
+    "retry": "重试",
+    "retry_manual": "耗时太长？手动重试"
+  },
+  "theme": {
+    "system": "系统",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "user": {
+    "guest": "访客",
+    "view_profile": "查看资料",
+    "lists": "列表",
+    "watchlists": "观看列表",
+    "edit_profile": "编辑资料",
+    "settings": "设置",
+    "logout": "退出登录"
+  },
+  "games": {
+    "loading": "加载游戏中...",
+    "loading_more": "加载更多游戏中...",
+    "no_results": "没有结果。请尝试其他搜索。",
+    "deep_scan": "深度扫描中...（跳过不相关区域）",
+    "load_more_btn": "加载更多",
+    "no_more_results": "全网未找到更多结果。",
+    "api_error": "连接API失败。",
+    "from": "从",
+    "console_edition": "主机版",
+    "no_offers": "暂无优惠"
+  },
+  "trends_extra": {
+    "no_offers": "暂无优惠",
+    "coming_soon": "即将推出",
+    "watch_trailer": "观看预告片",
+    "no_trailer": "暂无预告片",
+    "movies_loading": "加载电影趋势中...",
+    "movies_empty": "暂无电影趋势",
+    "movies_error": "加载趋势时出错",
+    "series_loading": "加载剧集趋势中...",
+    "series_empty": "暂无剧集趋势",
+    "series_error": "加载趋势时出错",
+    "trailers_loading": "追踪最新预告片中...",
+    "trailers_error": "连接预告片服务器失败"
+  },
+  "movies": {
+    "not_streaming": "不支持流媒体",
+    "streaming": "支持流媒体",
+    "add_to_list": "添加到列表",
+    "loading": "加载数据中...",
+    "api_error": "连接TMDB失败。"
+  },
+  "filters_extra": {
+    "from": "从:",
+    "to": "到:",
+    "adult_content": "在Nexus中通过年龄验证（+18）解锁的模块。",
+    "adult_toggle": "显示+18"
+  },
+  "search_extra": {
+    "recent": "📜 最近搜索",
+    "clear_all": "全部清除"
+  },
+  "details_extra": {
+    "no_details": "无法获取详细信息。",
+    "no_description": "数据库中无此标题的描述。",
+    "unknown": "未知",
+    "official_site": "官方网站",
+    "connecting": "正在连接Nexus...",
+    "downloading": "正在下载数据...",
+    "watched": "已看",
+    "not_watched": "未看",
+    "your_rating": "你的评分",
+    "click_to_rate": "点击评分",
+    "returning": "连载中",
+    "ended": "已完结",
+    "released": "已上映",
+    "planned": "计划中",
+    "in_production": "制作中",
+    "post_production": "后期制作中",
+    "seasons": "季",
+    "episodes": "集",
+    "total": "总计",
+    "completed": "已完成！",
+    "official": "官方",
+    "search": "搜索",
+    "ratings": "评价",
+    "no_cast": "Nexus中暂无演职员信息。",
+    "all_episodes": "全部剧集",
+    "no_episode_description": "暂无剧集描述。",
+    "error_loading": "加载详情时出错。",
+    "error_cast": "加载演职员时出错。",
+    "rewatch_btn": "再次观看",
+    "unwatch_btn": "标记为未看"
+  },
+  "series": {
+    "completed": "已完成",
+    "in_progress": "进行中"
+  },
+  "chat_extra": {
+    "select_friend": "选择好友聊天",
+    "synchronizing": "同步网络中..."
+  },
+  "notifications": {
+    "no_followers": "暂无新粉丝"
+  },
+  "admin_extra": {
+    "init": "初始化数据库连接...",
+    "validated": "管理员凭证已验证。",
+    "table_updated": "表格已更新：已列出 {count} 条记录。"
+  },
+  "edit_extra": {
+    "description": "在Nexus中配置你的身份。你可以在此自定义个人资料、更改个人信息和管理数据。",
+    "personal_data": "个人资料",
+    "member_since": "加入于"
+  },
+  "toast": {
+    "saved": "已保存",
+    "movie_marked": "电影已标记为已看。",
+    "error": "数据库错误",
+    "movie_error": "无法保存电影。"
   }
 }

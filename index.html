@@ -42,12 +42,12 @@
     <div class="scanlines"></div>
 
     <nav class="cyber-nav">
-        <div class="logo" id="logo-home" title="Ir al Inicio">DP<span>-SYS</span></div>
+        <div class="logo" id="logo-home" title="${t('nav.home')}">DP<span>-SYS</span></div>
 
         <ul class="nav-links">
-            <li><a href="#" data-target="games" id="nav-games">JUEGOS</a></li>
-            <li><a href="#" data-target="movies" id="nav-movies">PELICULAS</a></li>
-            <li><a href="#" data-target="series" id="nav-series">SERIES</a></li>
+            <li><a href="#" data-target="games" id="nav-games"></a></li>
+            <li><a href="#" data-target="movies" id="nav-movies"></a></li>
+            <li><a href="#" data-target="series" id="nav-series"></a></li>
         </ul>
 
         <div class="nav-right">
@@ -59,11 +59,11 @@
                 <img src="https://flagcdn.com/32x24/es.webp" alt="ES">
             </button>
 
-            <button class="icon-btn" id="btn-admin" title="Panel de Control" style="display: none;">
+            <button class="icon-btn" id="btn-admin" title="${t('admin.title')}" style="display: none;">
                 <i class="fas fa-user-shield"></i>
             </button>
 
-            <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
+            <button class="icon-btn user-btn" id="user-profile" title="${t('user.view_profile')}">
                 <i class="fas fa-user-circle"></i>
             </button>
         </div>
@@ -100,34 +100,31 @@
                         <div
                             style="width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); animation: pulse 2s infinite;">
                         </div>
-                        <span
-                            style="color: var(--success); font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">NEXUS
-                            EN LÍNEA</span>
+                        <span id="hero-online-status"
+                            style="color: var(--success); font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
+                            NEXUS EN LÍNEA</span>
                     </div>
 
                     <h1 id="hero-title"
                         style="font-size: 4rem; font-weight: 700; font-family: var(--font-cyber); line-height: 1.1; margin-bottom: 15px; background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -1px;">
-                        Te doy la <br><span
-                            style="background: none; -webkit-background-clip: unset; background-clip: unset; color: var(--neon-white);">bienvenida.</span>
                     </h1>
 
                     <p id="hero-subtitle"
                         style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 25px;">
-                        Millones de películas, series y gente por descubrir. <br>Explora ya.
                     </p>
 
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <a href="#" id="btn-hero-games" class="auth-btn primary"
                             style="padding: 12px 32px; font-size: 0.9rem;">
-                            <i class="fas fa-rocket"></i> EXPLORAR JUEGOS
+                            <i class="fas fa-rocket"></i>
                         </a>
                         <a href="#" id="btn-hero-movies" class="auth-btn secondary"
                             style="padding: 12px 32px; font-size: 0.9rem;">
-                            <i class="fas fa-film"></i> VER PELÍCULAS
+                            <i class="fas fa-film"></i>
                         </a>
                         <a href="#" id="btn-hero-series" class="auth-btn secondary"
                             style="padding: 12px 32px; font-size: 0.9rem;">
-                            <i class="fas fa-tv"></i> VER SERIES
+                            <i class="fas fa-tv"></i>
                         </a>
                     </div>
 
@@ -136,19 +133,19 @@
                         <div>
                             <span
                                 style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">10K+</span>
-                            <span
+                            <span id="hero-stats-games"
                                 style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Juegos</span>
                         </div>
                         <div>
                             <span
                                 style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">100K+</span>
-                            <span
+                            <span id="hero-stats-movies"
                                 style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Películas</span>
                         </div>
                         <div>
                             <span
                                 style="font-size: 1.5rem; font-weight: 700; color: var(--neon-white); display: block;">50K+</span>
-                            <span
+                            <span id="hero-stats-series"
                                 style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase;">Series</span>
                         </div>
                     </div>
@@ -173,13 +170,12 @@
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-games-title">
-                        <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Juegos
+                        <i class="fas fa-fire" style="color: var(--warning);"></i>
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="week" id="trend-tab-games-week">Esta
-                            semana</button>
-                        <button class="trend-tab" data-period="month" id="trend-tab-games-month">Este mes</button>
-                        <button class="trend-tab" data-period="year" id="trend-tab-games-year">Este año</button>
+                        <button class="trend-tab active" data-period="week" id="trend-tab-games-week"></button>
+                        <button class="trend-tab" data-period="month" id="trend-tab-games-month"></button>
+                        <button class="trend-tab" data-period="year" id="trend-tab-games-year"></button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-games">
@@ -194,11 +190,11 @@
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-movies-title">
-                        <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Películas
+                        <i class="fas fa-fire" style="color: var(--warning);"></i>
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="day" id="trend-tab-movies-day">Hoy</button>
-                        <button class="trend-tab" data-period="week" id="trend-tab-movies-week">Esta semana</button>
+                        <button class="trend-tab active" data-period="day" id="trend-tab-movies-day"></button>
+                        <button class="trend-tab" data-period="week" id="trend-tab-movies-week"></button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-movies">
@@ -213,11 +209,11 @@
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-series-title">
-                        <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Series
+                        <i class="fas fa-fire" style="color: var(--warning);"></i>
                     </h2>
                     <div class="trends-tabs">
-                        <button class="trend-tab active" data-period="day" id="trend-tab-series-day">Hoy</button>
-                        <button class="trend-tab" data-period="week" id="trend-tab-series-week">Esta semana</button>
+                        <button class="trend-tab active" data-period="day" id="trend-tab-series-day"></button>
+                        <button class="trend-tab" data-period="week" id="trend-tab-series-week"></button>
                     </div>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="trend-series">
@@ -232,7 +228,7 @@
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trailers-title">
-                        <i class="fas fa-play-circle" style="color: var(--primary);"></i> Últimos Tráilers
+                        <i class="fas fa-play-circle" style="color: var(--primary);"></i>
                     </h2>
                 </div>
                 <div class="horizontal-scroll glass-panel" id="latest-trailers">
@@ -244,7 +240,7 @@
             </div>
 
             <div class="trends-container">
-                <h2 class="section-title">Lo Más Popular</h2>
+                <h2 class="section-title" id="popular-title">Lo Más Popular</h2>
                 <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.webp" alt="proximamente">
                 </div>
             </div>
@@ -256,7 +252,7 @@
 
                 <div class="games-content">
                     <div class="search-box glass-panel">
-                        <input type="text" id="search-juegos" placeholder="Buscar juegos..." autocomplete="off">
+                        <input type="text" id="search-juegos" placeholder="" autocomplete="off">
                         <button id="btn-buscar-juegos"><i class="fas fa-search"></i></button>
                         <button id="btn-mobile-filters" class="btn-mobile-filters" aria-label="Abrir filtros">
                             <i class="fas fa-sliders-h"></i>
@@ -270,20 +266,20 @@
 
                 <aside class="filter-sidebar glass-panel">
                     <div class="filter-drawer-close-row">
-                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i></span>
                         <button id="btn-close-filters-drawer" aria-label="Cerrar filtros">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="filter-main-header">
-                        <h2>Filtros</h2>
-                        <button id="btn-reset-filters">Limpiar</button>
+                        <h2 id="filter-title"></h2>
+                        <button id="btn-reset-filters"></button>
                     </div>
 
                     <div class="filters-scroll-area">
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-stores">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
+                                <span id="filter-stores"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
                                 <label class="custom-check">
@@ -311,7 +307,7 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-plats">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
+                                <span id="filter-plats"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
                                 <label class="custom-check plat-item">
@@ -351,19 +347,19 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-price">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> PRECIO</span>
+                                <span id="filter-price"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
                                 <div class="price-inputs-row">
                                     <div class="price-box">
-                                        <label>Min</label>
+                                        <label id="price-min-label">Min</label>
                                         <div class="input-wrapper">
                                             <span>€</span>
                                             <input type="number" id="precio-min" placeholder="0" min="0" max="9999">
                                         </div>
                                     </div>
                                     <div class="price-box">
-                                        <label>Max</label>
+                                        <label id="price-max-label">Max</label>
                                         <div class="input-wrapper">
                                             <span>€</span>
                                             <input type="number" id="precio-max" placeholder="999" min="0" max="9999">
@@ -375,11 +371,10 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-genres">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> TOP GÉNEROS</span>
+                                <span id="filter-genres"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
-                                <input type="text" id="search-genre" class="cyber-input mini-search"
-                                    placeholder="Buscar género...">
+                                <input type="text" id="search-genre" class="cyber-input mini-search" placeholder="">
 
                                 <div id="genre-list">
                                     <label class="custom-check genre-item">
@@ -479,15 +474,15 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-date">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE SALIDA</span>
+                                <span id="filter-date"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
+                                <label id="filter-from"
+                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;"></label>
                                 <input type="date" id="date-min" class="cyber-input date-picker">
 
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
+                                <label id="filter-to"
+                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;"></label>
                                 <input type="date" id="date-max" class="cyber-input date-picker">
                             </div>
                         </div>
@@ -535,7 +530,7 @@
             <div class="games-layout">
                 <div class="games-content">
                     <div class="search-box glass-panel">
-                        <input type="text" id="search-movies" placeholder="Buscar películas..." autocomplete="off">
+                        <input type="text" id="search-movies" placeholder="" autocomplete="off">
                         <button id="btn-buscar-movies"><i class="fas fa-search"></i></button>
                         <button class="btn-mobile-filters" id="btn-filters-movies-mobile" aria-label="Abrir filtros">
                             <i class="fas fa-sliders-h"></i>
@@ -548,16 +543,15 @@
 
                 <aside id="sidebar-filters-movies" class="filter-sidebar glass-panel">
                     <div class="filter-drawer-close-row">
-                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i></span>
                         <button id="btn-close-movies-mobile" aria-label="Cerrar filtros">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
 
                     <div class="filter-main-header">
-                        <h2>Filtros</h2>
-                        <button id="btn-reset-filters-movies" class="btn-reset-tmdb"
-                            data-target="movie">Limpiar</button>
+                        <h2 id="filter-title-movies"></h2>
+                        <button id="btn-reset-filters-movies" class="btn-reset-tmdb" data-target="movie"></button>
                     </div>
 
                     <div class="accordion-item nsfw-filter-container"
@@ -566,7 +560,7 @@
                             style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                             <span style="color: var(--error);" id="filter-adult">
                                 <i class="fas fa-exclamation-triangle"
-                                    style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
+                                    style="color: var(--error); margin-right: 5px;"></i>
                             </span>
                             <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
                         </div>
@@ -574,11 +568,11 @@
                             <label class="custom-check" title="Activa el contenido para adultos">
                                 <input type="checkbox" id="adult-filter-movie" class="adult-checkbox">
                                 <span class="box" style="border-color: var(--error);"></span>
-                                <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
-                                    +18</span>
+                                <span id="adult-filter-label"
+                                    style="color: var(--error); font-weight: bold; letter-spacing: 1px;"></span>
                             </label>
-                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
-                                desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            <p id="adult-filter-desc"
+                                style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;"></p>
                         </div>
                     </div>
 
@@ -590,108 +584,106 @@
                             <div class="accordion-content">
                                 <label class="custom-check">
                                     <input type="checkbox" class="estado-item-movie" value="visto">
-                                    <span class="box"></span> He visto
+                                    <span class="box"></span> <span id="filter-watched-movie">He visto</span>
                                 </label>
                                 <label class="custom-check">
                                     <input type="checkbox" class="estado-item-movie" value="no_visto">
-                                    <span class="box"></span> No he visto
+                                    <span class="box"></span> <span id="filter-not-watched-movie">No he visto</span>
                                 </label>
                             </div>
-                        </div>
 
-                        <div class="accordion-item">
-                            <div class="accordion-header">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
-                            </div>
-                            <div class="accordion-content">
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
-                                <input type="date" id="date-min-movie" class="cyber-input date-picker">
+                            <div class="accordion-item">
+                                <div class="accordion-header">
+                                    <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
+                                </div>
+                                <div class="accordion-content">
+                                    <label id="filter-from-movie"
+                                        style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;"></label>
 
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
-                                <input type="date" id="date-max-movie" class="cyber-input date-picker">
-                            </div>
-                        </div>
+                                    <input type="date" id="date-min-movie" class="cyber-input date-picker">
 
-                        <div class="accordion-item">
-                            <div class="accordion-header">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
+                                    <label id="filter-to-movie"
+                                        style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;"></label>
+                                    <input type="date" id="date-max-movie" class="cyber-input date-picker">
+                                </div>
                             </div>
-                            <div class="accordion-content">
-                                <input type="text" id="search-genre-movie" class="cyber-input mini-search"
-                                    placeholder="Buscar género...">
-                                <div id="genre-list-movie">
-                                    <div
-                                        style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
-                                        <i class="fas fa-spinner fa-spin"></i> Cargando géneros...
+
+                            <div class="accordion-item">
+                                <div class="accordion-header">
+                                    <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
+                                </div>
+                                <div class="accordion-content">
+                                    <input type="text" id="search-genre-movie" class="cyber-input mini-search"
+                                        placeholder="">
+                                    <div id="genre-list-movie">
+                                        <div id="genre-loading-movie"
+                                            style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
+                                            <i class="fas fa-spinner fa-spin"></i> <span
+                                                id="genre-loading-text-movie">Cargando géneros...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <div class="accordion-header">
+                                    <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
+                                </div>
+                                <div class="accordion-content">
+                                    <input type="text" id="search-lang-movie" class="cyber-input mini-search"
+                                        placeholder="">
+                                    <div id="lang-list-movie">
+                                        <div class="lang-group">
+                                            <div id="lang-group-occidental-series" class="lang-group-title"
+                                                style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
+                                                OCCIDENTALES</div>
+                                            <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                    value="ES"><span class="box"></span> Español</label>
+                                            <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                    value="US"><span class="box"></span> Inglés (EE.UU)</label>
+                                        </div>
+
+                                        <div class="lang-group">
+                                            <div id="lang-group-asian-series" class="lang-group-title"
+                                                style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
+                                                ASIÁTICOS</div>
+                                            <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                    value="KR"><span class="box"></span> Corea</label>
+                                            <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                    value="JP"><span class="box"></span> Japón</label>
+                                            <label class="custom-check lang-item-movie"><input type="checkbox"
+                                                    value="CN"><span class="box"></span> China</label>
+                                        </div>
+
+                                        <div class="lang-group" id="lang-extra-movie" style="display: none;">
+                                            <div id="lang-group-other-series" class="lang-group-title"
+                                                style="color:var(--text-muted); font-size:0.7rem; margin:15px 0 5px; font-weight:bold; opacity:0.6;">
+                                                OTROS</div>
+                                            <div id="lang-extra-list-movie"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item">
+                                <div class="accordion-header" id="filter-votes">
+                                    <<span id="filter-votes"><i class="fas fa-chevron-down chevron-icon"></i></span>
+                                </div>
+                                <div class="accordion-content">
+                                    <div class="slider-container" style="padding: 10px 5px;">
+                                        <input type="range" id="votes-slider-movie" min="0" max="500" step="50"
+                                            value="0" style="width:100%; accent-color: var(--primary);">
+                                        <div
+                                            style="display:flex; justify-content:space-between; margin-top:10px; color:var(--text-muted); font-size:0.85rem;">
+                                            <span>0</span>
+                                            <span id="votes-display-movie"
+                                                style="color:var(--primary); font-weight:bold;">0</span>
+                                            <span>500+</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="accordion-item">
-                            <div class="accordion-header">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
-                            </div>
-                            <div class="accordion-content">
-                                <input type="text" id="search-lang-movie" class="cyber-input mini-search"
-                                    placeholder="Buscar idioma/país...">
-                                <div id="lang-list-movie">
-                                    <div class="lang-group">
-                                        <div class="lang-group-title"
-                                            style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
-                                            OCCIDENTALES
-                                        </div>
-                                        <label class="custom-check lang-item-movie"><input type="checkbox"
-                                                value="ES"><span class="box"></span> Español</label>
-                                        <label class="custom-check lang-item-movie"><input type="checkbox"
-                                                value="US"><span class="box"></span> Inglés (EE.UU)</label>
-                                    </div>
-
-                                    <div class="lang-group">
-                                        <div class="lang-group-title"
-                                            style="color:var(--primary); font-size:0.8rem; margin:15px 0 5px; font-weight:bold;">
-                                            ASIÁTICOS
-                                        </div>
-                                        <label class="custom-check lang-item-movie"><input type="checkbox"
-                                                value="KR"><span class="box"></span> Corea</label>
-                                        <label class="custom-check lang-item-movie"><input type="checkbox"
-                                                value="JP"><span class="box"></span> Japón</label>
-                                        <label class="custom-check lang-item-movie"><input type="checkbox"
-                                                value="CN"><span class="box"></span> China</label>
-                                    </div>
-
-                                    <div class="lang-group" id="lang-extra-movie" style="display: none;">
-                                        <div class="lang-group-title"
-                                            style="color:var(--text-muted); font-size:0.7rem; margin:15px 0 5px; font-weight:bold; opacity:0.6;">
-                                            OTROS
-                                        </div>
-                                        <div id="lang-extra-list-movie"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <div class="accordion-header" id="filter-votes">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
-                            </div>
-                            <div class="accordion-content">
-                                <div class="slider-container" style="padding: 10px 5px;">
-                                    <input type="range" id="votes-slider-movie" min="0" max="500" step="50" value="0"
-                                        style="width:100%; accent-color: var(--primary);">
-                                    <div
-                                        style="display:flex; justify-content:space-between; margin-top:10px; color:var(--text-muted); font-size:0.85rem;">
-                                        <span>0</span>
-                                        <span id="votes-display-movie" style="color:var(--primary); font-weight:bold;">0
-                                            votos</span>
-                                        <span>500+</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </aside>
             </div>
         </section>
@@ -701,7 +693,7 @@
             <div class="games-layout">
                 <div class="games-content">
                     <div class="search-box glass-panel">
-                        <input type="text" id="search-series" placeholder="Buscar series..." autocomplete="off">
+                        <input type="text" id="search-series" placeholder="" autocomplete="off">
                         <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
                         <button class="btn-mobile-filters" id="btn-filters-series-mobile" aria-label="Abrir filtros">
                             <i class="fas fa-sliders-h"></i>
@@ -714,15 +706,15 @@
 
                 <aside id="sidebar-filters-series" class="filter-sidebar glass-panel">
                     <div class="filter-drawer-close-row">
-                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
+                        <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i></span>
                         <button id="btn-close-series-mobile" aria-label="Cerrar filtros">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
 
                     <div class="filter-main-header">
-                        <h2>Filtros</h2>
-                        <button id="btn-reset-filters-tv" class="btn-reset-tmdb" data-target="tv">Limpiar</button>
+                        <h2 id="filter-title-series"></h2>
+                        <button id="btn-reset-filters-tv" class="btn-reset-tmdb" data-target="tv"></button>
                     </div>
 
                     <div class="accordion-item nsfw-filter-container"
@@ -731,7 +723,7 @@
                             style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                             <span style="color: var(--error);" id="filter-adult-series">
                                 <i class="fas fa-exclamation-triangle"
-                                    style="color: var(--error); margin-right: 5px;"></i> CONTENIDO NSFW
+                                    style="color: var(--error); margin-right: 5px;"></i>
                             </span>
                             <i class="fas fa-chevron-down chevron-icon" style="color: var(--error);"></i>
                         </div>
@@ -739,11 +731,11 @@
                             <label class="custom-check" title="Activa el contenido para adultos">
                                 <input type="checkbox" id="adult-filter-series" class="adult-checkbox">
                                 <span class="box" style="border-color: var(--error);"></span>
-                                <span style="color: var(--error); font-weight: bold; letter-spacing: 1px;">Mostrar
-                                    +18</span>
+                                <span id="adult-filter-label-series"
+                                    style="color: var(--error); font-weight: bold; letter-spacing: 1px;"></span>
                             </label>
-                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Módulo
-                                desbloqueado por verificación de edad (+18) en el Nexus.</p>
+                            <p id="adult-filter-desc-series"
+                                style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;"></p>
                         </div>
                     </div>
 
@@ -755,11 +747,11 @@
                             <div class="accordion-content">
                                 <label class="custom-check">
                                     <input type="checkbox" class="estado-item-tv" value="visto">
-                                    <span class="box"></span> He visto
+                                    <span class="box"></span> <span id="filter-watched-series">He visto</span>
                                 </label>
                                 <label class="custom-check">
                                     <input type="checkbox" class="estado-item-tv" value="no_visto">
-                                    <span class="box"></span> No he visto
+                                    <span class="box"></span> <span id="filter-not-watched-series">No he visto</span>
                                 </label>
                             </div>
                         </div>
@@ -769,12 +761,12 @@
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
                             </div>
                             <div class="accordion-content">
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;">Desde:</label>
+                                <label id="filter-from-series"
+                                    style="font-size: 0.8rem; color:#888; margin-bottom:5px; display:block;"></label>
                                 <input type="date" id="date-min-tv" class="cyber-input date-picker">
 
-                                <label
-                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;">Hasta:</label>
+                                <label id="filter-to-series"
+                                    style="font-size: 0.8rem; color:#888; margin: 10px 0 5px; display:block;"></label>
                                 <input type="date" id="date-max-tv" class="cyber-input date-picker">
                             </div>
                         </div>
@@ -784,12 +776,12 @@
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
                             </div>
                             <div class="accordion-content">
-                                <input type="text" id="search-genre-tv" class="cyber-input mini-search"
-                                    placeholder="Buscar género...">
+                                <input type="text" id="search-genre-tv" class="cyber-input mini-search" placeholder="">
                                 <div id="genre-list-tv">
-                                    <div
+                                    <div id="genre-loading-series"
                                         style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:10px;">
-                                        <i class="fas fa-spinner fa-spin"></i> Cargando géneros...
+                                        <i class="fas fa-spinner fa-spin"></i> <span
+                                            id="genre-loading-text-series">Cargando géneros...</span>
                                     </div>
                                 </div>
                             </div>
@@ -800,8 +792,7 @@
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
                             </div>
                             <div class="accordion-content">
-                                <input type="text" id="search-lang-tv" class="cyber-input mini-search"
-                                    placeholder="Buscar idioma/país...">
+                                <input type="text" id="search-lang-tv" class="cyber-input mini-search" placeholder="">
                                 <div id="lang-list-tv">
                                     <div class="lang-group">
                                         <div class="lang-group-title"
@@ -840,7 +831,7 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-votes-series">
-                                <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
+                                <span id="filter-votes-series"><i class="fas fa-chevron-down chevron-icon"></i></span>
                             </div>
                             <div class="accordion-content">
                                 <div class="slider-container" style="padding: 10px 5px;">
@@ -849,8 +840,8 @@
                                     <div
                                         style="display:flex; justify-content:space-between; margin-top:10px; color:var(--text-muted); font-size:0.85rem;">
                                         <span>0</span>
-                                        <span id="votes-display-tv" style="color:var(--primary); font-weight:bold;">0
-                                            votos</span>
+                                        <span id="votes-display-tv"
+                                            style="color:var(--primary); font-weight:bold;">0</span>
                                         <span>500+</span>
                                     </div>
                                 </div>
@@ -869,14 +860,9 @@
                     <div>
                         <h1 id="admin-title"
                             style="color: var(--text-main); font-size: 2.5rem; margin-bottom: 10px; font-family: var(--font-cyber); font-weight: bold;">
-                            PANEL DE ADMINISTRACIÓN <span style="color: var(--text-muted);">//</span> <span
-                                style="color: var(--primary);">NEXUS</span>
                         </h1>
-                        <p
+                        <p id="admin-description"
                             style="margin: 0;color: var(--text-secondary);font-size: 0.95rem;max-width: 1000px;line-height: 1.6;">
-                            Centro de control unificado de la plataforma. Desde aquí puedes gestionar las identidades y
-                            roles de los usuarios en la base de datos (Supabase), supervisar la telemetría y peticiones
-                            de red en tiempo real, y administrar acciones críticas del servidor.
                         </p>
                     </div>
                     <div
@@ -884,7 +870,7 @@
                         <div class="pulse-dot"
                             style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite;">
                         </div>
-                        <span
+                        <span id="admin-online-status"
                             style="color: var(--success); font-weight: 600; font-size: 0.9rem; letter-spacing: 1px;">SISTEMA
                             EN LÍNEA</span>
                     </div>
@@ -896,7 +882,7 @@
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
-                            <span id="admin-total-users">USUARIOS EN BBDD</span>
+                            <span id="admin-total-users"></span>
                             <i class="fas fa-users" style="color: var(--text-secondary);"></i>
                         </div>
                         <div id="metric-total-users"
@@ -911,14 +897,14 @@
                             <circle cx="100" cy="5" r="3" fill="var(--primary)"></circle>
                         </svg>
 
-                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Cuentas registradas en Supabase
+                        <div id="admin-metric-desc-total" style="color: var(--text-secondary); font-size: 0.85rem;">
                         </div>
                     </div>
 
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
-                            <span>EDGE REQUESTS</span>
+                            <span id="admin-edge-requests">EDGE REQUESTS</span>
                             <i class="fas fa-network-wired" style="color: var(--text-secondary);"></i>
                         </div>
                         <div id="metric-edge-requests"
@@ -931,14 +917,14 @@
                                 stroke-width="2" opacity="0.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
 
-                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Peticiones de red procesadas hoy
+                        <div id="admin-metric-desc-edge" style="color: var(--text-secondary); font-size: 0.85rem;">
                         </div>
                     </div>
 
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
-                            <span>FUNCTION CALLS</span>
+                            <span id="admin-func-calls">FUNCTION CALLS</span>
                             <i class="fas fa-microchip" style="color: var(--text-secondary);"></i>
                         </div>
                         <div id="metric-func-invocations"
@@ -951,14 +937,14 @@
                                 stroke-width="2" opacity="0.5"></path>
                         </svg>
 
-                        <div style="color: var(--text-secondary); font-size: 0.85rem;">Llamadas internas a las APIs
-                            externas</div>
+                        <div id="admin-metric-desc-func" style="color: var(--text-secondary); font-size: 0.85rem;">
+                        </div>
                     </div>
 
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
-                            <span>ERROR RATE</span>
+                            <span id="admin-error-rate">ERROR RATE</span>
                             <i class="fas fa-check-circle" style="color: var(--success);"></i>
                         </div>
                         <div id="metric-error-rate"
@@ -970,8 +956,7 @@
                             <path d="M0,15 L100,15" fill="none" stroke="var(--success)" stroke-width="2"></path>
                         </svg>
 
-                        <div style="color: var(--success); font-size: 0.85rem;">Infraestructura estable y sin bloqueos
-                        </div>
+                        <div id="admin-metric-desc-error" style="color: var(--success); font-size: 0.85rem;"></div>
                     </div>
                 </div>
 
@@ -982,18 +967,18 @@
                             style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
                             <h2
                                 style="font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-id-card-alt" style="color: var(--text-secondary);"></i> <span
-                                    id="admin-users">GESTIÓN DE USUARIOS Y ROLES</span>
+                                <i class="fas fa-id-card-alt" style="color: var(--text-secondary);"></i>
+                                <span id="admin-users"></span>
                             </h2>
                             <div style="display: flex; gap: 12px; align-items: center;">
                                 <button id="btn-admin-create-test-user" class="auth-btn primary"
                                     style="padding: 10px 18px; font-size: 0.85rem; margin: 0;">
-                                    <i class="fas fa-vial"></i> CREAR USER TEST
+                                    <i class="fas fa-vial"></i>
+                                    <span id="admin-create-test-text">CREAR USER TEST</span>
                                 </button>
                                 <div class="search-box admin-search"
                                     style="display: flex; gap: 10px; margin-bottom: 0;">
-                                    <input type="text" id="admin-search-input"
-                                        placeholder="Buscar por usuario o email..."
+                                    <input type="text" id="admin-search-input" placeholder=""
                                         style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 15px; border-radius: 6px; width: 300px;">
                                     <button id="btn-admin-search" class="auth-btn secondary" style="padding: 0 15px;"><i
                                             class="fas fa-search"></i></button>
@@ -1045,8 +1030,8 @@
                                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
                                 <h2
                                     style="font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-terminal" style="color: var(--text-secondary);"></i> <span
-                                        id="admin-terminal-title">REGISTRO DE EVENTOS</span>
+                                    <i class="fas fa-terminal" style="color: var(--text-secondary);"></i>
+                                    <span id="admin-terminal-title"></span>
                                 </h2>
                             </div>
 
@@ -1060,10 +1045,9 @@
                         <div class="glass-panel" style="padding: 15px;">
                             <div
                                 style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
-                                <h2
+                                <h2 id="admin-tools-title"
                                     style="font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-server" style="color: var(--text-secondary);"></i> HERRAMIENTAS
-                                    GLOBALES
+                                    <i class="fas fa-server" style="color: var(--text-secondary);"></i>
                                 </h2>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -1083,7 +1067,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
         </section>
 
         <!-- ===== LOGIN ===== -->
@@ -1094,39 +1077,37 @@
                     <p class="auth-tagline">Tu nexus personal de entretenimiento.</p>
                 </div>
                 <div class="auth-card glass-panel">
-                    <h2 class="auth-title" id="login-title">Bienvenido de nuevo</h2>
-                    <p class="auth-subtitle" id="login-subtitle">Introduce tu usuario o correo y contraseña para
-                        acceder.</p>
+                    <h2 class="auth-title" id="login-title"></h2>
+                    <p class="auth-subtitle" id="login-subtitle"></p>
                     <form id="form-login" class="auth-form" method="post">
                         <div class="field-group">
-                            <label class="field-label" id="login-identifier-label">Usuario o Correo electrónico</label>
-                            <div class="field-wrapper">
-                                <i class="fas fa-user field-icon"></i>
-                                <input type="text" id="login-identifier" name="identifier" class="cyber-input"
-                                    placeholder="tu_usuario o correo@mail.com" autocomplete="username" required>
-                            </div>
+                            <label class="field-label" id="login-identifier-label"></label>
+                            <i class="fas fa-user field-icon"></i>
+                            <input type="password" id="login-password" name="password" class="cyber-input"
+                                placeholder="••••••••" autocomplete="current-password" required>
                         </div>
-                        <div class="field-group">
-                            <label class="field-label" id="login-password-label">Contraseña</label>
-                            <div class="field-wrapper password-wrapper">
-                                <i class="fas fa-lock field-icon"></i>
-                                <input type="password" id="login-password" name="password" class="cyber-input"
-                                    placeholder="••••••••" autocomplete="current-password" required>
-                                <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="submit" id="btn-login-submit" class="auth-btn primary full-width">
-                            <i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS
-                        </button>
-                        <div id="login-message" class="auth-message"></div>
-                    </form>
-                    <div class="auth-divider"><span>¿Primera vez aquí?</span></div>
-                    <button class="auth-btn secondary full-width" id="btn-go-register">
-                        <i class="fas fa-user-plus"></i> CREAR CUENTA NUEVA
-                    </button>
                 </div>
+                <div class="field-group">
+                    <label class="field-label" id="login-password-label"></label>
+                    <div class="field-wrapper password-wrapper">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" id="login-password" name="password" class="cyber-input"
+                            placeholder="••••••••" autocomplete="current-password" required>
+                        <button type="button" class="toggle-password-btn" title="Mostrar/Ocultar">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" id="btn-login-submit" class="auth-btn primary full-width">
+                    <i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS
+                </button>
+                <div id="login-message" class="auth-message"></div>
+                </form>
+                <div class="auth-divider"><span id="login-divider-text">¿Primera vez aquí?</span></div>
+                <button class="auth-btn secondary full-width" id="btn-go-register">
+                    <i class="fas fa-user-plus"></i> CREAR CUENTA NUEVA
+                </button>
+            </div>
             </div>
         </section>
 
@@ -1138,9 +1119,8 @@
                     <p class="auth-tagline">Únete al nexus. Es gratis.</p>
                 </div>
                 <div class="auth-card glass-panel">
-                    <h2 class="auth-title" id="register-title">Crear una cuenta</h2>
-                    <p class="auth-subtitle" id="register-subtitle">Crear una cuenta es fácil y gratis. Rellena el
-                        formulario para empezar.</p>
+                    <h2 class="auth-title" id="register-title"></h2>
+                    <p class="auth-subtitle" id="register-subtitle"></p>
                     <form id="form-register" class="auth-form" method="post">
                         <div class="fields-row">
                             <div class="field-group">
@@ -1206,7 +1186,7 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="terms-text">
+                        <p class="terms-text" id="terms-text">
                             Al hacer clic en el botón "Regístrate", certifico que he leído y acepto los
                             <a href="#" class="terms-link">términos de uso</a> y la
                             <a href="#" class="terms-link">política de privacidad</a> de DP-SYS.
@@ -1216,7 +1196,7 @@
                         </button>
                         <div id="register-message" class="auth-message"></div>
                     </form>
-                    <div class="auth-divider"><span>¿Ya tienes cuenta?</span></div>
+                    <div class="auth-divider"><span id="register-divider-text">¿Ya tienes cuenta?</span></div>
                     <button class="auth-btn secondary full-width" id="btn-go-login">
                         <i class="fas fa-sign-in-alt"></i> INICIAR SESIÓN
                     </button>
@@ -1233,10 +1213,8 @@
                 <div class="auth-card glass-panel">
                     <i class="fas fa-envelope-open-text"
                         style="font-size: 4rem; color: var(--warning); margin-bottom: 10px; text-shadow: 0 0 15px var(--warning);"></i>
-                    <h2 class="auth-title" id="waiting-title">Verifica tu correo</h2>
-                    <p class="auth-subtitle" id="waiting-subtitle">Hemos enviado un enlace de confirmación a tu correo
-                        electrónico. Por favor,
-                        haz clic en él para activar tu cuenta y acceder al Nexus.</p>
+                    <h2 class="auth-title" id="waiting-title"></h2>
+                    <p class="auth-subtitle" id="waiting-subtitle"></p>
                     <button class="auth-btn secondary" id="btn-waiting-login" style="margin-top: 10px;">
                         <i class="fas fa-arrow-left"></i> VOLVER AL LOGIN
                     </button>
@@ -1253,10 +1231,8 @@
                 <div class="auth-card glass-panel">
                     <i class="fas fa-check-circle"
                         style="font-size: 4rem; color: var(--success); margin-bottom: 10px; text-shadow: 0 0 15px var(--success);"></i>
-                    <h2 class="auth-title" id="verified-title">¡Identidad Confirmada!</h2>
-                    <p class="auth-subtitle" id="verified-subtitle">Tu correo ha sido verificado en el sistema. Ya
-                        tienes acceso total al
-                        Nexus.</p>
+                    <h2 class="auth-title" id="verified-title"></h2>
+                    <p class="auth-subtitle" id="verified-subtitle"></p>
 
                     <button class="auth-btn primary" id="btn-go-home-verified" style="margin-top: 10px;">
                         <i class="fas fa-rocket"></i> ENTRAR AL NEXUS
@@ -1269,23 +1245,24 @@
         <section id="profile" class="view">
             <div class="profile-layout">
                 <div class="profile-banner glass-panel" id="banner-edit-trigger">
-                    <div class="edit-overlay">
+                    <div class="edit-overlay" id="edit-banner-overlay">
                         <i class="fas fa-camera"></i>
-                        <span> Cambiar Portada</span>
+                        <span id="edit-banner-text"> Cambiar Portada</span>
                     </div>
 
                     <div class="profile-header-info">
                         <div class="profile-avatar" id="avatar-edit-trigger">
-                            <div class="edit-overlay-avatar"><i class="fas fa-pen"></i></div>
+                            <div class="edit-overlay-avatar"><i class="fas fa-pen"></i> <span
+                                    id="edit-avatar-text">Editar</span></div>
                             <i class="fas fa-user-astronaut"></i>
                         </div>
                         <div class="profile-text">
-                            <h1 id="main-profile-username" class="profile-username">Usuario</h1>
+                            <h1 id="main-profile-username" class="profile-username"></h1>
                         </div>
                     </div>
                 </div>
                 <div class="profile-stats-wrapper">
-                    <button class="icon-btn add-friend-btn" id="btn-add-friend" title="Añadir nuevo amigo">
+                    <button class="icon-btn add-friend-btn" id="btn-add-friend" title="">
                         <i class="fas fa-user-plus"></i>
                     </button>
 
@@ -1312,22 +1289,25 @@
 
                     <div class="stats-cards-wrapper">
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-tv"></i> <span id="profile-series">Tiempo de
-                                    series</span></div>
+                            <div class="stats-card-header"><i class="fas fa-tv"></i>
+                                <span id="profile-series">Tiempo de series</span>
+                            </div>
                             <div class="stats-card-body multi-number">
-                                <div><span class="num" id="stat-series-months">0</span><span class="lbl"
-                                        id="profile-months">MESES</span>
+                                <div><span class="num" id="stat-series-months">0</span>
+                                    <span class="lbl" id="profile-months">MESES</span>
                                 </div>
-                                <div><span class="num" id="stat-series-days">0</span><span class="lbl"
-                                        id="profile-days">DÍAS</span></div>
-                                <div><span class="num" id="stat-series-hours">0</span><span class="lbl"
-                                        id="profile-hours">HORAS</span>
+                                <div><span class="num" id="stat-series-days">0</span>
+                                    <span class="lbl" id="profile-days">DÍAS</span>
+                                </div>
+                                <div><span class="num" id="stat-series-hours">0</span>
+                                    <span class="lbl" id="profile-hours">HORAS</span>
                                 </div>
                             </div>
                         </div>
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-tv"></i> <span
-                                    id="profile-series-episodes">Episodios vistos</span></div>
+                            <div class="stats-card-header"><i class="fas fa-tv"></i>
+                                <span id="profile-series-episodes">Episodios vistos</span>
+                            </div>
                             <div class="stats-card-body single-number">
                                 <span class="num" id="stat-series-episodes">0</span>
                             </div>
@@ -1336,8 +1316,9 @@
                         <div class="stats-main-divider"></div>
 
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-film"></i> <span id="profile-movies">Tiempo
-                                    de cine</span></div>
+                            <div class="stats-card-header"><i class="fas fa-film"></i>
+                                <span id="profile-movies">Tiempo de cine</span>
+                            </div>
                             <div class="stats-card-body multi-number">
                                 <div><span class="num" id="stat-movies-months">0</span><span class="lbl"
                                         id="profile-movies-months">MESES</span>
@@ -1350,8 +1331,9 @@
                             </div>
                         </div>
                         <div class="stats-card">
-                            <div class="stats-card-header"><i class="fas fa-film"></i> <span
-                                    id="profile-movies-count">Películas vistas</span></div>
+                            <div class="stats-card-header"><i class="fas fa-film"></i>
+                                <span id="profile-movies-count">Películas vistas</span>
+                            </div>
                             <div class="stats-card-body single-number">
                                 <span class="num" id="stat-movies-count">0</span>
                             </div>
@@ -1363,8 +1345,7 @@
 
                     <div id="watchlist-section" class="watchlist-section">
                         <div class="watchlist-tabs">
-                            <button class="watchlist-tab active" data-tab="pendiente" id="watchlist-title">LISTA
-                                PENDIENTE</button>
+                            <button class="watchlist-tab active" data-tab="pendiente" id="watchlist-title"></button>
                             <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
                                 <i class="fas fa-th-large"></i>
                             </button>
@@ -1379,10 +1360,12 @@
 
                     <div id="recommendations-section" class="recommendations-section">
                         <div class="watchlist-tabs">
-                            <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
+                            <button class="watchlist-tab active" style="cursor: default;"
+                                id="recommendations-title">RECOMENDADO PARA TI</button>
                             <span id="rec-empty-message"
                                 style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-left: auto;">
-                                <i class="fas fa-info-circle"></i> Basado en tus últimos 7 vistos
+                                <i class="fas fa-info-circle"></i> <span id="rec-empty-text">Basado en tus últimos 7
+                                    vistos</span>
                             </span>
                         </div>
 
@@ -1397,10 +1380,10 @@
                                 style="display: none; text-align: center; padding: 40px 20px;">
                                 <i class="fas fa-compass"
                                     style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 15px; opacity: 0.6;"></i>
-                                <p
+                                <p id="rec-empty-main"
                                     style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
                                     No hay suficientes datos para recomendarte contenido.<br>
-                                    <span style="font-size: 0.8rem; opacity: 0.7;">
+                                    <span id="rec-empty-hint" style="font-size: 0.8rem; opacity: 0.7;">
                                         Marca al menos una película o serie como vista para activar las recomendaciones.
                                     </span>
                                 </p>
@@ -1416,10 +1399,7 @@
             <div class="edit-profile-admin-container">
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
-                        <h1 id="edit-profile-title">
-                            EDITAR PERFIL <span class="edit-profile-admin-divider">//</span> <span
-                                class="edit-profile-admin-nexus">NEXUS</span>
-                        </h1>
+                        <h1 id="edit-profile-title"></h1>
                         <p>
                             Configura tu identidad en el Nexus. Desde aquí puedes personalizar tu perfil, cambiar tu
                             información personal y gestionar tus datos.

@@ -172,5 +172,130 @@
     "buy": "Acquisto",
     "seasons_title": "Tutti gli episodi",
     "not_watched": "Non visto"
+  },
+  "common": {
+    "tba": "In arrivo",
+    "untitled": "Senza titolo",
+    "not_available": "Non disponibile",
+    "movies_uppercase": "FILM",
+    "series_uppercase": "SERIE",
+    "retry": "Riprova",
+    "retry_manual": "Ci vuole troppo? Riprova manualmente"
+  },
+  "theme": {
+    "system": "Sistema",
+    "light": "Chiaro",
+    "dark": "Scuro"
+  },
+  "user": {
+    "guest": "Ospite",
+    "view_profile": "Vedi profilo",
+    "lists": "Liste",
+    "watchlists": "Liste di visione",
+    "edit_profile": "Modifica profilo",
+    "settings": "Impostazioni",
+    "logout": "Esci"
+  },
+  "games": {
+    "loading": "CARICAMENTO GIOCHI...",
+    "loading_more": "CARICAMENTO ALTRI GIOCHI...",
+    "no_results": "Nessun risultato. Prova un'altra ricerca.",
+    "deep_scan": "Scansione strati profondi... (Saltando settore irrilevante)",
+    "load_more_btn": "Carica altro",
+    "no_more_results": "Nessun altro risultato trovato in tutta la rete.",
+    "api_error": "Impossibile connettersi all'API.",
+    "from": "Da",
+    "console_edition": "Edizione Console",
+    "no_offers": "Nessuna offerta attuale"
+  },
+  "trends_extra": {
+    "no_offers": "Nessuna offerta",
+    "coming_soon": "Prossimamente",
+    "watch_trailer": "GUARDA TRAILER",
+    "no_trailer": "NESSUN TRAILER",
+    "movies_loading": "Caricamento tendenze film...",
+    "movies_empty": "Nessuna tendenza film disponibile",
+    "movies_error": "Errore nel caricamento delle tendenze",
+    "series_loading": "Caricamento tendenze serie...",
+    "series_empty": "Nessuna tendenza serie disponibile",
+    "series_error": "Errore nel caricamento delle tendenze",
+    "trailers_loading": "Ricerca ultimi trailer...",
+    "trailers_error": "Impossibile connettersi al server dei trailer"
+  },
+  "movies": {
+    "not_streaming": "Non disponibile in streaming",
+    "streaming": "Disponibile in streaming",
+    "add_to_list": "Aggiungi alla lista",
+    "loading": "CARICAMENTO DATI...",
+    "api_error": "Impossibile connettersi a TMDB."
+  },
+  "filters_extra": {
+    "from": "Da:",
+    "to": "A:",
+    "adult_content": "Modulo sbloccato da verifica età (+18) nel Nexus.",
+    "adult_toggle": "Mostra +18"
+  },
+  "search_extra": {
+    "recent": "📜 Ricerche recenti",
+    "clear_all": "Cancella tutto"
+  },
+  "details_extra": {
+    "no_details": "Impossibile ottenere i dettagli.",
+    "no_description": "Nessuna descrizione disponibile per questo titolo nel nostro database.",
+    "unknown": "Sconosciuto",
+    "official_site": "Sito ufficiale",
+    "connecting": "Connessione al Nexus...",
+    "downloading": "Download dati...",
+    "watched": "Visto",
+    "not_watched": "Non visto",
+    "your_rating": "La tua valutazione",
+    "click_to_rate": "Clicca per valutare",
+    "returning": "Serie in corso",
+    "ended": "Conclusa",
+    "released": "Uscito",
+    "planned": "Pianificato",
+    "in_production": "In produzione",
+    "post_production": "Post-produzione",
+    "seasons": "Stagioni",
+    "episodes": "Episodi",
+    "total": "Totale",
+    "completed": "Completata!",
+    "official": "UFFICIALE",
+    "search": "RICERCA",
+    "ratings": "valutazioni",
+    "no_cast": "Nessuna informazione sul cast nel Nexus.",
+    "all_episodes": "Tutti gli episodi",
+    "no_episode_description": "Nessuna descrizione dell'episodio disponibile.",
+    "error_loading": "Errore nel caricamento dei dettagli.",
+    "error_cast": "Errore nel caricamento del cast.",
+    "rewatch_btn": "Rivedi",
+    "unwatch_btn": "Segna come non visto"
+  },
+  "series": {
+    "completed": "COMPLETATA",
+    "in_progress": "IN CORSO"
+  },
+  "chat_extra": {
+    "select_friend": "Seleziona un amico per chattare",
+    "synchronizing": "Sincronizzazione rete..."
+  },
+  "notifications": {
+    "no_followers": "Nessun nuovo follower"
+  },
+  "admin_extra": {
+    "init": "Inizializzazione connessione al database...",
+    "validated": "Credenziali amministratore validate.",
+    "table_updated": "Tabella aggiornata: {count} record elencati."
+  },
+  "edit_extra": {
+    "description": "Configura la tua identità nel Nexus. Da qui puoi personalizzare il tuo profilo, modificare le tue informazioni personali e gestire i tuoi dati.",
+    "personal_data": "DATI PERSONALI",
+    "member_since": "Membro dal"
+  },
+  "toast": {
+    "saved": "Salvato",
+    "movie_marked": "Film segnato come visto.",
+    "error": "Errore DB",
+    "movie_error": "Impossibile salvare il film."
   }
 }
