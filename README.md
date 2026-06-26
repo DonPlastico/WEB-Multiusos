@@ -5,9 +5,9 @@
   <h1>Tu Nexus Personal de Entretenimiento</h1>
   <p><strong>Juegos · Películas · Series · Social · Watchlist</strong></p>
 
-[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://https://web-multiusos.vercel.app)
+[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 [![Supabase](https://img.shields.io/badge/Powered%20by-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
-[![Hecho con ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://github.com/DonPlastico/WEB-Multiusos)
+[![Hecho con ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://web-multiusos.vercel.app)
 
 </div>
 
