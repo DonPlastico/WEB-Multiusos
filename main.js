@@ -915,7 +915,7 @@ async function initLanguage() {
     if (flagBtn) {
         const flagImg = document.getElementById('lang-toggle').querySelector('img');
         if (flagImg) {
-            flagImg.src = `https://flagcdn.com/48x36/${flagBtn.dataset.flag || flagBtn.dataset.lang}.png`;
+            flagImg.src = `https://flagcdn.com/32x24/${flagBtn.dataset.flag || flagBtn.dataset.lang}.png`;
         }
     }
 }
@@ -932,7 +932,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Actualizar bandera en el botón
             const flagImg = document.getElementById('lang-toggle').querySelector('img');
             if (flagImg) {
-                flagImg.src = `https://flagcdn.com/48x36/${flag || lang}.png`;
+                flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
                 flagImg.alt = lang.toUpperCase();
             }
 
@@ -969,28 +969,28 @@ const langMenu = document.createElement('div');
 langMenu.className = 'theme-menu lang-menu';
 langMenu.innerHTML = `
     <button class="theme-option lang-option active" data-lang="es" data-flag="es">
-        <img src="https://flagcdn.com/48x36/es.png" alt="ES"> <span>Español</span>
+        <img src="https://flagcdn.com/32x24/es.png" alt="ES"> <span>Español</span>
     </button>
     <button class="theme-option lang-option" data-lang="en" data-flag="us">
-        <img src="https://flagcdn.com/48x36/us.png" alt="EN"> <span>English (EE.UU)</span>
+        <img src="https://flagcdn.com/32x24/us.png" alt="EN"> <span>English (EE.UU)</span>
     </button>
     <button class="theme-option lang-option" data-lang="fr" data-flag="fr">
-        <img src="https://flagcdn.com/48x36/fr.png" alt="FR"> <span>Français</span>
+        <img src="https://flagcdn.com/32x24/fr.png" alt="FR"> <span>Français</span>
     </button>
     <button class="theme-option lang-option" data-lang="it" data-flag="it">
-        <img src="https://flagcdn.com/48x36/it.png" alt="IT"> <span>Italiano</span>
+        <img src="https://flagcdn.com/32x24/it.png" alt="IT"> <span>Italiano</span>
     </button>
     <button class="theme-option lang-option" data-lang="de" data-flag="de">
-        <img src="https://flagcdn.com/48x36/de.png" alt="DE"> <span>Deutsch</span>
+        <img src="https://flagcdn.com/32x24/de.png" alt="DE"> <span>Deutsch</span>
     </button>
     <button class="theme-option lang-option" data-lang="zh" data-flag="cn">
-        <img src="https://flagcdn.com/48x36/cn.png" alt="ZH"> <span>简体中文</span>
+        <img src="https://flagcdn.com/32x24/cn.png" alt="ZH"> <span>简体中文</span>
     </button>
     <button class="theme-option lang-option" data-lang="ja" data-flag="jp">
-        <img src="https://flagcdn.com/48x36/jp.png" alt="JA"> <span>日本語</span>
+        <img src="https://flagcdn.com/32x24/jp.png" alt="JA"> <span>日本語</span>
     </button>
     <button class="theme-option lang-option" data-lang="ko" data-flag="kr">
-        <img src="https://flagcdn.com/48x36/kr.png" alt="KR"> <span>한국인</span>
+        <img src="https://flagcdn.com/32x24/kr.png" alt="KR"> <span>한국인</span>
     </button>
 `;
 
@@ -1028,8 +1028,8 @@ document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
         const lang = this.dataset.lang;
         const flag = this.dataset.flag;
 
-        // ACTUALIZAR TAMAÑO DE LA BANDERA A 48x36
-        langFlagImg.src = `https://flagcdn.com/48x36/${flag || lang}.png`;
+        // ACTUALIZAR TAMAÑO DE LA BANDERA A 32x24
+        langFlagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
