@@ -5,9 +5,9 @@
   <h1>Tu Nexus Personal de Entretenimiento</h1>
   <p><strong>Juegos · Películas · Series · Social · Watchlist</strong></p>
 
-[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://dpsys-nexus.vercel.app)
+[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://https://web-multiusos.vercel.app)
 [![Supabase](https://img.shields.io/badge/Powered%20by-Supabase-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
-[![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://github.com/DonPlastico/WEB-Multiusos)
+[![Hecho con ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://github.com/DonPlastico/WEB-Multiusos)
 
 </div>
 
@@ -734,7 +734,7 @@ Esto afecta especialmente a los botones de navegación principal, los controles 
 ## 📞 Contacto y Soporte
 
 - **GitHub**: [@DonPlastico](https://github.com/DonPlastico)
-- **Web**: [DP-SYS Nexus](https://dpsys-nexus.vercel.app)
+- **Web**: [DP-SYS Nexus](https://https://web-multiusos.vercel.app)
 - **Issues**: [GitHub Issues](https://github.com/DonPlastico/WEB-Multiusos/issues)
 
 ---
