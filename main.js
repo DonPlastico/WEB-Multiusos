@@ -373,6 +373,7 @@ let translations = {};
 
 // 1. Cargar idioma guardado
 function loadSavedLanguage() {
+    // Primero intentamos desde localStorage (para usuarios no logueados)
     const saved = localStorage.getItem('dp_sys_lang');
     if (saved && ['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(saved)) {
         currentLang = saved;
@@ -380,6 +381,48 @@ function loadSavedLanguage() {
         currentLang = 'es';
     }
     return currentLang;
+}
+
+// 1.5. Cargar idioma desde Supabase (para usuarios logueados)
+async function loadLanguageFromSupabase() {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return null;
+
+        const { data: perfil, error } = await supabase
+            .from('usuarios')
+            .select('idioma')
+            .eq('email', session.user.email)
+            .single();
+
+        if (error) throw error;
+        if (perfil?.idioma && ['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(perfil.idioma)) {
+            return perfil.idioma;
+        }
+        return null;
+    } catch (error) {
+        console.warn('⚠️ Error cargando idioma desde Supabase:', error);
+        return null;
+    }
+}
+
+// 1.6. Guardar idioma en Supabase
+async function saveLanguageToSupabase(lang) {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return false;
+
+        const { error } = await supabase
+            .from('usuarios')
+            .update({ idioma: lang })
+            .eq('email', session.user.email);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.warn('⚠️ Error guardando idioma en Supabase:', error);
+        return false;
+    }
 }
 
 // 2. Cargar archivo de traducciones
@@ -391,7 +434,7 @@ async function loadTranslations(lang) {
         return translations;
     } catch (error) {
         console.error(`❌ Error cargando traducciones para ${lang}:`, error);
-        // Fallback a español si falla otro idioma
+        // Fallback a español si falla
         if (lang !== 'es') {
             return loadTranslations('es');
         }
@@ -806,31 +849,26 @@ function applyTranslations() {
 async function setLanguage(lang) {
     if (!['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(lang)) return;
     currentLang = lang;
+
+    // 1. Guardar en localStorage (siempre, para todos los usuarios)
     localStorage.setItem('dp_sys_lang', lang);
 
-    // --- GUARDAR EN SUPABASE (si hay sesión) ---
+    // 2. Guardar en Supabase (SOLO si hay sesión)
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        try {
-            await supabase
-                .from('usuarios')
-                .update({ idioma: lang })
-                .eq('email', session.user.email);
-        } catch (e) {
-            console.warn('No se pudo guardar idioma en Supabase:', e);
-        }
+        await saveLanguageToSupabase(lang);
     }
 
-    // Cargar traducciones
+    // 3. Cargar traducciones
     await loadTranslations(lang);
 
-    // Aplicar al DOM
+    // 4. Aplicar al DOM
     applyTranslations();
 
-    // Actualizar API de IGDB y TMDB con el nuevo idioma
+    // 5. Actualizar API de IGDB y TMDB con el nuevo idioma
     document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
 
-    // Recargar tendencias y datos si es necesario
+    // 6. Recargar tendencias y datos si es necesario
     if (vistaActualGlobal === 'games') {
         cargarTendencias(trendPeriod, true);
         cargarJuegosIGDB(busquedaActual, true, filtrosGlobales);
@@ -843,18 +881,36 @@ async function setLanguage(lang) {
     }
 }
 
-// 6. Inicializar idioma al cargar
+// 6. Inicializar idioma al cargar (con prioridad: Supabase > localStorage > español)
 async function initLanguage() {
-    const saved = loadSavedLanguage();
-    await loadTranslations(saved);
+    let idiomaFinal = 'es'; // Fallback
+
+    // 1. Intentar cargar desde Supabase (si hay sesión)
+    const idiomaSupabase = await loadLanguageFromSupabase();
+    if (idiomaSupabase) {
+        idiomaFinal = idiomaSupabase;
+        // Sincronizar localStorage con Supabase
+        localStorage.setItem('dp_sys_lang', idiomaFinal);
+    } else {
+        // 2. Si no hay en Supabase, usar localStorage
+        const saved = loadSavedLanguage();
+        idiomaFinal = saved;
+    }
+
+    currentLang = idiomaFinal;
+
+    // 3. Cargar traducciones
+    await loadTranslations(idiomaFinal);
+
+    // 4. Aplicar al DOM
     applyTranslations();
 
-    // Sincronizar el menú de idiomas con el idioma actual
+    // 5. Sincronizar el menú de idiomas con el idioma actual
     document.querySelectorAll('.lang-option').forEach(opt => {
-        opt.classList.toggle('active', opt.dataset.lang === saved);
+        opt.classList.toggle('active', opt.dataset.lang === idiomaFinal);
     });
 
-    // Actualizar bandera en el botón
+    // 6. Actualizar bandera en el botón
     const flagBtn = document.querySelector('.lang-option.active');
     if (flagBtn) {
         const flagImg = document.getElementById('lang-toggle').querySelector('img');
