@@ -1400,14 +1400,11 @@
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
                         <h1 id="edit-profile-title"></h1>
-                        <p>
-                            Configura tu identidad en el Nexus. Desde aquí puedes personalizar tu perfil, cambiar tu
-                            información personal y gestionar tus datos.
-                        </p>
+                        <p id="edit-profile-description-text"></p>
                     </div>
                     <div class="edit-profile-admin-status">
                         <div class="edit-profile-admin-dot"></div>
-                        <span>PERFIL ACTIVO</span>
+                        <span id="edit-profile-active-status">PERFIL ACTIVO</span>
                     </div>
                 </div>
 
@@ -1415,25 +1412,19 @@
 
                     <div class="edit-profile-admin-form glass-panel">
                         <div class="edit-profile-admin-section-header">
-                            <h2>
-                                <i class="fas fa-id-card"></i> DATOS PERSONALES
-                            </h2>
-                            <span><i class="fas fa-lock"></i> Seguro</span>
+                            <h2 id="edit-personal-data-title"><i class="fas fa-id-card"></i></h2>
+                            <span id="edit-secure-badge"><i class="fas fa-lock"></i> Seguro</span>
                         </div>
 
                         <form id="form-edit-profile" class="auth-form">
 
                             <div class="field-group">
-                                <label class="field-label" id="edit-profile-email">
-                                    <i class="fas fa-envelope"></i> Correo electrónico
-                                    <span class="edit-profile-reveal-hint">(clic para revelar)</span>
-                                </label>
+                                <label class="field-label" id="edit-profile-email"></label>
                                 <div id="edit-email-container" class="email-blurred-container blurred">
                                     <span id="edit-email-display" class="email-text">correo@ejemplo.com</span>
                                 </div>
-                                <p class="edit-profile-email-info">
-                                    <i class="fas fa-info-circle"></i> El correo se oculta automáticamente tras 5
-                                    minutos o al salir.
+                                <p id="edit-email-info" class="edit-profile-email-info">
+                                    <i class="fas fa-info-circle"></i>
                                 </p>
                             </div>
 
