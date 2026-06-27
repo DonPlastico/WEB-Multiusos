@@ -867,8 +867,8 @@ function applyTranslations() {
     const dropdownUsername = document.getElementById('dropdown-username');
     if (dropdownUsername && !dropdownUsername.textContent.includes('@')) {
         // Solo actualizar si no es un username real (sesión iniciada)
-        const session = await supabase.auth.getSession();
-        if (!session.data.session) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
             dropdownUsername.textContent = t('user.guest');
         }
     }
