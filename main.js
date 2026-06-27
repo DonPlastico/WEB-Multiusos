@@ -1690,7 +1690,7 @@ function crearTarjetaTrend(juego, posicion) {
                 <span style="color:gold;font-size:0.7rem;">⭐ ${rating}</span>
             </div>
             <div class="game-price">
-                ${precioHtml || `<span style="color:var(--text-muted);font-size:0.65rem;">${t('trends.no_offers')}</span>`}
+                ${precioHtml || `<span style="color:var(--text-muted);font-size:0.65rem;">${t('trends_extra.no_offers')}</span>`}
             </div>
         </div>
     `;
@@ -8893,7 +8893,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-loading">
                 <i class="fas fa-circle-notch fa-spin"></i>
-                <span>${t('trends.movies_loading')}</span>
+                <span>${t('trends_extra.movies_loading')}</span>
             </div>
         `;
     }
@@ -9112,7 +9112,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-loading">
                 <i class="fas fa-circle-notch fa-spin"></i>
-                <span>${t('trends.series_loading')}</span>
+                <span>${t('trends_extra.series_loading')}</span>
             </div>
         `;
     }
@@ -9232,7 +9232,7 @@ async function cargarUltimosTrailers() {
     container.innerHTML = `
         <div class="trends-loading">
             <i class="fas fa-circle-notch fa-spin"></i>
-            <span>${t('trends.trailers_loading')}</span>
+            <span>${t('trends_extra.trailers_loading')}</span>
         </div>
     `;
 
@@ -9360,7 +9360,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
     // Obtener datos según el tipo
     let titulo = '';
     let posterUrl = '';
-    let fecha = t('trends.coming_soon');
+    let fecha = t('trends_extra.coming_soon');
     let rating = '';
     let trailerId = null;
     let urlYoutube = '';
