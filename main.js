@@ -2135,7 +2135,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     ${extraInfo ? `<span class="dot">•</span>${extraInfo}` : ''}
                 </div>
                 <div class="game-price" style="font-size: 0.8rem; color: var(--text-muted);">
-                    ${iconoPlataforma} <strong>${textoPlataforma}</strong>
+                    <i class="fas fa-globe" style="margin-right: 4px;"></i> <strong>${textoPlataforma}</strong>
                 </div>
                 
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
