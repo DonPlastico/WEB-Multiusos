@@ -661,7 +661,6 @@ function applyTranslations() {
         'profile-stats-following': 'profile.following',
         'profile-stats-followers': 'profile.followers',
         'profile-stats-messages': 'profile.messages',
-        'btn-add-friend': 'profile.add_friend',
         'profile-stats': 'profile.stats_title',
         'profile-series': 'profile.series_title',
         'profile-movies': 'profile.movies_title',
