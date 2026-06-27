@@ -863,33 +863,23 @@ function applyTranslations() {
         }
     });
 
-    // --- ACTUALIZAR MENÚ DE USUARIO ---
-    const dropdownUsername = document.getElementById('dropdown-username');
-    if (dropdownUsername && !dropdownUsername.textContent.includes('@')) {
-        // Solo actualizar si no es un username real (sesión iniciada)
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            dropdownUsername.textContent = t('user.guest');
-        }
-    }
-
-    // Actualizar subtextos del menú de usuario
+    // --- ACTUALIZAR TEXTO DE MENÚ DE USUARIO (solo textos estáticos) ---
     document.querySelectorAll('.user-dropdown-header .dropdown-subtext').forEach(el => {
         el.textContent = t('user.view_profile');
     });
 
-    // Actualizar botones del menú de usuario (por texto)
-    const userMenuItems = {
-        'Listas': 'user.lists',
-        'Listas de seguimiento': 'user.watchlists',
-        'Editar perfil': 'user.edit_profile',
-        'Ajustes': 'user.settings',
-        'Cerrar sesión': 'user.logout'
-    };
+    // Actualizar botones del menú de usuario que NO son dinámicos
     document.querySelectorAll('.user-menu-panel .theme-option span').forEach(span => {
         const text = span.textContent.trim();
-        if (userMenuItems[text]) {
-            span.textContent = t(userMenuItems[text]);
+        const map = {
+            'Listas': 'user.lists',
+            'Listas de seguimiento': 'user.watchlists',
+            'Editar perfil': 'user.edit_profile',
+            'Ajustes': 'user.settings',
+            'Cerrar sesión': 'user.logout'
+        };
+        if (map[text]) {
+            span.textContent = t(map[text]);
         }
     });
 
