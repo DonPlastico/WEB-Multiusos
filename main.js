@@ -257,15 +257,15 @@ themeMenu.className = 'theme-menu';
 themeMenu.innerHTML = `
     <button class="theme-option" data-theme="system">
         <i class="fas fa-desktop"></i>
-        <span>${t('theme.system')}</span>
+        <span>Sistema</span>
     </button>
     <button class="theme-option" data-theme="light">
         <i class="fas fa-sun"></i>
-        <span>${t('theme.light')}</span>
+        <span>Claro</span>
     </button>
     <button class="theme-option" data-theme="dark">
         <i class="fas fa-moon"></i>
-        <span>${t('theme.dark')}</span>
+        <span>Oscuro</span>
     </button>
 `;
 
@@ -852,8 +852,53 @@ function applyTranslations() {
             el.textContent = t(key);
         }
     }
+    // --- ACTUALIZAR MENÚ DE TEMAS (si existe) ---
+    document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
+        const theme = opt.dataset.theme;
+        const label = opt.querySelector('span');
+        if (label) {
+            if (theme === 'system') label.textContent = t('theme.system');
+            else if (theme === 'light') label.textContent = t('theme.light');
+            else if (theme === 'dark') label.textContent = t('theme.dark');
+        }
+    });
 
-    // --- TOASTS (mensajes dinámicos se traducen desde las funciones) ---
+    // --- ACTUALIZAR MENÚ DE USUARIO ---
+    const dropdownUsername = document.getElementById('dropdown-username');
+    if (dropdownUsername && !dropdownUsername.textContent.includes('@')) {
+        // Solo actualizar si no es un username real (sesión iniciada)
+        const session = await supabase.auth.getSession();
+        if (!session.data.session) {
+            dropdownUsername.textContent = t('user.guest');
+        }
+    }
+
+    // Actualizar subtextos del menú de usuario
+    document.querySelectorAll('.user-dropdown-header .dropdown-subtext').forEach(el => {
+        el.textContent = t('user.view_profile');
+    });
+
+    // Actualizar botones del menú de usuario (por texto)
+    const userMenuItems = {
+        'Listas': 'user.lists',
+        'Listas de seguimiento': 'user.watchlists',
+        'Editar perfil': 'user.edit_profile',
+        'Ajustes': 'user.settings',
+        'Cerrar sesión': 'user.logout'
+    };
+    document.querySelectorAll('.user-menu-panel .theme-option span').forEach(span => {
+        const text = span.textContent.trim();
+        if (userMenuItems[text]) {
+            span.textContent = t(userMenuItems[text]);
+        }
+    });
+
+    // --- ACTUALIZAR MENÚ CONTEXTUAL DE TARJETAS ---
+    document.querySelectorAll('#card-watch-menu .theme-option span').forEach(span => {
+        const text = span.textContent.trim();
+        if (text === 'Vista de nuevo') span.textContent = t('details.rewatch_btn');
+        if (text === 'Cambiar a NO VISTA') span.textContent = t('details.unwatch_btn');
+    });
 }
 
 // 5. Cambiar idioma y recargar
@@ -2943,25 +2988,25 @@ const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
     <div class="user-dropdown-header" id="btn-ver-perfil">
-        <span id="dropdown-username" class="dropdown-username">${t('user.guest')}</span>
-        <span class="dropdown-subtext">${t('user.view_profile')}</span>
+        <span id="dropdown-username" class="dropdown-username">Invitado</span>
+        <span class="dropdown-subtext">Ver perfil</span>
     </div>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-list"></i><span>${t('user.lists')}</span></button>
-    <button class="theme-option"><i class="fas fa-bookmark"></i><span>${t('user.watchlists')}</span></button>
+    <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
+    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Listas de seguimiento</span></button>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
-    <button class="theme-option"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
+    <button class="theme-option"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
+    <button class="theme-option"><i class="fas fa-cog"></i><span>Ajustes</span></button>
     
     <div class="dropdown-divider"></div>
     
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
-        <span style="color: var(--error);">${t('user.logout')}</span>
+        <span style="color: var(--error);">Cerrar sesión</span>
     </button>
 `;
 
@@ -6829,12 +6874,12 @@ cardMenu.id = 'card-watch-menu';
 cardMenu.style.cssText = 'position: absolute; display: none; z-index: 9999; min-width: 180px; width: max-content; max-width: 250px; white-space: nowrap; box-shadow: 0px 8px 20px rgba(0,0,0,0.5);';
 cardMenu.innerHTML = `
     <button class="theme-option" id="btn-card-rewatch">
-        <i class="fas fa-redo"></i><span>${t('details.rewatch_btn')}</span>
+        <i class="fas fa-redo"></i><span>Vista de nuevo</span>
     </button>
     <div class="dropdown-divider"></div>
     <button class="theme-option" id="btn-card-unwatch">
         <i class="fas fa-eye-slash" style="color: var(--error);"></i>
-        <span style="color: var(--error);">${t('details.unwatch_btn')}</span>
+        <span style="color: var(--error);">Cambiar a NO VISTA</span>
     </button>
 `;
 document.body.appendChild(cardMenu);
