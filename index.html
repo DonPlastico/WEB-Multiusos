@@ -2178,6 +2178,110 @@
             </div>
         </div>
 
+        <!-- modal para crear una nueva lista -->
+        <div id="create-list-modal" class="cyber-modal">
+            <div class="modal-content glass-panel create-list-panel">
+                <button id="close-create-list-modal" class="icon-btn close-floating-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="announce-header announce-friend-header">
+                    <div class="announce-icon-wrap friend-icon-wrap">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div>
+                        <h2 class="announce-title glitch-text">CREAR NUEVA LISTA</h2>
+                        <p class="announce-subtitle">Organiza juegos, películas y series a tu manera</p>
+                    </div>
+                </div>
+
+                <form id="form-create-list" class="auth-form create-list-form">
+
+                    <!-- Título -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-heading"></i> Título <span
+                                class="required">*</span></label>
+                        <div class="field-wrapper">
+                            <i class="fas fa-bookmark field-icon"></i>
+                            <input type="text" id="create-list-title" name="titulo" class="cyber-input"
+                                placeholder="Ej. Mis Juegos Favoritos de Terror" maxlength="80" required>
+                        </div>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
+                        <div class="textarea-wrapper">
+                            <textarea id="create-list-desc" name="descripcion"
+                                class="cyber-input edit-description-textarea"
+                                placeholder="Describe de qué va esta lista... (opcional)" maxlength="2500"
+                                rows="4"></textarea>
+                            <div id="create-list-char-counter" class="char-counter">0/2500</div>
+                        </div>
+                    </div>
+
+                    <!-- Privacidad -->
+                    <div class="field-group create-list-privacy-row">
+                        <div>
+                            <label class="field-label" style="margin-bottom: 2px;"><i class="fas fa-globe"></i>
+                                Privacidad</label>
+                            <p class="create-list-privacy-hint" id="create-list-privacy-hint">Pública: cualquiera
+                                puede verla desde tu perfil o el de cualquier integrante.</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="create-list-privacy-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Tipo de lista (detectado automaticamente segun el item de origen) -->
+                    <div class="field-group create-list-type-row" id="create-list-type-row" style="display: none;">
+                        <span class="list-card-tag-tipo" id="create-list-type-icon"><i
+                                class="fas fa-layer-group"></i></span>
+                        <span id="create-list-type-text">Tipo de lista: Mixta</span>
+                    </div>
+
+                    <div class="create-list-divider"></div>
+
+                    <!-- Sistema de amigos / lista compartida -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-user-friends"></i> Invitar usuarios
+                            <span class="create-list-slots-counter" id="create-list-slots-counter">1/10
+                                Slots</span></label>
+                        <div class="field-wrapper">
+                            <i class="fas fa-search field-icon"></i>
+                            <input type="text" id="create-list-search-user" class="cyber-input"
+                                placeholder="Escribe al menos 3 letras para buscar...">
+                        </div>
+                    </div>
+
+                    <!-- resultados de la busqueda de usuarios -->
+                    <div id="create-list-search-results" class="friend-results-grid create-list-search-results"
+                        style="display: none;"></div>
+
+                    <!-- usuarios ya invitados a la lista -->
+                    <div id="create-list-members-list" class="create-list-members-list"></div>
+
+                    <!-- BOTÓN CREAR -->
+                    <button type="submit" id="btn-confirm-create-list" class="auth-btn primary full-width">
+                        <i class="fas fa-check"></i> CREAR LISTA
+                    </button>
+                </form>
+            </div>
+
+            <!-- template del chip de un usuario invitado a la lista -->
+            <template id="list-member-chip-template">
+                <div class="list-member-chip" data-user-id="">
+                    <div class="list-member-chip-avatar"><i class="fas fa-user-astronaut"></i></div>
+                    <span class="list-member-chip-name">username</span>
+                    <span class="list-member-chip-badge"><i class="fas fa-hourglass-half"></i> PENDIENTE</span>
+                    <button type="button" class="list-member-chip-remove" title="Quitar de la lista">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </template>
+        </div>
+
         <!-- modal pa enviar anuncios globales -->
         <div id="announce-modal" class="cyber-modal">
             <div class="modal-content glass-panel announce-panel">
