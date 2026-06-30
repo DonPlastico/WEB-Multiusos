@@ -53,42 +53,27 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
 
     const addToListMenu = document.getElementById('add-to-list-menu');
     if (!addToListMenu) {
-        console.error('❌ Menú #add-to-list-menu no encontrado');
+        console.error('❌ Menú no encontrado');
         return;
     }
 
-    // Guardar el item actual
-    mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
+    console.log('✅ Menú encontrado, mostrando...');
 
-    // Posicionar el menú donde hizo clic
+    // Posicionar y mostrar
     const x = event.clientX || event.pageX || 0;
     const y = event.clientY || event.pageY || 0;
 
-    const menuWidth = 280;
-    const menuHeight = 300;
-    const posX = Math.min(x, window.innerWidth - menuWidth - 20);
-    const posY = Math.min(y, window.innerHeight - menuHeight - 20);
+    const posX = Math.min(x, window.innerWidth - 280 - 20);
+    const posY = Math.min(y, window.innerHeight - 300 - 20);
 
-    // 🔥 FORZAR display block
-    addToListMenu.style.display = 'block';
-    addToListMenu.style.position = 'fixed';
     addToListMenu.style.left = `${Math.max(10, posX)}px`;
     addToListMenu.style.top = `${Math.max(10, posY)}px`;
+    addToListMenu.style.display = 'block';
     addToListMenu.style.zIndex = '99999';
-
-    // Animación de entrada
-    addToListMenu.style.opacity = '0';
-    addToListMenu.style.transform = 'scale(0.95) translateY(-8px)';
-
-    requestAnimationFrame(() => {
-        addToListMenu.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-        addToListMenu.style.opacity = '1';
-        addToListMenu.style.transform = 'scale(1) translateY(0)';
-    });
 
     menuAddToListVisible = true;
 
-    // Cargar las listas editables
+    console.log('📦 Cargando listas editables...');
     cargarListasEditables();
 }
 
@@ -129,7 +114,12 @@ document.addEventListener('keydown', (e) => {
 // ==========================================================================
 
 async function cargarListasEditables() {
-    if (!quickListChecklist || !quickListLoading || !quickListEmpty) return;
+    console.log('🔄 cargarListasEditables() iniciada');
+
+    if (!quickListChecklist || !quickListLoading || !quickListEmpty) {
+        console.error('❌ Elementos del menú no encontrados');
+        return;
+    }
 
     // Limpiar items anteriores
     quickListChecklist.querySelectorAll('.quick-list-item').forEach(el => el.remove());
@@ -137,22 +127,30 @@ async function cargarListasEditables() {
     quickListLoading.style.display = 'flex';
     quickListEmpty.style.display = 'none';
 
+    console.log('🔐 Obteniendo sesión...');
     const { data: { session } } = await supabase.auth.getSession();
+
     if (!session) {
+        console.log('❌ No hay sesión');
         cerrarMenuAddToList();
         showToast('error', 'Inicia sesión', 'Debes iniciar sesión para guardar en listas.');
         return;
     }
+
+    console.log('✅ Sesión obtenida, userId:', session.user.id);
     const userId = session.user.id;
 
     if (listasEditablesCache === null) {
+        console.log('📡 Cargando listas desde Supabase...');
         try {
             // 1. Listas propias (owner)
             const { data: propias, error: errPropias } = await supabase
                 .from('listas_maestra')
                 .select('id, titulo, tag_tipo')
                 .eq('owner_id', userId);
+
             if (errPropias) throw errPropias;
+            console.log('📋 Listas propias:', propias?.length || 0);
 
             // 2. Listas compartidas donde tengo rol editor o moderator
             const { data: compartidas, error: errCompartidas } = await supabase
@@ -161,7 +159,9 @@ async function cargarListasEditables() {
                 .eq('user_id', userId)
                 .eq('estado', 'accepted')
                 .in('rol', ['editor', 'moderator']);
+
             if (errCompartidas) throw errCompartidas;
+            console.log('📋 Listas compartidas:', compartidas?.length || 0);
 
             const deCompartidas = (compartidas || []).map(m => ({
                 id: m.lista.id,
@@ -170,10 +170,14 @@ async function cargarListasEditables() {
             }));
 
             listasEditablesCache = [...(propias || []), ...deCompartidas];
+            console.log('✅ Total listas editables:', listasEditablesCache.length);
+
         } catch (err) {
             console.error('Error cargando listas editables:', err);
             listasEditablesCache = [];
         }
+    } else {
+        console.log('💾 Usando caché de listas:', listasEditablesCache.length);
     }
 
     quickListLoading.style.display = 'none';
@@ -183,7 +187,10 @@ async function cargarListasEditables() {
         return lista.tag_tipo === 'mixta' || lista.tag_tipo === mediaActualParaLista.tipo;
     });
 
+    console.log('🎯 Listas compatibles:', listasCompatibles.length);
+
     if (listasCompatibles.length === 0) {
+        console.log('❌ No hay listas compatibles, mostrando empty');
         quickListEmpty.style.display = 'flex';
         return;
     }
@@ -197,12 +204,15 @@ async function cargarListasEditables() {
             .eq('media_id', mediaActualParaLista.id)
             .eq('media_tipo', mediaActualParaLista.tipo)
             .in('lista_id', listasEditablesCache.map(l => l.id));
+
         idsConItem = (itemsExistentes || []).map(i => i.lista_id);
+        console.log('📌 Items ya guardados:', idsConItem.length);
     } catch (err) {
         console.error('Error comprobando items existentes:', err);
     }
 
     // Renderizar cada lista
+    console.log('🖌️ Renderizando listas...');
     listasCompatibles.forEach(lista => {
         const clone = quickListItemTemplate.content.cloneNode(true);
         const label = clone.querySelector('.quick-list-item');
@@ -218,6 +228,8 @@ async function cargarListasEditables() {
 
         quickListChecklist.appendChild(clone);
     });
+
+    console.log('✅ Menú renderizado correctamente');
 }
 
 // ==========================================================================
