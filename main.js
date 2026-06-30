@@ -32,7 +32,7 @@ const ICONO_TIPO = {
 };
 
 // ==========================================================================
-//   🔥 SISTEMA DE LISTAS SOCIALES - DEFINICIÓN GLOBAL
+//   SISTEMA DE LISTAS SOCIALES - DEFINICIÓN GLOBAL
 // ==========================================================================
 
 let listasTabActual = 'mias';       // mias | compartidas | siguiendo
@@ -41,8 +41,6 @@ let listasEventosListos = false;    // pa no duplicar listeners
 
 // Usar var para que esté disponible en todo el ámbito
 var listasCache = { mias: null, compartidas: null, siguiendo: null };
-
-console.log('📦 listasCache INICIALIZADO globalmente:', listasCache);
 
 // Exponer globalmente para depuración
 window.listasCache = listasCache;
@@ -415,7 +413,6 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     } else if (target === 'edit-profile') {
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
-        console.log('📋 Cambiando a vista: mis-listas');
         inicializarMisListas();
     }
 
@@ -9868,8 +9865,6 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
 
 // punto de entrada: se llama cada vez que se entra en la vista
 async function inicializarMisListas() {
-    console.log('🚀 inicializarMisListas() ejecutada');
-    console.log('📦 listasCache antes de limpiar:', window.listasCache || listasCache);
 
     // Asegurar que listasCache existe
     if (typeof listasCache === 'undefined') {
@@ -9879,29 +9874,23 @@ async function inicializarMisListas() {
     }
 
     if (!listasEventosListos) {
-        console.log('🔄 Vinculando eventos UI por primera vez');
         bindEventosListasUI();
         listasEventosListos = true;
     }
 
     // FORZAR LIMPIEZA DE CACHÉ
-    console.log('🧹 Limpiando caché de listas...');
     listasCache.mias = null;
     listasCache.compartidas = null;
     listasCache.siguiendo = null;
-    console.log('📦 listasCache después de limpiar:', listasCache);
 
     await cargarListas(listasTabActual);
 }
 
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
-    console.log('🔗 bindEventosListasUI() ejecutada');
-
     document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(tab => {
         tab.addEventListener('click', async () => {
             const nuevaTab = tab.getAttribute('data-lists-tab');
-            console.log('📋 Click en pestaña:', nuevaTab);
             if (nuevaTab === listasTabActual) return;
 
             document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(t => t.classList.remove('active'));
@@ -9915,7 +9904,6 @@ function bindEventosListasUI() {
     document.querySelectorAll('.lists-type-filters .trend-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             const nuevoFiltro = btn.getAttribute('data-lists-filter');
-            console.log('🔍 Click en filtro:', nuevoFiltro);
             if (nuevoFiltro === listasFiltroActual) return;
 
             document.querySelectorAll('.lists-type-filters .trend-tab').forEach(b => b.classList.remove('active'));
@@ -9928,7 +9916,6 @@ function bindEventosListasUI() {
 
     // boton de crear lista
     document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
-        console.log('➕ Click en crear lista');
         mediaActualParaLista = null;
         openCreateListModal();
     });
@@ -9936,9 +9923,6 @@ function bindEventosListasUI() {
 
 // trae de supabase la pestaña pedida (con cache) y pinta
 async function cargarListas(tab) {
-    console.log('🚀 cargarListas() EJECUTADA con tab:', tab);
-    console.log('📦 listasCache actual:', listasCache);
-
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
     if (!grid) {
@@ -9952,22 +9936,13 @@ async function cargarListas(tab) {
 
     // FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
     if (tab === 'mias') {
-        console.log('🔄 Forzando recarga de "mias" (listasCache.mias = null)');
         listasCache.mias = null;
     }
 
-    console.log('📊 listasCache antes de la condición de caché:');
-    console.log('  mias:', listasCache.mias);
-    console.log('  compartidas:', listasCache.compartidas);
-    console.log('  siguiendo:', listasCache.siguiendo);
-
     if (listasCache[tab] !== null) {
-        console.log('⚠️ USANDO CACHÉ - NO HAY CONSULTA A SUPABASE');
         pintarListasFiltradas();
         return;
     }
-
-    console.log('📡 HACIENDO CONSULTA A SUPABASE (NO HAY CACHÉ)');
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -9978,11 +9953,9 @@ async function cargarListas(tab) {
     }
 
     const userId = session.user.id;
-    console.log('👤 User ID desde session:', userId);
 
     try {
         if (tab === 'mias') {
-            console.log('📡 Consultando Supabase: listas_maestra WHERE owner_id =', userId);
 
             const { data, error } = await supabase
                 .from('listas_maestra')
@@ -9995,14 +9968,9 @@ async function cargarListas(tab) {
                 throw error;
             }
 
-            console.log('✅ Datos devueltos:', data);
-            console.log('📊 Cantidad de listas:', data?.length || 0);
-
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
         } else {
-            console.log('📡 Consultando Supabase: listas_miembros WHERE user_id =', userId);
-
             const { data, error } = await supabase
                 .from('listas_miembros')
                 .select('rol, lista:listas_maestra!inner(id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count))')
@@ -10013,8 +9981,6 @@ async function cargarListas(tab) {
                 console.error('❌ Error en la consulta:', error);
                 throw error;
             }
-
-            console.log('✅ Datos de miembros:', data);
 
             const propias = (data || [])
                 .filter(m => m.lista.owner_id !== userId)
@@ -10030,17 +9996,11 @@ async function cargarListas(tab) {
         return;
     }
 
-    console.log('📊 listasCache DESPUÉS de la consulta:');
-    console.log('  mias:', listasCache.mias);
-    console.log('  compartidas:', listasCache.compartidas);
-    console.log('  siguiendo:', listasCache.siguiendo);
-
     pintarListasFiltradas();
 }
 
 // aplica el filtro de tipo sobre la cache de la pestaña activa y pinta las cards
 function pintarListasFiltradas() {
-    console.log('🎨 pintarListasFiltradas() ejecutada');
 
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
@@ -10050,15 +10010,11 @@ function pintarListasFiltradas() {
     }
 
     const listas = listasCache[listasTabActual] || [];
-    console.log('📊 Listas a pintar:', listas);
-    console.log('📋 Filtro actual:', listasFiltroActual);
 
     const filtradas = listas.filter(l => {
         if (listasFiltroActual === 'all') return true;
         return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
     });
-
-    console.log('📊 Listas filtradas:', filtradas);
 
     // CONSERVAR LA CLASE DE VISTA
     const esModoLista = grid.classList.contains('list-view-active');
@@ -10066,7 +10022,6 @@ function pintarListasFiltradas() {
     if (esModoLista) grid.classList.add('list-view-active');
 
     if (filtradas.length === 0) {
-        console.log('📭 No hay listas para mostrar');
         grid.style.display = 'none';
         if (empty) {
             empty.style.display = 'block';
@@ -10090,8 +10045,6 @@ function pintarListasFiltradas() {
         const card = crearListCard(lista);
         grid.appendChild(card);
     });
-
-    console.log('✅ Listas pintadas correctamente');
 }
 
 // clona el template y arma una card de lista
