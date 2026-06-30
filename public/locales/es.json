@@ -214,8 +214,7 @@
   "user": {
     "guest": "Invitado",
     "view_profile": "Ver perfil",
-    "lists": "Listas",
-    "watchlists": "Listas de seguimiento",
+    "lists": "Mis Listas",
     "edit_profile": "Editar perfil",
     "settings": "Ajustes",
     "logout": "Cerrar sesión"

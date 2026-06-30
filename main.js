@@ -871,8 +871,7 @@ function applyTranslations() {
     document.querySelectorAll('.user-menu-panel .theme-option span').forEach(span => {
         const text = span.textContent.trim();
         const map = {
-            'Listas': 'user.lists',
-            'Listas de seguimiento': 'user.watchlists',
+            'Mis Listas': 'user.lists',
             'Editar perfil': 'user.edit_profile',
             'Ajustes': 'user.settings',
             'Cerrar sesión': 'user.logout'
@@ -2983,8 +2982,7 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-list"></i><span>Listas</span></button>
-    <button class="theme-option"><i class="fas fa-bookmark"></i><span>Listas de seguimiento</span></button>
+    <button class="theme-option"><i class="fas fa-list"></i><span>Mis Listas</span></button>
     
     <div class="dropdown-divider"></div>
     
