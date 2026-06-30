@@ -31,6 +31,22 @@ const ICONO_TIPO = {
     mixta: 'fa-layer-group'
 };
 
+// ==========================================================================
+//   🔥 SISTEMA DE LISTAS SOCIALES - DEFINICIÓN GLOBAL
+// ==========================================================================
+
+let listasTabActual = 'mias';       // mias | compartidas | siguiendo
+let listasFiltroActual = 'all';     // all | game | movie | tv
+let listasEventosListos = false;    // pa no duplicar listeners
+
+// Usar var para que esté disponible en todo el ámbito
+var listasCache = { mias: null, compartidas: null, siguiendo: null };
+
+console.log('📦 listasCache INICIALIZADO globalmente:', listasCache);
+
+// Exponer globalmente para depuración
+window.listasCache = listasCache;
+
 // Elemento del menú contextual flotante
 const addToListMenu = document.getElementById('add-to-list-menu');
 
@@ -9847,23 +9863,20 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
 }
 
 // ==========================================================================
-//   SISTEMA DE LISTAS SOCIALES (MIS LISTAS)
+//   SISTEMA DE LISTAS SOCIALES (MIS LISTAS) - FUNCIONES
 // ==========================================================================
-
-// 🔥 DEFINICIÓN GLOBAL DE VARIABLES
-let listasTabActual = 'mias';       // mias | compartidas | siguiendo
-let listasFiltroActual = 'all';     // all | game | movie | tv
-let listasEventosListos = false;    // pa no duplicar listeners
-
-// 🔥 IMPORTANTE: USAR var EN LUGAR DE const PARA EVITAR PROBLEMAS CON VITE
-var listasCache = { mias: null, compartidas: null, siguiendo: null };
-
-console.log('📦 listasCache inicializado en ámbito global:', listasCache);
 
 // punto de entrada: se llama cada vez que se entra en la vista
 async function inicializarMisListas() {
     console.log('🚀 inicializarMisListas() ejecutada');
-    console.log('📦 listasCache antes de limpiar:', listasCache);
+    console.log('📦 listasCache antes de limpiar:', window.listasCache || listasCache);
+
+    // Asegurar que listasCache existe
+    if (typeof listasCache === 'undefined') {
+        console.error('❌ listasCache no está definido, creándolo...');
+        window.listasCache = { mias: null, compartidas: null, siguiendo: null };
+        listasCache = window.listasCache;
+    }
 
     if (!listasEventosListos) {
         console.log('🔄 Vinculando eventos UI por primera vez');
