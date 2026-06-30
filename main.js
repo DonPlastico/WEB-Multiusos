@@ -1186,6 +1186,12 @@ function crearTarjeta(juego) {
                 <div class="game-price">
                     ${htmlPrecio}
                 </div>
+
+                <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
+                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMiniModalLista(${juego.id}, 'game');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -2175,7 +2181,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                 </div>
                 
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); showToast('info', 'En desarrollo', 'Función de añadir a listas próximamente.');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMiniModalLista(${media.id}, '${tipo}');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                     ${btnVistoHtml}
@@ -9913,6 +9919,9 @@ formCreateList?.addEventListener('submit', async (e) => {
             await cargarListas('mias');
         }
 
+        // tambien invalidamos la cache del mini-modal "+" para que la lista nueva aparezca ahi
+        listasEditablesCache = null;
+
     } catch (err) {
         console.error('Error creando la lista:', err);
         showToast('error', 'Error', 'No se pudo crear la lista. Inténtalo de nuevo.');
@@ -9920,6 +9929,177 @@ formCreateList?.addEventListener('submit', async (e) => {
         btnConfirmarCreateList.disabled = false;
         btnConfirmarCreateList.innerHTML = '<i class="fas fa-check"></i> CREAR LISTA';
     }
+});
+
+// ==========================================================================
+//   MINI-MODAL: AÑADIR A LISTA (botón +)
+// ==========================================================================
+
+const modalAddToList = document.getElementById('add-to-list-modal');
+const btnCloseAddToList = document.getElementById('close-add-to-list-modal');
+const checklistAddToList = document.getElementById('quick-list-checklist');
+const loadingAddToList = document.getElementById('quick-list-loading');
+const emptyAddToList = document.getElementById('quick-list-empty');
+const btnQuickCreateList = document.getElementById('btn-quick-create-list');
+
+let mediaActualParaLista = null;   // { id, tipo } del item sobre el que se pulsó el +
+let listasEditablesCache = null;   // listas donde el usuario puede añadir contenido (owner/editor/moderator)
+
+// punto de entrada: se llama desde el onclick del botón + de cualquier card
+window.abrirMiniModalLista = async function (mediaId, mediaType) {
+    mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
+
+    modalAddToList?.classList.add('show');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+
+    await cargarListasEditables();
+};
+
+function closeAddToListModal() {
+    modalAddToList?.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+}
+
+btnCloseAddToList?.addEventListener('click', closeAddToListModal);
+modalAddToList?.addEventListener('click', (e) => {
+    if (e.target === modalAddToList) closeAddToListModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalAddToList?.classList.contains('show')) closeAddToListModal();
+});
+
+// trae las listas donde el usuario tiene permiso de edición (con cache, como el resto del sistema)
+async function cargarListasEditables() {
+    if (!checklistAddToList || !loadingAddToList || !emptyAddToList) return;
+
+    // limpiamos items pintados en una apertura anterior (sin tocar loading/empty)
+    checklistAddToList.querySelectorAll('.quick-list-item').forEach(el => el.remove());
+    loadingAddToList.style.display = 'flex';
+    emptyAddToList.style.display = 'none';
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        closeAddToListModal();
+        showToast('error', 'Inicia sesión', 'Debes iniciar sesión para guardar en listas.');
+        return;
+    }
+    const userId = session.user.id;
+
+    if (listasEditablesCache === null) {
+        try {
+            const { data: propias, error: errPropias } = await supabase
+                .from('listas_maestra')
+                .select('id, titulo, tag_tipo')
+                .eq('owner_id', userId);
+            if (errPropias) throw errPropias;
+
+            const { data: compartidas, error: errCompartidas } = await supabase
+                .from('listas_miembros')
+                .select('rol, lista:listas_maestra!inner(id, titulo, tag_tipo)')
+                .eq('user_id', userId)
+                .eq('estado', 'accepted')
+                .in('rol', ['editor', 'moderator']);
+            if (errCompartidas) throw errCompartidas;
+
+            const deCompartidas = (compartidas || []).map(m => ({
+                id: m.lista.id, titulo: m.lista.titulo, tag_tipo: m.lista.tag_tipo
+            }));
+
+            listasEditablesCache = [...(propias || []), ...deCompartidas];
+        } catch (err) {
+            console.error('Error cargando listas editables:', err);
+            listasEditablesCache = [];
+        }
+    }
+
+    loadingAddToList.style.display = 'none';
+
+    if (listasEditablesCache.length === 0) {
+        emptyAddToList.style.display = 'flex';
+        return;
+    }
+
+    // averiguamos en cuáles de esas listas ya está guardado este item
+    let idsConItem = [];
+    try {
+        const { data: itemsExistentes } = await supabase
+            .from('listas_items')
+            .select('lista_id')
+            .eq('media_id', mediaActualParaLista.id)
+            .eq('media_tipo', mediaActualParaLista.tipo)
+            .in('lista_id', listasEditablesCache.map(l => l.id));
+        idsConItem = (itemsExistentes || []).map(i => i.lista_id);
+    } catch (err) {
+        console.error('Error comprobando items existentes:', err);
+    }
+
+    listasEditablesCache.forEach(lista => {
+        const template = document.getElementById('quick-list-item-template');
+        const clone = template.content.cloneNode(true);
+        const label = clone.querySelector('.quick-list-item');
+        label.dataset.listaId = lista.id;
+
+        const icono = ICONO_TIPO[lista.tag_tipo] || 'fa-layer-group';
+        clone.querySelector('.quick-list-item-tipo i').className = `fas ${icono}`;
+        clone.querySelector('.quick-list-item-title').textContent = lista.titulo;
+
+        const checkbox = clone.querySelector('.quick-list-checkbox');
+        checkbox.checked = idsConItem.includes(lista.id);
+        checkbox.addEventListener('change', () => toggleItemEnLista(lista.id, checkbox.checked, checkbox));
+
+        checklistAddToList.appendChild(clone);
+    });
+}
+
+// marca/desmarca el item actual en una lista concreta
+async function toggleItemEnLista(listaId, marcado, checkboxEl) {
+    if (!mediaActualParaLista) return;
+    checkboxEl.disabled = true;
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const userId = session.user.id;
+
+        if (marcado) {
+            const { error } = await supabase.from('listas_items').insert({
+                lista_id: listaId,
+                media_id: mediaActualParaLista.id,
+                media_tipo: mediaActualParaLista.tipo,
+                added_by_user_id: userId
+            });
+            if (error) throw error;
+            showToast('success', 'Añadido', 'Se ha guardado en la lista.');
+        } else {
+            const { error } = await supabase
+                .from('listas_items')
+                .delete()
+                .eq('lista_id', listaId)
+                .eq('media_id', mediaActualParaLista.id)
+                .eq('media_tipo', mediaActualParaLista.tipo);
+            if (error) throw error;
+            showToast('success', 'Quitado', 'Se ha quitado de la lista.');
+        }
+
+        // invalidamos la cache de "Mis Listas" para que los badges de items se actualicen
+        listasCache.mias = null;
+        listasCache.compartidas = null;
+
+    } catch (err) {
+        console.error('Error guardando en la lista:', err);
+        showToast('error', 'Error', 'No se pudo actualizar la lista.');
+        checkboxEl.checked = !marcado; // revertimos el check visualmente
+    } finally {
+        checkboxEl.disabled = false;
+    }
+}
+
+// boton "+ Crear Nueva Lista" del mini-modal: cierra este y abre el modal grande
+btnQuickCreateList?.addEventListener('click', () => {
+    closeAddToListModal();
+    openCreateListModal();
 });
 
 document.addEventListener('DOMContentLoaded', function () {

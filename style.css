@@ -4617,6 +4617,74 @@ cast-carousel::-webkit-scrollbar {
 }
 
 /* ==========================================================================
+   MINI-MODAL: AÑADIR A LISTA (botón +)
+   ========================================================================== */
+
+.quick-list-panel {
+    width: 100%;
+    max-width: 380px;
+    padding: 24px;
+    border-top: 3px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.quick-list-header {
+    padding-right: 30px;
+}
+
+.quick-list-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-cyber);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--neon-white);
+}
+
+.quick-list-title i {
+    color: var(--primary);
+}
+
+.quick-list-checklist {
+    display: flex;
+    flex-direction: column;
+    max-height: 280px;
+    overflow-y: auto;
+    min-height: 60px;
+    position: relative;
+}
+
+.quick-list-item {
+    margin-bottom: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.quick-list-item:hover {
+    background: var(--bg-hover);
+}
+
+.quick-list-item-tipo {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.quick-list-item-title {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
    CHATBOX
    ========================================================================== */
 
@@ -7034,6 +7102,10 @@ cast-carousel::-webkit-scrollbar {
 
     .create-list-panel {
         max-width: 95%;
+    }
+
+    .quick-list-panel {
+        max-width: 92%;
     }
 
     .create-list-form {
