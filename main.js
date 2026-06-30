@@ -4996,20 +4996,28 @@ async function cargarPerfilPublico(usernameTarget) {
             if (miPerfil) miPropioUsername = miPerfil.username;
         }
 
-        document.querySelector('.stat-unit.months').textContent = t('profile.months');
-        document.querySelector('.stat-unit.days').textContent = t('profile.days');
-        document.querySelector('.stat-unit.hours').textContent = t('profile.hours');
+        // 🔥 CORRECCIÓN: Comprobar que los elementos existen antes de usarlos
+        const statMonths = document.querySelector('.stat-unit.months');
+        if (statMonths) statMonths.textContent = t('profile.months');
 
-        document.querySelector('#recommendations-section h3').textContent = t('profile.recommended');
+        const statDays = document.querySelector('.stat-unit.days');
+        if (statDays) statDays.textContent = t('profile.days');
 
-        document.querySelector('.stats-header h3').textContent = t('profile.global_stats');
+        const statHours = document.querySelector('.stat-unit.hours');
+        if (statHours) statHours.textContent = t('profile.hours');
 
+        const recTitle = document.querySelector('#recommendations-section h3');
+        if (recTitle) recTitle.textContent = t('profile.recommended');
+
+        const statsHeader = document.querySelector('.stats-header h3');
+        if (statsHeader) statsHeader.textContent = t('profile.global_stats');
 
         // Si no me pasan usuario por la URL (entrar desde el menú normal), asumo que quiero ver MI perfil
         const usuarioABuscar = usernameTarget || miPropioUsername;
 
         if (!usuarioABuscar) {
-            document.querySelector('.profile-username').textContent = "Inicia sesión para ver tu perfil";
+            const profileUsername = document.querySelector('.profile-username');
+            if (profileUsername) profileUsername.textContent = "Inicia sesión para ver tu perfil";
             return;
         }
 
@@ -5021,12 +5029,14 @@ async function cargarPerfilPublico(usernameTarget) {
             .single();
 
         if (error || !perfilTarget) {
-            document.querySelector('.profile-username').textContent = "Usuario no encontrado en el Nexus";
+            const profileUsername = document.querySelector('.profile-username');
+            if (profileUsername) profileUsername.textContent = "Usuario no encontrado en el Nexus";
             return;
         }
 
         // Pintamos el Nombre
-        document.querySelector('.profile-username').textContent = perfilTarget.username;
+        const profileUsername = document.querySelector('.profile-username');
+        if (profileUsername) profileUsername.textContent = perfilTarget.username;
 
         // Pintar Avatar
         const avatarDB = perfilTarget.avatar ? perfilTarget.avatar.replace(/'/g, "") : 'default';
@@ -5042,7 +5052,6 @@ async function cargarPerfilPublico(usernameTarget) {
             if (avatarDB === 'default' || avatarDB === 'custom') {
                 avatarElement.insertAdjacentHTML('beforeend', '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>');
             } else if (avatarDB.startsWith('http')) {
-                // 👉 NUEVO: Si detecta que es un enlace de Supabase
                 avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
                 avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
@@ -5061,7 +5070,6 @@ async function cargarPerfilPublico(usernameTarget) {
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             } else {
-                // Banner predefinido numérico
                 bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.webp')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
@@ -5072,16 +5080,13 @@ async function cargarPerfilPublico(usernameTarget) {
         // CARGAR CONTADORES DE SEGUIDORES/SIGUIENDO
         // ============================================
         try {
-            // Extraemos el UUID del perfil que estamos mirando en pantalla
             const targetId = perfilTarget.auth_id;
 
-            // Contamos a cuántos sigue esta persona
             const { count: siguiendoCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
                 .eq('solicitante_id', targetId);
 
-            // Contamos cuántos siguen a esta persona
             const { count: seguidoresCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
@@ -5099,30 +5104,43 @@ async function cargarPerfilPublico(usernameTarget) {
             const cacheKey = `nexus_stats_${targetId}`;
             const statsGuardadas = localStorage.getItem(cacheKey);
 
-            // Función interna para pintar los números en pantalla
             const pintarEstadisticas = (totalEp, tiempoSer, totalPel, tiempoPel) => {
-                document.getElementById('stat-series-episodes').textContent = totalEp.toLocaleString('es-ES');
-                document.getElementById('stat-series-months').textContent = tiempoSer.meses;
-                document.getElementById('stat-series-days').textContent = tiempoSer.dias;
-                document.getElementById('stat-series-hours').textContent = tiempoSer.horas;
+                const elEpisodes = document.getElementById('stat-series-episodes');
+                if (elEpisodes) elEpisodes.textContent = totalEp.toLocaleString('es-ES');
 
-                document.getElementById('stat-movies-count').textContent = totalPel.toLocaleString('es-ES');
-                document.getElementById('stat-movies-months').textContent = tiempoPel.meses;
-                document.getElementById('stat-movies-days').textContent = tiempoPel.dias;
-                document.getElementById('stat-movies-hours').textContent = tiempoPel.horas;
+                const elMonthsSer = document.getElementById('stat-series-months');
+                if (elMonthsSer) elMonthsSer.textContent = tiempoSer.meses;
+
+                const elDaysSer = document.getElementById('stat-series-days');
+                if (elDaysSer) elDaysSer.textContent = tiempoSer.dias;
+
+                const elHoursSer = document.getElementById('stat-series-hours');
+                if (elHoursSer) elHoursSer.textContent = tiempoSer.horas;
+
+                const elMoviesCount = document.getElementById('stat-movies-count');
+                if (elMoviesCount) elMoviesCount.textContent = totalPel.toLocaleString('es-ES');
+
+                const elMonthsPel = document.getElementById('stat-movies-months');
+                if (elMonthsPel) elMonthsPel.textContent = tiempoPel.meses;
+
+                const elDaysPel = document.getElementById('stat-movies-days');
+                if (elDaysPel) elDaysPel.textContent = tiempoPel.dias;
+
+                const elHoursPel = document.getElementById('stat-movies-hours');
+                if (elHoursPel) elHoursPel.textContent = tiempoPel.horas;
             };
 
-            // 1. CARGA INSTANTÁNEA (0.01s): Si hay memoria caché, la pintamos de golpe
             if (statsGuardadas) {
                 const stats = JSON.parse(statsGuardadas);
                 pintarEstadisticas(stats.totalEpisodios, stats.tiempoSeries, stats.totalPelis, stats.tiempoPelis);
             } else {
-                // Si es la primera vez en la vida que entra, ponemos un texto temporal
-                document.getElementById('stat-series-episodes').textContent = "...";
-                document.getElementById('stat-movies-count').textContent = "...";
+                const elEpisodes = document.getElementById('stat-series-episodes');
+                if (elEpisodes) elEpisodes.textContent = "...";
+
+                const elMoviesCount = document.getElementById('stat-movies-count');
+                if (elMoviesCount) elMoviesCount.textContent = "...";
             }
 
-            // 2. SINCRONIZACIÓN FANTASMA: Pedimos los datos reales a Supabase sin bloquear la web
             setTimeout(async () => {
                 let mediaVisto = [];
                 let keepFetching = true;
@@ -5147,7 +5165,6 @@ async function cargarPerfilPublico(usernameTarget) {
                     }
                 }
 
-                // Siempre calculamos los totales, haya o no haya datos en la BD
                 let totalPelis = 0;
                 let totalEpisodios = 0;
 
@@ -5179,13 +5196,12 @@ async function cargarPerfilPublico(usernameTarget) {
                     tiempoPelis: tiempoPelis
                 };
 
-                // 3. ACTUALIZACIÓN EN VIVO: Si los datos cambian (incluso si bajan a 0), actualizamos la caché
                 const nuevasStatsString = JSON.stringify(nuevasStats);
                 if (statsGuardadas !== nuevasStatsString) {
                     localStorage.setItem(cacheKey, nuevasStatsString);
                     pintarEstadisticas(totalEpisodios, tiempoSeries, totalPelis, tiempoPelis);
                 }
-            }, 50); // Le damos 50 milisegundos a la web para que pinte todo lo demás tranquilamente
+            }, 50);
 
         } catch (err) {
             console.error("Error al extraer telemetría de amistades o medios:", err);
@@ -5195,58 +5211,50 @@ async function cargarPerfilPublico(usernameTarget) {
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
 
-        // Elementos disparadores de Modals (Para bloquear sus clics)
         const triggerBanner = document.getElementById('banner-edit-trigger');
         const triggerAvatar = document.getElementById('avatar-edit-trigger');
-
-        // Elementos privados
         const btnAddFriend = document.getElementById('btn-add-friend');
 
         if (miPropioUsername === usuarioABuscar) {
-            // === ES MI PROPIO PERFIL ===
             if (overlayBanner) overlayBanner.style.display = 'flex';
             if (overlayAvatar) overlayAvatar.style.display = 'flex';
-
-            // Habilitar clics
             if (triggerBanner) triggerBanner.style.pointerEvents = 'auto';
             if (triggerAvatar) triggerAvatar.style.pointerEvents = 'auto';
 
-            document.querySelector('.profile-banner').style.cursor = 'pointer';
-            document.querySelector('.profile-avatar').style.cursor = 'pointer';
+            const profileBanner = document.querySelector('.profile-banner');
+            if (profileBanner) profileBanner.style.cursor = 'pointer';
 
-            // Muestro mi botón de añadir amigos
+            const profileAvatar = document.querySelector('.profile-avatar');
+            if (profileAvatar) profileAvatar.style.cursor = 'pointer';
+
             if (btnAddFriend) btnAddFriend.style.display = 'flex';
-
         } else {
-            // === ES EL PERFIL DE OTRA PERSONA ===
             if (overlayBanner) overlayBanner.style.display = 'none';
             if (overlayAvatar) overlayAvatar.style.display = 'none';
-
-            // Bloqueo absoluto de clics e interacciones
             if (triggerBanner) triggerBanner.style.pointerEvents = 'none';
             if (triggerAvatar) triggerAvatar.style.pointerEvents = 'none';
 
-            document.querySelector('.profile-banner').style.cursor = 'default';
-            document.querySelector('.profile-avatar').style.cursor = 'default';
+            const profileBanner = document.querySelector('.profile-banner');
+            if (profileBanner) profileBanner.style.cursor = 'default';
 
-            // Oculto botón
+            const profileAvatar = document.querySelector('.profile-avatar');
+            if (profileAvatar) profileAvatar.style.cursor = 'default';
+
             if (btnAddFriend) btnAddFriend.style.display = 'none';
         }
 
         // === CARGAR WATCHLIST DE SERIES PENDIENTES ===
         await cargarWatchlistTVTime(perfilTarget.auth_id, miPropioUsername === usuarioABuscar);
 
-        // FORZAR SINCRONIZACIÓN GLOBAL DESPUÉS DE CARGAR LA WATCHLIST
         if (miPropioUsername === usuarioABuscar && window.sincronizarWatchlistGlobal) {
             window.sincronizarWatchlistGlobal();
         }
 
         // === CARGAR RECOMENDACIONES DINÁMICAS ===
-        // Solo cargar recomendaciones si estamos viendo nuestro propio perfil
         if (miPropioUsername === usuarioABuscar) {
+            console.log('🔄 Cargando recomendaciones para usuario:', miPropioUsername);
             await cargarRecomendaciones(perfilTarget.auth_id);
         } else {
-            // Si es perfil de otro, ocultamos la sección de recomendaciones
             const recSection = document.getElementById('recommendations-section');
             if (recSection) recSection.style.display = 'none';
         }
