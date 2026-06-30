@@ -1704,19 +1704,28 @@
                 <div class="watchlist-tabs lists-main-tabs">
                     <button class="watchlist-tab active" data-lists-tab="mias">Mis Listas</button>
                     <button class="watchlist-tab" data-lists-tab="compartidas">Compartidas Conmigo</button>
-                    <button class="watchlist-tab" data-lists-tab="siguiendo">Guardadas / Siguiendo</button>
+                    <button class="watchlist-tab" data-lists-tab="siguiendo">Siguiendo</button>
                 </div>
 
                 <!-- filtros rapidos por tipo de contenido -->
-                <div class="trends-tabs lists-type-filters">
-                    <button class="trend-tab active" data-lists-filter="all">Mostrar Todo</button>
-                    <button class="trend-tab" data-lists-filter="game"><i class="fas fa-gamepad"></i> Juegos</button>
-                    <button class="trend-tab" data-lists-filter="movie"><i class="fas fa-film"></i> Películas</button>
-                    <button class="trend-tab" data-lists-filter="tv"><i class="fas fa-tv"></i> Series</button>
+                <div class="lists-filters-header"
+                    style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;">
+                    <div class="trends-tabs lists-type-filters" style="margin-bottom: 0;">
+                        <button class="trend-tab active" data-lists-filter="all">Mostrar Todo</button>
+                        <button class="trend-tab" data-lists-filter="game"><i class="fas fa-gamepad"></i>
+                            Juegos</button>
+                        <button class="trend-tab" data-lists-filter="movie"><i class="fas fa-film"></i>
+                            Películas</button>
+                        <button class="trend-tab" data-lists-filter="tv"><i class="fas fa-tv"></i> Series</button>
+                    </div>
+
+                    <button class="watchlist-btn-icon" id="btn-lists-toggle-grid" title="Cambiar a vista de cuadrícula">
+                        <i class="fas fa-th-large"></i>
+                    </button>
                 </div>
 
                 <!-- grid de listas -->
-                <div id="lists-grid" class="cyber-grid lists-grid" data-needs-init="true">
+                <div id="lists-grid" class="cyber-grid lists-grid list-view-active" data-needs-init="true">
                     <div class="watchlist-loading">
                         <i class="fas fa-circle-notch fa-spin"></i>
                     </div>
@@ -2324,7 +2333,7 @@
                     style="display: none; padding: 20px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-folder-open"
                         style="font-size: 1.5rem; opacity: 0.5; display: block; margin-bottom: 8px;"></i>
-                    <span style="font-size: 0.85rem;">Todavía no tienes listas</span>
+                    <span style="margin-left: 15px;">Todavía no tienes listas</span>
                 </div>
             </div>
 

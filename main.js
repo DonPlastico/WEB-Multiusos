@@ -48,7 +48,6 @@ const quickListItemTemplate = document.getElementById('quick-list-item-template'
 // ==========================================================================
 
 function abrirMenuAddToList(event, mediaId, mediaType) {
-    console.log('🔥 abrirMenuAddToList ejecutada!', mediaId, mediaType);
     event.stopPropagation();
 
     const addToListMenu = document.getElementById('add-to-list-menu');
@@ -58,7 +57,6 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     }
 
     mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
-    console.log('📦 mediaActualParaLista guardado:', mediaActualParaLista);
 
     // Posicionar y mostrar
     const x = event.clientX || event.pageX || 0;
@@ -69,7 +67,7 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     const posX = Math.min(x, window.innerWidth - menuWidth - 20);
     const posY = Math.min(y, window.innerHeight - menuHeight - 20);
 
-    // 🔥 FORZAR VISIBILIDAD
+    // FORZAR VISIBILIDAD
     addToListMenu.style.display = 'block';
     addToListMenu.style.position = 'fixed';
     addToListMenu.style.left = `${Math.max(10, posX)}px`;
@@ -79,9 +77,6 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     addToListMenu.style.transform = 'scale(1)';
     addToListMenu.style.visibility = 'visible';
     addToListMenu.style.pointerEvents = 'auto';
-
-    console.log('📍 Menú posicionado en:', addToListMenu.style.left, addToListMenu.style.top);
-    console.log('🎯 Menú display:', addToListMenu.style.display);
 
     menuAddToListVisible = true;
 
@@ -125,8 +120,6 @@ document.addEventListener('keydown', (e) => {
 // ==========================================================================
 
 async function cargarListasEditables() {
-    console.log('🔄 cargarListasEditables() iniciada');
-
     if (!quickListChecklist || !quickListLoading || !quickListEmpty) {
         console.error('❌ Elementos del menú no encontrados');
         return;
@@ -138,21 +131,17 @@ async function cargarListasEditables() {
     quickListLoading.style.display = 'flex';
     quickListEmpty.style.display = 'none';
 
-    console.log('🔐 Obteniendo sesión...');
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-        console.log('❌ No hay sesión');
         cerrarMenuAddToList();
         showToast('error', 'Inicia sesión', 'Debes iniciar sesión para guardar en listas.');
         return;
     }
 
-    console.log('✅ Sesión obtenida, userId:', session.user.id);
     const userId = session.user.id;
 
     if (listasEditablesCache === null) {
-        console.log('📡 Cargando listas desde Supabase...');
         try {
             // 1. Listas propias (owner)
             const { data: propias, error: errPropias } = await supabase
@@ -161,7 +150,6 @@ async function cargarListasEditables() {
                 .eq('owner_id', userId);
 
             if (errPropias) throw errPropias;
-            console.log('📋 Listas propias:', propias?.length || 0);
 
             // 2. Listas compartidas donde tengo rol editor o moderator
             const { data: compartidas, error: errCompartidas } = await supabase
@@ -172,7 +160,6 @@ async function cargarListasEditables() {
                 .in('rol', ['editor', 'moderator']);
 
             if (errCompartidas) throw errCompartidas;
-            console.log('📋 Listas compartidas:', compartidas?.length || 0);
 
             const deCompartidas = (compartidas || []).map(m => ({
                 id: m.lista.id,
@@ -181,19 +168,16 @@ async function cargarListasEditables() {
             }));
 
             listasEditablesCache = [...(propias || []), ...deCompartidas];
-            console.log('✅ Total listas editables:', listasEditablesCache.length);
 
         } catch (err) {
             console.error('Error cargando listas editables:', err);
             listasEditablesCache = [];
         }
-    } else {
-        console.log('💾 Usando caché de listas:', listasEditablesCache.length);
     }
 
     quickListLoading.style.display = 'none';
 
-    // 🔥 VERIFICAR QUE mediaActualParaLista EXISTE
+    // VERIFICAR QUE mediaActualParaLista EXISTE
     if (!mediaActualParaLista) {
         console.warn('⚠️ mediaActualParaLista es null, no se pueden filtrar listas');
         quickListEmpty.style.display = 'flex';
@@ -205,10 +189,7 @@ async function cargarListasEditables() {
         return lista.tag_tipo === 'mixta' || lista.tag_tipo === mediaActualParaLista.tipo;
     });
 
-    console.log('🎯 Listas compatibles:', listasCompatibles.length);
-
     if (listasCompatibles.length === 0) {
-        console.log('❌ No hay listas compatibles, mostrando empty');
         quickListEmpty.style.display = 'flex';
         return;
     }
@@ -224,13 +205,11 @@ async function cargarListasEditables() {
             .in('lista_id', listasEditablesCache.map(l => l.id));
 
         idsConItem = (itemsExistentes || []).map(i => i.lista_id);
-        console.log('📌 Items ya guardados:', idsConItem.length);
     } catch (err) {
         console.error('Error comprobando items existentes:', err);
     }
 
     // Renderizar cada lista
-    console.log('🖌️ Renderizando listas...');
     listasCompatibles.forEach(lista => {
         const clone = quickListItemTemplate.content.cloneNode(true);
         const label = clone.querySelector('.quick-list-item');
@@ -246,8 +225,6 @@ async function cargarListasEditables() {
 
         quickListChecklist.appendChild(clone);
     });
-
-    console.log('✅ Menú renderizado correctamente');
 }
 
 // ==========================================================================
@@ -9993,14 +9970,15 @@ function pintarListasFiltradas() {
 
     const listas = listasCache[listasTabActual] || [];
 
-    // LÓGICA DE FILTRADO INTELIGENTE
     const filtradas = listas.filter(l => {
         if (listasFiltroActual === 'all') return true;
-        // La lista se muestra si coincide el tag O si es mixta
         return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
     });
 
+    // CONSERVAR LA CLASE DE VISTA
+    const esModoLista = grid.classList.contains('list-view-active');
     grid.innerHTML = '';
+    if (esModoLista) grid.classList.add('list-view-active');
 
     if (filtradas.length === 0) {
         grid.style.display = 'none';
@@ -10378,7 +10356,7 @@ formCreateList?.addEventListener('submit', async (e) => {
 });
 
 // Función genérica de Toggle Grid/List
-function configurarToggleGrid(btnId, targetGridId, storageKey) {
+function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'watchlist-list-mode') {
     const btn = document.getElementById(btnId);
     const grid = document.getElementById(targetGridId);
     if (!btn || !grid) return;
@@ -10388,12 +10366,12 @@ function configurarToggleGrid(btnId, targetGridId, storageKey) {
     // Estado inicial desde localStorage
     const modo = localStorage.getItem(storageKey) || 'grid';
     if (modo === 'list') {
-        grid.classList.add('watchlist-list-mode'); // Asegúrate de tener esta clase en CSS
+        grid.classList.add(claseToggle);
         icon.className = 'fas fa-th-large';
     }
 
     btn.addEventListener('click', () => {
-        const esGrid = grid.classList.toggle('watchlist-list-mode');
+        const esGrid = grid.classList.toggle(claseToggle);
         // Si tiene la clase, es modo LISTA, si no, GRID
         if (esGrid) {
             icon.className = 'fas fa-th-large';
@@ -10407,7 +10385,7 @@ function configurarToggleGrid(btnId, targetGridId, storageKey) {
 
 // Inicializa ambos:
 configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
-configurarToggleGrid('btn-lists-toggle-grid', 'lists-grid', 'pref_view_lists');
+configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
 
 document.addEventListener('DOMContentLoaded', function () {
     // Inicializamos las funciones de carga de datos
