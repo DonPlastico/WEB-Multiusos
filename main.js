@@ -9906,6 +9906,14 @@ function bindEventosListasUI() {
 
 // trae de supabase la pestaña pedida (con cache) y pinta
 async function cargarListas(tab) {
+
+    // 🐞 AÑADE ESTOS LOGS
+    console.log('🔍 ===== CARGANDO LISTAS =====');
+    console.log('📋 Tab:', tab);
+    console.log('👤 User ID desde session:', userId);
+    console.log('📋 Owner ID en la lista (según SQL): 7d0cb7a6-d881-41e2-85de-86a108c55dc4');
+
+    
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
     if (!grid) return;
@@ -9932,12 +9940,6 @@ async function cargarListas(tab) {
     }
 
     const userId = session.user.id;
-
-    // 🐞 AÑADE ESTOS LOGS
-    console.log('🔍 ===== CARGANDO LISTAS =====');
-    console.log('📋 Tab:', tab);
-    console.log('👤 User ID desde session:', userId);
-    console.log('📋 Owner ID en la lista (según SQL): 7d0cb7a6-d881-41e2-85de-86a108c55dc4');
 
     try {
         if (tab === 'mias') {
