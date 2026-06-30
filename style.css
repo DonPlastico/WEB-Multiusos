@@ -4658,6 +4658,18 @@ cast-carousel::-webkit-scrollbar {
     outline: none;
 }
 
+.create-list-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+/* Ajuste para que los grupos de campos se vean bien en 2 columnas */
+.create-list-two-columns .field-group {
+    margin-bottom: 0;
+}
+
 /* ==========================================================================
    MINI-MODAL: AÑADIR A LISTA (botón +)
    ========================================================================== */

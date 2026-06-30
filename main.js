@@ -9507,6 +9507,7 @@ function bindEventosListasUI() {
 
     // boton de crear lista
     document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
+        mediaActualParaLista = null;
         openCreateListModal();
     });
 }
@@ -9560,8 +9561,7 @@ async function cargarListas(tab) {
                 .filter(m => m.lista.owner_id !== userId)
                 .map(m => ({ ...m.lista, rolUsuario: m.rol }));
 
-            // TODO: cuando montemos el botón de "Seguir" público, separar de verdad
-            // "compartidas" (te invitaron) de "siguiendo" (tú decidiste seguir la lista).
+            // Cuando montemos el botón de "Seguir" público, separar de verdad "compartidas" (te invitaron) de "siguiendo" (tú decidiste seguir la lista).
             // De momento todo cae en "compartidas" y "siguiendo" queda vacía.
             listasCache.compartidas = propias;
             listasCache.siguiendo = [];
