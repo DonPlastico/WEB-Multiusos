@@ -4795,6 +4795,11 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         window.serieInfoActual = { id: id, temporadas: data.temporadas_info || [] };
         window.episodiosVistosActuales = new Set();
 
+        // Sincronizar con la watchlist global si ya hay datos cargados
+        if (window.sincronizarWatchlistGlobal) {
+            window.sincronizarWatchlistGlobal();
+        }
+
         // Actualizar barra de progreso
         actualizarBarraProgresoSeries();
 
@@ -5223,6 +5228,11 @@ async function cargarPerfilPublico(usernameTarget) {
 
         // === CARGAR WATCHLIST DE SERIES PENDIENTES ===
         await cargarWatchlistTVTime(perfilTarget.auth_id, miPropioUsername === usuarioABuscar);
+
+        // FORZAR SINCRONIZACIÓN GLOBAL DESPUÉS DE CARGAR LA WATCHLIST
+        if (miPropioUsername === usuarioABuscar && window.sincronizarWatchlistGlobal) {
+            window.sincronizarWatchlistGlobal();
+        }
 
         // === CARGAR RECOMENDACIONES DINÁMICAS ===
         // Solo cargar recomendaciones si estamos viendo nuestro propio perfil
@@ -7995,17 +8005,19 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const lista = document.getElementById('watchlist-list');
     if (!seccion || !lista) return;
 
+    // Ocultar/seccionar si no hay datos aún
+    seccion.style.display = 'block';
+
     const cacheKey = `watchlist_tv_${userId}`;
     const cachedData = sessionStorage.getItem(cacheKey);
     let seriesEnProgreso = [];
 
-    // 1. COMPROBAR CACHÉ (Si existe, nos saltamos todas las peticiones)
+    // 1. COMPROBAR CACHÉ
     if (cachedData) {
         seriesEnProgreso = JSON.parse(cachedData);
-        // JSON no soporta 'Set' nativamente, lo reconstruimos
         seriesEnProgreso.forEach(s => s.epVistos = new Set(s.epVistos));
     } else {
-        // 2. SIN CACHÉ: Traemos TODOS los episodios de tv marcados por este usuario
+        // 2. SIN CACHÉ: Traer TODOS los episodios de tv marcados por este usuario
         let todosLosEp = [];
         let keepFetching = true;
         let offset = 0;
@@ -8084,7 +8096,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     let epPoster = '';
 
                     try {
-                        const resEp = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}&episode=${siguienteEp.episodio}`);
+                        const resEp = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}`);
                         if (resEp.ok) {
                             const epData = await resEp.json();
                             const epInfo = epData.episodes?.find(e => e.episode_number === siguienteEp.episodio);
@@ -8128,7 +8140,22 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         return;
     }
 
-    // 5. Pintamos el HTML (Instantáneo si viene de caché)
+    // 5. Sincronizar window.episodiosVistosActuales con los datos de la watchlist
+    // Ahora sincronizamos los episodios vistos en el contexto global
+    if (esMiPerfil) {
+        // Solo si es el perfil del usuario logueado
+        if (!window.episodiosVistosActuales) {
+            window.episodiosVistosActuales = new Set();
+        }
+        // Añadir todos los episodios vistos de todas las series a la variable global
+        seriesEnProgreso.forEach(serie => {
+            serie.epVistos.forEach(ep => {
+                window.episodiosVistosActuales.add(ep);
+            });
+        });
+    }
+
+    // 6. Pintamos el HTML
     seccion.style.display = 'block';
     lista.innerHTML = '';
 
@@ -8144,7 +8171,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         item.className = 'watchlist-item';
         item.dataset.tmdbId = serie.tmdbId;
 
-        // Nueva estructura HTML con capa de fondo y contenedor de contenido
         item.innerHTML = `
             ${imgParaFondo ? `<div class="watchlist-item-bg" style="background-image: url('${imgParaFondo}')"></div>` : ''}
             <div class="watchlist-item-content">
@@ -8173,7 +8199,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
         });
 
-        // Evento del botón de marcar visto (El resto de tu código de marcar como visto se mantiene igual...)
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
             const btn = e.currentTarget;
@@ -8188,6 +8213,11 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
                 if (upsertError) throw new Error(upsertError.message);
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
+
+                // Sincronizar con window.episodiosVistosActuales
+                if (esMiPerfil && window.episodiosVistosActuales) {
+                    window.episodiosVistosActuales.add(`T${serie.temporada}_E${serie.episodio}`);
+                }
 
                 const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv`);
                 const dataTV = await resTV.json();
@@ -8251,7 +8281,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     ? `<img src="${nuevoPoster}" alt="${nuevoNombre}" loading="lazy">`
                     : (serie.poster ? `<img src="${serie.poster}" alt="${serie.nombre}" loading="lazy">` : `<div class="watchlist-thumb-placeholder"><i class="fas fa-tv"></i></div>`);
 
-                // Actualizar fondo y contenido
                 const bgEl = itemEl.querySelector('.watchlist-item-bg');
                 if (bgEl && nuevoFondo) bgEl.style.backgroundImage = `url('${nuevoFondo}')`;
                 itemEl.querySelector('.watchlist-thumb').innerHTML = thumbHtml;
@@ -8277,13 +8306,12 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         lista.appendChild(item);
     });
 
-    // 6. Lógica de vista Grid/List con LocalStorage e intercambio de iconos
+    // Lógica de vista Grid/List con LocalStorage
     const btnToggle = document.getElementById('btn-watchlist-toggle-grid');
     if (btnToggle) {
         const iconToggle = btnToggle.querySelector('i');
-        const vistaPreferida = localStorage.getItem('watchlist_pref_vista') || 'grid'; // Grid por defecto como en tu captura
+        const vistaPreferida = localStorage.getItem('watchlist_pref_vista') || 'grid';
 
-        // Aplicar estado inicial
         if (vistaPreferida === 'grid') {
             lista.classList.add('watchlist-grid-mode');
             iconToggle.className = 'fas fa-list';
@@ -8292,7 +8320,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             iconToggle.className = 'fas fa-th-large';
         }
 
-        // Al hacer click, alternar
         btnToggle.onclick = () => {
             const esModoGrid = lista.classList.toggle('watchlist-grid-mode');
             if (esModoGrid) {
@@ -9105,7 +9132,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         return;
     }
 
-    // 🔥 1. INTERCEPTOR DE CACHÉ: Memoria instantánea
+    // 1. INTERCEPTOR DE CACHÉ: Memoria instantánea
     if (resetear && cacheTendenciasSeries[period]) {
         container.innerHTML = '';
 
@@ -9151,7 +9178,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
             return;
         }
 
-        // 🔥 2. GUARDAMOS EN CACHÉ
+        // 2. GUARDAMOS EN CACHÉ
         if (resetear) {
             cacheTendenciasSeries[period] = data;
         }
