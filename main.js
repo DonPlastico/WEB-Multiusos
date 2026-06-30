@@ -18,10 +18,18 @@ injectSpeedInsights();
 
 // Variables globales para el menú contextual
 let menuAddToListVisible = false;
-let mediaActualParaLista = null;   // { id, tipo } del item sobre el que se pulsó el +
-let listasEditablesCache = null;   // listas donde el usuario puede añadir contenido
+let mediaActualParaLista = null;
+let listasEditablesCache = null;
 let menuAddToListX = 0;
 let menuAddToListY = 0;
+
+// Mapeo de tipos de contenido a iconos
+const ICONO_TIPO = {
+    game: 'fa-gamepad',
+    movie: 'fa-film',
+    tv: 'fa-tv',
+    mixta: 'fa-layer-group'
+};
 
 // Elemento del menú contextual flotante
 const addToListMenu = document.getElementById('add-to-list-menu');
@@ -72,6 +80,10 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
 
     // Cargar las listas editables
     cargarListasEditables();
+
+    // Exponer funciones globalmente para los onclick de las tarjetas
+    window.abrirMenuAddToList = abrirMenuAddToList;
+    window.cerrarMenuAddToList = cerrarMenuAddToList;
 }
 
 function cerrarMenuAddToList() {
@@ -2569,7 +2581,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             // 1. Si no hay título o ya está en la lista (duplicado), lo ignoramos
             if (!key || vistos.has(key)) return false;
 
-            // 2. ESCUDO ANTI-EXTRAS (Añade aquí lo que quieras bloquear)
+            // 2. ESCUDO ANTI-EXTRAS
             const palabrasProhibidas = [
                 'making of',
                 'behind the scenes',
@@ -5244,7 +5256,7 @@ async function cargarPerfilPublico(usernameTarget) {
             if (miPerfil) miPropioUsername = miPerfil.username;
         }
 
-        // 🔥 CORRECCIÓN: Comprobar que los elementos existen antes de usarlos
+        // Comprobar que los elementos existen antes de usarlos
         const statMonths = document.querySelector('.stat-unit.months');
         if (statMonths) statMonths.textContent = t('profile.months');
 
@@ -5596,7 +5608,7 @@ async function cargarRecomendaciones(userId) {
 
             for (const peli of ultimasPeliculas) {
                 try {
-                    // 🔥 Timeout de 5 segundos para evitar bloqueos
+                    // Timeout de 5 segundos para evitar bloqueos
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -5689,7 +5701,7 @@ async function cargarRecomendaciones(userId) {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                // 🔥 IMPORTANTE: Usar tipo=tv para obtener temporadas_info
+                // Usar tipo=tv para obtener temporadas_info
                 const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
                     signal: controller.signal
                 });
@@ -5701,7 +5713,7 @@ async function cargarRecomendaciones(userId) {
                 }
                 const data = await res.json();
 
-                // 🔥 VERIFICAR QUE EXISTE temporadas_info
+                // VERIFICAR QUE EXISTE temporadas_info
                 if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) {
                     console.warn(`⚠️ Serie ${serieId} no tiene temporadas_info`);
                     continue;
@@ -8401,7 +8413,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const chunk = entries.slice(i, i + CHUNK);
             await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
                 try {
-                    // 🔥 CORREGIDO: Usar tmdbId en lugar de peli.media_id
+                    // Usar tmdbId en lugar de peli.media_id
                     const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
                     if (!res.ok) return;
                     const data = await res.json();
@@ -9822,13 +9834,6 @@ let listasTabActual = 'mias';       // mias | compartidas | siguiendo
 let listasFiltroActual = 'all';     // all | game | movie | tv
 let listasEventosListos = false;    // pa no duplicar listeners
 const listasCache = { mias: null, compartidas: null, siguiendo: null };
-
-const ICONO_TIPO = {
-    game: 'fa-gamepad',
-    movie: 'fa-film',
-    tv: 'fa-tv',
-    mixta: 'fa-layer-group'
-};
 
 // punto de entrada: se llama cada vez que se entra en la vista
 async function inicializarMisListas() {
