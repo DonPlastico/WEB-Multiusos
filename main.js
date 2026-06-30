@@ -5280,7 +5280,7 @@ async function cargarRecomendaciones(userId) {
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER TODOS LOS VISIONADOS (rápido)
+        // 1. OBTENER TODOS LOS VISIONADOS
         const { data: todosVistos, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista, veces_vista')
@@ -5293,16 +5293,20 @@ async function cargarRecomendaciones(userId) {
 
         if (!todosVistos || todosVistos.length === 0) {
             if (loading) loading.style.display = 'none';
-            if (empty) empty.style.display = 'flex';
+            if (empty) {
+                empty.style.display = 'flex';
+                const p = empty.querySelector('p');
+                if (p) p.textContent = 'Marca al menos una película o serie como vista para recibir recomendaciones.';
+            }
             if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
-        // 2. SEPARAR: Películas (siempre completas) y Series
+        // 2. SEPARAR: Películas y Series
         const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
         const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
 
-        // 3. OBTENER EPISODIOS VISTOS (rápido)
+        // 3. OBTENER EPISODIOS VISTOS
         const { data: episodiosVistos } = await supabase
             .from('user_media')
             .select('media_id')
@@ -5312,34 +5316,37 @@ async function cargarRecomendaciones(userId) {
 
         const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
 
-        // 4. PELÍCULAS: Inmediato, no necesitan verificación
+        // 4. PELÍCULAS: Últimas 5
         const peliculasConFecha = peliculasVistas.map(p => ({
             media_id: p.media_id,
             tipo: 'movie',
             fecha_vista: p.fecha_vista
         }));
 
-        // Ordenar películas por fecha (más reciente primero)
         peliculasConFecha.sort((a, b) => new Date(b.fecha_vista) - new Date(a.fecha_vista));
-
-        // Tomar las últimas 5 películas (más recientes)
         const ultimasPeliculas = peliculasConFecha.slice(0, 5);
 
-        // 5. MOSTRAR PELÍCULAS INMEDIATAMENTE (sin esperar a las series)
-        if (ultimasPeliculas.length > 0) {
-            // Ocultar loading
-            if (loading) loading.style.display = 'none';
+        let recuentoRecomendaciones = 0;
 
-            // Mostrar mensaje de "basado en tus últimos visionados"
+        // 5. PROCESAR PELÍCULAS (con timeout para evitar bloqueos)
+        if (ultimasPeliculas.length > 0) {
+            if (loading) loading.style.display = 'none';
             if (emptyMsg) {
                 emptyMsg.style.display = 'inline-flex';
                 emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Cargando recomendaciones...`;
             }
 
-            // Para cada película, obtener géneros y buscar recomendaciones
             for (const peli of ultimasPeliculas) {
                 try {
-                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
+                    // 🔥 Timeout de 5 segundos para evitar bloqueos
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
                     if (!res.ok) continue;
                     const data = await res.json();
 
@@ -5349,19 +5356,22 @@ async function cargarRecomendaciones(userId) {
                     const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
                     if (generosList.length === 0) continue;
 
-                    // Tomar el primer género de la película
                     const generoPrincipal = generosList[0];
 
-                    // Buscar 2 recomendaciones de este género
                     try {
-                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2&lang=${currentLang}`);
+                        const controllerRec = new AbortController();
+                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
+
+                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2&lang=${currentLang}`, {
+                            signal: controllerRec.signal
+                        });
+                        clearTimeout(timeoutRec);
+
                         if (resRec.ok) {
                             const recs = await resRec.json();
                             recs.forEach(item => {
                                 const idStr = item.id.toString();
-                                // No recomendar la misma película
                                 if (idStr === peli.media_id) return;
-                                // Verificar que no esté ya en el contenedor
                                 const existing = container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`);
                                 if (existing) return;
 
@@ -5372,27 +5382,36 @@ async function cargarRecomendaciones(userId) {
                                     puntuacion: 90 - (Math.random() * 10)
                                 });
                                 container.appendChild(card);
+                                recuentoRecomendaciones++;
                             });
                         }
-                    } catch (e) { /* ignorar */ }
+                    } catch (e) {
+                        console.warn('Timeout en recomendación de película:', generoPrincipal);
+                    }
 
                 } catch (e) {
                     console.warn('Error con película', peli.media_id, e);
                 }
             }
 
-            // Actualizar mensaje después de las películas
             if (emptyMsg) {
                 emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en tus películas vistas (cargando series...)`;
             }
         }
 
-        // 6. SERIES: Verificar cuáles están completadas (una por una, mostrando a medida)
+        // 6. SERIES COMPLETADAS (con timeout)
         const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
 
         for (const serieId of idsSeriesUnicas) {
             try {
-                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
                 if (!res.ok) continue;
                 const data = await res.json();
 
@@ -5400,7 +5419,6 @@ async function cargarRecomendaciones(userId) {
                 const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
                 if (totalEpisodios === 0) continue;
 
-                // Contar episodios vistos
                 let vistosSerie = 0;
                 for (const temp of temporadasReales) {
                     for (let ep = 1; ep <= temp.episode_count; ep++) {
@@ -5409,12 +5427,10 @@ async function cargarRecomendaciones(userId) {
                     }
                 }
 
-                // 🔥 CORRECCIÓN: Si está COMPLETADA (100%), buscar recomendaciones
+                // SI ESTÁ COMPLETADA (100%)
                 if (vistosSerie >= totalEpisodios && totalEpisodios > 0) {
-                    // Obtener géneros de la serie
                     let generosTexto = data.generos || '';
 
-                    // Detectar K-Drama
                     const titulo = data.titulo || '';
                     const sinopsis = data.sinopsis || '';
                     const esKdrama = titulo.includes('K-Drama') ||
@@ -5434,10 +5450,16 @@ async function cargarRecomendaciones(userId) {
 
                     const generoPrincipal = generosList[0];
 
-                    // Buscar 2 recomendaciones de este género (mezclar pelis y series)
+                    // 1 película
                     try {
-                        // 1 película
-                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`);
+                        const controllerRec = new AbortController();
+                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
+
+                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, {
+                            signal: controllerRec.signal
+                        });
+                        clearTimeout(timeoutRec);
+
                         if (resMovie.ok) {
                             const movies = await resMovie.json();
                             movies.forEach(item => {
@@ -5453,13 +5475,22 @@ async function cargarRecomendaciones(userId) {
                                     puntuacion: 88 - (Math.random() * 10)
                                 });
                                 container.appendChild(card);
+                                recuentoRecomendaciones++;
                             });
                         }
                     } catch (e) { /* ignorar */ }
 
+                    // 1 serie
                     try {
-                        // 1 serie
-                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`); if (resTv.ok) {
+                        const controllerRec = new AbortController();
+                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
+
+                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, {
+                            signal: controllerRec.signal
+                        });
+                        clearTimeout(timeoutRec);
+
+                        if (resTv.ok) {
                             const series = await resTv.json();
                             series.forEach(item => {
                                 const idStr = item.id.toString();
@@ -5474,14 +5505,13 @@ async function cargarRecomendaciones(userId) {
                                     puntuacion: 85 - (Math.random() * 10)
                                 });
                                 container.appendChild(card);
+                                recuentoRecomendaciones++;
                             });
                         }
                     } catch (e) { /* ignorar */ }
 
-                    // Actualizar mensaje
                     if (emptyMsg) {
-                        const count = container.children.length;
-                        emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${count} recomendaciones basadas en ${generoPrincipal}`;
+                        emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${recuentoRecomendaciones} recomendaciones basadas en ${generoPrincipal}`;
                     }
                 }
 
@@ -5493,21 +5523,18 @@ async function cargarRecomendaciones(userId) {
         // 7. FINAL: Ocultar loading y mostrar estado final
         if (loading) loading.style.display = 'none';
 
-        // Verificar si no hay nada en el contenedor
         if (container.children.length === 0) {
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
-                if (p) p.textContent = 'No se encontraron recomendaciones basadas en tus visionados.';
+                if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
             }
             if (emptyMsg) emptyMsg.style.display = 'none';
         } else {
-            // Actualizar mensaje final
             if (emptyMsg) {
                 const count = container.children.length;
                 emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${count} recomendaciones basadas en tus últimos visionados`;
             }
-            // Ocultar empty
             if (empty) empty.style.display = 'none';
         }
 
