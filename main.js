@@ -9975,14 +9975,26 @@ function pintarListasFiltradas() {
         return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
     });
 
-    // CONSERVAR LA CLASE DE VISTA
+    // 🔥 CONSERVAR LA CLASE DE VISTA
     const esModoLista = grid.classList.contains('list-view-active');
     grid.innerHTML = '';
     if (esModoLista) grid.classList.add('list-view-active');
 
     if (filtradas.length === 0) {
         grid.style.display = 'none';
-        if (empty) empty.style.display = 'block';
+        if (empty) {
+            empty.style.display = 'block';
+            // 🆕 Actualizar el mensaje según la pestaña activa
+            const emptyMsg = empty.querySelector('p');
+            if (emptyMsg) {
+                const mensajes = {
+                    'mias': 'Aún no tienes listas en esta sección. Crea tu primera lista para empezar a organizar tu contenido.',
+                    'compartidas': 'No tienes listas compartidas contigo. Espera a que alguien te invite o comparte tus listas con otros.',
+                    'siguiendo': 'Aún no sigues ninguna lista pública. Explora listas de otros usuarios y sigue las que te interesen.'
+                };
+                emptyMsg.textContent = mensajes[listasTabActual] || 'No hay listas en esta sección.';
+            }
+        }
         return;
     }
 
