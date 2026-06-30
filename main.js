@@ -9583,9 +9583,13 @@ function pintarListasFiltradas() {
     if (!grid) return;
 
     const listas = listasCache[listasTabActual] || [];
-    const filtradas = listasFiltroActual === 'all'
-        ? listas
-        : listas.filter(l => l.tag_tipo === listasFiltroActual);
+
+    // LÓGICA DE FILTRADO INTELIGENTE
+    const filtradas = listas.filter(l => {
+        if (listasFiltroActual === 'all') return true;
+        // La lista se muestra si coincide el tag O si es mixta
+        return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
+    });
 
     grid.innerHTML = '';
 
@@ -9673,6 +9677,32 @@ let miembrosInvitadosLista = []; // [{ auth_id, username, avatar }]
 function openCreateListModal() {
     formCreateList?.reset();
     miembrosInvitadosLista = [];
+
+    // --- NUEVA LÓGICA DE DETECCIÓN ---
+    const exclusivityRow = document.getElementById('exclusivity-check-wrapper');
+    const selectorRow = document.getElementById('list-type-selector-wrapper');
+    const typeRow = document.getElementById('list-mode-container');
+
+    if (mediaActualParaLista) {
+        // Venimos de un botón "+" en una tarjeta: Modo Exclusividad
+        if (exclusivityRow) exclusivityRow.style.display = 'flex';
+        if (selectorRow) selectorRow.style.display = 'none';
+
+        // Ponemos el nombre del tipo en el hint
+        const typeName = document.getElementById('exclusivity-type-name');
+        if (typeName) typeName.textContent = mediaActualParaLista.tipo === 'tv' ? 'Series' : mediaActualParaLista.tipo.toUpperCase();
+
+        // Toggle activado por defecto
+        document.getElementById('create-list-exclusive-toggle').checked = true;
+    } else {
+        // Venimos de "Mis Listas": Modo Selector Mixto
+        if (exclusivityRow) exclusivityRow.style.display = 'none';
+        if (selectorRow) selectorRow.style.display = 'block';
+
+        // Reset del select a "mixta"
+        const select = document.getElementById('create-list-type-select');
+        if (select) select.value = 'mixta';
+    }
 
     if (togglePrivacidadLista) togglePrivacidadLista.checked = true;
     actualizarHintPrivacidad();
@@ -9865,20 +9895,27 @@ formCreateList?.addEventListener('submit', async (e) => {
         return;
     }
 
+    const btnConfirmarCreateList = document.getElementById('btn-confirm-create-list');
     btnConfirmarCreateList.disabled = true;
     btnConfirmarCreateList.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> CREANDO...';
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            showToast('error', 'Error de conexión', 'Debes estar identificado.');
-            return;
-        }
+        if (!session) return;
         const miId = session.user.id;
 
-        // Tipo de lista: de momento, al crearla desde "Mis Listas" (sin item de origen) siempre es mixta.
-        // Cuando montemos el botón "+" desde una card de juego/peli/serie, aquí detectaremos el tipo real.
-        const tagTipo = 'mixta';
+        // LÓGICA INTELIGENTE DE TIPO DE LISTA
+        const toggleExclusive = document.getElementById('create-list-exclusive-toggle');
+        const selectType = document.getElementById('create-list-type-select');
+
+        let tagTipo;
+        // Si hay un item en memoria, es creación rápida -> usamos exclusividad
+        if (mediaActualParaLista) {
+            tagTipo = toggleExclusive.checked ? mediaActualParaLista.tipo : 'mixta';
+        } else {
+            // Si venimos de "Mis Listas" (selector), usamos el valor del select
+            tagTipo = selectType.value;
+        }
 
         const { data: nuevaLista, error: errorLista } = await supabase
             .from('listas_maestra')
@@ -9887,7 +9924,7 @@ formCreateList?.addEventListener('submit', async (e) => {
                 descripcion: descripcion || null,
                 owner_id: miId,
                 is_public: togglePrivacidadLista.checked,
-                tag_tipo: tagTipo
+                tag_tipo: tagTipo // Aquí ya guardas 'game', 'movie', 'tv' o 'mixta'
             })
             .select()
             .single();
@@ -9948,6 +9985,23 @@ let listasEditablesCache = null;   // listas donde el usuario puede añadir cont
 // punto de entrada: se llama desde el onclick del botón + de cualquier card
 window.abrirMiniModalLista = async function (mediaId, mediaType) {
     mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
+
+    // Configuración dinámica del modal de creación:
+    // Si viene de un item específico, ocultamos el selector de tipo y mostramos el toggle de exclusividad
+    const typeRow = document.getElementById('list-mode-container');
+    const exclusivityRow = document.getElementById('exclusivity-check-wrapper');
+    const selectorRow = document.getElementById('list-type-selector-wrapper');
+
+    // Si mediaType existe, es una lista exclusiva (ej: 'game')
+    if (mediaType) {
+        exclusivityRow.style.display = 'flex';
+        selectorRow.style.display = 'none';
+        document.getElementById('exclusivity-type-name').textContent = mediaType.toUpperCase();
+    } else {
+        // Si mediaType es null, venimos de "Mis Listas" (selector global)
+        exclusivityRow.style.display = 'none';
+        selectorRow.style.display = 'block';
+    }
 
     modalAddToList?.classList.add('show');
     document.body.classList.add('no-scroll');
