@@ -665,8 +665,8 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-countries">
-    <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
-</div>
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
+                            </div>
                             <div class="accordion-content">
                                 <input type="text" id="search-lang-movie" class="cyber-input mini-search"
                                     placeholder="Buscar idioma/país...">
@@ -711,8 +711,8 @@
 
                         <div class="accordion-item">
                             <div class="accordion-header" id="filter-votes">
-    <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
-</div>
+                                <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
+                            </div>
                             <div class="accordion-content">
                                 <div class="slider-container" style="padding: 10px 5px;">
                                     <input type="range" id="votes-slider-movie" min="0" max="500" step="50" value="0"
@@ -1343,7 +1343,8 @@
 
                     <div class="stats-cards-wrapper">
                         <div class="stats-card">
-                            <div class="stats-card-header" id="profile-series"><i class="fas fa-tv"></i> Tiempo de series</div>
+                            <div class="stats-card-header" id="profile-series"><i class="fas fa-tv"></i> Tiempo de
+                                series</div>
                             <div class="stats-card-body multi-number">
                                 <div><span class="num" id="stat-series-months">0</span><span class="lbl">MESES</span>
                                 </div>
@@ -1362,7 +1363,8 @@
                         <div class="stats-main-divider"></div>
 
                         <div class="stats-card">
-                            <div class="stats-card-header" id="profile-movies"><i class="fas fa-film"></i> Tiempo de cine</div>
+                            <div class="stats-card-header" id="profile-movies"><i class="fas fa-film"></i> Tiempo de
+                                cine</div>
                             <div class="stats-card-body multi-number">
                                 <div><span class="num" id="stat-movies-months">0</span><span class="lbl">MESES</span>
                                 </div>
@@ -1682,6 +1684,94 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- VISTA: MIS LISTAS (Sistema de Listas Sociales)               -->
+        <!-- ============================================================ -->
+        <section id="mis-listas" class="view">
+            <div class="lists-layout">
+
+                <!-- cabecera con titulo y boton de crear -->
+                <div class="lists-header">
+                    <h1 class="section-title"><i class="fas fa-list"></i> Mis Listas</h1>
+                    <button class="auth-btn primary" id="btn-crear-lista">
+                        <i class="fas fa-plus"></i> Crear Nueva Lista
+                    </button>
+                </div>
+
+                <!-- sub-pestañas: mias / compartidas / siguiendo -->
+                <div class="watchlist-tabs lists-main-tabs">
+                    <button class="watchlist-tab active" data-lists-tab="mias">Mis Listas</button>
+                    <button class="watchlist-tab" data-lists-tab="compartidas">Compartidas Conmigo</button>
+                    <button class="watchlist-tab" data-lists-tab="siguiendo">Guardadas / Siguiendo</button>
+                </div>
+
+                <!-- filtros rapidos por tipo de contenido -->
+                <div class="trends-tabs lists-type-filters">
+                    <button class="trend-tab active" data-lists-filter="all">Mostrar Todo</button>
+                    <button class="trend-tab" data-lists-filter="game"><i class="fas fa-gamepad"></i> Juegos</button>
+                    <button class="trend-tab" data-lists-filter="movie"><i class="fas fa-film"></i> Películas</button>
+                    <button class="trend-tab" data-lists-filter="tv"><i class="fas fa-tv"></i> Series</button>
+                </div>
+
+                <!-- grid de listas -->
+                <div id="lists-grid" class="cyber-grid lists-grid" data-needs-init="true">
+                    <div class="watchlist-loading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                    </div>
+                </div>
+
+                <!-- estado vacio -->
+                <div id="lists-empty" class="watchlist-empty"
+                    style="display: none; text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-folder-open"
+                        style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 15px; opacity: 0.6;"></i>
+                    <p
+                        style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+                        Aún no tienes listas en esta sección.<br>
+                        <span style="font-size: 0.8rem; opacity: 0.7;">
+                            Crea tu primera lista para empezar a organizar tu contenido.
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- template de tarjeta de lista (clonado por JS) -->
+            <template id="list-card-template">
+                <div class="list-card glass-panel" data-list-id="">
+                    <div class="list-card-header">
+                        <span class="list-card-tag-tipo" title="Tipo de lista"><i class="fas fa-layer-group"></i></span>
+                        <h3 class="list-card-title">Título de la lista</h3>
+                    </div>
+                    <p class="list-card-desc">Descripción de la lista...</p>
+                    <div class="list-card-badges">
+                        <span class="list-card-badge" title="Miembros">
+                            <i class="fas fa-users"></i> <span class="list-card-members-count">0</span>
+                        </span>
+                        <span class="list-card-badge" title="Elementos guardados">
+                            <i class="fas fa-bookmark"></i> <span class="list-card-items-count">0</span>
+                        </span>
+                    </div>
+                    <div class="list-card-actions">
+                        <button class="icon-btn list-action-edit" title="Editar lista" style="display: none;">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="icon-btn list-action-members" title="Gestionar miembros" style="display: none;">
+                            <i class="fas fa-user-gear"></i>
+                        </button>
+                        <button class="icon-btn list-action-delete" title="Eliminar lista" style="display: none;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="icon-btn list-action-leave" title="Abandonar lista" style="display: none;">
+                            <i class="fas fa-door-open"></i>
+                        </button>
+                        <button class="icon-btn list-action-follow" title="Seguir lista" style="display: none;">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    </div>
+                </div>
+            </template>
         </section>
 
         <!-- modal pa editar avatar o banner -->
