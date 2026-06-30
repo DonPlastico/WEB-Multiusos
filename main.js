@@ -51,10 +51,10 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     console.log('🔥 abrirMenuAddToList ejecutada!', mediaId, mediaType);
     event.stopPropagation();
 
-    // Obtener el menú dentro de la función (siempre fresco)
+    // 🔥 OBTENER EL MENÚ DENTRO DE LA FUNCIÓN
     const addToListMenu = document.getElementById('add-to-list-menu');
     if (!addToListMenu) {
-        console.error('❌ Menú #add-to-list-menu no encontrado en el DOM');
+        console.error('❌ Menú #add-to-list-menu no encontrado');
         return;
     }
 
@@ -65,7 +65,6 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     const x = event.clientX || event.pageX || 0;
     const y = event.clientY || event.pageY || 0;
 
-    // Ajustar para que no se salga de la pantalla
     const menuWidth = 280;
     const menuHeight = 300;
     const posX = Math.min(x, window.innerWidth - menuWidth - 20);
@@ -75,7 +74,6 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     addToListMenu.style.top = `${Math.max(10, posY)}px`;
     addToListMenu.style.display = 'block';
 
-    // Pequeña animación de entrada
     addToListMenu.style.opacity = '0';
     addToListMenu.style.transform = 'scale(0.95)';
     requestAnimationFrame(() => {
@@ -95,12 +93,14 @@ window.abrirMenuAddToList = abrirMenuAddToList;
 window.cerrarMenuAddToList = cerrarMenuAddToList;
 
 function cerrarMenuAddToList() {
+    const addToListMenu = document.getElementById('add-to-list-menu');
     if (!addToListMenu) return;
+
     addToListMenu.style.display = 'none';
     menuAddToListVisible = false;
     mediaActualParaLista = null;
 
-    // Limpiar lista temporal
+    const quickListChecklist = document.getElementById('quick-list-checklist');
     if (quickListChecklist) {
         quickListChecklist.querySelectorAll('.quick-list-item').forEach(el => el.remove());
     }
