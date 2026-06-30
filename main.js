@@ -399,6 +399,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     } else if (target === 'edit-profile') {
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
+        console.log('📋 Cambiando a vista: mis-listas');
         inicializarMisListas();
     }
 
@@ -9856,15 +9857,19 @@ const listasCache = { mias: null, compartidas: null, siguiendo: null };
 
 // punto de entrada: se llama cada vez que se entra en la vista
 async function inicializarMisListas() {
+    console.log('🚀 inicializarMisListas() ejecutada');
+
     if (!listasEventosListos) {
+        console.log('🔄 Vinculando eventos UI por primera vez');
         bindEventosListasUI();
         listasEventosListos = true;
     }
 
-    // FORZAR LIMPIEZA DE CACHÉ AL ENTRAR (¡SALTA EL CACHÉ!)
     listasCache.mias = null;
     listasCache.compartidas = null;
     listasCache.siguiendo = null;
+
+    console.log('📊 listasCache después de limpiar:', listasCache);
 
     await cargarListas(listasTabActual);
 }
@@ -9906,8 +9911,8 @@ function bindEventosListasUI() {
 
 // trae de supabase la pestaña pedida (con cache) y pinta
 async function cargarListas(tab) {
-    console.log('🚀 ===== cargarListas() EJECUTADA =====');
-    console.log('📋 Tab:', tab);
+    console.log('🚀 cargarListas() ejecutada con tab:', tab);
+    console.log('📊 listasCache actual:', listasCache);
 
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
