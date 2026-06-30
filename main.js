@@ -9933,19 +9933,29 @@ async function cargarListas(tab) {
 
     const userId = session.user.id;
 
+    // 🐞 AÑADE ESTOS LOGS
+    console.log('🔍 ===== CARGANDO LISTAS =====');
+    console.log('📋 Tab:', tab);
+    console.log('👤 User ID desde session:', userId);
+    console.log('📋 Owner ID en la lista (según SQL): 7d0cb7a6-d881-41e2-85de-86a108c55dc4');
+
     try {
         if (tab === 'mias') {
+            console.log('📡 Consultando Supabase...');
+
             const { data, error } = await supabase
                 .from('listas_maestra')
                 .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count)')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Error en la consulta:', error);
+                throw error;
+            }
 
-            // 🐞 DEPURACIÓN (elimina después de verificar)
-            console.log('🔍 User ID:', userId);
-            console.log('📊 Listas encontradas:', data);
+            console.log('✅ Datos devueltos:', data);
+            console.log('📊 Cantidad de listas:', data?.length || 0);
 
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
