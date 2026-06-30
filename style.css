@@ -5380,6 +5380,134 @@ cast-carousel::-webkit-scrollbar {
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
+/* ============================================================ */
+/* VISTA: MIS LISTAS (Sistema de Listas Sociales)                */
+/* ============================================================ */
+.lists-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.lists-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.lists-main-tabs {
+    margin-bottom: 0;
+}
+
+.lists-type-filters {
+    align-self: flex-start;
+}
+
+.lists-grid {
+    min-height: 120px;
+}
+
+.list-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+}
+
+.list-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.list-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.list-card-tag-tipo {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.list-card-title {
+    font-family: var(--font-cyber);
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-main);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.list-card-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
+}
+
+.list-card-badges {
+    display: flex;
+    gap: 10px;
+}
+
+.list-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.list-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.list-card-actions .icon-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.9rem;
+}
+
+.list-action-delete:hover {
+    background: var(--error);
+    border-color: var(--error);
+}
+
 .horizontal-scroll>*:first-child {
     margin-left: 4px;
     scroll-snap-align: start;
@@ -6480,6 +6608,27 @@ cast-carousel::-webkit-scrollbar {
     .trends-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .lists-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .lists-header .auth-btn {
+        width: 100%;
+    }
+
+    .lists-type-filters {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .lists-type-filters .trend-tab {
+        flex: 1;
+        text-align: center;
+        font-size: 0.65rem;
+        padding: 6px 10px;
     }
 
     .trends-tabs {
