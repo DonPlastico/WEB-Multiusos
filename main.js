@@ -9499,9 +9499,9 @@ function bindEventosListasUI() {
         });
     });
 
-    // boton de crear lista (el modal lo cableamos en el siguiente paso)
+    // boton de crear lista
     document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
-        showToast('success', 'Próximamente', 'El formulario de creación de listas llega en el siguiente paso.');
+        openCreateListModal();
     });
 }
 
@@ -9641,6 +9641,286 @@ function crearListCard(lista) {
 
     return clone.firstElementChild;
 }
+
+// ==========================================================================
+//   MODAL: CREAR NUEVA LISTA
+// ==========================================================================
+
+const modalCreateList = document.getElementById('create-list-modal');
+const btnCloseCreateList = document.getElementById('close-create-list-modal');
+const formCreateList = document.getElementById('form-create-list');
+const inputCreateListTitle = document.getElementById('create-list-title');
+const inputCreateListDesc = document.getElementById('create-list-desc');
+const counterCreateListDesc = document.getElementById('create-list-char-counter');
+const togglePrivacidadLista = document.getElementById('create-list-privacy-toggle');
+const hintPrivacidadLista = document.getElementById('create-list-privacy-hint');
+const inputBuscarMiembro = document.getElementById('create-list-search-user');
+const gridResultadosMiembro = document.getElementById('create-list-search-results');
+const listaMiembrosInvitados = document.getElementById('create-list-members-list');
+const contadorSlots = document.getElementById('create-list-slots-counter');
+const btnConfirmarCreateList = document.getElementById('btn-confirm-create-list');
+
+const MAX_SLOTS_LISTA = 10; // de momento fijo, ampliable con rangos/packs en el futuro
+let miembrosInvitadosLista = []; // [{ auth_id, username, avatar }]
+
+// 1. Abrir / cerrar el modal
+function openCreateListModal() {
+    formCreateList?.reset();
+    miembrosInvitadosLista = [];
+
+    if (togglePrivacidadLista) togglePrivacidadLista.checked = true;
+    actualizarHintPrivacidad();
+    actualizarContadorDescripcion();
+    pintarMiembrosInvitados();
+
+    if (gridResultadosMiembro) {
+        gridResultadosMiembro.style.display = 'none';
+        gridResultadosMiembro.innerHTML = '';
+    }
+
+    modalCreateList?.classList.add('show');
+    document.body.classList.add('no-scroll');
+    document.documentElement.classList.add('no-scroll');
+}
+
+function closeCreateListModal() {
+    modalCreateList?.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+}
+
+btnCloseCreateList?.addEventListener('click', closeCreateListModal);
+modalCreateList?.addEventListener('click', (e) => {
+    if (e.target === modalCreateList) closeCreateListModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalCreateList?.classList.contains('show')) closeCreateListModal();
+});
+
+// 2. Contador de caracteres de la descripción (2500 max)
+function actualizarContadorDescripcion() {
+    if (!inputCreateListDesc || !counterCreateListDesc) return;
+    const actual = inputCreateListDesc.value.length;
+    counterCreateListDesc.textContent = `${actual}/2500`;
+    counterCreateListDesc.classList.toggle('error', actual > 2500);
+}
+inputCreateListDesc?.addEventListener('input', actualizarContadorDescripcion);
+
+// 3. Toggle de privacidad: solo cambia el texto de ayuda, el valor real se lee al guardar
+function actualizarHintPrivacidad() {
+    if (!hintPrivacidadLista || !togglePrivacidadLista) return;
+    hintPrivacidadLista.textContent = togglePrivacidadLista.checked
+        ? 'Pública: cualquiera puede verla desde tu perfil o el de cualquier integrante.'
+        : 'Privada: solo tú y los integrantes que invites podréis verla.';
+}
+togglePrivacidadLista?.addEventListener('change', actualizarHintPrivacidad);
+
+// 4. Buscador de usuarios para invitar (solo dispara con 3+ letras)
+let tempBuscarMiembro;
+inputBuscarMiembro?.addEventListener('input', () => {
+    clearTimeout(tempBuscarMiembro);
+    const query = inputBuscarMiembro.value.trim();
+
+    if (query.length < 3) {
+        if (gridResultadosMiembro) {
+            gridResultadosMiembro.style.display = 'none';
+            gridResultadosMiembro.innerHTML = '';
+        }
+        return;
+    }
+
+    tempBuscarMiembro = setTimeout(() => buscarUsuariosParaLista(query), 400);
+});
+
+async function buscarUsuariosParaLista(query) {
+    if (!gridResultadosMiembro) return;
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const miId = session.user.id;
+
+        const { data: coincidencias, error } = await supabase
+            .from('perfiles_publicos')
+            .select('auth_id, username, avatar')
+            .ilike('username', `%${query}%`)
+            .neq('auth_id', miId)
+            .limit(15);
+
+        if (error) throw error;
+
+        // quitamos a los que ya están invitados
+        const idsInvitados = miembrosInvitadosLista.map(m => m.auth_id);
+        const resultados = (coincidencias || []).filter(u => !idsInvitados.includes(u.auth_id));
+
+        gridResultadosMiembro.innerHTML = '';
+
+        if (resultados.length === 0) {
+            gridResultadosMiembro.style.display = 'none';
+            return;
+        }
+
+        gridResultadosMiembro.style.display = 'flex';
+
+        resultados.forEach(user => {
+            const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
+            const avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
+                ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+
+            const userCard = document.createElement('div');
+            userCard.className = 'friend-user-card';
+            userCard.innerHTML = `
+                <div class="friend-card-avatar">${avatarHtml}</div>
+                <div class="friend-card-info">
+                    <h4 class="friend-card-username">${user.username}</h4>
+                </div>
+                <button type="button" class="btn-send-request" title="Invitar a la lista">
+                    <i class="fas fa-plus"></i>
+                </button>
+            `;
+            userCard.querySelector('.btn-send-request').addEventListener('click', () => {
+                invitarMiembroALista(user);
+            });
+            gridResultadosMiembro.appendChild(userCard);
+        });
+
+    } catch (err) {
+        console.error('Error buscando usuarios para la lista:', err);
+        showToast('error', 'Error', 'No se pudo buscar usuarios.');
+    }
+}
+
+// 5. Añadir / quitar miembros de la lista (en memoria, hasta el submit)
+function invitarMiembroALista(user) {
+    // +1 porque el dueño también ocupa un slot
+    if (miembrosInvitadosLista.length + 1 >= MAX_SLOTS_LISTA) {
+        showToast('error', 'Límite alcanzado', `Solo puedes invitar hasta ${MAX_SLOTS_LISTA - 1} usuarios por lista.`);
+        return;
+    }
+
+    miembrosInvitadosLista.push(user);
+    pintarMiembrosInvitados();
+
+    // lo quitamos de los resultados visibles para no duplicar
+    inputBuscarMiembro.value = '';
+    gridResultadosMiembro.style.display = 'none';
+    gridResultadosMiembro.innerHTML = '';
+}
+
+function quitarMiembroDeLista(authId) {
+    miembrosInvitadosLista = miembrosInvitadosLista.filter(m => m.auth_id !== authId);
+    pintarMiembrosInvitados();
+}
+
+function pintarMiembrosInvitados() {
+    if (!listaMiembrosInvitados) return;
+    listaMiembrosInvitados.innerHTML = '';
+
+    miembrosInvitadosLista.forEach(user => {
+        const template = document.getElementById('list-member-chip-template');
+        const clone = template.content.cloneNode(true);
+        const chip = clone.querySelector('.list-member-chip');
+
+        chip.dataset.userId = user.auth_id;
+
+        const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
+        const avatarWrap = clone.querySelector('.list-member-chip-avatar');
+        if (avatarDB !== 'default' && avatarDB !== 'custom') {
+            avatarWrap.innerHTML = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\'></i>'">`;
+        }
+
+        clone.querySelector('.list-member-chip-name').textContent = user.username;
+        clone.querySelector('.list-member-chip-remove').addEventListener('click', () => {
+            quitarMiembroDeLista(user.auth_id);
+        });
+
+        listaMiembrosInvitados.appendChild(clone);
+    });
+
+    if (contadorSlots) {
+        contadorSlots.textContent = `${miembrosInvitadosLista.length + 1}/${MAX_SLOTS_LISTA} Slots`;
+    }
+}
+
+// 6. Submit: crea la lista, mete al dueño como owner implícito y a los invitados como pendientes
+formCreateList?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const titulo = inputCreateListTitle.value.trim();
+    const descripcion = inputCreateListDesc.value.trim();
+
+    if (!titulo) {
+        showToast('error', 'Falta el título', 'Tienes que ponerle un nombre a la lista.');
+        return;
+    }
+    if (descripcion.length > 2500) {
+        showToast('error', 'Descripción muy larga', 'Máximo 2500 caracteres.');
+        return;
+    }
+
+    btnConfirmarCreateList.disabled = true;
+    btnConfirmarCreateList.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> CREANDO...';
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            showToast('error', 'Error de conexión', 'Debes estar identificado.');
+            return;
+        }
+        const miId = session.user.id;
+
+        // Tipo de lista: de momento, al crearla desde "Mis Listas" (sin item de origen) siempre es mixta.
+        // Cuando montemos el botón "+" desde una card de juego/peli/serie, aquí detectaremos el tipo real.
+        const tagTipo = 'mixta';
+
+        const { data: nuevaLista, error: errorLista } = await supabase
+            .from('listas_maestra')
+            .insert({
+                titulo,
+                descripcion: descripcion || null,
+                owner_id: miId,
+                is_public: togglePrivacidadLista.checked,
+                tag_tipo: tagTipo
+            })
+            .select()
+            .single();
+
+        if (errorLista) throw errorLista;
+
+        // Invitaciones pendientes para cada miembro seleccionado
+        if (miembrosInvitadosLista.length > 0) {
+            const filasMiembros = miembrosInvitadosLista.map(user => ({
+                lista_id: nuevaLista.id,
+                user_id: user.auth_id,
+                rol: 'viewer',
+                estado: 'pending'
+            }));
+
+            const { error: errorMiembros } = await supabase.from('listas_miembros').insert(filasMiembros);
+            if (errorMiembros) throw errorMiembros;
+
+            // TODO: cuando montemos el chatbox de alertas (#chatbox-notifs-scroll) de verdad,
+            // aquí lanzamos una notificación a cada invitado para que acepte/rechace.
+        }
+
+        showToast('success', 'Lista creada', `"${titulo}" se ha creado correctamente.`);
+        closeCreateListModal();
+
+        // refrescamos la cache de "mias" para que aparezca al instante
+        listasCache.mias = null;
+        if (listasTabActual === 'mias') {
+            await cargarListas('mias');
+        }
+
+    } catch (err) {
+        console.error('Error creando la lista:', err);
+        showToast('error', 'Error', 'No se pudo crear la lista. Inténtalo de nuevo.');
+    } finally {
+        btnConfirmarCreateList.disabled = false;
+        btnConfirmarCreateList.innerHTML = '<i class="fas fa-check"></i> CREAR LISTA';
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     // Inicializamos las funciones de carga de datos
