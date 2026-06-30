@@ -2317,20 +2317,15 @@
             </div>
 
             <div id="quick-list-checklist" style="padding: 4px 0; max-height: 220px; overflow-y: auto;">
-                <!-- estado de carga -->
                 <div id="quick-list-loading" style="padding: 20px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-circle-notch fa-spin"></i>
                 </div>
-
-                <!-- estado vacio -->
                 <div id="quick-list-empty"
                     style="display: none; padding: 20px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-folder-open"
                         style="font-size: 1.5rem; opacity: 0.5; display: block; margin-bottom: 8px;"></i>
                     <span style="font-size: 0.85rem;">Todavía no tienes listas</span>
                 </div>
-
-                <!-- aquí se inyectarán los items dinámicamente -->
             </div>
 
             <div class="dropdown-divider" style="margin: 0;"></div>
@@ -2354,6 +2349,75 @@
                     de la lista</span>
             </label>
         </template>
+
+        <!-- modal pa enviar anuncios globales -->
+        <div id="announce-modal" class="cyber-modal">
+            <div class="modal-content glass-panel announce-panel">
+                <button id="btn-close-announce" class="icon-btn close-floating-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- cabecera -->
+                <div class="announce-header">
+                    <div class="announce-icon-wrap">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h2 class="announce-title glitch-text">TRANSMISIÓN GLOBAL</h2>
+                        <p class="announce-subtitle">Envía una alerta a los operadores del Nexus</p>
+                    </div>
+                </div>
+
+                <!-- cuerpo -->
+                <div class="announce-body">
+
+                    <!-- SELECT CUSTOM: Destinatarios -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-satellite-dish"></i> Destinatarios</label>
+                        <div class="cyber-select-wrapper" id="announce-select-wrapper">
+                            <div class="cyber-select-trigger" id="announce-select-trigger">
+                                <span id="announce-select-label">Todos los Usuarios</span>
+                                <i class="fas fa-chevron-down cyber-select-arrow"></i>
+                            </div>
+                            <div class="cyber-select-dropdown" id="announce-select-dropdown">
+                                <div class="cyber-select-option selected" data-value="all_users">
+                                    <i class="fas fa-users"></i> Todos los Usuarios
+                                </div>
+                                <div class="cyber-select-option" data-value="all_admins">
+                                    <i class="fas fa-user-shield"></i> Solo Administradores
+                                </div>
+                                <div class="cyber-select-option" data-value="specific_user">
+                                    <i class="fas fa-user-tag"></i> Usuario Específico...
+                                </div>
+                            </div>
+                        </div>
+                        <!-- input oculto real para leer el valor en JS -->
+                        <input type="hidden" id="announce-target" value="all_users">
+                    </div>
+
+                    <!-- campo usuario específico (oculto por defecto) -->
+                    <div id="announce-specific-user-group" class="field-group" style="display: none;">
+                        <label class="field-label"><i class="fas fa-at"></i> Nombre de Usuario Destino</label>
+                        <div class="field-wrapper">
+                            <i class="fas fa-user field-icon"></i>
+                            <input type="text" id="announce-specific-user" class="cyber-input"
+                                placeholder="Ej. Pacoporras">
+                        </div>
+                    </div>
+
+                    <!-- textarea del mensaje -->
+                    <div class="field-group">
+                        <label class="field-label"><i class="fas fa-terminal"></i> Cuerpo del Mensaje</label>
+                        <textarea id="announce-message" class="cyber-input announce-textarea"
+                            placeholder="Escribe la notificación aquí..."></textarea>
+                    </div>
+
+                    <button id="btn-send-announce" class="auth-btn primary full-width">
+                        <i class="fas fa-paper-plane"></i> ENVIAR ALERTA
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
         <div id="crop-modal" class="cyber-modal">
