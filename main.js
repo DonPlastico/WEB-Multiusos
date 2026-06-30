@@ -80,11 +80,11 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
 
     // Cargar las listas editables
     cargarListasEditables();
-
-    // Exponer funciones globalmente para los onclick de las tarjetas
-    window.abrirMenuAddToList = abrirMenuAddToList;
-    window.cerrarMenuAddToList = cerrarMenuAddToList;
 }
+
+// Exponer funciones globalmente para los onclick de las tarjetas
+window.abrirMenuAddToList = abrirMenuAddToList;
+window.cerrarMenuAddToList = cerrarMenuAddToList;
 
 function cerrarMenuAddToList() {
     if (!addToListMenu) return;
