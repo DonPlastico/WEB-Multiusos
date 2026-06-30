@@ -37,6 +37,7 @@ const mapaRutas = {
     'series': '/series',
     'profile': '/perfil',
     'edit-profile': '/editar-perfil',
+    'mis-listas': '/mis-listas',
     'admin-panel': '/admin',
     'login': '/login',
     'register': '/registro',
@@ -111,6 +112,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
         inicializarEditProfile();
+    } else if (target === 'mis-listas') {
+        inicializarMisListas();
     }
 
     // cambio la url sin recargar
@@ -2982,7 +2985,7 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-list"></i><span>Mis Listas</span></button>
+    <button class="theme-option" id="btn-mis-listas"><i class="fas fa-list"></i><span>Mis Listas</span></button>
     
     <div class="dropdown-divider"></div>
     
@@ -3007,6 +3010,14 @@ userContainer.appendChild(userMenu);
 // click en la cabecera del menu va al perfil
 document.getElementById('btn-ver-perfil')?.addEventListener('click', () => {
     cambiarVista('profile');
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+});
+
+// click en "Mis Listas" abre la nueva vista de listas sociales
+document.getElementById('btn-mis-listas')?.addEventListener('click', () => {
+    cambiarVista('mis-listas');
+    linksMenu.forEach(l => l.classList.remove('active'));
     userMenu.classList.remove('show');
     userMenuOpen = false;
 });
@@ -9433,6 +9444,202 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
     }
 
     return card;
+}
+
+// ==========================================================================
+//   SISTEMA DE LISTAS SOCIALES (MIS LISTAS)
+// ==========================================================================
+
+let listasTabActual = 'mias';       // mias | compartidas | siguiendo
+let listasFiltroActual = 'all';     // all | game | movie | tv
+let listasEventosListos = false;    // pa no duplicar listeners
+const listasCache = { mias: null, compartidas: null, siguiendo: null };
+
+const ICONO_TIPO = {
+    game: 'fa-gamepad',
+    movie: 'fa-film',
+    tv: 'fa-tv',
+    mixta: 'fa-layer-group'
+};
+
+// punto de entrada: se llama cada vez que se entra en la vista
+async function inicializarMisListas() {
+    if (!listasEventosListos) {
+        bindEventosListasUI();
+        listasEventosListos = true;
+    }
+    await cargarListas(listasTabActual);
+}
+
+// enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
+function bindEventosListasUI() {
+    document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(tab => {
+        tab.addEventListener('click', async () => {
+            const nuevaTab = tab.getAttribute('data-lists-tab');
+            if (nuevaTab === listasTabActual) return;
+
+            document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            listasTabActual = nuevaTab;
+            await cargarListas(listasTabActual);
+        });
+    });
+
+    document.querySelectorAll('.lists-type-filters .trend-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const nuevoFiltro = btn.getAttribute('data-lists-filter');
+            if (nuevoFiltro === listasFiltroActual) return;
+
+            document.querySelectorAll('.lists-type-filters .trend-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            listasFiltroActual = nuevoFiltro;
+            pintarListasFiltradas();
+        });
+    });
+
+    // boton de crear lista (el modal lo cableamos en el siguiente paso)
+    document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
+        showToast('success', 'Próximamente', 'El formulario de creación de listas llega en el siguiente paso.');
+    });
+}
+
+// trae de supabase la pestaña pedida (con cache) y pinta
+async function cargarListas(tab) {
+    const grid = document.getElementById('lists-grid');
+    const empty = document.getElementById('lists-empty');
+    if (!grid) return;
+
+    grid.style.display = 'grid';
+    if (empty) empty.style.display = 'none';
+    grid.innerHTML = `<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>`;
+
+    if (listasCache[tab] !== null) {
+        pintarListasFiltradas();
+        return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        grid.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+
+    const userId = session.user.id;
+
+    try {
+        if (tab === 'mias') {
+            const { data, error } = await supabase
+                .from('listas_maestra')
+                .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count)')
+                .eq('owner_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
+
+        } else {
+            // 'compartidas' y 'siguiendo' salen ambas de listas_miembros (estado aceptado)
+            const { data, error } = await supabase
+                .from('listas_miembros')
+                .select('rol, lista:listas_maestra!inner(id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count))')
+                .eq('user_id', userId)
+                .eq('estado', 'accepted');
+
+            if (error) throw error;
+
+            const propias = (data || [])
+                .filter(m => m.lista.owner_id !== userId)
+                .map(m => ({ ...m.lista, rolUsuario: m.rol }));
+
+            // TODO: cuando montemos el botón de "Seguir" público, separar de verdad
+            // "compartidas" (te invitaron) de "siguiendo" (tú decidiste seguir la lista).
+            // De momento todo cae en "compartidas" y "siguiendo" queda vacía.
+            listasCache.compartidas = propias;
+            listasCache.siguiendo = [];
+        }
+    } catch (err) {
+        console.error('Error cargando listas:', err);
+        grid.innerHTML = '';
+        showToast('error', 'Error', 'No se pudieron cargar las listas.');
+        return;
+    }
+
+    pintarListasFiltradas();
+}
+
+// aplica el filtro de tipo sobre la cache de la pestaña activa y pinta las cards
+function pintarListasFiltradas() {
+    const grid = document.getElementById('lists-grid');
+    const empty = document.getElementById('lists-empty');
+    if (!grid) return;
+
+    const listas = listasCache[listasTabActual] || [];
+    const filtradas = listasFiltroActual === 'all'
+        ? listas
+        : listas.filter(l => l.tag_tipo === listasFiltroActual);
+
+    grid.innerHTML = '';
+
+    if (filtradas.length === 0) {
+        grid.style.display = 'none';
+        if (empty) empty.style.display = 'block';
+        return;
+    }
+
+    grid.style.display = 'grid';
+    if (empty) empty.style.display = 'none';
+
+    filtradas.forEach(lista => grid.appendChild(crearListCard(lista)));
+}
+
+// clona el template y arma una card de lista
+function crearListCard(lista) {
+    const template = document.getElementById('list-card-template');
+    const clone = template.content.cloneNode(true);
+
+    const cardEl = clone.querySelector('.list-card');
+    cardEl.dataset.listId = lista.id;
+
+    clone.querySelector('.list-card-title').textContent = lista.titulo;
+    clone.querySelector('.list-card-desc').textContent = lista.descripcion || 'Sin descripción.';
+
+    const icono = ICONO_TIPO[lista.tag_tipo] || 'fa-layer-group';
+    clone.querySelector('.list-card-tag-tipo i').className = `fas ${icono}`;
+
+    clone.querySelector('.list-card-members-count').textContent = lista.miembros?.[0]?.count ?? 0;
+    clone.querySelector('.list-card-items-count').textContent = lista.items?.[0]?.count ?? 0;
+
+    // botones segun el rol del usuario en esta lista
+    const esOwner = lista.rolUsuario === 'owner';
+    const btnEdit = clone.querySelector('.list-action-edit');
+    const btnMembers = clone.querySelector('.list-action-members');
+    const btnDelete = clone.querySelector('.list-action-delete');
+    const btnLeave = clone.querySelector('.list-action-leave');
+
+    if (esOwner) {
+        btnEdit.style.display = 'flex';
+        btnMembers.style.display = 'flex';
+        btnDelete.style.display = 'flex';
+    } else if (lista.rolUsuario === 'moderator') {
+        btnEdit.style.display = 'flex';
+        btnMembers.style.display = 'flex';
+        btnLeave.style.display = 'flex';
+    } else {
+        btnLeave.style.display = 'flex';
+    }
+
+    // por ahora solo evitamos que el click en los botones abra la lista (placeholder)
+    clone.querySelectorAll('.list-card-actions button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showToast('success', 'Próximamente', 'Esta acción se conecta en el siguiente paso.');
+        });
+    });
+
+    return clone.firstElementChild;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
