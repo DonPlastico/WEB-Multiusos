@@ -57,7 +57,9 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
         return;
     }
 
-    console.log('✅ Menú encontrado, mostrando...');
+    // ✅ GUARDAR EL ITEM ACTUAL ANTES DE TODO
+    mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
+    console.log('📦 mediaActualParaLista guardado:', mediaActualParaLista);
 
     // Posicionar y mostrar
     const x = event.clientX || event.pageX || 0;
@@ -181,6 +183,13 @@ async function cargarListasEditables() {
     }
 
     quickListLoading.style.display = 'none';
+
+    // 🔥 VERIFICAR QUE mediaActualParaLista EXISTE
+    if (!mediaActualParaLista) {
+        console.warn('⚠️ mediaActualParaLista es null, no se pueden filtrar listas');
+        quickListEmpty.style.display = 'flex';
+        return;
+    }
 
     // Filtrar listas compatibles con el tipo de media actual
     const listasCompatibles = listasEditablesCache.filter(lista => {
