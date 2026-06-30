@@ -107,7 +107,14 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
                 usernameUrl = session.user.user_metadata.username;
             }
         }
-        cargarPerfilPublico(usernameUrl);
+        await cargarPerfilPublico(usernameUrl);
+
+        // FORZAR SINCRONIZACIÓN DE WATCHLIST DESPUÉS DE CARGAR EL PERFIL
+        setTimeout(() => {
+            if (window.sincronizarWatchlistGlobal) {
+                window.sincronizarWatchlistGlobal();
+            }
+        }, 500);
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
@@ -5332,7 +5339,7 @@ async function cargarRecomendaciones(userId) {
             // Para cada película, obtener géneros y buscar recomendaciones
             for (const peli of ultimasPeliculas) {
                 try {
-                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie`);
+                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
                     if (!res.ok) continue;
                     const data = await res.json();
 
@@ -5347,7 +5354,7 @@ async function cargarRecomendaciones(userId) {
 
                     // Buscar 2 recomendaciones de este género
                     try {
-                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2`);
+                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2&lang=${currentLang}`);
                         if (resRec.ok) {
                             const recs = await resRec.json();
                             recs.forEach(item => {
@@ -5385,7 +5392,7 @@ async function cargarRecomendaciones(userId) {
 
         for (const serieId of idsSeriesUnicas) {
             try {
-                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv`);
+                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`);
                 if (!res.ok) continue;
                 const data = await res.json();
 
@@ -5402,8 +5409,8 @@ async function cargarRecomendaciones(userId) {
                     }
                 }
 
-                // Si está COMPLETADA, buscar recomendaciones
-                if (vistosSerie >= totalEpisodios) {
+                // 🔥 CORRECCIÓN: Si está COMPLETADA (100%), buscar recomendaciones
+                if (vistosSerie >= totalEpisodios && totalEpisodios > 0) {
                     // Obtener géneros de la serie
                     let generosTexto = data.generos || '';
 
@@ -5430,7 +5437,7 @@ async function cargarRecomendaciones(userId) {
                     // Buscar 2 recomendaciones de este género (mezclar pelis y series)
                     try {
                         // 1 película
-                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
+                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`);
                         if (resMovie.ok) {
                             const movies = await resMovie.json();
                             movies.forEach(item => {
@@ -5452,8 +5459,7 @@ async function cargarRecomendaciones(userId) {
 
                     try {
                         // 1 serie
-                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1`);
-                        if (resTv.ok) {
+                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`); if (resTv.ok) {
                             const series = await resTv.json();
                             series.forEach(item => {
                                 const idStr = item.id.toString();
@@ -5474,7 +5480,8 @@ async function cargarRecomendaciones(userId) {
 
                     // Actualizar mensaje
                     if (emptyMsg) {
-                        emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en ${generoPrincipal} (${Math.min(container.children.length, 10)} recomendaciones)`;
+                        const count = container.children.length;
+                        emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${count} recomendaciones basadas en ${generoPrincipal}`;
                     }
                 }
 
@@ -8065,7 +8072,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const chunk = entries.slice(i, i + CHUNK);
             await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
                 try {
-                    const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv`);
+                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
                     if (!res.ok) return;
                     const data = await res.json();
 
