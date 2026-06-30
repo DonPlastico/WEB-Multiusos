@@ -870,17 +870,19 @@ function applyTranslations() {
         el.textContent = t('user.view_profile');
     });
 
-    // Actualizar botones del menú de usuario que NO son dinámicos
+    // Actualizar botones del menú de usuario usando IDs específicos
     document.querySelectorAll('.user-menu-panel .theme-option span').forEach(span => {
-        const text = span.textContent.trim();
-        const map = {
-            'Mis Listas': 'user.lists',
-            'Editar perfil': 'user.edit_profile',
-            'Ajustes': 'user.settings',
-            'Cerrar sesión': 'user.logout'
-        };
-        if (map[text]) {
-            span.textContent = t(map[text]);
+        const parentBtn = span.closest('.theme-option');
+        if (!parentBtn) return;
+
+        if (parentBtn.id === 'btn-mis-listas') {
+            span.textContent = t('user.lists');
+        } else if (span.textContent.includes('Editar perfil')) {
+            span.textContent = t('user.edit_profile');
+        } else if (span.textContent.includes('Ajustes')) {
+            span.textContent = t('user.settings');
+        } else if (span.textContent.includes('Cerrar sesión')) {
+            span.textContent = t('user.logout');
         }
     });
 
@@ -2985,24 +2987,24 @@ const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
     <div class="user-dropdown-header" id="btn-ver-perfil">
-        <span id="dropdown-username" class="dropdown-username">Invitado</span>
-        <span class="dropdown-subtext">Ver perfil</span>
+        <span id="dropdown-username" class="dropdown-username">${t('user.guest')}</span>
+        <span class="dropdown-subtext">${t('user.view_profile')}</span>
     </div>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option" id="btn-mis-listas"><i class="fas fa-list"></i><span>Mis Listas</span></button>
+    <button class="theme-option" id="btn-mis-listas"><i class="fas fa-list"></i><span>${t('user.lists')}</span></button>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
-    <button class="theme-option"><i class="fas fa-cog"></i><span>Ajustes</span></button>
+    <button class="theme-option"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
+    <button class="theme-option"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
     
     <div class="dropdown-divider"></div>
     
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
-        <span style="color: var(--error);">Cerrar sesión</span>
+        <span style="color: var(--error);">${t('user.logout')}</span>
     </button>
 `;
 
