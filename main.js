@@ -10014,6 +10014,8 @@ function closeAddToListModal() {
     modalAddToList?.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
+
+    mediaActualParaLista = null;
 }
 
 btnCloseAddToList?.addEventListener('click', closeAddToListModal);
@@ -10161,6 +10163,38 @@ btnQuickCreateList?.addEventListener('click', () => {
     closeAddToListModal();
     openCreateListModal();
 });
+
+// Función genérica de Toggle Grid/List
+function configurarToggleGrid(btnId, targetGridId, storageKey) {
+    const btn = document.getElementById(btnId);
+    const grid = document.getElementById(targetGridId);
+    if (!btn || !grid) return;
+
+    const icon = btn.querySelector('i');
+
+    // Estado inicial desde localStorage
+    const modo = localStorage.getItem(storageKey) || 'grid';
+    if (modo === 'list') {
+        grid.classList.add('watchlist-list-mode'); // Asegúrate de tener esta clase en CSS
+        icon.className = 'fas fa-th-large';
+    }
+
+    btn.addEventListener('click', () => {
+        const esGrid = grid.classList.toggle('watchlist-list-mode');
+        // Si tiene la clase, es modo LISTA, si no, GRID
+        if (esGrid) {
+            icon.className = 'fas fa-th-large';
+            localStorage.setItem(storageKey, 'list');
+        } else {
+            icon.className = 'fas fa-list';
+            localStorage.setItem(storageKey, 'grid');
+        }
+    });
+}
+
+// Inicializa ambos:
+configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
+configurarToggleGrid('btn-lists-toggle-grid', 'lists-grid', 'pref_view_lists');
 
 document.addEventListener('DOMContentLoaded', function () {
     // Inicializamos las funciones de carga de datos
