@@ -9850,14 +9850,20 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
 //   SISTEMA DE LISTAS SOCIALES (MIS LISTAS)
 // ==========================================================================
 
+// 🔥 DEFINICIÓN GLOBAL DE VARIABLES
 let listasTabActual = 'mias';       // mias | compartidas | siguiendo
 let listasFiltroActual = 'all';     // all | game | movie | tv
 let listasEventosListos = false;    // pa no duplicar listeners
-const listasCache = { mias: null, compartidas: null, siguiendo: null };
+
+// 🔥 IMPORTANTE: USAR var EN LUGAR DE const PARA EVITAR PROBLEMAS CON VITE
+var listasCache = { mias: null, compartidas: null, siguiendo: null };
+
+console.log('📦 listasCache inicializado en ámbito global:', listasCache);
 
 // punto de entrada: se llama cada vez que se entra en la vista
 async function inicializarMisListas() {
     console.log('🚀 inicializarMisListas() ejecutada');
+    console.log('📦 listasCache antes de limpiar:', listasCache);
 
     if (!listasEventosListos) {
         console.log('🔄 Vinculando eventos UI por primera vez');
@@ -9865,20 +9871,24 @@ async function inicializarMisListas() {
         listasEventosListos = true;
     }
 
+    // FORZAR LIMPIEZA DE CACHÉ
+    console.log('🧹 Limpiando caché de listas...');
     listasCache.mias = null;
     listasCache.compartidas = null;
     listasCache.siguiendo = null;
-
-    console.log('📊 listasCache después de limpiar:', listasCache);
+    console.log('📦 listasCache después de limpiar:', listasCache);
 
     await cargarListas(listasTabActual);
 }
 
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
+    console.log('🔗 bindEventosListasUI() ejecutada');
+
     document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(tab => {
         tab.addEventListener('click', async () => {
             const nuevaTab = tab.getAttribute('data-lists-tab');
+            console.log('📋 Click en pestaña:', nuevaTab);
             if (nuevaTab === listasTabActual) return;
 
             document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(t => t.classList.remove('active'));
@@ -9892,6 +9902,7 @@ function bindEventosListasUI() {
     document.querySelectorAll('.lists-type-filters .trend-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             const nuevoFiltro = btn.getAttribute('data-lists-filter');
+            console.log('🔍 Click en filtro:', nuevoFiltro);
             if (nuevoFiltro === listasFiltroActual) return;
 
             document.querySelectorAll('.lists-type-filters .trend-tab').forEach(b => b.classList.remove('active'));
@@ -9904,6 +9915,7 @@ function bindEventosListasUI() {
 
     // boton de crear lista
     document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
+        console.log('➕ Click en crear lista');
         mediaActualParaLista = null;
         openCreateListModal();
     });
@@ -9911,8 +9923,8 @@ function bindEventosListasUI() {
 
 // trae de supabase la pestaña pedida (con cache) y pinta
 async function cargarListas(tab) {
-    console.log('🚀 cargarListas() ejecutada con tab:', tab);
-    console.log('📊 listasCache actual:', listasCache);
+    console.log('🚀 cargarListas() EJECUTADA con tab:', tab);
+    console.log('📦 listasCache actual:', listasCache);
 
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
@@ -9925,13 +9937,13 @@ async function cargarListas(tab) {
     if (empty) empty.style.display = 'none';
     grid.innerHTML = `<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>`;
 
-    // 🔥 FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
+    // FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
     if (tab === 'mias') {
-        console.log('🔄 Forzando limpieza de caché de mias');
+        console.log('🔄 Forzando recarga de "mias" (listasCache.mias = null)');
         listasCache.mias = null;
     }
 
-    console.log('📊 Estado de listasCache antes de la condición:');
+    console.log('📊 listasCache antes de la condición de caché:');
     console.log('  mias:', listasCache.mias);
     console.log('  compartidas:', listasCache.compartidas);
     console.log('  siguiendo:', listasCache.siguiendo);
@@ -9957,7 +9969,7 @@ async function cargarListas(tab) {
 
     try {
         if (tab === 'mias') {
-            console.log('📡 Consultando Supabase (tabla listas_maestra)...');
+            console.log('📡 Consultando Supabase: listas_maestra WHERE owner_id =', userId);
 
             const { data, error } = await supabase
                 .from('listas_maestra')
@@ -9976,7 +9988,7 @@ async function cargarListas(tab) {
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
         } else {
-            console.log('📡 Consultando Supabase (tabla listas_miembros)...');
+            console.log('📡 Consultando Supabase: listas_miembros WHERE user_id =', userId);
 
             const { data, error } = await supabase
                 .from('listas_miembros')
@@ -10005,7 +10017,7 @@ async function cargarListas(tab) {
         return;
     }
 
-    console.log('📊 listasCache después de la consulta:');
+    console.log('📊 listasCache DESPUÉS de la consulta:');
     console.log('  mias:', listasCache.mias);
     console.log('  compartidas:', listasCache.compartidas);
     console.log('  siguiendo:', listasCache.siguiendo);
@@ -10015,27 +10027,36 @@ async function cargarListas(tab) {
 
 // aplica el filtro de tipo sobre la cache de la pestaña activa y pinta las cards
 function pintarListasFiltradas() {
+    console.log('🎨 pintarListasFiltradas() ejecutada');
+
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ grid no encontrado');
+        return;
+    }
 
     const listas = listasCache[listasTabActual] || [];
+    console.log('📊 Listas a pintar:', listas);
+    console.log('📋 Filtro actual:', listasFiltroActual);
 
     const filtradas = listas.filter(l => {
         if (listasFiltroActual === 'all') return true;
         return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
     });
 
-    // 🔥 CONSERVAR LA CLASE DE VISTA
+    console.log('📊 Listas filtradas:', filtradas);
+
+    // CONSERVAR LA CLASE DE VISTA
     const esModoLista = grid.classList.contains('list-view-active');
     grid.innerHTML = '';
     if (esModoLista) grid.classList.add('list-view-active');
 
     if (filtradas.length === 0) {
+        console.log('📭 No hay listas para mostrar');
         grid.style.display = 'none';
         if (empty) {
             empty.style.display = 'block';
-            // 🆕 Actualizar el mensaje según la pestaña activa
             const emptyMsg = empty.querySelector('p');
             if (emptyMsg) {
                 const mensajes = {
@@ -10052,7 +10073,12 @@ function pintarListasFiltradas() {
     grid.style.display = 'grid';
     if (empty) empty.style.display = 'none';
 
-    filtradas.forEach(lista => grid.appendChild(crearListCard(lista)));
+    filtradas.forEach(lista => {
+        const card = crearListCard(lista);
+        grid.appendChild(card);
+    });
+
+    console.log('✅ Listas pintadas correctamente');
 }
 
 // clona el template y arma una card de lista
