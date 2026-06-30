@@ -2282,6 +2282,46 @@
             </template>
         </div>
 
+        <!-- mini-modal rapido: añadir el item actual a una o varias listas -->
+        <div id="add-to-list-modal" class="cyber-modal">
+            <div class="modal-content glass-panel quick-list-panel">
+                <button id="close-add-to-list-modal" class="icon-btn close-floating-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="quick-list-header">
+                    <h2 class="quick-list-title"><i class="fas fa-bookmark"></i> Guardar en una lista</h2>
+                </div>
+
+                <div id="quick-list-checklist" class="quick-list-checklist">
+                    <!-- estado de carga -->
+                    <div id="quick-list-loading" class="watchlist-loading" style="padding: 30px;">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                    </div>
+
+                    <!-- estado vacio: el usuario no tiene listas editables todavia -->
+                    <div id="quick-list-empty" class="empty-state-centered" style="position: static; display: none;">
+                        <i class="fas fa-folder-open empty-icon"></i>
+                        <p>Todavía no tienes ninguna lista. ¡Crea la primera!</p>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-quick-create-list" class="auth-btn primary full-width">
+                    <i class="fas fa-plus"></i> Crear Nueva Lista
+                </button>
+            </div>
+
+            <!-- template de cada lista dentro del mini-modal -->
+            <template id="quick-list-item-template">
+                <label class="custom-check quick-list-item">
+                    <input type="checkbox" class="quick-list-checkbox">
+                    <span class="box"></span>
+                    <span class="quick-list-item-tipo"><i class="fas fa-layer-group"></i></span>
+                    <span class="quick-list-item-title">Título de la lista</span>
+                </label>
+            </template>
+        </div>
+
         <!-- modal pa enviar anuncios globales -->
         <div id="announce-modal" class="cyber-modal">
             <div class="modal-content glass-panel announce-panel">
