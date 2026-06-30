@@ -5432,15 +5432,18 @@ async function cargarRecomendaciones(userId) {
         const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
         console.log(`📺 Procesando ${idsSeriesUnicas.length} series únicas...`);
 
-        if (idsSeriesUnicas.length === 0 && recuentoRecomendaciones === 0) {
-            // No hay series ni películas, mostrar mensaje
+        // Si no hay series, mostrar mensaje y salir
+        if (idsSeriesUnicas.length === 0) {
+            console.log('ℹ️ No hay series para procesar');
             if (loading) loading.style.display = 'none';
-            if (empty) {
-                empty.style.display = 'flex';
-                const p = empty.querySelector('p');
-                if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
+            if (container.children.length === 0) {
+                if (empty) {
+                    empty.style.display = 'flex';
+                    const p = empty.querySelector('p');
+                    if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
+                }
+                if (emptyMsg) emptyMsg.style.display = 'none';
             }
-            if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
@@ -5451,6 +5454,7 @@ async function cargarRecomendaciones(userId) {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+                // 🔥 IMPORTANTE: Usar tipo=tv para obtener temporadas_info
                 const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
                     signal: controller.signal
                 });
@@ -5462,8 +5466,23 @@ async function cargarRecomendaciones(userId) {
                 }
                 const data = await res.json();
 
-                const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
+                // 🔥 LOG: Ver qué devuelve la API
+                console.log(`📊 Datos de serie ${serieId}:`, {
+                    titulo: data.titulo,
+                    temporadas_info: data.temporadas_info ? data.temporadas_info.length : 'NO EXISTE',
+                    episodios: data.episodios,
+                    generos: data.generos
+                });
+
+                // 🔥 VERIFICAR QUE EXISTE temporadas_info
+                if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) {
+                    console.warn(`⚠️ Serie ${serieId} no tiene temporadas_info`);
+                    continue;
+                }
+
+                const temporadasReales = data.temporadas_info.filter(s => s.season_number > 0);
                 const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+
                 if (totalEpisodios === 0) {
                     console.warn(`⚠️ Serie ${serieId} sin episodios`);
                     continue;
@@ -5586,6 +5605,7 @@ async function cargarRecomendaciones(userId) {
 
         // 7. FINAL: Ocultar loading y mostrar estado final
         console.log(`✅ FINAL: ${recuentoRecomendaciones} recomendaciones generadas`);
+        console.log(`📦 Container children: ${container.children.length}`);
         if (loading) loading.style.display = 'none';
 
         if (container.children.length === 0) {

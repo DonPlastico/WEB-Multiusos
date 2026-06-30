@@ -127,6 +127,7 @@ export default async function handler(req, res) {
                     });
             }
 
+            // 🔥 SIEMPRE devolver temporadas_info, aunque esté vacío
             return res.status(200).json({
                 id: data.id,
                 adult: data.adult,
@@ -151,7 +152,7 @@ export default async function handler(req, res) {
                 trailer_id: trailerId,
                 reparto: repartoFormateado,
                 temporadas: data.number_of_seasons,
-                temporadas_info: temporadasInfo,
+                temporadas_info: temporadasInfo || [], // 🔥 Asegurar que siempre sea array
                 duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 45)
             });
         }
