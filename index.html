@@ -2307,114 +2307,53 @@
             </template>
         </div>
 
-        <!-- mini-modal rapido: añadir el item actual a una o varias listas -->
-        <div id="add-to-list-modal" class="cyber-modal">
-            <div class="modal-content glass-panel quick-list-panel">
-                <button id="close-add-to-list-modal" class="icon-btn close-floating-btn" title="Cerrar">
-                    <i class="fas fa-times"></i>
-                </button>
-
-                <div class="quick-list-header">
-                    <h2 class="quick-list-title"><i class="fas fa-bookmark"></i> Guardar en una lista</h2>
-                </div>
-
-                <div id="quick-list-checklist" class="quick-list-checklist">
-                    <!-- estado de carga -->
-                    <div id="quick-list-loading" class="watchlist-loading" style="padding: 30px;">
-                        <i class="fas fa-circle-notch fa-spin"></i>
-                    </div>
-
-                    <!-- estado vacio: el usuario no tiene listas editables todavia -->
-                    <div id="quick-list-empty" class="empty-state-centered" style="position: static; display: none;">
-                        <i class="fas fa-folder-open empty-icon"></i>
-                        <p>Todavía no tienes ninguna lista. ¡Crea la primera!</p>
-                    </div>
-                </div>
-
-                <button type="button" id="btn-quick-create-list" class="auth-btn primary full-width">
-                    <i class="fas fa-plus"></i> Crear Nueva Lista
-                </button>
+        <!-- Menú contextual para AÑADIR A LISTA (flotante) -->
+        <div id="add-to-list-menu" class="theme-menu user-menu-panel"
+            style="position: fixed; display: none; min-width: 260px; max-width: 320px; z-index: 1000;">
+            <div style="padding: 10px 14px 6px 14px; border-bottom: 1px solid var(--border-color);">
+                <span style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px; font-weight: 600;">
+                    <i class="fas fa-bookmark" style="margin-right: 6px;"></i> GUARDAR EN LISTA
+                </span>
             </div>
 
-            <!-- template de cada lista dentro del mini-modal -->
-            <template id="quick-list-item-template">
-                <label class="custom-check quick-list-item">
-                    <input type="checkbox" class="quick-list-checkbox">
-                    <span class="box"></span>
-                    <span class="quick-list-item-tipo"><i class="fas fa-layer-group"></i></span>
-                    <span class="quick-list-item-title">Título de la lista</span>
-                </label>
-            </template>
-        </div>
-
-        <!-- modal pa enviar anuncios globales -->
-        <div id="announce-modal" class="cyber-modal">
-            <div class="modal-content glass-panel announce-panel">
-                <button id="btn-close-announce" class="icon-btn close-floating-btn" title="Cerrar">
-                    <i class="fas fa-times"></i>
-                </button>
-
-                <!-- cabecera -->
-                <div class="announce-header">
-                    <div class="announce-icon-wrap">
-                        <i class="fas fa-bullhorn"></i>
-                    </div>
-                    <div>
-                        <h2 class="announce-title glitch-text">TRANSMISIÓN GLOBAL</h2>
-                        <p class="announce-subtitle">Envía una alerta a los operadores del Nexus</p>
-                    </div>
+            <div id="quick-list-checklist" style="padding: 4px 0; max-height: 220px; overflow-y: auto;">
+                <!-- estado de carga -->
+                <div id="quick-list-loading" style="padding: 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-circle-notch fa-spin"></i>
                 </div>
 
-                <!-- cuerpo -->
-                <div class="announce-body">
-
-                    <!-- SELECT CUSTOM: Destinatarios -->
-                    <div class="field-group">
-                        <label class="field-label"><i class="fas fa-satellite-dish"></i> Destinatarios</label>
-                        <div class="cyber-select-wrapper" id="announce-select-wrapper">
-                            <div class="cyber-select-trigger" id="announce-select-trigger">
-                                <span id="announce-select-label">Todos los Usuarios</span>
-                                <i class="fas fa-chevron-down cyber-select-arrow"></i>
-                            </div>
-                            <div class="cyber-select-dropdown" id="announce-select-dropdown">
-                                <div class="cyber-select-option selected" data-value="all_users">
-                                    <i class="fas fa-users"></i> Todos los Usuarios
-                                </div>
-                                <div class="cyber-select-option" data-value="all_admins">
-                                    <i class="fas fa-user-shield"></i> Solo Administradores
-                                </div>
-                                <div class="cyber-select-option" data-value="specific_user">
-                                    <i class="fas fa-user-tag"></i> Usuario Específico...
-                                </div>
-                            </div>
-                        </div>
-                        <!-- input oculto real para leer el valor en JS -->
-                        <input type="hidden" id="announce-target" value="all_users">
-                    </div>
-
-                    <!-- campo usuario específico (oculto por defecto) -->
-                    <div id="announce-specific-user-group" class="field-group" style="display: none;">
-                        <label class="field-label"><i class="fas fa-at"></i> Nombre de Usuario Destino</label>
-                        <div class="field-wrapper">
-                            <i class="fas fa-user field-icon"></i>
-                            <input type="text" id="announce-specific-user" class="cyber-input"
-                                placeholder="Ej. Pacoporras">
-                        </div>
-                    </div>
-
-                    <!-- textarea del mensaje -->
-                    <div class="field-group">
-                        <label class="field-label"><i class="fas fa-terminal"></i> Cuerpo del Mensaje</label>
-                        <textarea id="announce-message" class="cyber-input announce-textarea"
-                            placeholder="Escribe la notificación aquí..."></textarea>
-                    </div>
-
-                    <button id="btn-send-announce" class="auth-btn primary full-width">
-                        <i class="fas fa-paper-plane"></i> ENVIAR ALERTA
-                    </button>
+                <!-- estado vacio -->
+                <div id="quick-list-empty"
+                    style="display: none; padding: 20px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-folder-open"
+                        style="font-size: 1.5rem; opacity: 0.5; display: block; margin-bottom: 8px;"></i>
+                    <span style="font-size: 0.85rem;">Todavía no tienes listas</span>
                 </div>
+
+                <!-- aquí se inyectarán los items dinámicamente -->
             </div>
+
+            <div class="dropdown-divider" style="margin: 0;"></div>
+
+            <button class="theme-option" id="btn-quick-create-list" style="color: var(--primary);">
+                <i class="fas fa-plus-circle" style="color: var(--primary);"></i>
+                <span>Crear Nueva Lista</span>
+            </button>
         </div>
+
+        <!-- template de cada lista dentro del menú contextual -->
+        <template id="quick-list-item-template">
+            <label class="theme-option quick-list-item" style="cursor: pointer; padding: 8px 14px;">
+                <input type="checkbox" class="quick-list-checkbox"
+                    style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;">
+                <span class="quick-list-item-tipo" style="font-size: 0.7rem; opacity: 0.6; min-width: 20px;">
+                    <i class="fas fa-layer-group"></i>
+                </span>
+                <span class="quick-list-item-title"
+                    style="font-size: 0.85rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Título
+                    de la lista</span>
+            </label>
+        </template>
 
         <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
         <div id="crop-modal" class="cyber-modal">

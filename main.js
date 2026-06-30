@@ -5255,7 +5255,6 @@ async function cargarPerfilPublico(usernameTarget) {
 
         // === CARGAR RECOMENDACIONES DINÁMICAS ===
         if (miPropioUsername === usuarioABuscar) {
-            console.log('🔄 Cargando recomendaciones para usuario:', miPropioUsername);
             await cargarRecomendaciones(perfilTarget.auth_id);
         } else {
             const recSection = document.getElementById('recommendations-section');
@@ -5282,8 +5281,6 @@ async function cargarRecomendaciones(userId) {
         return;
     }
 
-    console.log('🔄 Cargando recomendaciones para userId:', userId);
-
     // Mostrar loading
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
@@ -5297,7 +5294,6 @@ async function cargarRecomendaciones(userId) {
 
     try {
         // 1. OBTENER TODOS LOS VISIONADOS
-        console.log('📡 Obteniendo visionados de Supabase...');
         const { data: todosVistos, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista, veces_vista')
@@ -5308,10 +5304,7 @@ async function cargarRecomendaciones(userId) {
 
         if (error) throw error;
 
-        console.log(`📊 Visionados encontrados: ${todosVistos?.length || 0}`);
-
         if (!todosVistos || todosVistos.length === 0) {
-            console.log('ℹ️ No hay visionados para generar recomendaciones');
             if (loading) loading.style.display = 'none';
             if (empty) {
                 empty.style.display = 'flex';
@@ -5326,9 +5319,6 @@ async function cargarRecomendaciones(userId) {
         const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
         const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
 
-        console.log(`🎬 Películas vistas: ${peliculasVistas.length}`);
-        console.log(`📺 Series con episodios: ${seriesConEpisodios.length}`);
-
         // 3. OBTENER EPISODIOS VISTOS
         const { data: episodiosVistos } = await supabase
             .from('user_media')
@@ -5338,7 +5328,6 @@ async function cargarRecomendaciones(userId) {
             .eq('visto', true);
 
         const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
-        console.log(`📋 Episodios vistos: ${episodiosSet.size}`);
 
         // 4. PELÍCULAS: Últimas 5
         const peliculasConFecha = peliculasVistas.map(p => ({
@@ -5354,7 +5343,6 @@ async function cargarRecomendaciones(userId) {
 
         // 5. PROCESAR PELÍCULAS (con timeout para evitar bloqueos)
         if (ultimasPeliculas.length > 0) {
-            console.log(`🎬 Procesando ${ultimasPeliculas.length} películas para recomendaciones...`);
             if (loading) loading.style.display = 'none';
             if (emptyMsg) {
                 emptyMsg.style.display = 'inline-flex';
@@ -5363,8 +5351,6 @@ async function cargarRecomendaciones(userId) {
 
             for (const peli of ultimasPeliculas) {
                 try {
-                    console.log(`🔍 Buscando recomendaciones para película ID: ${peli.media_id}`);
-
                     // 🔥 Timeout de 5 segundos para evitar bloqueos
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -5390,8 +5376,6 @@ async function cargarRecomendaciones(userId) {
                     if (generosList.length === 0) continue;
 
                     const generoPrincipal = generosList[0];
-                    console.log(`🎯 Género principal: ${generoPrincipal}`);
-
                     try {
                         const controllerRec = new AbortController();
                         const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
@@ -5403,7 +5387,6 @@ async function cargarRecomendaciones(userId) {
 
                         if (resRec.ok) {
                             const recs = await resRec.json();
-                            console.log(`✅ Encontradas ${recs.length} recomendaciones para ${generoPrincipal}`);
                             recs.forEach(item => {
                                 const idStr = item.id.toString();
                                 if (idStr === peli.media_id) return;
@@ -5435,17 +5418,14 @@ async function cargarRecomendaciones(userId) {
                 emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en tus películas vistas (cargando series...)`;
             }
         } else {
-            console.log('ℹ️ No hay películas vistas recientemente');
             if (loading) loading.style.display = 'none';
         }
 
         // 6. SERIES COMPLETADAS (con timeout)
         const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
-        console.log(`📺 Procesando ${idsSeriesUnicas.length} series únicas...`);
 
         // Si no hay series, mostrar mensaje y salir
         if (idsSeriesUnicas.length === 0) {
-            console.log('ℹ️ No hay series para procesar');
             if (loading) loading.style.display = 'none';
             if (container.children.length === 0) {
                 if (empty) {
@@ -5460,7 +5440,6 @@ async function cargarRecomendaciones(userId) {
 
         for (const serieId of idsSeriesUnicas) {
             try {
-                console.log(`🔍 Verificando serie ID: ${serieId}`);
 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -5476,14 +5455,6 @@ async function cargarRecomendaciones(userId) {
                     continue;
                 }
                 const data = await res.json();
-
-                // 🔥 LOG: Ver qué devuelve la API
-                console.log(`📊 Datos de serie ${serieId}:`, {
-                    titulo: data.titulo,
-                    temporadas_info: data.temporadas_info ? data.temporadas_info.length : 'NO EXISTE',
-                    episodios: data.episodios,
-                    generos: data.generos
-                });
 
                 // 🔥 VERIFICAR QUE EXISTE temporadas_info
                 if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) {
@@ -5507,12 +5478,8 @@ async function cargarRecomendaciones(userId) {
                     }
                 }
 
-                console.log(`📊 Serie ${serieId}: ${vistosSerie}/${totalEpisodios} episodios vistos`);
-
                 // SI ESTÁ COMPLETADA (100%)
                 if (vistosSerie >= totalEpisodios && totalEpisodios > 0) {
-                    console.log(`✅ Serie ${serieId} COMPLETADA! Generando recomendaciones...`);
-
                     let generosTexto = data.generos || '';
 
                     const titulo = data.titulo || '';
@@ -5536,8 +5503,6 @@ async function cargarRecomendaciones(userId) {
                     if (generosList.length === 0) continue;
 
                     const generoPrincipal = generosList[0];
-                    console.log(`🎯 Género principal serie: ${generoPrincipal}`);
-
                     // 1 película
                     try {
                         const controllerRec = new AbortController();
@@ -5550,7 +5515,6 @@ async function cargarRecomendaciones(userId) {
 
                         if (resMovie.ok) {
                             const movies = await resMovie.json();
-                            console.log(`✅ Encontradas ${movies.length} películas para ${generoPrincipal}`);
                             movies.forEach(item => {
                                 const idStr = item.id.toString();
                                 if (idStr === serieId) return;
@@ -5583,7 +5547,6 @@ async function cargarRecomendaciones(userId) {
 
                         if (resTv.ok) {
                             const series = await resTv.json();
-                            console.log(`✅ Encontradas ${series.length} series para ${generoPrincipal}`);
                             series.forEach(item => {
                                 const idStr = item.id.toString();
                                 if (idStr === serieId) return;
@@ -5615,12 +5578,9 @@ async function cargarRecomendaciones(userId) {
         }
 
         // 7. FINAL: Ocultar loading y mostrar estado final
-        console.log(`✅ FINAL: ${recuentoRecomendaciones} recomendaciones generadas`);
-        console.log(`📦 Container children: ${container.children.length}`);
         if (loading) loading.style.display = 'none';
 
         if (container.children.length === 0) {
-            console.log('ℹ️ No se encontraron recomendaciones');
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
@@ -5628,7 +5588,6 @@ async function cargarRecomendaciones(userId) {
             }
             if (emptyMsg) emptyMsg.style.display = 'none';
         } else {
-            console.log(`✅ Mostrando ${container.children.length} recomendaciones`);
             if (emptyMsg) {
                 const count = container.children.length;
                 emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${count} recomendaciones basadas en tus últimos visionados`;

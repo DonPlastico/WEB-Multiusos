@@ -30,8 +30,6 @@ export default async function handler(req, res) {
     };
     const igdbLang = langMap[lang] || 169;
 
-    console.log('🔍 IGDB - Parámetros:', { dateMin, dateMax, sortField, busqueda, lang, igdbLang });
-
     try {
         // OBTENER TOKEN DE TWITCH
         const tokenRes = await fetch(
@@ -52,7 +50,6 @@ export default async function handler(req, res) {
         }
 
         const access_token = tokenData.access_token;
-        console.log('🟢 Token obtenido correctamente');
 
         // CONSTRUIR QUERY
         const esBusqueda = busqueda || sortField || dateMin || dateMax || platforms || genres;
@@ -93,8 +90,6 @@ export default async function handler(req, res) {
             ? `fields name, cover.url, first_release_date, platforms.name, total_rating, rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; search "${busqueda}"; ${whereQuery} limit ${limit}; offset ${offset};`
             : `fields name, cover.url, first_release_date, platforms.name, total_rating, rating, category, summary, involved_companies.company.name, involved_companies.developer, involved_companies.publisher, genres.name, game_modes.name, websites.url; ${sortQuery} ${whereQuery} limit ${limit}; offset ${offset};`;
 
-        console.log('📤 Body Query:', bodyQuery.substring(0, 200) + '...');
-
         // CONSULTAR IGDB
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -114,7 +109,6 @@ export default async function handler(req, res) {
         }
 
         const dataRaw = await igdbRes.json();
-        console.log(`🟢 IGDB devolvió ${dataRaw.length} juegos`);
 
         // FILTRAR
         const juegosIGDB = dataRaw.filter(j => {
