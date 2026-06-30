@@ -1,6 +1,9 @@
 // traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
+// Hacer supabase global para depuración
+window.supabase = supabase;
+
 // Vercel Analytics
 import { inject } from '@vercel/analytics';
 inject();
