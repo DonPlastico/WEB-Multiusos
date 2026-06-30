@@ -57,7 +57,6 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
         return;
     }
 
-    // ✅ GUARDAR EL ITEM ACTUAL ANTES DE TODO
     mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
     console.log('📦 mediaActualParaLista guardado:', mediaActualParaLista);
 
@@ -65,17 +64,27 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
     const x = event.clientX || event.pageX || 0;
     const y = event.clientY || event.pageY || 0;
 
-    const posX = Math.min(x, window.innerWidth - 280 - 20);
-    const posY = Math.min(y, window.innerHeight - 300 - 20);
+    const menuWidth = 280;
+    const menuHeight = 300;
+    const posX = Math.min(x, window.innerWidth - menuWidth - 20);
+    const posY = Math.min(y, window.innerHeight - menuHeight - 20);
 
+    // 🔥 FORZAR VISIBILIDAD
+    addToListMenu.style.display = 'block';
+    addToListMenu.style.position = 'fixed';
     addToListMenu.style.left = `${Math.max(10, posX)}px`;
     addToListMenu.style.top = `${Math.max(10, posY)}px`;
-    addToListMenu.style.display = 'block';
-    addToListMenu.style.zIndex = '99999';
+    addToListMenu.style.zIndex = '999999';
+    addToListMenu.style.opacity = '1';
+    addToListMenu.style.transform = 'scale(1)';
+    addToListMenu.style.visibility = 'visible';
+    addToListMenu.style.pointerEvents = 'auto';
+
+    console.log('📍 Menú posicionado en:', addToListMenu.style.left, addToListMenu.style.top);
+    console.log('🎯 Menú display:', addToListMenu.style.display);
 
     menuAddToListVisible = true;
 
-    console.log('📦 Cargando listas editables...');
     cargarListasEditables();
 }
 
