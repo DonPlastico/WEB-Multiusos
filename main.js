@@ -9945,7 +9945,7 @@ async function cargarListas(tab) {
 
             const { data, error } = await supabase
                 .from('listas_maestra')
-                .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count)')
+                .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false });
 
