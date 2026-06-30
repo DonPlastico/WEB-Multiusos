@@ -9860,6 +9860,12 @@ async function inicializarMisListas() {
         bindEventosListasUI();
         listasEventosListos = true;
     }
+
+    // FORZAR LIMPIEZA DE CACHÉ AL ENTRAR (¡SALTA EL CACHÉ!)
+    listasCache.mias = null;
+    listasCache.compartidas = null;
+    listasCache.siguiendo = null;
+
     await cargarListas(listasTabActual);
 }
 
@@ -9908,6 +9914,11 @@ async function cargarListas(tab) {
     if (empty) empty.style.display = 'none';
     grid.innerHTML = `<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>`;
 
+    // 🔥 FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
+    if (tab === 'mias') {
+        listasCache.mias = null; // Forzar recarga
+    }
+
     if (listasCache[tab] !== null) {
         pintarListasFiltradas();
         return;
@@ -9931,10 +9942,14 @@ async function cargarListas(tab) {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
+
+            // 🐞 DEPURACIÓN (elimina después de verificar)
+            console.log('🔍 User ID:', userId);
+            console.log('📊 Listas encontradas:', data);
+
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
         } else {
-            // 'compartidas' y 'siguiendo' salen ambas de listas_miembros (estado aceptado)
             const { data, error } = await supabase
                 .from('listas_miembros')
                 .select('rol, lista:listas_maestra!inner(id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count))')
@@ -9947,8 +9962,6 @@ async function cargarListas(tab) {
                 .filter(m => m.lista.owner_id !== userId)
                 .map(m => ({ ...m.lista, rolUsuario: m.rol }));
 
-            // Cuando montemos el botón de "Seguir" público, separar de verdad "compartidas" (te invitaron) de "siguiendo" (tú decidiste seguir la lista).
-            // De momento todo cae en "compartidas" y "siguiendo" queda vacía.
             listasCache.compartidas = propias;
             listasCache.siguiendo = [];
         }
