@@ -2220,13 +2220,41 @@
                         </div>
                     </div>
 
+                    <!-- Exclusividad -->
+                    <div class="field-group" id="list-type-configuration">
+                        <label class="field-label"><i class="fas fa-layer-group"></i> Configuración de Contenido</label>
+
+                        <div id="list-mode-container">
+                            <div class="create-list-privacy-row" id="exclusivity-check-wrapper">
+                                <div>
+                                    <label class="field-label" style="margin-bottom: 2px;">Lista Exclusiva</label>
+                                    <p class="create-list-privacy-hint">Solo aparecerá en la sección de <span
+                                            id="exclusivity-type-name">Juegos</span>.</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="create-list-exclusive-toggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div id="list-type-selector-wrapper" style="display: none;">
+                                <select id="create-list-type-select" class="cyber-input">
+                                    <option value="mixta" selected>Lista Mixta (Juegos, Pelis y Series)</option>
+                                    <option value="game">Solo Juegos</option>
+                                    <option value="movie">Solo Películas</option>
+                                    <option value="tv">Solo Series</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Privacidad -->
                     <div class="field-group create-list-privacy-row">
                         <div>
                             <label class="field-label" style="margin-bottom: 2px;"><i class="fas fa-globe"></i>
                                 Privacidad</label>
-                            <p class="create-list-privacy-hint" id="create-list-privacy-hint">Pública: cualquiera
-                                puede verla desde tu perfil o el de cualquier integrante.</p>
+                            <p class="create-list-privacy-hint" id="create-list-privacy-hint">Pública: cualquiera puede
+                                verla desde tu perfil.</p>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="create-list-privacy-toggle" checked>
@@ -2234,20 +2262,13 @@
                         </label>
                     </div>
 
-                    <!-- Tipo de lista (detectado automaticamente segun el item de origen) -->
-                    <div class="field-group create-list-type-row" id="create-list-type-row" style="display: none;">
-                        <span class="list-card-tag-tipo" id="create-list-type-icon"><i
-                                class="fas fa-layer-group"></i></span>
-                        <span id="create-list-type-text">Tipo de lista: Mixta</span>
-                    </div>
-
                     <div class="create-list-divider"></div>
 
                     <!-- Sistema de amigos / lista compartida -->
                     <div class="field-group">
                         <label class="field-label"><i class="fas fa-user-friends"></i> Invitar usuarios
-                            <span class="create-list-slots-counter" id="create-list-slots-counter">1/10
-                                Slots</span></label>
+                            <span class="create-list-slots-counter" id="create-list-slots-counter">1/10 Slots</span>
+                        </label>
                         <div class="field-wrapper">
                             <i class="fas fa-search field-icon"></i>
                             <input type="text" id="create-list-search-user" class="cyber-input"
