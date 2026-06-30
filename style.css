@@ -5058,6 +5058,107 @@ cast-carousel::-webkit-scrollbar {
     transform: scale(1.05);
 }
 
+/* Asegurar que el menú contextual se muestre correctamente */
+#add-to-list-menu {
+    display: none;
+    position: fixed !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    padding: 8px 0 !important;
+    min-width: 260px !important;
+    max-width: 320px !important;
+    z-index: 99999 !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(99, 102, 241, 0.2) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.95) translateY(-8px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Cuando se muestra, lo hacemos visible */
+#add-to-list-menu[style*="display: block"] {
+    opacity: 1 !important;
+    transform: scale(1) translateY(0) !important;
+}
+
+/* Elementos internos del menú */
+#add-to-list-menu .theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-family: var(--font-cyber);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.15s ease;
+    text-align: left;
+}
+
+#add-to-list-menu .theme-option:hover {
+    background: var(--bg-hover);
+}
+
+#add-to-list-menu .theme-option .quick-list-checkbox {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+#add-to-list-menu .theme-option .quick-list-item-tipo {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    min-width: 20px;
+    text-align: center;
+}
+
+#add-to-list-menu .theme-option .quick-list-item-title {
+    font-size: 0.85rem;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#add-to-list-menu .dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+#add-to-list-menu #quick-list-checklist {
+    padding: 4px 0;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+#add-to-list-menu #quick-list-checklist::-webkit-scrollbar {
+    width: 3px;
+}
+
+#add-to-list-menu #quick-list-checklist::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+/* Scrollbar personalizada para el menú */
+#add-to-list-menu .quick-list-item label {
+    cursor: pointer;
+}
+
+#add-to-list-menu .quick-list-item input[type="checkbox"]:checked+.quick-list-item-title {
+    color: var(--primary);
+}
+
 /* ==========================================================================
    WATCHLIST (TV Time)
    ========================================================================== */
