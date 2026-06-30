@@ -9906,17 +9906,15 @@ function bindEventosListasUI() {
 
 // trae de supabase la pestaña pedida (con cache) y pinta
 async function cargarListas(tab) {
-
-    // 🐞 AÑADE ESTOS LOGS
-    console.log('🔍 ===== CARGANDO LISTAS =====');
+    console.log('🚀 ===== cargarListas() EJECUTADA =====');
     console.log('📋 Tab:', tab);
-    console.log('👤 User ID desde session:', userId);
-    console.log('📋 Owner ID en la lista (según SQL): 7d0cb7a6-d881-41e2-85de-86a108c55dc4');
 
-    
     const grid = document.getElementById('lists-grid');
     const empty = document.getElementById('lists-empty');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ grid no encontrado');
+        return;
+    }
 
     grid.style.display = 'grid';
     if (empty) empty.style.display = 'none';
@@ -9924,30 +9922,41 @@ async function cargarListas(tab) {
 
     // 🔥 FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
     if (tab === 'mias') {
-        listasCache.mias = null; // Forzar recarga
+        console.log('🔄 Forzando limpieza de caché de mias');
+        listasCache.mias = null;
     }
 
+    console.log('📊 Estado de listasCache antes de la condición:');
+    console.log('  mias:', listasCache.mias);
+    console.log('  compartidas:', listasCache.compartidas);
+    console.log('  siguiendo:', listasCache.siguiendo);
+
     if (listasCache[tab] !== null) {
+        console.log('⚠️ USANDO CACHÉ - NO HAY CONSULTA A SUPABASE');
         pintarListasFiltradas();
         return;
     }
 
+    console.log('📡 HACIENDO CONSULTA A SUPABASE (NO HAY CACHÉ)');
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
+        console.error('❌ No hay sesión');
         grid.innerHTML = '';
         if (empty) empty.style.display = 'block';
         return;
     }
 
     const userId = session.user.id;
+    console.log('👤 User ID desde session:', userId);
 
     try {
         if (tab === 'mias') {
-            console.log('📡 Consultando Supabase...');
+            console.log('📡 Consultando Supabase (tabla listas_maestra)...');
 
             const { data, error } = await supabase
                 .from('listas_maestra')
-                .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
+                .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count)')
                 .eq('owner_id', userId)
                 .order('created_at', { ascending: false });
 
@@ -9962,13 +9971,20 @@ async function cargarListas(tab) {
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
         } else {
+            console.log('📡 Consultando Supabase (tabla listas_miembros)...');
+
             const { data, error } = await supabase
                 .from('listas_miembros')
                 .select('rol, lista:listas_maestra!inner(id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count))')
                 .eq('user_id', userId)
                 .eq('estado', 'accepted');
 
-            if (error) throw error;
+            if (error) {
+                console.error('❌ Error en la consulta:', error);
+                throw error;
+            }
+
+            console.log('✅ Datos de miembros:', data);
 
             const propias = (data || [])
                 .filter(m => m.lista.owner_id !== userId)
@@ -9978,11 +9994,16 @@ async function cargarListas(tab) {
             listasCache.siguiendo = [];
         }
     } catch (err) {
-        console.error('Error cargando listas:', err);
+        console.error('❌ Error cargando listas:', err);
         grid.innerHTML = '';
         showToast('error', 'Error', 'No se pudieron cargar las listas.');
         return;
     }
+
+    console.log('📊 listasCache después de la consulta:');
+    console.log('  mias:', listasCache.mias);
+    console.log('  compartidas:', listasCache.compartidas);
+    console.log('  siguiendo:', listasCache.siguiendo);
 
     pintarListasFiltradas();
 }
