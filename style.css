@@ -4616,6 +4616,48 @@ cast-carousel::-webkit-scrollbar {
     color: white;
 }
 
+/* Contenedor que agrupa la lógica de exclusividad o selector de tipo */
+#list-mode-container {
+    margin-bottom: 15px;
+}
+
+/* Ajuste del contenedor de exclusividad para que coincida con .create-list-privacy-row */
+#exclusivity-check-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.3s ease;
+}
+
+/* Estilo específico para el selector de tipo cuando la lista es MIXTA */
+#list-type-selector-wrapper {
+    margin-top: 10px;
+}
+
+#create-list-type-select {
+    width: 100%;
+    background: var(--bg-elevated);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 8px;
+    font-family: var(--font-cyber);
+    cursor: pointer;
+    appearance: none;
+    /* Quitamos flecha nativa */
+}
+
+#create-list-type-select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
 /* ==========================================================================
    MINI-MODAL: AÑADIR A LISTA (botón +)
    ========================================================================== */
