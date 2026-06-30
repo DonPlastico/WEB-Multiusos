@@ -10070,7 +10070,12 @@ async function cargarListasEditables() {
 
     loadingAddToList.style.display = 'none';
 
-    if (listasEditablesCache.length === 0) {
+    // Solo mostramos listas que sean "mixtas" O que coincidan con el tipo del media actual
+    const listasCompatibles = listasEditablesCache.filter(lista => {
+        return lista.tag_tipo === 'mixta' || lista.tag_tipo === mediaActualParaLista.tipo;
+    });
+
+    if (listasCompatibles.length === 0) {
         emptyAddToList.style.display = 'flex';
         return;
     }
@@ -10089,7 +10094,8 @@ async function cargarListasEditables() {
         console.error('Error comprobando items existentes:', err);
     }
 
-    listasEditablesCache.forEach(lista => {
+    // AHORA iteramos sobre 'listasCompatibles' (el array filtrado), NO sobre la caché completa
+    listasCompatibles.forEach(lista => {
         const template = document.getElementById('quick-list-item-template');
         const clone = template.content.cloneNode(true);
         const label = clone.querySelector('.quick-list-item');
