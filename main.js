@@ -8072,7 +8072,8 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const chunk = entries.slice(i, i + CHUNK);
             await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
                 try {
-                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
+                    // 🔥 CORREGIDO: Usar tmdbId en lugar de peli.media_id
+                    const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
                     if (!res.ok) return;
                     const data = await res.json();
 
@@ -8148,13 +8149,10 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     }
 
     // 5. Sincronizar window.episodiosVistosActuales con los datos de la watchlist
-    // Ahora sincronizamos los episodios vistos en el contexto global
     if (esMiPerfil) {
-        // Solo si es el perfil del usuario logueado
         if (!window.episodiosVistosActuales) {
             window.episodiosVistosActuales = new Set();
         }
-        // Añadir todos los episodios vistos de todas las series a la variable global
         seriesEnProgreso.forEach(serie => {
             serie.epVistos.forEach(ep => {
                 window.episodiosVistosActuales.add(ep);
@@ -8221,12 +8219,11 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 if (upsertError) throw new Error(upsertError.message);
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
 
-                // Sincronizar con window.episodiosVistosActuales
                 if (esMiPerfil && window.episodiosVistosActuales) {
                     window.episodiosVistosActuales.add(`T${serie.temporada}_E${serie.episodio}`);
                 }
 
-                const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv`);
+                const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv&lang=${currentLang}`);
                 const dataTV = await resTV.json();
                 const temporadasReales = (dataTV.temporadas_info || []).filter(s => s.season_number > 0);
                 const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
