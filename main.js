@@ -48,7 +48,15 @@ const quickListItemTemplate = document.getElementById('quick-list-item-template'
 // ==========================================================================
 
 function abrirMenuAddToList(event, mediaId, mediaType) {
+    console.log('🔥 abrirMenuAddToList ejecutada!', mediaId, mediaType);
     event.stopPropagation();
+
+    // Obtener el menú dentro de la función (siempre fresco)
+    const addToListMenu = document.getElementById('add-to-list-menu');
+    if (!addToListMenu) {
+        console.error('❌ Menú #add-to-list-menu no encontrado en el DOM');
+        return;
+    }
 
     // Guardar el item actual
     mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
