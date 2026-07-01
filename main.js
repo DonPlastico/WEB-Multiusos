@@ -2007,18 +2007,25 @@ function getDateRange(period) {
 }
 
 async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
+    console.log(`🔄 Cargando tendencias de juegos: period=${period}, resetear=${resetear}, intentos=${intentos}`);
+
     await translationsReadyPromise;
-    if (trendCargando) return;
+    if (trendCargando) {
+        console.log('⏳ Ya está cargando, esperando...');
+        return;
+    }
     trendCargando = true;
 
     const container = document.getElementById('trend-games');
     if (!container) {
+        console.error('❌ Contenedor trend-games no encontrado');
         trendCargando = false;
         return;
     }
 
     // 1. INTERCEPTOR DE CACHÉ
     if (resetear && intentos === 0 && cacheTendenciasJuegos[period]) {
+        console.log(`📦 Usando caché para ${period}, ${cacheTendenciasJuegos[period].length} juegos`);
         container.scrollLeft = 0;
         trendOffset = 0;
         container.innerHTML = '';
