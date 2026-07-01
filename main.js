@@ -168,12 +168,7 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
     }, 50);
 };
 
-// 3. Actualizar al cargar la página
-// document.addEventListener('DOMContentLoaded', function () {
-//     setTimeout(detectPageAndUpdate, 100);
-// });
-
-// 4. También actualizar cuando cambia el historial (popstate)
+// 3. También actualizar cuando cambia el historial (popstate)
 window.addEventListener('popstate', function () {
     setTimeout(detectPageAndUpdate, 50);
 });
@@ -559,7 +554,13 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     vistaActualGlobal = target;
 
     // lazy loading, cargo la api solo la primera vez que entro
-    if (target === 'games' && !juegosCargados) {
+    if (target === 'home') {
+        // Estas funciones ya tienen sus propios "if (yaCargado) return;", así que es seguro llamarlas
+        cargarTendenciasInicial();
+        cargarTendenciasPeliculasInicial();
+        cargarTendenciasSeriesInicial();
+        cargarUltimosTrailers();
+    } else if (target === 'games' && !juegosCargados) {
         aplicarFiltros();
         juegosCargados = true;
         // ✅ ELIMINADO: ya no cargamos tendencias aquí
@@ -720,19 +721,15 @@ function arrancarEnrutador() {
     // CARGAR TENDENCIAS SEGÚN LA VISTA DETECTADA
     setTimeout(() => {
         if (vistaInicial === 'home') {
-            console.log('🏠 [Carga inicial] Cargando TODAS las tendencias para HOME');
             cargarTendenciasInicial();
             cargarTendenciasPeliculasInicial();
             cargarTendenciasSeriesInicial();
             cargarUltimosTrailers();
         } else if (vistaInicial === 'games') {
-            console.log('🎮 [Carga inicial] Cargando solo tendencias de JUEGOS');
             cargarTendenciasInicial();
         } else if (vistaInicial === 'movies') {
-            console.log('🎬 [Carga inicial] Cargando solo tendencias de PELÍCULAS');
             cargarTendenciasPeliculasInicial();
         } else if (vistaInicial === 'series') {
-            console.log('📺 [Carga inicial] Cargando solo tendencias de SERIES');
             cargarTendenciasSeriesInicial();
         }
     }, 300);
@@ -1519,39 +1516,6 @@ async function initLanguage() {
     }
 }
 
-// 7. MODIFICAR EL MENÚ DE IDIOMAS (reemplazar el existente)
-// document.addEventListener('DOMContentLoaded', function () {
-//     // El menú ya existe en el HTML, solo añadimos el evento de cambio
-//     document.querySelectorAll('.lang-option').forEach(opt => {
-//         opt.addEventListener('click', async function (e) {
-//             e.preventDefault();
-//             const lang = this.dataset.lang;
-//             const flag = this.dataset.flag;
-
-//             // Actualizar bandera en el botón
-//             const flagImg = document.getElementById('lang-toggle').querySelector('img');
-//             if (flagImg) {
-//                 flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
-//                 flagImg.alt = lang.toUpperCase();
-//             }
-
-//             // Marcar como activo
-//             document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
-//             this.classList.add('active');
-
-//             // Cambiar idioma
-//             await setLanguage(lang);
-
-//             // Cerrar el menú
-//             document.querySelector('.lang-menu')?.classList.remove('show');
-//             langMenuOpen = false;
-//         });
-//     });
-
-//     // Inicializar idioma
-//     initLanguage();
-// });
-
 // 8. Exponer funciones globalmente
 window.t = t;
 window.setLanguage = setLanguage;
@@ -2013,11 +1977,8 @@ function getDateRange(period) {
 }
 
 async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
-    console.log(`🔄 Cargando tendencias de juegos: period=${period}, resetear=${resetear}, intentos=${intentos}`);
-
     await translationsReadyPromise;
     if (trendCargando) {
-        console.log('⏳ Ya está cargando, esperando...');
         return;
     }
     trendCargando = true;
@@ -2031,7 +1992,6 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
     // 1. INTERCEPTOR DE CACHÉ
     if (resetear && intentos === 0 && cacheTendenciasJuegos[period]) {
-        console.log(`📦 Usando caché para ${period}, ${cacheTendenciasJuegos[period].length} juegos`);
         container.scrollLeft = 0;
         trendOffset = 0;
         container.innerHTML = '';
@@ -2414,11 +2374,9 @@ function cargarTendenciasInicial() {
 
     // Si ya están cargadas, no recargar
     if (tendenciasJuegosCargadas) {
-        console.log('📦 [TENDENCIAS_INICIAL] Ya cargadas, omitiendo');
-        return;
+        return; // Si ya están, me salgo y no hago nada
     }
 
-    console.log('🔄 [TENDENCIAS_INICIAL] Cargando tendencias de juegos...');
     cargarTendencias('day', true);
     tendenciasJuegosCargadas = true;
     initTrendTabs();
@@ -3562,14 +3520,6 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
         updateVisibilityBasedOnSelection();
     }, 100);
 }
-
-// Inicializar cuando se carga la página
-// document.addEventListener('DOMContentLoaded', function () {
-//     initVoteFilters();
-//     initCountryFilters();
-//     initCountryFilterForType();
-//     initDateFilters();
-// });
 
 // listeners para pelis
 const inputMovies = document.getElementById('search-movies');
@@ -9871,11 +9821,9 @@ function cargarTendenciasPeliculasInicial() {
     }
 
     if (tendenciasPeliculasCargadas) {
-        console.log('📦 [TENDENCIAS_PELIS_INICIAL] Ya cargadas, omitiendo');
         return;
     }
 
-    console.log('🔄 [TENDENCIAS_PELIS_INICIAL] Cargando tendencias de películas...');
     cargarTendenciasPeliculas('day', true);
     tendenciasPeliculasCargadas = true;
     initTrendMoviesTabs();
@@ -10063,11 +10011,9 @@ function cargarTendenciasSeriesInicial() {
     }
 
     if (tendenciasSeriesCargadas) {
-        console.log('📦 [TENDENCIAS_SERIES_INICIAL] Ya cargadas, omitiendo');
         return;
     }
 
-    console.log('🔄 [TENDENCIAS_SERIES_INICIAL] Cargando tendencias de series...');
     cargarTendenciasSeries('day', true);
     tendenciasSeriesCargadas = true;
     setTimeout(() => {
@@ -10876,20 +10822,10 @@ function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'wa
 configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
 configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
 
-// document.addEventListener('DOMContentLoaded', function () {
-//     // Activamos el vigilante de pestañas unificado para TODAS las secciones
-//     setTimeout(() => {
-//         initTrendTabs();
-//     }, 800);
-// });
-
-
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
 // ==========================================
 async function inicializarApp() {
-    console.log("🚀 Iniciando WEB Multiusos...");
-
     // 1. INICIALIZAR IDIOMAS Y EVENTOS DEL MENÚ
     initLanguage(); // Primero cargamos el idioma base
 
