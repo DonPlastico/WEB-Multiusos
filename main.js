@@ -2118,7 +2118,6 @@ async function cargarMasTendencias(period = 'day') {
         // Aumentar el offset para cargar más
         trendOffset += 15;
 
-        // 🔥 AHORA ENVIAMOS 'period' al backend
         let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&period=${period}&lang=${currentLang}`;
 
         const response = await fetch(url);
