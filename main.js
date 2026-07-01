@@ -19,7 +19,7 @@ injectSpeedInsights();
 /**
  * CONFIGURACIÓN DE META TAGS POR PÁGINA
  */
-const baseUrl = 'https://web-multiusos.vercel.app';
+const baseUrl = 'https://dpsys-nexus.vercel.app';
 
 const OG_CONFIG = {
     home: {
