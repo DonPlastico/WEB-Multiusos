@@ -174,8 +174,6 @@ window.addEventListener('popstate', function () {
     setTimeout(detectPageAndUpdate, 50);
 });
 
-console.log('✅ Open Graph meta tags dinámicos activados');
-
 // ==========================================================================
 //   MENÚ CONTEXTUAL FLOTANTE: GUARDAR EN LISTA (estilo YouTube)
 // ==========================================================================
@@ -1705,6 +1703,7 @@ function crearTarjeta(juego) {
 
 async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
     await translationsReadyPromise; // Esperamos a que t() tenga datos reales antes de pintar nada
+
     // 1. SISTEMA DE FRENADO DE EMERGENCIA
     if (resetear) {
         // GUARDAR BÚSQUEDA PARA PERSISTENCIA F5
@@ -1720,6 +1719,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         cargando = false; // Desbloqueamos el sistema
         offsetActual = 0;
         busquedaActual = busqueda;
+        totalJuegosCargados = 0;
 
         if (filtros !== null) {
             filtrosGlobales = filtros;
@@ -1766,14 +1766,19 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         const respuesta = await fetch(url, { signal: miAbort.signal });
         if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
 
-        const datos = await respuesta.json();
+        const data = await respuesta.json();
+
+        // Extraer datos correctamente (compatibilidad con nuevo formato)
+        const juegos = data.juegos || data;
+        const total = data.total || juegos.length;
+        const hasMore = data.hasMore !== undefined ? data.hasMore : (juegos.length >= 50);
 
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
 
         // Si IGDB no encontró resultados y hay búsqueda, probar en Steam
-        let datosFinales = datos;
-        if (datos.length === 0 && busquedaActual) {
+        let datosFinales = juegos;
+        if (juegos.length === 0 && busquedaActual) {
             console.log('🔍 IGDB sin resultados, buscando en Steam...');
             try {
                 const steamRes = await fetch(`/api/steam?query=${encodeURIComponent(busquedaActual)}`);
@@ -1837,8 +1842,10 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
+        totalJuegosCargados += juegosConPortada.length;
+
         // 3. AUTO-ESCANEO (SOLO SI NO NOS HAN CANCELADO)
-        if (datos.length === 50) {
+        if (hasMore && juegosConPortada.length > 0) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
@@ -1860,20 +1867,24 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 }, 800);
 
             } else {
-                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;" aria-label="Cargar más juegos">${t('games.load_more_btn')}</button>`;
+                btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600; transition: all 0.3s;" 
+                onmouseover="this.style.background='var(--primary)'; this.style.color='white';" 
+                onmouseout="this.style.background='transparent'; this.style.color='var(--primary)';"
+                aria-label="Cargar más juegos">${t('games.load_more_btn')} (${totalJuegosCargados})</button>`;
                 gridJuegos.after(btnMas);
                 observadorScroll.observe(btnMas);
             }
-        } else if (datos.length < 50 && datosFiltrados.length === 0) {
-            const btnMas = document.createElement('div');
-            btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; color: var(--text-muted);";
-            btnMas.innerHTML = '<i class="fas fa-exclamation-circle"></i> No se encontraron más resultados en toda la red.';
-            gridJuegos.after(btnMas);
+        } else if (juegosConPortada.length > 0 && !hasMore) {
+            const finDiv = document.createElement('div');
+            finDiv.id = 'fin-juegos';
+            finDiv.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; padding: 20px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border);";
+            finDiv.innerHTML = `<i class="fas fa-flag-checkered" style="margin-right: 8px;"></i> ${t('games.no_more_results') || 'No hay más juegos para cargar'}`;
+            gridJuegos.after(finDiv);
         }
 
         // Liberamos solo si somos la petición actual
         if (peticionAbort === miAbort) {
-            offsetActual += datos.length;
+            offsetActual += juegos.length;
             cargando = false;
         }
 
@@ -1948,8 +1959,6 @@ function getDateRange(period) {
         finalFrom = Math.floor(fallback.getTime() / 1000);
         console.warn('⚠️ Fecha de inicio en el futuro, usando fallback:', new Date(finalFrom * 1000));
     }
-
-    console.log(`📅 Período ${period}: from=${finalFrom} (${new Date(finalFrom * 1000).toISOString()}) to=${toTimestamp} (${new Date(toTimestamp * 1000).toISOString()})`);
 
     return {
         from: finalFrom,

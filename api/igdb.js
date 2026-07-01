@@ -1,4 +1,9 @@
 export default async function handler(req, res) {
+    // Desactivar caché para Vercel
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
     const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
     const ITAD_API_KEY = process.env.ITAD_API_KEY;
@@ -15,7 +20,7 @@ export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
-    const limit = Math.min(parseInt(query.limit) || 50);
+    const limit = Math.min(parseInt(query.limit) || 50, 50); // ✅ CORREGIDO: siempre 50 máximo
     const sortField = query.sort || 'first_release_date.desc';
     const platforms = query.platforms || '';
     const genres = query.genres || '';
@@ -40,9 +45,7 @@ export default async function handler(req, res) {
 
         if (tokenCache && tokenCache.expires_at > Date.now()) {
             access_token = tokenCache.access_token;
-            console.log('✅ Token reutilizado de caché');
         } else {
-            console.log('🔄 Obteniendo nuevo token de Twitch...');
             const tokenRes = await fetch(
                 `https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`,
                 { method: 'POST' }
@@ -65,7 +68,6 @@ export default async function handler(req, res) {
                 expires_at: Date.now() + (23 * 60 * 60 * 1000)
             };
             access_token = tokenData.access_token;
-            console.log('✅ Nuevo token obtenido');
         }
 
         // =============================================
@@ -78,7 +80,7 @@ export default async function handler(req, res) {
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        //  Si se pasa 'period' en lugar de fechas, calcular automáticamente
+        // Si se pasa 'period' en lugar de fechas, calcular automáticamente
         const period = query.period || ''; // 'day', 'week', 'month', 'year'
 
         // Si hay 'period', calcular fechas automáticamente
@@ -187,24 +189,13 @@ export default async function handler(req, res) {
         }
 
         const dataRaw = await igdbRes.json();
-        console.log(`📥 IGDB devolvió ${dataRaw.length} juegos`);
 
         // =============================================
-        // 4. FILTRAR JUEGOS VÁLIDOS (VERSIÓN CORREGIDA)
+        // 4. FILTRAR JUEGOS VÁLIDOS
         // =============================================
 
         // Solo bloqueamos categorías que son OBVIAMENTE basura
         const CATEGORIAS_BLOQUEADAS = [3]; // 3 = Bundle (Complete Edition, etc.)
-
-        // Palabras clave para bloquear EDICIONES ESPECIALES (solo si están en el nombre)
-        const KEYWORDS_BLOQUEADAS = [
-            'complete edition', 'complete collection', 'game of the year', 'goty',
-            'launch edition', 'regalla edition', 'special edition', 'collector\'s edition',
-            'deluxe edition', 'ultimate edition', 'premium edition', 'gold edition',
-            'platinum edition', 'diamond edition', 'limited edition', 'exclusive edition',
-            'definitive edition', 'final edition', 'legendary edition', 'mythic edition',
-            'bundle', 'collection', 'compilation', 'triple pack', 'double pack'
-        ];
 
         // 1. Filtro básico: juegos con nombre y portada
         let juegosFiltrados = dataRaw.filter(juego => {
@@ -222,12 +213,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3. NUNCA bloqueamos por categoría si hay búsqueda (la gente busca DLCs, Remakes, etc.)
-        // 4. NUNCA bloqueamos DLCs (categoría 1) porque son contenido válido
-
-        // 5. Desduplicación: mantener SOLO la primera versión de cada juego
-        const vistos = new Map(); // Usamos Map para guardar el mejor juego
-        const juegosUnicos = [];
+        // 3. Desduplicación: mantener SOLO la primera versión de cada juego
+        const vistos = new Map();
 
         juegosFiltrados.forEach(juego => {
             // Extraer nombre base (antes del primer ":" o "-")
@@ -255,17 +242,13 @@ export default async function handler(req, res) {
                 if (esBase && !existenteEsBase) {
                     vistos.set(key, juego);
                 }
-                // Si ambos son base, mantener el que tenga portada (ambos ya tienen)
                 return;
             }
 
             vistos.set(key, juego);
         });
 
-        // Convertir Map a array
         juegosFiltrados = Array.from(vistos.values());
-
-        console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos (únicos)`);
 
         // =============================================
         // 5. CONSULTAR ITAD (PRECIOS)
@@ -352,7 +335,13 @@ export default async function handler(req, res) {
             });
         }
 
-        res.status(200).json(juegosFiltrados);
+        res.status(200).json({
+            juegos: juegosFiltrados,
+            total: dataRaw.length,
+            offset: offset,
+            limit: limit,
+            hasMore: juegosFiltrados.length === limit
+        });
 
     } catch (error) {
         console.error('🔴 Error en IGDB handler:', error);
