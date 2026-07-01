@@ -134,6 +134,12 @@
 
 body {
     background-color: var(--bg-main);
+    background-image: url('/img/fondo.png');
+    background-repeat: repeat;
+    background-position: top left;
+    background-size: auto;
+    background-attachment: fixed;
+    /* Esto hace que la imagen se quede fija al hacer scroll */
     color: var(--text-main);
     font-family: var(--font-cyber);
     overflow-x: hidden;
