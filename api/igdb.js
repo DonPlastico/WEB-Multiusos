@@ -15,8 +15,8 @@ export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
-    const limit = Math.min(parseInt(query.limit) || 50, 100);
-    const sortField = query.sort || 'first_release_date.desc'; // <-- CAMBIADO: fecha por defecto
+    const limit = Math.min(parseInt(query.limit) || 100, 200);
+    const sortField = query.sort || 'first_release_date.desc';
     const platforms = query.platforms || '';
     const genres = query.genres || '';
     const dateMin = query.dateMin || '';
@@ -88,13 +88,13 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // 🔥 NUEVO: Si NO hay búsqueda y NO hay filtros de fecha, excluir juegos sin fecha
+        // Si NO hay búsqueda y NO hay filtros de fecha, excluir juegos sin fecha
         // y juegos con fecha futura (no lanzados aún)
         if (!busqueda && !dateMin && !dateMax) {
             const hoy = Math.floor(Date.now() / 1000);
             whereClauses.push(`first_release_date != null`);
-            whereClauses.push(`first_release_date <= ${hoy}`); // Solo juegos ya lanzados
-            whereClauses.push('total_rating_count > 5'); // Mínimo de votos para calidad
+            whereClauses.push(`first_release_date <= ${hoy}`);
+            // whereClauses.push('total_rating_count > 5');
         }
 
         // Si hay búsqueda, no filtramos por fecha (para que salgan juegos futuros)
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
-        // 🔥 NUEVO: Orden por fecha de lanzamiento DESCENDENTE (más reciente primero)
+        // Orden por fecha de lanzamiento DESCENDENTE (más reciente primero)
         let sortQuery = 'sort first_release_date desc;';
         if (sortField === 'rating.desc') sortQuery = 'sort total_rating desc;';
         else if (sortField === 'rating.asc') sortQuery = 'sort total_rating asc;';
@@ -121,9 +121,9 @@ export default async function handler(req, res) {
         if (busqueda) {
             bodyQuery = `
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
-                       total_rating, total_rating_count, rating, rating_count, category,
-                       summary, involved_companies.company.name, involved_companies.developer,
-                       involved_companies.publisher, genres.name, game_modes.name, websites.url;
+                    total_rating, total_rating_count, rating, rating_count, category,
+                    summary, involved_companies.company.name, involved_companies.developer,
+                    involved_companies.publisher, genres.name, game_modes.name, websites.url;
                 search "${busqueda}";
                 ${whereQuery}
                 limit ${limit};
@@ -132,17 +132,15 @@ export default async function handler(req, res) {
         } else {
             bodyQuery = `
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
-                       total_rating, total_rating_count, rating, rating_count, category,
-                       summary, involved_companies.company.name, involved_companies.developer,
-                       involved_companies.publisher, genres.name, game_modes.name, websites.url;
+                    total_rating, total_rating_count, rating, rating_count, category,
+                    summary, involved_companies.company.name, involved_companies.developer,
+                    involved_companies.publisher, genres.name, game_modes.name, websites.url;
                 ${whereQuery}
                 ${sortQuery}
                 limit ${limit};
                 offset ${offset};
             `;
         }
-
-        console.log('📤 Query enviada a IGDB:', bodyQuery);
 
         // =============================================
         // 3. CONSULTAR IGDB
