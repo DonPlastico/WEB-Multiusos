@@ -131,13 +131,12 @@
 /* ==========================================================================
    ESTILOS BASE
    ========================================================================== */
-
 body {
     background-color: var(--bg-main);
-    background-image: url('/img/fondo.png');
+    background-image: linear-gradient(45deg, #000000 5%, transparent 5%, transparent 80%, #000000 80%), url('./public/img/Fondo.png');
+    background-blend-mode: overlay;
+
     background-repeat: repeat;
-    background-position: top left;
-    background-size: auto;
     background-attachment: fixed;
     color: var(--text-main);
     font-family: var(--font-cyber);
@@ -406,6 +405,8 @@ input[type=number]::-webkit-outer-spin-button {
 .cyber-container {
     padding: 100px 150px;
     margin: 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
 .view {
@@ -691,10 +692,7 @@ input[type=number]::-webkit-outer-spin-button {
     left: 0;
     width: 100%;
     height: 100vh;
-    background: repeating-linear-gradient(0deg,
-            rgba(0, 0, 0, 0) 0px,
-            rgba(0, 0, 0, 0.08) 1px,
-            transparent 2px);
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 0px, rgba(0, 0, 0, 0.08) 1px, transparent 2px);
     pointer-events: none;
     z-index: 9999;
     opacity: 0.3;
