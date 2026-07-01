@@ -955,7 +955,7 @@ function applyTranslations() {
 
     const emptyChat = document.querySelector('.chatbox-messages-area .empty-chat-message');
     if (emptyChat) {
-        emptyChat.textContent = t('chat.select_friend');
+        emptyChat.textContent = t('chat_extra.select_friend');
     }
 
     // --- NAVEGACIÓN ---
@@ -1081,13 +1081,21 @@ function applyTranslations() {
     // --- MODALES ---
     const modalMap = {
         'modal-title': 'modal.select_title',
-        'close-modal': 'modal.close',
         'btn-save-crop': 'modal.upload',
         'crop-modal-title': 'modal.crop_title',
     };
     for (const [id, key] of Object.entries(modalMap)) {
         const el = document.getElementById(id);
         if (el) el.textContent = t(key);
+    }
+
+    // 'close-modal' tiene un icono <i class="fas fa-times"> dentro: NO usar textContent
+    // (lo borraría y dejaría el texto "Cerrar" en vez del icono). Solo se traduce el
+    // aria-label/title, el icono se queda intacto.
+    const closeModalBtn = document.getElementById('close-modal');
+    if (closeModalBtn) {
+        closeModalBtn.setAttribute('aria-label', t('modal.close'));
+        closeModalBtn.title = t('modal.close');
     }
 
     // --- LOGIN / REGISTRO ---
@@ -1289,19 +1297,24 @@ function applyTranslations() {
         'media-detail-rent-label': 'details.rent',
         'media-detail-buy-label': 'details.buy',
         'media-detail-seasons-title': 'details.seasons_title',
-        'btn-watch-toggle': 'details.watch_btn',
         'btn-context-rewatch': 'details.rewatch_btn',
         'btn-context-unwatch': 'details.unwatch_btn',
     };
     for (const [id, key] of Object.entries(mediaMap)) {
         const el = document.getElementById(id);
         if (el) {
-            if (el.tagName === 'BUTTON') {
-                el.textContent = t(key);
-            } else {
-                el.textContent = t(key);
-            }
+            el.textContent = t(key);
         }
+    }
+
+    // 'btn-watch-toggle' tiene un icono <i id="icon-watch-status"> dentro que cambia
+    // dinámicamente (ojo / ojo tachado según visto/no visto). NO usar textContent aquí
+    // porque borraría el icono. Se traduce solo como title/aria-label.
+    const watchToggleBtn = document.getElementById('btn-watch-toggle');
+    if (watchToggleBtn) {
+        const watchLabel = window.estadoMediaActual?.visto ? t('details.watch_status') : t('details.watch_btn');
+        watchToggleBtn.setAttribute('aria-label', watchLabel);
+        watchToggleBtn.title = watchLabel;
     }
 
     // --- GÉNEROS (checkbox labels) ---
@@ -1341,21 +1354,18 @@ function applyTranslations() {
         el.textContent = t('user.view_profile');
     });
 
-    // Actualizar botones del menú de usuario usando IDs específicos
-    document.querySelectorAll('.user-menu-panel .theme-option span').forEach(span => {
-        const parentBtn = span.closest('.theme-option');
-        if (!parentBtn) return;
-
-        if (parentBtn.id === 'btn-mis-listas') {
-            span.textContent = t('user.lists');
-        } else if (span.textContent.includes('Editar perfil')) {
-            span.textContent = t('user.edit_profile');
-        } else if (span.textContent.includes('Ajustes')) {
-            span.textContent = t('user.settings');
-        } else if (span.textContent.includes('Cerrar sesión')) {
-            span.textContent = t('user.logout');
-        }
-    });
+    // Actualizar botones del menú de usuario usando IDs específicos (fiable, no depende
+    // de que el texto siga siendo literalmente el string en español)
+    const userMenuIdMap = {
+        'btn-mis-listas': 'user.lists',
+        'btn-editar-perfil': 'user.edit_profile',
+        'btn-ajustes': 'user.settings',
+        'btn-logout': 'user.logout',
+    };
+    for (const [id, key] of Object.entries(userMenuIdMap)) {
+        const span = document.getElementById(id)?.querySelector('span');
+        if (span) span.textContent = t(key);
+    }
 
     // --- ACTUALIZAR MENÚ CONTEXTUAL DE TARJETAS ---
     document.querySelectorAll('#card-watch-menu .theme-option span').forEach(span => {
@@ -3468,8 +3478,8 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
-    <button class="theme-option"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
+    <button class="theme-option" id="btn-editar-perfil"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
+    <button class="theme-option" id="btn-ajustes"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
     
     <div class="dropdown-divider"></div>
     
@@ -4727,7 +4737,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = t('details.no_details');
+            document.getElementById('detail-description').textContent = t('details_extra.no_details');
             return;
         }
 
@@ -4736,14 +4746,14 @@ async function llamarDetallesJuego(idJuego, titulo) {
         if (juego.summary) {
             descElement.textContent = juego.summary;
         } else {
-            descElement.textContent = t('details.no_description');
+            descElement.textContent = t('details_extra.no_description');
             descElement.style.fontStyle = "italic";
         }
 
         // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
-        const dev = empresas.find(e => e.developer)?.company.name || t('details.unknown');
-        const pub = empresas.find(e => e.publisher)?.company.name || t('details.unknown');
+        const dev = empresas.find(e => e.developer)?.company.name || t('details_extra.unknown');
+        const pub = empresas.find(e => e.publisher)?.company.name || t('details_extra.unknown');
 
         document.getElementById('detail-dev').textContent = dev;
         document.getElementById('detail-pub').textContent = pub;
@@ -4761,7 +4771,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
             const web = juego.websites[0];
-            containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">${t('details.official_site')}</a>`;
+            containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">${t('details_extra.official_site')}</a>`;
         } else {
             containerLinks.textContent = 'N/A';
         }
@@ -4799,8 +4809,8 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     modalMedia.setAttribute('data-current-type', tipo);
 
     // 1. Resetear y preparar UI
-    document.getElementById('media-detail-title').textContent = t('details.connecting');
-    document.getElementById('media-detail-description').textContent = t('details.downloading');
+    document.getElementById('media-detail-title').textContent = t('details_extra.connecting');
+    document.getElementById('media-detail-description').textContent = t('details_extra.downloading');
     document.getElementById('media-detail-duration').textContent = "--";
     document.getElementById('media-detail-genres').textContent = "--";
     document.getElementById('media-detail-watch-date').textContent = "--";
@@ -4984,12 +4994,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
         // Estado (Mapeo de estados de TMDB)
         const estadoMap = {
-            'Returning Series': t('details.returning'),
-            'Ended': t('details.ended'),
-            'Released': t('details.released'),
-            'Planned': t('details.planned'),
-            'In Production': t('details.in_production'),
-            'Post Production': t('details.post_production')
+            'Returning Series': t('details_extra.returning'),
+            'Ended': t('details_extra.ended'),
+            'Released': t('details_extra.released'),
+            'Planned': t('details_extra.planned'),
+            'In Production': t('details_extra.in_production'),
+            'Post Production': t('details_extra.post_production')
         };
         document.getElementById('media-detail-status').textContent = estadoMap[data.status] || data.status || 'Desconocido';
 
@@ -5015,7 +5025,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
             // Cálculo total tiempo serie: Episodios * Duración media (45min por defecto)
             const totalMins = (data.episodios || 0) * (data.duracion || 45);
-            document.getElementById('media-detail-duration').textContent = `${t('details.total')}: ${formatearTiempo(totalMins)}`;
+            document.getElementById('media-detail-duration').textContent = `${t('details_extra.total')}: ${formatearTiempo(totalMins)}`;
 
             // ==========================================
             // TIEMPO RESTANTE (PARA SERIES)
@@ -5032,7 +5042,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
                 // Si no hay tiempo restante, mostrar "¡Completada!"
                 if (restantes === 0 && totalEpisodios > 0) {
-                    document.getElementById('media-detail-remaining-time').textContent = `✅ ${t('details.completed')}`;
+                    document.getElementById('media-detail-remaining-time').textContent = `✅ ${t('details_extra.completed')}`;
                 }
             } else {
                 document.getElementById('media-detail-remaining-time').textContent = '--';
@@ -5096,12 +5106,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         let urlTrailer = '';
         if (data.trailer_id) {
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
-            document.getElementById('media-detail-trailer-duration').textContent = t('details.official');
+            document.getElementById('media-detail-trailer-duration').textContent = t('details_extra.official');
             document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
         } else {
             const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
             urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
-            document.getElementById('media-detail-trailer-duration').textContent = t('details.search');
+            document.getElementById('media-detail-trailer-duration').textContent = t('details_extra.search');
             document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
         }
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
@@ -5111,7 +5121,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
 
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
-        document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} ${t('details.ratings')}`;
+        document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} ${t('details_extra.ratings')}`;
 
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
@@ -5144,7 +5154,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             });
             castContainer.innerHTML = castHtml;
         } else {
-            castContainer.innerHTML = `<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">${t('details.no_cast')}</div>`;
+            castContainer.innerHTML = `<div style="color: var(--text-muted); padding: 20px; font-size: 0.85rem; width: 100%; text-align: center;">${t('details_extra.no_cast')}</div>`;
         }
 
         // 10.5 TEMPORADAS Y EPISODIOS (SOLO PARA SERIES)
@@ -5176,7 +5186,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     `;
                 });
                 seasonsHtml += '</div>';
-                seasonsContainer.innerHTML = `<h3 class="detail-section-title">${t('details.all_episodes')}</h3>` + seasonsHtml;
+                seasonsContainer.innerHTML = `<h3 class="detail-section-title">${t('details_extra.all_episodes')}</h3>` + seasonsHtml;
 
                 // Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
                 const headers = seasonsContainer.querySelectorAll('.season-header');
@@ -5225,7 +5235,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                                         <span><i class="fas fa-calendar-alt"></i> ${fecha}</span>
                                                         <span><i class="fas fa-star" style="color: gold;"></i> ${nota}</span>
                                                     </div>
-                                                    <p class="ep-overview">${ep.overview || t('details.no_episode_description')}</p>
+                                                    <p class="ep-overview">${ep.overview || t('details_extra.no_episode_description')}</p>
                                                 </div>
                                                 
                                                 <button class="btn-watch-episode" data-season="${seasonNumber}" data-episode="${ep.episode_number}" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: transparent; border: 2px solid ${colorBtn}; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: ${colorBtn}; font-size: 0.95rem; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.transform='translateY(-50%) scale(1)'">
@@ -5338,8 +5348,8 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
     } catch (err) {
         console.error(err);
-        document.getElementById('media-detail-description').textContent = t('details.error_loading');
-        castContainer.innerHTML = `<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">${t('details.error_cast')}</div>`;
+        document.getElementById('media-detail-description').textContent = t('details_extra.error_loading');
+        castContainer.innerHTML = `<div style="color: var(--error); padding: 20px; font-size: 0.85rem; text-align: center;">${t('details_extra.error_cast')}</div>`;
     }
 }
 
@@ -6134,13 +6144,13 @@ async function iniciarPanelAdmin() {
     if (adminPanelIniciado) return; // Solo lo arrancamos la primera vez
     adminPanelIniciado = true;
 
-    addAdminLog(t('admin.init'), "system");
+    addAdminLog(t('admin_extra.init'), "system");
 
     // Obtenemos nuestro usuario para evitar quitarnos el admin a nosotros mismos
     const { data: { session } } = await supabase.auth.getSession();
     miEmailGlobalAdmin = session?.user?.email;
 
-    addAdminLog(t('admin.validated'), "success");
+    addAdminLog(t('admin_extra.validated'), "success");
 
     // Arrancamos la carga de la tabla (sin simulador de telemetría falso)
     cargarTablaUsuarios();
@@ -6295,7 +6305,7 @@ async function cargarTablaUsuarios(filtro = "") {
             tbody.appendChild(tr);
         });
 
-        addAdminLog(t('admin.table_updated', { count: usuariosFiltrados.length }), "success");
+        addAdminLog(t('admin_extra.table_updated', { count: usuariosFiltrados.length }), "success");
 
     } catch (err) {
         addAdminLog("Error al extraer usuarios: " + err.message, "error");
@@ -6672,7 +6682,7 @@ window.cargarAlertas = async function () {
     const areaNotifs = document.getElementById('chatbox-notifs-scroll');
     if (!areaNotifs) return;
 
-    areaNotifs.innerHTML = `<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">${t('chat.synchronizing')}</p></div>`;
+    areaNotifs.innerHTML = `<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">${t('chat_extra.synchronizing')}</p></div>`;
 
     try {
         const miId = session.user.id; // Usamos nuestro UUID directamente
@@ -6994,7 +7004,7 @@ window.actualizarUIMediaPersonal = async function (data) {
         }
 
         let badgeStatic = window.estadoMediaActual.veces_vista > 1 ? ` <span class="watch-count-badge">${badgeText}</span>` : '';
-        watchStatus.innerHTML = `${t('details.watched')} ${badgeStatic}`;
+        watchStatus.innerHTML = `${t('details_extra.watched')} ${badgeStatic}`;
         if (iconStatusText) {
             iconStatusText.className = 'fas fa-eye';
             iconStatusText.style.color = 'var(--primary)';
@@ -7009,9 +7019,9 @@ window.actualizarUIMediaPersonal = async function (data) {
         }
 
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
-            personalText.textContent = t('details.your_rating');
+            personalText.textContent = t('details_extra.your_rating');
         } else {
-            personalText.textContent = t('details.click_to_rate');
+            personalText.textContent = t('details_extra.click_to_rate');
         }
 
     } else {
@@ -7036,7 +7046,7 @@ window.actualizarUIMediaPersonal = async function (data) {
             btnWatchToggle.classList.remove('watched');
         }
 
-        personalText.textContent = t('details.click_to_rate');
+        personalText.textContent = t('details_extra.click_to_rate');
     }
 
     resetearEstrellasPersonal();
@@ -7880,7 +7890,7 @@ async function cargarDatosPerfil() {
 
         if (infoJoined && perfil?.created_at) {
             const fecha = new Date(perfil.created_at);
-            infoJoined.textContent = t('edit.member_since') + ' ' + fecha.toLocaleDateString('es-ES', {
+            infoJoined.textContent = t('edit_extra.member_since') + ' ' + fecha.toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -8092,7 +8102,7 @@ function inicializarEditProfile() {
     // Cargar datos del perfil (rellena los inputs)
     cargarDatosPerfil();
 
-    document.querySelector('.edit-profile-description').textContent = t('edit.description');
+    document.querySelector('.edit-profile-description').textContent = t('edit_extra.description');
     document.querySelector('.edit-personal-title').textContent = t('edit.personal_data');
 
     // Guardar la vista anterior
@@ -8465,10 +8475,10 @@ function mostrarHistorial(tipo) {
     container.style.display = 'block';
     container.innerHTML = `
         <div class="search-history-header">
-            <span>${t('search.recent')}</span>
+            <span>${t('search_extra.recent')}</span>
             <button class="search-history-clear-all" onclick="limpiarHistorialCompleto('${tipo}')">
                 <i class="fas fa-trash-alt"></i>
-                <span>${t('search.clear_all')}</span>
+                <span>${t('search_extra.clear_all')}</span>
             </button>
         </div>
         ${historial.map(item => `
@@ -9576,7 +9586,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
             container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-film"></i>
-                <span>${t('trends.movies_empty')}</span>
+                <span>${t('trends_extra.movies_empty')}</span>
             </div>
         `;
             trendMoviesCargando = false;
@@ -9606,7 +9616,7 @@ async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>${t('trends.movies_error')}</span>
+                <span>${t('trends_extra.movies_error')}</span>
                 <button onclick="cargarTendenciasPeliculas('${period}', true)" 
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
                     <i class="fas fa-redo"></i> ${t('common.retry')}
@@ -9631,7 +9641,7 @@ function crearTarjetaTrendPelicula(pelicula, posicion) {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-    }) : t('trends.coming_soon');
+    }) : t('trends_extra.coming_soon');
 
     const rating = pelicula.nota || '0.0';
 
@@ -9796,7 +9806,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
             container.innerHTML = `
                 <div class="trends-empty">
                     <i class="fas fa-tv"></i>
-                    <span>${t('trends.series_empty')}</span>
+                    <span>${t('trends_extra.series_empty')}</span>
                 </div>
             `;
             trendSeriesCargando = false;
@@ -9825,7 +9835,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>${t('trends.series_error')}</span>
+                <span>${t('trends_extra.series_error')}</span>
                 <button onclick="cargarTendenciasSeries('${period}', true)"
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
                     <i class="fas fa-redo"></i> ${t('common.retry')}
@@ -9850,7 +9860,7 @@ function crearTarjetaTrendSerie(serie, posicion) {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
-    }) : t('trends.coming_soon');
+    }) : t('trends_extra.coming_soon');
 
     const rating = serie.nota || '0.0';
 
@@ -9975,7 +9985,7 @@ async function cargarUltimosTrailers() {
         container.innerHTML = `
             <div class="trends-empty">
                 <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
-                <span>${t('trends.trailers_error')}</span>
+                <span>${t('trends_extra.trailers_error')}</span>
                 <button onclick="cargarUltimosTrailers()" 
                         style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
                     <i class="fas fa-redo"></i> ${t('common.retry')}
@@ -10004,9 +10014,9 @@ function crearTarjetaPlaceholderTrailer(tipo) {
             <span style="font-size: 0.7rem; color: var(--text-muted);">${texto}</span>
         </div>
         <div class="game-info">
-            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">t('trends.coming_soon')</h3>
+            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">t('trends_extra.coming_soon')</h3>
             <button class="auth-btn secondary" style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: 8px; opacity: 0.3; cursor: not-allowed;" disabled>
-                <i class="fab fa-youtube"></i> t('trends.no_trailer')
+                <i class="fab fa-youtube"></i> t('trends_extra.no_trailer')
             </button>
         </div>
     `;
@@ -10040,7 +10050,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
             : 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.first_release_date
             ? new Date(item.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
-            : t('trends.coming_soon');
+            : t('trends_extra.coming_soon');
         // Para juegos, buscamos un trailer en websites o usamos búsqueda genérica
         urlYoutube = `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
     } else {
@@ -10049,7 +10059,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
         posterUrl = item.poster || 'https://placehold.co/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.fecha
             ? new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
-            : t('trends.coming_soon');
+            : t('trends_extra.coming_soon');
         // Para TMDB, usar trailer_id si existe
         trailerId = item.trailer_id || null;
         urlYoutube = trailerId
@@ -10077,7 +10087,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
             <button class="auth-btn primary btn-trailer-card" 
                     data-url="${urlYoutube}"
                     style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: auto; background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);">
-                <i class="fab fa-youtube" style="margin-right: 6px;"></i> t('trends.watch_trailer')
+                <i class="fab fa-youtube" style="margin-right: 6px;"></i> t('trends_extra.watch_trailer')
             </button>
         </div>
     `;
@@ -10695,7 +10705,7 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarTendenciasPeliculasInicial();
     cargarTendenciasSeriesInicial();
 
-    // 👉 INICIAMOS LOS TRÁILERS
+    // INICIAMOS LOS TRÁILERS
     setTimeout(() => {
         cargarUltimosTrailers();
     }, 1000);
