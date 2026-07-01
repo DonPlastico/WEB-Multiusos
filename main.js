@@ -10011,7 +10011,7 @@ async function cargarUltimosTrailers() {
         const dateRange = getDateRange('week');
 
         // 2. Definir URLs - pedimos 5 de cada uno
-        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}&lang=${currentLang}`;
+        const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&lang=${currentLang}`;
         const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
         const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
 
