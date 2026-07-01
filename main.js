@@ -293,6 +293,13 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Ocultar al hacer scroll
+window.addEventListener('scroll', () => {
+    if (menuAddToListVisible) {
+        cerrarMenuAddToList();
+    }
+}, { passive: true });
+
 // ==========================================================================
 //   CARGAR LISTAS EDITABLES (cacheado)
 // ==========================================================================
