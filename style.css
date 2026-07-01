@@ -400,12 +400,11 @@ input[type=number]::-webkit-outer-spin-button {
 /* ==========================================================================
    CONTENEDORES Y VISTAS
    ========================================================================== */
-
 .cyber-container {
-    padding: 100px 150px;
-    margin: 0 auto;
-    position: relative;
     z-index: 2;
+    margin: 0 auto;
+    padding: 100px 100px 25px 100px;
+    position: relative;
 }
 
 .view {
