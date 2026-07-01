@@ -6486,30 +6486,50 @@ window.showToast = async function (tipo, titulo, descripcion) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    const container = document.getElementById('toast-container');
+    // 2. DETECTAR SI ES PC O MÓVIL
+    const isMobile = window.innerWidth <= 768;
+
+    // 3. SELECCIONAR EL CONTENEDOR CORRECTO
+    const containerId = isMobile ? 'toast-container-mobile' : 'toast-container';
+    const container = document.getElementById(containerId);
+
+    // Si el contenedor no existe, lo creamos (fallback)
+    if (!container) {
+        console.warn('⚠️ Contenedor de toasts no encontrado, creando uno...');
+        const newContainer = document.createElement('div');
+        newContainer.id = containerId;
+        newContainer.className = `toast-container ${isMobile ? 'toast-mobile' : 'toast-desktop'}`;
+        document.body.appendChild(newContainer);
+        // Reintentar con el nuevo contenedor
+        return window.showToast(tipo, titulo, descripcion);
+    }
+
     const templateId = tipo === 'success' ? 'toast-success-template' : 'toast-error-template';
     const template = document.getElementById(templateId);
 
-    if (!container || !template) return;
+    if (!template) {
+        console.error('❌ Template de toast no encontrado:', templateId);
+        return;
+    }
 
-    // 2. Clonamos la plantilla oculta del HTML
+    // 4. Clonamos la plantilla oculta del HTML
     const clone = template.content.cloneNode(true);
     const wrapper = clone.querySelector('.toast-wrapper');
     const titleEl = clone.querySelector('.toast-title');
     const descEl = clone.querySelector('.toast-desc');
     const closeBtn = clone.querySelector('.toast-close');
 
-    // 3. Inyectamos nuestros textos
+    // 5. Inyectamos nuestros textos
     titleEl.textContent = titulo;
     descEl.textContent = descripcion;
 
-    // 4. Funcionalidad de cerrar manual
+    // 6. Funcionalidad de cerrar manual
     closeBtn.addEventListener('click', () => {
         wrapper.classList.add('toast-leave');
-        setTimeout(() => wrapper.remove(), 250); // Esperamos que termine la animación
+        setTimeout(() => wrapper.remove(), 250);
     });
 
-    // 5. Auto-destrucción a los 5 segundos
+    // 7. Auto-destrucción a los 5 segundos
     setTimeout(() => {
         if (wrapper.parentElement) {
             wrapper.classList.add('toast-leave');
@@ -6517,9 +6537,65 @@ window.showToast = async function (tipo, titulo, descripcion) {
         }
     }, 5000);
 
-    // 6. Lanzamos el Toast a la pantalla
+    // 8. Lanzamos el Toast a la pantalla
     container.appendChild(clone);
+
+    // 9. SI ESTAMOS EN PC: Ajustar posición según el chatbox
+    if (!isMobile) {
+        actualizarPosicionToastsPC();
+    }
 };
+
+// ==========================================================================
+//   FUNCIÓN PARA ACTUALIZAR POSICIÓN DE TOASTS EN PC (según chatbox)
+// ==========================================================================
+function actualizarPosicionToastsPC() {
+    const chatbox = document.getElementById('nexus-chatbox');
+    const toastContainer = document.getElementById('toast-container');
+
+    if (!chatbox || !toastContainer) return;
+
+    const isChatboxExpanded = !chatbox.classList.contains('collapsed');
+    const chatboxHeight = chatbox.offsetHeight || 480; // Fallback a 480px
+
+    // Ajustar la posición bottom según el estado del chatbox
+    if (isChatboxExpanded) {
+        toastContainer.style.bottom = `calc(20px + ${chatboxHeight + 10}px)`;
+    } else {
+        toastContainer.style.bottom = `calc(20px + 185px)`;
+    }
+}
+
+// ==========================================================================
+//   ESCUCHAR CAMBIOS EN EL CHATBOX PARA ACTUALIZAR TOASTS
+// ==========================================================================
+// Observar cambios en la clase del chatbox
+const chatboxObserver = new MutationObserver(() => {
+    const chatbox = document.getElementById('nexus-chatbox');
+    if (chatbox && window.innerWidth > 768) {
+        actualizarPosicionToastsPC();
+    }
+});
+
+// Iniciar observer cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    const chatbox = document.getElementById('nexus-chatbox');
+    if (chatbox) {
+        chatboxObserver.observe(chatbox, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+        // Posición inicial
+        setTimeout(actualizarPosicionToastsPC, 200);
+    }
+});
+
+// También actualizar al redimensionar la ventana
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+        actualizarPosicionToastsPC();
+    }
+});
 
 // ==========================================================================
 //   CHATBOX Y NOTIFICACIONES FLOTANTE

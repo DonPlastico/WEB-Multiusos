@@ -3976,20 +3976,47 @@ cast-carousel::-webkit-scrollbar {
 }
 
 /* ==========================================================================
-   NOTIFICACIONES (TOASTS)
+   NOTIFICACIONES (TOASTS) - PC y MÓVIL
    ========================================================================== */
 
+/* Contenedor base */
 .toast-container {
     position: fixed;
-    top: 90px;
-    right: 20px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     z-index: 9999;
     pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.toast-container .toast-wrapper {
+    pointer-events: auto;
+}
+
+/* --- PC: Abajo derecha, encima del chatbox --- */
+.toast-desktop {
+    bottom: calc(20px + 185px);
+    /* Altura del chatbox colapsado (50px + margen) */
+    right: 25px;
+    align-items: flex-end;
+}
+
+/* Cuando el chatbox está expandido, los toasts suben */
+.chatbox-container:not(.collapsed)~.toast-desktop,
+.chatbox-container:not(.collapsed) .toast-desktop {
+    bottom: calc(20px + 485px);
+    /* Altura del chatbox expandido (480px + margen) */
+}
+
+/* --- MÓVIL: Arriba izquierda --- */
+.toast-mobile {
+    top: 20px;
+    left: 20px;
+    align-items: flex-start;
+}
+
+/* --- Estilos individuales de cada toast (se mantienen igual) --- */
 .toast-wrapper {
     pointer-events: auto;
     animation: toastSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -6782,6 +6809,14 @@ cast-carousel::-webkit-scrollbar {
     #series-progress-container {
         padding: 0 20px;
     }
+
+    .toast-mobile {
+        display: none !important;
+    }
+
+    .toast-desktop {
+        display: flex !important;
+    }
 }
 
 /* ===== MÓVILES (max 768px) ===== */
@@ -7230,6 +7265,14 @@ cast-carousel::-webkit-scrollbar {
         border-top: 1px solid var(--border-color);
         padding-left: 0;
         padding-top: 8px;
+    }
+
+    .toast-desktop {
+        display: none !important;
+    }
+
+    .toast-mobile {
+        display: flex !important;
     }
 }
 
