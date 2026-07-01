@@ -37,7 +37,7 @@ const OG_CONFIG = {
     movies: {
         title: 'DP-SYS | Nexus - Películas: Tu cine personal',
         description: 'Sumérgete en el mundo del cine con nuestra colección de películas. Guarda tu progreso, califica y descubre recomendaciones personalizadas.',
-        image: `${baseUrl}/img/Pruebas/PELÍCULAS.png`,
+        image: `${baseUrl}/img/Pruebas/PELICULAS.png`,
         url: '/peliculas'
     },
     series: {
