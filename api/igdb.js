@@ -94,12 +94,11 @@ export default async function handler(req, res) {
             const hoy = Math.floor(Date.now() / 1000);
             whereClauses.push(`first_release_date != null`);
             whereClauses.push(`first_release_date <= ${hoy}`);
-            // whereClauses.push('total_rating_count > 5');
+            // 🔥 COMENTADO: whereClauses.push('total_rating_count > 5');
         }
 
-        // Si hay búsqueda, no filtramos por fecha (para que salgan juegos futuros)
+        // Si hay búsqueda, NO filtramos por fecha
         if (busqueda) {
-            // Quitamos el filtro de fecha futura si existe
             const indexFecha = whereClauses.findIndex(c => c.includes('first_release_date <= '));
             if (indexFecha !== -1) {
                 whereClauses.splice(indexFecha, 1);

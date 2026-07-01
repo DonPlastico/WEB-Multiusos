@@ -1694,7 +1694,7 @@ function crearTarjeta(juego) {
                 </div>
 
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMenuAddToList(event, ${juego.id}, 'game');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMenuAddToList(event, '${juego.id}', 'game');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
@@ -2723,7 +2723,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                 </div>
                 
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
-                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMenuAddToList(event, ${media.id}, '${tipo}');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
+                    <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMenuAddToList(event, '${media.id}', '${tipo}');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
                     </button>
                     ${btnVistoHtml}
@@ -3528,8 +3528,8 @@ const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
 userMenu.innerHTML = `
     <div class="user-dropdown-header" id="btn-ver-perfil">
-        <span id="dropdown-username" class="dropdown-username">${t('user.guest')}</span>
-        <span class="dropdown-subtext">${t('user.view_profile')}</span>
+        <span id="dropdown-username" class="dropdown-username">Invitado</span>
+        <span class="dropdown-subtext">Ver perfil</span>
     </div>
     
     <div class="dropdown-divider"></div>
