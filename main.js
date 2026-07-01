@@ -562,28 +562,34 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     if (target === 'games' && !juegosCargados) {
         aplicarFiltros();
         juegosCargados = true;
-        // Cargar tendencias de juegos si no están cargadas
-        const containerGames = document.getElementById('trend-games');
-        if (containerGames && containerGames.children.length === 0) {
-            cargarTendencias('day', true);
+        // SOLO cargar tendencias si no están ya cargadas en la vista actual
+        if (vistaActualGlobal === 'games') {
+            const container = document.getElementById('trend-games');
+            if (container && container.children.length === 0) {
+                cargarTendencias('day', true);
+            }
         }
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
         cargarGeneros('movie');
-        // Cargar tendencias de películas si no están cargadas
-        const containerMovies = document.getElementById('trend-movies');
-        if (containerMovies && containerMovies.children.length === 0) {
-            cargarTendenciasPeliculas('day', true);
+        // SOLO cargar tendencias si no están ya cargadas en la vista actual
+        if (vistaActualGlobal === 'movies') {
+            const container = document.getElementById('trend-movies');
+            if (container && container.children.length === 0) {
+                cargarTendenciasPeliculas('day', true);
+            }
         }
     } else if (target === 'series' && !seriesCargadas) {
         cargarTMDB('tv');
         seriesCargadas = true;
         cargarGeneros('tv');
-        // Cargar tendencias de series si no están cargadas
-        const containerSeries = document.getElementById('trend-series');
-        if (containerSeries && containerSeries.children.length === 0) {
-            cargarTendenciasSeries('day', true);
+        // SOLO cargar tendencias si no están ya cargadas en la vista actual
+        if (vistaActualGlobal === 'series') {
+            const container = document.getElementById('trend-series');
+            if (container && container.children.length === 0) {
+                cargarTendenciasSeries('day', true);
+            }
         }
     } else if (target === 'profile') {
         // Si no hay usernameUrl, usamos el de la sesión
@@ -713,7 +719,7 @@ function arrancarEnrutador() {
         }
     }
 
-    // NO FORZAR HOME - Cambiar directamente a la vista detectada
+    // Cambiar directamente a la vista detectada SIN pasar por HOME
     cambiarVista(vistaInicial, false, userInitial);
 
     // ACTUALIZAR EL MENÚ ACTIVO
@@ -729,9 +735,7 @@ function arrancarEnrutador() {
     const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : rutaActual;
     window.history.replaceState({ vista: vistaInicial, user: userInitial }, '', urlFinal);
 
-    // ==========================================
-    // MAGIA F5: RESTAURAR MODALES SI EXISTEN
-    // ==========================================
+    // RESTAURAR MODALES SI EXISTEN
     setTimeout(() => {
         if (vistaInicial === 'movies' || vistaInicial === 'series') {
             const mediaAbierta = localStorage.getItem('modalMediaAbierto');
@@ -2401,18 +2405,18 @@ function initTrendTabs() {
 // Cargar tendencias de JUEGOS al iniciar
 function cargarTendenciasInicial() {
     const container = document.getElementById('trend-games');
-    if (!container) return;
-
-    // Si ya se cargaron y no estamos en HOME, no recargar
-    if (tendenciasJuegosCargadas && vistaActualGlobal !== 'home') {
+    if (!container) {
+        console.error('❌ [TENDENCIAS_INICIAL] Contenedor trend-games no encontrado');
         return;
     }
 
-    // Si estamos en HOME y ya se cargaron, no recargar
-    if (tendenciasJuegosCargadas && vistaActualGlobal === 'home') {
+    // Si ya están cargadas, no recargar
+    if (tendenciasJuegosCargadas) {
+        console.log('📦 [TENDENCIAS_INICIAL] Ya cargadas, omitiendo');
         return;
     }
 
+    console.log('🔄 [TENDENCIAS_INICIAL] Cargando tendencias de juegos...');
     setTimeout(() => {
         cargarTendencias('day', true);
         tendenciasJuegosCargadas = true;
@@ -10868,27 +10872,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const vistaActual = rutaActual === '/' ? 'home' :
         rutaActual.startsWith('/juegos') ? 'games' :
             rutaActual.startsWith('/peliculas') ? 'movies' :
-                rutaActual.startsWith('/series') ? 'series' : 'home';
+                rutaActual.startsWith('/series') ? 'series' :
+                    rutaActual.startsWith('/admin') ? 'admin-panel' :
+                        rutaActual.startsWith('/mis-listas') ? 'mis-listas' :
+                            rutaActual.startsWith('/editar-perfil') ? 'edit-profile' :
+                                rutaActual.startsWith('/login') ? 'login' :
+                                    rutaActual.startsWith('/registro') ? 'register' :
+                                        rutaActual.startsWith('/perfil') ? 'profile' : 'home';
 
-    // SI ES HOME, CARGAR TODAS LAS TENDENCIAS (con retraso para que el DOM esté listo)
+    console.log(`🏠 [DOMContentLoaded] Vista detectada: ${vistaActual}`);
+
+    // SOLO CARGAR TENDENCIAS DE LA VISTA ACTUAL
     if (vistaActual === 'home') {
+        console.log('🏠 [DOMContentLoaded] Cargando TODAS las tendencias para HOME');
         setTimeout(() => {
             cargarTendenciasInicial();
             cargarTendenciasPeliculasInicial();
             cargarTendenciasSeriesInicial();
             cargarUltimosTrailers();
         }, 500);
+    } else if (vistaActual === 'games') {
+        console.log('🎮 [DOMContentLoaded] Cargando solo tendencias de JUEGOS');
+        setTimeout(() => cargarTendenciasInicial(), 500);
+    } else if (vistaActual === 'movies') {
+        console.log('🎬 [DOMContentLoaded] Cargando solo tendencias de PELÍCULAS');
+        setTimeout(() => cargarTendenciasPeliculasInicial(), 500);
+    } else if (vistaActual === 'series') {
+        console.log('📺 [DOMContentLoaded] Cargando solo tendencias de SERIES');
+        setTimeout(() => cargarTendenciasSeriesInicial(), 500);
     } else {
-        // SI NO ES HOME, CARGAR SOLO LAS NECESARIAS (lazy loading)
-        if (vistaActual === 'games') {
-            setTimeout(() => cargarTendenciasInicial(), 500);
-        }
-        if (vistaActual === 'movies') {
-            setTimeout(() => cargarTendenciasPeliculasInicial(), 500);
-        }
-        if (vistaActual === 'series') {
-            setTimeout(() => cargarTendenciasSeriesInicial(), 500);
-        }
+        // Para otras vistas (perfil, admin, etc.) NO cargar tendencias
+        console.log(`📄 [DOMContentLoaded] Vista ${vistaActual} - No cargar tendencias`);
     }
 
     // Activamos el vigilante de pestañas unificado para TODAS las secciones
