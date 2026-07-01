@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
-    const limit = Math.min(parseInt(query.limit) || 50, 200);
+    const limit = Math.min(parseInt(query.limit) || 50);
     const sortField = query.sort || 'first_release_date.desc';
     const platforms = query.platforms || '';
     const genres = query.genres || '';
