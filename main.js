@@ -10157,7 +10157,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
             <button class="auth-btn primary btn-trailer-card" 
                     data-url="${urlYoutube}"
                     style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: auto; background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);">
-                <i class="fab fa-youtube" style="margin-right: 6px;"></i> t('trends_extra.watch_trailer')
+                <i class="fab fa-youtube" style="margin-right: 6px;"></i> Ver tráiler
             </button>
         </div>
     `;
