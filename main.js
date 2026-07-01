@@ -1838,20 +1838,19 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         });
 
         // 3. AUTO-ESCANEO (SOLO SI NO NOS HAN CANCELADO)
-        if (datos.length === 50) {
+        if (datosFinales.length === limit) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
-            if (datosFiltrados.length === 0) {
+            if (datosFiltrados.length === 0 && datosFinales.length === limit) {
                 btnMas.innerHTML = `
-                    <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
-                        <i class="fas fa-radar fa-spin"></i> ${t('games.deep_scan')}
-                    </div>
-                `;
+            <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
+                <i class="fas fa-radar fa-spin"></i> ${t('games.deep_scan')}
+            </div>
+        `;
                 gridJuegos.after(btnMas);
 
-                // Programamos el siguiente escáner
                 autoScanTimeout = setTimeout(() => {
                     if (peticionAbort === miAbort) {
                         cargando = false;
@@ -1864,7 +1863,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 gridJuegos.after(btnMas);
                 observadorScroll.observe(btnMas);
             }
-        } else if (datos.length < 50 && datosFiltrados.length === 0) {
+        } else if (datosFinales.length < limit && datosFiltrados.length === 0) {
             const btnMas = document.createElement('div');
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; color: var(--text-muted);";
             btnMas.innerHTML = '<i class="fas fa-exclamation-circle"></i> No se encontraron más resultados en toda la red.';
