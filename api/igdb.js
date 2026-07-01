@@ -167,13 +167,12 @@ export default async function handler(req, res) {
         console.log(`📥 IGDB devolvió ${dataRaw.length} juegos`);
 
         // =============================================
-        // 4. FILTRAR JUEGOS VÁLIDOS (VERSIÓN CORREGIDA)
+        // 4. FILTRAR JUEGOS VÁLIDOS
         // =============================================
+        const CATEGORIAS_PERMITIDAS = [0, 1, 2, 4]; // Main game, DLC, Expansion, Standalone expansion
+        const CATEGORIAS_BLOQUEADAS = [3, 8, 9, 10, 11, 12]; // Bundle, Remake, Remaster, Expanded, Port, Spinoff
 
-        // Solo bloqueamos categorías que son OBVIAMENTE basura
-        const CATEGORIAS_BLOQUEADAS = [3]; // 3 = Bundle (Complete Edition, etc.)
-
-        // Palabras clave para bloquear EDICIONES ESPECIALES (solo si están en el nombre)
+        // Lista de keywords que indican ediciones especiales a bloquear (incluso si IGDB las pone como Main Game)
         const KEYWORDS_BLOQUEADAS = [
             'complete edition', 'complete collection', 'game of the year', 'goty',
             'launch edition', 'regalla edition', 'special edition', 'collector\'s edition',
@@ -183,64 +182,55 @@ export default async function handler(req, res) {
             'bundle', 'collection', 'compilation', 'triple pack', 'double pack'
         ];
 
-        // 1. Filtro básico: juegos con nombre y portada
         let juegosFiltrados = dataRaw.filter(juego => {
+            const categoria = juego.category ?? -1;
             const tieneNombre = juego.name && juego.name.length > 0;
             const tienePortada = juego.cover && juego.cover.url;
-            return tieneNombre && tienePortada;
+            const nombreLower = (juego.name || '').toLowerCase();
+
+            // 1. Bloquear por categoría (bundles, remakes, ports, etc.)
+            if (CATEGORIAS_BLOQUEADAS.includes(categoria)) return false;
+
+            // 2. Si es MAIN GAME (categoría 0) pero tiene keywords de edición especial → BLOQUEAR
+            if (categoria === 0) {
+                const esEdicionEspecial = KEYWORDS_BLOQUEADAS.some(kw => nombreLower.includes(kw));
+                if (esEdicionEspecial) return false;
+            }
+
+            // 3. DLCs, Expansiones y Standalone: SIEMPRE mostrarlos (son contenido adicional válido)
+            // No filtramos por nombre en DLCs, porque pueden tener "Complete Edition" en su nombre
+            // pero son DLCs sueltos.
+
+            // 4. Requisitos mínimos
+            return categoria === 0 || CATEGORIAS_PERMITIDAS.includes(categoria) && tieneNombre && tienePortada;
         });
 
-        // 2. Si hay búsqueda activa, NO aplicamos filtros de categoría (para no romper búsquedas)
-        if (!busqueda) {
-            // Solo en carga inicial (tendencias), bloqueamos bundles (categoría 3)
-            juegosFiltrados = juegosFiltrados.filter(juego => {
-                const categoria = juego.category ?? -1;
-                return !CATEGORIAS_BLOQUEADAS.includes(categoria);
-            });
-        }
-
-        // 3. NUNCA bloqueamos por categoría si hay búsqueda (la gente busca DLCs, Remakes, etc.)
-        // 4. NUNCA bloqueamos DLCs (categoría 1) porque son contenido válido
-
-        // 5. Desduplicación: mantener SOLO la primera versión de cada juego
-        const vistos = new Map(); // Usamos Map para guardar el mejor juego
+        // Eliminar duplicados por nombre base (mantener el primer juego que aparece)
+        const vistos = new Set();
         const juegosUnicos = [];
 
         juegosFiltrados.forEach(juego => {
-            // Extraer nombre base (antes del primer ":" o "-")
+            // Extraer nombre base (quitar todo lo que esté después de ":" o "-" si es una edición)
             let nombreBase = juego.name;
             const separadores = [':', '—', '–', '-'];
             for (const sep of separadores) {
-                const idx = nombreBase.indexOf(sep);
-                if (idx > 0) {
-                    nombreBase = nombreBase.substring(0, idx).trim();
+                if (nombreBase.includes(sep)) {
+                    nombreBase = nombreBase.split(sep)[0].trim();
                     break;
                 }
             }
 
-            const key = nombreBase.toLowerCase();
-
-            // Si ya tenemos un juego con este nombre base
-            if (vistos.has(key)) {
-                const existente = vistos.get(key);
-
-                // PRIORIDAD: mantener el juego base (category 0) sobre ediciones especiales
-                const esBase = juego.category === 0;
-                const existenteEsBase = existente.category === 0;
-
-                // Si el nuevo es base y el existente no, reemplazar
-                if (esBase && !existenteEsBase) {
-                    vistos.set(key, juego);
-                }
-                // Si ambos son base, mantener el que tenga portada (ambos ya tienen)
+            // Si es un juego base (categoría 0) y ya tenemos otro con el mismo nombre base, lo saltamos
+            if (juego.category === 0 && vistos.has(nombreBase.toLowerCase())) {
                 return;
             }
 
-            vistos.set(key, juego);
+            // Guardar el nombre base para futuras comparaciones
+            vistos.add(nombreBase.toLowerCase());
+            juegosUnicos.push(juego);
         });
 
-        // Convertir Map a array
-        juegosFiltrados = Array.from(vistos.values());
+        juegosFiltrados = juegosUnicos;
 
         console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos (únicos)`);
 

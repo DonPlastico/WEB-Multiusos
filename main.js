@@ -1799,7 +1799,22 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             return pasaPrecio && pasaTienda;
         });
 
-        datosFiltrados.forEach(juego => {
+        // Filtrar juegos sin portada
+        const juegosConPortada = datosFiltrados.filter(juego => {
+            return juego.cover && juego.cover.url;
+        });
+
+        // Si no hay juegos con portada, mostrar mensaje
+        if (juegosConPortada.length === 0 && resetear) {
+            gridJuegos.innerHTML = `<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">
+                No se encontraron juegos con portada disponible.
+            </div>`;
+            if (peticionAbort === miAbort) cargando = false;
+            return;
+        }
+
+        // Renderizar solo juegos con portada
+        juegosConPortada.forEach(juego => {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
 
