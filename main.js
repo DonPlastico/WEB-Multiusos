@@ -508,6 +508,7 @@ const mapaRutas = {
 };
 
 // banderas para no cargar 2 veces lo mismo de la api
+let totalJuegosCargados = 0;
 let juegosCargados = false;
 let peliculasCargadas = false;
 let seriesCargadas = false;
