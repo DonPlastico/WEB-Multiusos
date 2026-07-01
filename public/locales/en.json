@@ -90,6 +90,8 @@
     "verified_subtitle": "Your email has been verified in the system. You now have full access to the Nexus."
   },
   "profile": {
+    "recommended": "RECOMMENDED FOR YOU",
+    "global_stats": "Global Statistics",
     "username": "User",
     "following": "Following",
     "followers": "Followers",

@@ -90,6 +90,8 @@
     "verified_subtitle": "귀하의 이메일이 시스템에서 확인되었습니다. 이제 넥서스에 대한 완전한 접근 권한이 있습니다."
   },
   "profile": {
+    "recommended": "당신을 위한 추천",
+    "global_stats": "전체 통계",
     "username": "사용자",
     "following": "팔로잉",
     "followers": "팔로워",

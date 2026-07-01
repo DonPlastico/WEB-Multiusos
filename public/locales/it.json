@@ -90,6 +90,8 @@
     "verified_subtitle": "La tua email è stata verificata nel sistema. Ora hai accesso completo al Nexus."
   },
   "profile": {
+    "recommended": "CONSIGLIATO PER TE",
+    "global_stats": "Statistiche Globali",
     "username": "Utente",
     "following": "Seguiti",
     "followers": "Follower",

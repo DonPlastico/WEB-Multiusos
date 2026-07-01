@@ -90,6 +90,8 @@
     "verified_subtitle": "あなたのメールアドレスはシステムで確認されました。ネクサスへの完全なアクセス権が付与されました。"
   },
   "profile": {
+    "recommended": "あなたへのおすすめ",
+    "global_stats": "全体統計",
     "username": "ユーザー",
     "following": "フォロー中",
     "followers": "フォロワー",

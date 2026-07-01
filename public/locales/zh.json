@@ -90,6 +90,8 @@
     "verified_subtitle": "您的邮箱已在系统中验证。您现在拥有 Nexus 的完整访问权限。"
   },
   "profile": {
+    "recommended": "为您推荐",
+    "global_stats": "全局统计",
     "username": "用户",
     "following": "正在关注",
     "followers": "关注者",
