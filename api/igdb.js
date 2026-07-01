@@ -78,7 +78,43 @@ export default async function handler(req, res) {
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
-        // Filtros de fecha
+        //  Si se pasa 'period' en lugar de fechas, calcular automáticamente
+        const period = query.period || ''; // 'day', 'week', 'month', 'year'
+
+        // Si hay 'period', calcular fechas automáticamente
+        if (period && !dateMin && !dateMax) {
+            const ahora = new Date();
+            let fechaInicio = new Date(ahora);
+
+            switch (period) {
+                case 'day':
+                    fechaInicio.setDate(ahora.getDate() - 1);
+                    break;
+                case 'week':
+                    fechaInicio.setDate(ahora.getDate() - 7);
+                    break;
+                case 'month':
+                    fechaInicio.setMonth(ahora.getMonth() - 1);
+                    break;
+                case 'year':
+                    fechaInicio.setFullYear(ahora.getFullYear() - 1);
+                    break;
+                default:
+                    fechaInicio.setDate(ahora.getDate() - 7);
+            }
+
+            // Poner a 00:00:00 y 23:59:59
+            fechaInicio.setHours(0, 0, 0, 0);
+            ahora.setHours(23, 59, 59, 999);
+
+            const minTimestamp = Math.floor(fechaInicio.getTime() / 1000);
+            const maxTimestamp = Math.floor(ahora.getTime() / 1000);
+
+            whereClauses.push(`first_release_date >= ${minTimestamp}`);
+            whereClauses.push(`first_release_date <= ${maxTimestamp}`);
+        }
+
+        // Filtros de fecha (si se pasan manualmente)
         if (dateMin) {
             const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);
@@ -89,20 +125,10 @@ export default async function handler(req, res) {
         }
 
         // Si NO hay búsqueda y NO hay filtros de fecha, excluir juegos sin fecha
-        // y juegos con fecha futura (no lanzados aún)
-        if (!busqueda && !dateMin && !dateMax) {
+        if (!busqueda && !dateMin && !dateMax && !period) {
             const hoy = Math.floor(Date.now() / 1000);
             whereClauses.push(`first_release_date != null`);
             whereClauses.push(`first_release_date <= ${hoy}`);
-            // 🔥 COMENTADO: whereClauses.push('total_rating_count > 5');
-        }
-
-        // Si hay búsqueda, NO filtramos por fecha
-        if (busqueda) {
-            const indexFecha = whereClauses.findIndex(c => c.includes('first_release_date <= '));
-            if (indexFecha !== -1) {
-                whereClauses.splice(indexFecha, 1);
-            }
         }
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';

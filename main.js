@@ -2019,7 +2019,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     }
 
     try {
-        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&lang=${currentLang}`;
+        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&period=${period}&lang=${currentLang}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -2118,8 +2118,8 @@ async function cargarMasTendencias(period = 'day') {
         // Aumentar el offset para cargar más
         trendOffset += 15;
 
-        // 🔥 ELIMINAMOS LAS FECHAS
-        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&lang=${currentLang}`;
+        // 🔥 AHORA ENVIAMOS 'period' al backend
+        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&period=${period}&lang=${currentLang}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
