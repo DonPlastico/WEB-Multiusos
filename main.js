@@ -169,9 +169,9 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
 };
 
 // 3. Actualizar al cargar la página
-document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(detectPageAndUpdate, 100);
-});
+// document.addEventListener('DOMContentLoaded', function () {
+//     setTimeout(detectPageAndUpdate, 100);
+// });
 
 // 4. También actualizar cuando cambia el historial (popstate)
 window.addEventListener('popstate', function () {
@@ -1520,37 +1520,37 @@ async function initLanguage() {
 }
 
 // 7. MODIFICAR EL MENÚ DE IDIOMAS (reemplazar el existente)
-document.addEventListener('DOMContentLoaded', function () {
-    // El menú ya existe en el HTML, solo añadimos el evento de cambio
-    document.querySelectorAll('.lang-option').forEach(opt => {
-        opt.addEventListener('click', async function (e) {
-            e.preventDefault();
-            const lang = this.dataset.lang;
-            const flag = this.dataset.flag;
+// document.addEventListener('DOMContentLoaded', function () {
+//     // El menú ya existe en el HTML, solo añadimos el evento de cambio
+//     document.querySelectorAll('.lang-option').forEach(opt => {
+//         opt.addEventListener('click', async function (e) {
+//             e.preventDefault();
+//             const lang = this.dataset.lang;
+//             const flag = this.dataset.flag;
 
-            // Actualizar bandera en el botón
-            const flagImg = document.getElementById('lang-toggle').querySelector('img');
-            if (flagImg) {
-                flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
-                flagImg.alt = lang.toUpperCase();
-            }
+//             // Actualizar bandera en el botón
+//             const flagImg = document.getElementById('lang-toggle').querySelector('img');
+//             if (flagImg) {
+//                 flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
+//                 flagImg.alt = lang.toUpperCase();
+//             }
 
-            // Marcar como activo
-            document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
+//             // Marcar como activo
+//             document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+//             this.classList.add('active');
 
-            // Cambiar idioma
-            await setLanguage(lang);
+//             // Cambiar idioma
+//             await setLanguage(lang);
 
-            // Cerrar el menú
-            document.querySelector('.lang-menu')?.classList.remove('show');
-            langMenuOpen = false;
-        });
-    });
+//             // Cerrar el menú
+//             document.querySelector('.lang-menu')?.classList.remove('show');
+//             langMenuOpen = false;
+//         });
+//     });
 
-    // Inicializar idioma
-    initLanguage();
-});
+//     // Inicializar idioma
+//     initLanguage();
+// });
 
 // 8. Exponer funciones globalmente
 window.t = t;
@@ -2429,15 +2429,6 @@ function cargarTendenciasInicial() {
         }
     }, 100);
 }
-
-// Ejecutar cuando se carga la página
-// document.addEventListener('DOMContentLoaded', function () {
-//     // Cargar tendencias de juegos
-//     cargarTendenciasInicial();
-
-//     // Cargar tendencias de películas
-//     cargarTendenciasPeliculasInicial();
-// });
 
 // También cargar cuando se cambie a la vista de juegos
 // Modificar la función cambiarVista para que cargue tendencias al entrar a juegos
@@ -3573,12 +3564,12 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
 }
 
 // Inicializar cuando se carga la página
-document.addEventListener('DOMContentLoaded', function () {
-    initVoteFilters();
-    initCountryFilters();
-    initCountryFilterForType();
-    initDateFilters();
-});
+// document.addEventListener('DOMContentLoaded', function () {
+//     initVoteFilters();
+//     initCountryFilters();
+//     initCountryFilterForType();
+//     initDateFilters();
+// });
 
 // listeners para pelis
 const inputMovies = document.getElementById('search-movies');
@@ -10885,9 +10876,62 @@ function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'wa
 configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
 configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Activamos el vigilante de pestañas unificado para TODAS las secciones
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Activamos el vigilante de pestañas unificado para TODAS las secciones
+//     setTimeout(() => {
+//         initTrendTabs();
+//     }, 800);
+// });
+
+
+// ==========================================
+//   ARRANQUE MAESTRO DE LA APLICACIÓN
+// ==========================================
+async function inicializarApp() {
+    console.log("🚀 Iniciando WEB Multiusos...");
+
+    // 1. INICIALIZAR IDIOMAS Y EVENTOS DEL MENÚ
+    initLanguage(); // Primero cargamos el idioma base
+
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const lang = this.dataset.lang;
+            const flag = this.dataset.flag;
+
+            // Actualizar bandera en el botón principal
+            const flagImg = document.getElementById('lang-toggle')?.querySelector('img');
+            if (flagImg) {
+                flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
+                flagImg.alt = lang.toUpperCase();
+            }
+
+            // Marcar opción como activa
+            document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+
+            // Aplicar cambio de idioma
+            await setLanguage(lang);
+
+            // Cerrar el menú desplegable
+            document.querySelector('.lang-menu')?.classList.remove('show');
+            if (typeof langMenuOpen !== 'undefined') langMenuOpen = false;
+        });
+    });
+
+    // 2. INICIALIZAR FILTROS (Votos, Países, Fechas)
+    initVoteFilters();
+    initCountryFilters();
+    initCountryFilterForType();
+    initDateFilters();
+
+    // 3. VIGILANTES DE ESTADO Y PESTAÑAS (Con sus respectivos delays)
+    setTimeout(detectPageAndUpdate, 100);
+
     setTimeout(() => {
         initTrendTabs();
     }, 800);
-});
+}
+
+// 4. EL ÚNICO LISTENER DE ARRANQUE EN TODO EL ARCHIVO
+document.addEventListener('DOMContentLoaded', inicializarApp);
