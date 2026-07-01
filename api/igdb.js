@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
-    const limit = Math.min(parseInt(query.limit) || 50, 50); // ✅ CORREGIDO: siempre 50 máximo
+    const limit = Math.min(parseInt(query.limit) || 50, 50);
     const sortField = query.sort || 'first_release_date.desc';
     const platforms = query.platforms || '';
     const genres = query.genres || '';
@@ -81,9 +81,8 @@ export default async function handler(req, res) {
         if (modes) whereClauses.push(`game_modes = (${modes})`);
 
         // Si se pasa 'period' en lugar de fechas, calcular automáticamente
-        const period = query.period || ''; // 'day', 'week', 'month', 'year'
+        const period = query.period || '';
 
-        // Si hay 'period', calcular fechas automáticamente
         if (period && !dateMin && !dateMax) {
             const ahora = new Date();
             let fechaInicio = new Date(ahora);
@@ -105,7 +104,6 @@ export default async function handler(req, res) {
                     fechaInicio.setDate(ahora.getDate() - 7);
             }
 
-            // Poner a 00:00:00 y 23:59:59
             fechaInicio.setHours(0, 0, 0, 0);
             ahora.setHours(23, 59, 59, 999);
 
@@ -116,7 +114,6 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Filtros de fecha (si se pasan manualmente)
         if (dateMin) {
             const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
             whereClauses.push(`first_release_date >= ${minTimestamp}`);
@@ -126,16 +123,17 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Si NO hay búsqueda y NO hay filtros de fecha, excluir juegos sin fecha
+        // ✅ IMPORTANTE: Siempre incluir fecha para evitar resultados infinitos
         if (!busqueda && !dateMin && !dateMax && !period) {
             const hoy = Math.floor(Date.now() / 1000);
             whereClauses.push(`first_release_date != null`);
             whereClauses.push(`first_release_date <= ${hoy}`);
+            // ✅ AÑADIR: Filtro para juegos con rating > 0 (evita basura)
+            whereClauses.push(`total_rating_count > 0`);
         }
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
-        // Orden por fecha de lanzamiento DESCENDENTE (más reciente primero)
         let sortQuery = 'sort first_release_date desc;';
         if (sortField === 'rating.desc') sortQuery = 'sort total_rating desc;';
         else if (sortField === 'rating.asc') sortQuery = 'sort total_rating asc;';
@@ -143,7 +141,6 @@ export default async function handler(req, res) {
         else if (sortField === 'first_release_date.desc') sortQuery = 'sort first_release_date desc;';
         else if (sortField === 'first_release_date.asc') sortQuery = 'sort first_release_date asc;';
 
-        // Construir body de la consulta
         let bodyQuery;
         if (busqueda) {
             bodyQuery = `
@@ -169,9 +166,6 @@ export default async function handler(req, res) {
             `;
         }
 
-        // =============================================
-        // 3. CONSULTAR IGDB
-        // =============================================
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
             headers: {
@@ -194,30 +188,24 @@ export default async function handler(req, res) {
         // 4. FILTRAR JUEGOS VÁLIDOS
         // =============================================
 
-        // Solo bloqueamos categorías que son OBVIAMENTE basura
-        const CATEGORIAS_BLOQUEADAS = [3]; // 3 = Bundle (Complete Edition, etc.)
+        const CATEGORIAS_BLOQUEADAS = [3];
 
-        // 1. Filtro básico: juegos con nombre y portada
         let juegosFiltrados = dataRaw.filter(juego => {
             const tieneNombre = juego.name && juego.name.length > 0;
             const tienePortada = juego.cover && juego.cover.url;
             return tieneNombre && tienePortada;
         });
 
-        // 2. Si hay búsqueda activa, NO aplicamos filtros de categoría (para no romper búsquedas)
         if (!busqueda) {
-            // Solo en carga inicial (tendencias), bloqueamos bundles (categoría 3)
             juegosFiltrados = juegosFiltrados.filter(juego => {
                 const categoria = juego.category ?? -1;
                 return !CATEGORIAS_BLOQUEADAS.includes(categoria);
             });
         }
 
-        // 3. Desduplicación: mantener SOLO la primera versión de cada juego
+        // Desduplicación
         const vistos = new Map();
-
         juegosFiltrados.forEach(juego => {
-            // Extraer nombre base (antes del primer ":" o "-")
             let nombreBase = juego.name;
             const separadores = [':', '—', '–', '-'];
             for (const sep of separadores) {
@@ -227,24 +215,16 @@ export default async function handler(req, res) {
                     break;
                 }
             }
-
             const key = nombreBase.toLowerCase();
-
-            // Si ya tenemos un juego con este nombre base
             if (vistos.has(key)) {
                 const existente = vistos.get(key);
-
-                // PRIORIDAD: mantener el juego base (category 0) sobre ediciones especiales
                 const esBase = juego.category === 0;
                 const existenteEsBase = existente.category === 0;
-
-                // Si el nuevo es base y el existente no, reemplazar
                 if (esBase && !existenteEsBase) {
                     vistos.set(key, juego);
                 }
                 return;
             }
-
             vistos.set(key, juego);
         });
 
@@ -335,12 +315,15 @@ export default async function handler(req, res) {
             });
         }
 
+        // ✅ CORREGIDO: hasMore se basa en si IGDB devolvió el límite completo
+        const hasMore = dataRaw.length === limit;
+
         res.status(200).json({
             juegos: juegosFiltrados,
             total: dataRaw.length,
             offset: offset,
             limit: limit,
-            hasMore: juegosFiltrados.length === limit
+            hasMore: hasMore
         });
 
     } catch (error) {

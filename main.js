@@ -2036,6 +2036,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
         const data = await response.json();
 
+        // ✅ SOPORTAR NUEVO FORMATO DE IGDB
         let juegosData;
         if (data.juegos && Array.isArray(data.juegos)) {
             juegosData = data.juegos;
@@ -2056,21 +2057,11 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
         const sorted = [...juegosData].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-        if (resetear) container.innerHTML = '';
-
-        if (!data || data.length === 0) {
-            if (resetear) {
-                container.innerHTML = `<div class="trends-empty"><i class="fas fa-gamepad"></i><span>No hay tendencias</span></div>`;
-            }
-            trendCargando = false;
-            return;
-        }
-
-        const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-
         if (resetear) {
             cacheTendenciasJuegos[period] = sorted;
         }
+
+        if (resetear) container.innerHTML = '';
 
         const topGames = sorted.slice(0, 15);
 
@@ -2079,14 +2070,14 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
             container.appendChild(card);
         });
 
-        if (data.length > 15) {
+        if (juegosData.length > 15) {
             const moreIndicator = document.createElement('div');
             moreIndicator.className = 'trend-more-indicator';
             moreIndicator.onclick = () => cargarMasTendencias(period);
             moreIndicator.innerHTML = `
                 <div style="display:flex;flex-direction:column;align-items:center;padding:20px;color:var(--text-muted);">
                     <i class="fas fa-chevron-right" style="font-size:2rem;color:var(--primary);"></i>
-                    <span>+${data.length - 15} más</span>
+                    <span>+${juegosData.length - 15} más</span>
                 </div>`;
             container.appendChild(moreIndicator);
         }
@@ -2144,7 +2135,6 @@ async function cargarMasTendencias(period = 'day') {
     container.appendChild(loader);
 
     try {
-        // Aumentar el offset para cargar más
         trendOffset += 15;
 
         let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&period=${period}&lang=${currentLang}`;
@@ -2154,6 +2144,7 @@ async function cargarMasTendencias(period = 'day') {
 
         const data = await response.json();
 
+        // ✅ SOPORTAR NUEVO FORMATO
         let juegosData;
         if (data.juegos && Array.isArray(data.juegos)) {
             juegosData = data.juegos;
@@ -2163,11 +2154,9 @@ async function cargarMasTendencias(period = 'day') {
             throw new Error('Formato inválido');
         }
 
-        // Eliminar el loader
         loader.remove();
 
-        if (data.length === 0) {
-            // Mostrar mensaje de que no hay más
+        if (juegosData.length === 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;color:var(--text-muted);font-size:0.7rem;text-align:center;';
             emptyMsg.innerHTML = `
@@ -2181,19 +2170,16 @@ async function cargarMasTendencias(period = 'day') {
             return;
         }
 
-        // Ordenar por rating y tomar hasta 5 juegos
-        const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        const sorted = [...juegosData].sort((a, b) => (b.rating || 0) - (a.rating || 0));
         const newGames = sorted.slice(0, 5);
 
-        // Crear y añadir las nuevas tarjetas
         newGames.forEach((juego, index) => {
             const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
         });
 
-        // Si hay más juegos, añadir nuevo botón "+X más"
-        if (data.length > 5) {
-            const remaining = data.length - 5;
+        if (juegosData.length > 5) {
+            const remaining = juegosData.length - 5;
             const moreBtn = document.createElement('div');
             moreBtn.className = 'trend-more-indicator';
             moreBtn.style.cursor = 'pointer';
@@ -2211,11 +2197,10 @@ async function cargarMasTendencias(period = 'day') {
             container.appendChild(moreBtn);
         }
 
-        trendOffset += data.length;
+        trendOffset += juegosData.length;
 
     } catch (error) {
         console.error('Error cargando más tendencias:', error);
-        // Si falla, restaurar el botón
         loader.remove();
         const retryBtn = document.createElement('div');
         retryBtn.className = 'trend-more-indicator';
