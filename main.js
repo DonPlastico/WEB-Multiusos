@@ -10197,6 +10197,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
                 <i class="fas fa-play" style="margin-left: 2px;"></i>
             </div>
             <img src="${posterUrl}" alt="${titulo}" loading="lazy" 
+                 style="object-fit: cover; width: 100%; height: 100%; object-position: center;"
                  onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-elevated);\\'><i class=\\'fas ${tipo === 'game' ? 'fa-gamepad' : tipo === 'movie' ? 'fa-film' : 'fa-tv'}\\' style=\\'font-size:3rem;color:var(--text-muted);\\'></i></div>'">
         </div>
         <div class="game-info" style="display: flex; flex-direction: column; flex-grow: 1;">
