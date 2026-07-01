@@ -1771,7 +1771,25 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         if (resetear) gridJuegos.innerHTML = '';
         document.getElementById('btn-cargar-mas')?.remove();
 
-        if (datos.length === 0) {
+        // Si IGDB no encontró resultados y hay búsqueda, probar en Steam
+        let datosFinales = datos;
+        if (datos.length === 0 && busquedaActual) {
+            console.log('🔍 IGDB sin resultados, buscando en Steam...');
+            try {
+                const steamRes = await fetch(`/api/steam?query=${encodeURIComponent(busquedaActual)}`);
+                if (steamRes.ok) {
+                    const steamData = await steamRes.json();
+                    if (steamData.length > 0) {
+                        console.log(`✅ Steam devolvió ${steamData.length} resultados`);
+                        datosFinales = steamData;
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ Error en Steam API:', e);
+            }
+        }
+
+        if (datosFinales.length === 0) {
             if (resetear) {
                 gridJuegos.innerHTML = `<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">${t('games.no_results')}</div>`;
             }
@@ -1779,11 +1797,12 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             return;
         }
 
+        // Ahora usa datosFinales en lugar de datos para todo lo demás
         const precioMin = filtrosGlobales.precioMin ?? 0;
         const precioMax = filtrosGlobales.precioMax ?? 9999;
         const tiendasFiltro = filtrosGlobales.stores || [];
 
-        const datosFiltrados = datos.filter(juego => {
+        const datosFiltrados = datosFinales.filter(juego => {
             const precio = juego.itad?.precio;
             let pasaPrecio = true;
             if (precio !== null && precio !== undefined) {
