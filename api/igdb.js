@@ -15,8 +15,8 @@ export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
     const offset = parseInt(query.offset) || 0;
-    const limit = Math.min(parseInt(query.limit) || 50, 100); // Máximo 100
-    const sortField = query.sort || 'popularity.desc';
+    const limit = Math.min(parseInt(query.limit) || 50, 100);
+    const sortField = query.sort || 'first_release_date.desc'; // <-- CAMBIADO: fecha por defecto
     const platforms = query.platforms || '';
     const genres = query.genres || '';
     const dateMin = query.dateMin || '';
@@ -38,7 +38,6 @@ export default async function handler(req, res) {
         let access_token;
         const tokenCache = global.twitchToken;
 
-        // Si tenemos token y no ha expirado (24h), reutilizarlo
         if (tokenCache && tokenCache.expires_at > Date.now()) {
             access_token = tokenCache.access_token;
             console.log('✅ Token reutilizado de caché');
@@ -61,7 +60,6 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: 'No se pudo obtener access_token' });
             }
 
-            // Guardar en caché global (expira en 23h para seguridad)
             global.twitchToken = {
                 access_token: tokenData.access_token,
                 expires_at: Date.now() + (23 * 60 * 60 * 1000)
@@ -90,17 +88,28 @@ export default async function handler(req, res) {
             whereClauses.push(`first_release_date <= ${maxTimestamp}`);
         }
 
-        // Eliminar el filtro restrictivo de rating > 80
-        // Solo añadir rating si NO hay búsqueda y NO hay otros filtros
-        if (!busqueda && whereClauses.length === 0 && !sortField.includes('rating')) {
-            // Mostrar juegos populares en vez de solo rating alto
-            whereClauses.push('total_rating_count > 10');
+        // 🔥 NUEVO: Si NO hay búsqueda y NO hay filtros de fecha, excluir juegos sin fecha
+        // y juegos con fecha futura (no lanzados aún)
+        if (!busqueda && !dateMin && !dateMax) {
+            const hoy = Math.floor(Date.now() / 1000);
+            whereClauses.push(`first_release_date != null`);
+            whereClauses.push(`first_release_date <= ${hoy}`); // Solo juegos ya lanzados
+            whereClauses.push('total_rating_count > 5'); // Mínimo de votos para calidad
+        }
+
+        // Si hay búsqueda, no filtramos por fecha (para que salgan juegos futuros)
+        if (busqueda) {
+            // Quitamos el filtro de fecha futura si existe
+            const indexFecha = whereClauses.findIndex(c => c.includes('first_release_date <= '));
+            if (indexFecha !== -1) {
+                whereClauses.splice(indexFecha, 1);
+            }
         }
 
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
-        // Ordenamiento por defecto: popularidad
-        let sortQuery = 'sort popularity desc;';
+        // 🔥 NUEVO: Orden por fecha de lanzamiento DESCENDENTE (más reciente primero)
+        let sortQuery = 'sort first_release_date desc;';
         if (sortField === 'rating.desc') sortQuery = 'sort total_rating desc;';
         else if (sortField === 'rating.asc') sortQuery = 'sort total_rating asc;';
         else if (sortField === 'popularity.desc') sortQuery = 'sort popularity desc;';
@@ -110,7 +119,6 @@ export default async function handler(req, res) {
         // Construir body de la consulta
         let bodyQuery;
         if (busqueda) {
-            // Búsqueda por nombre
             bodyQuery = `
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
                        total_rating, total_rating_count, rating, rating_count, category,
@@ -122,7 +130,6 @@ export default async function handler(req, res) {
                 offset ${offset};
             `;
         } else {
-            // Listado general
             bodyQuery = `
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
                        total_rating, total_rating_count, rating, rating_count, category,
@@ -162,21 +169,21 @@ export default async function handler(req, res) {
         // =============================================
         // 4. FILTRAR JUEGOS VÁLIDOS
         // =============================================
-        // Excluir DLCs, Expansiones, Demos y Remakes no originales
         const CATEGORIAS_VALIDAS = [0, 8, 9, 10, 11, 12];
-        // 0 = main_game, 8 = remake, 9 = remaster, 10 = expanded, 11 = port, 12 = bundle
 
-        const juegosFiltrados = dataRaw.filter(juego => {
-            // Categoría válida
+        let juegosFiltrados = dataRaw.filter(juego => {
             const categoriaValida = !juego.category || CATEGORIAS_VALIDAS.includes(juego.category);
-
-            // Tiene nombre
             const tieneNombre = juego.name && juego.name.length > 0;
-
-            // No es un DLC (category 1, 2, 3, 4, 5, 6)
             const noEsDLC = juego.category === undefined || juego.category < 1 || juego.category > 6;
-
             return categoriaValida && tieneNombre && noEsDLC;
+        });
+
+        // 🔥 NUEVO: Ordenar por fecha de lanzamiento (más reciente primero)
+        // Esto asegura que aunque IGDB devuelva desordenado, nosotros lo ordenamos bien
+        juegosFiltrados.sort((a, b) => {
+            const fechaA = a.first_release_date || 0;
+            const fechaB = b.first_release_date || 0;
+            return fechaB - fechaA; // Descendente (más reciente primero)
         });
 
         console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos`);
@@ -192,7 +199,6 @@ export default async function handler(req, res) {
 
         if (ITAD_API_KEY) {
             try {
-                // Buscar IDs en ITAD (con timeout)
                 const promesasITAD = juegosFiltrados.map(async (juego) => {
                     try {
                         const controller = new AbortController();
@@ -210,7 +216,7 @@ export default async function handler(req, res) {
                             return { igdbId: juego.id, itadId: searchData[0].id };
                         }
                     } catch (e) {
-                        // Ignorar fallos
+                        return null;
                     }
                     return null;
                 });
@@ -245,7 +251,6 @@ export default async function handler(req, res) {
                     }
                 }
 
-                // Mapear precios a juegos
                 juegosFiltrados.forEach(juego => {
                     const matchITAD = resultadosITAD?.find(r => r.igdbId === juego.id);
                     let infoPrecio = { precio: null, stores: 'none', url: '' };
@@ -267,7 +272,6 @@ export default async function handler(req, res) {
                 console.warn('⚠️ Error en ITAD:', e.message);
             }
         } else {
-            // Si no hay key de ITAD, añadir datos vacíos
             juegosFiltrados.forEach(juego => {
                 juego.itad = { precio: null, stores: 'none', url: '' };
             });
