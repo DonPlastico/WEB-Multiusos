@@ -2431,13 +2431,13 @@ function cargarTendenciasInicial() {
 }
 
 // Ejecutar cuando se carga la página
-document.addEventListener('DOMContentLoaded', function () {
-    // Cargar tendencias de juegos
-    cargarTendenciasInicial();
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Cargar tendencias de juegos
+//     cargarTendenciasInicial();
 
-    // Cargar tendencias de películas
-    cargarTendenciasPeliculasInicial();
-});
+//     // Cargar tendencias de películas
+//     cargarTendenciasPeliculasInicial();
+// });
 
 // También cargar cuando se cambie a la vista de juegos
 // Modificar la función cambiarVista para que cargue tendencias al entrar a juegos
