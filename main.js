@@ -1968,7 +1968,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         return;
     }
 
-    // 1. INTERCEPTOR DE CACHÉ: Si ya descargamos esto antes, lo pintamos al instante
+    // 1. INTERCEPTOR DE CACHÉ
     if (resetear && intentos === 0 && cacheTendenciasJuegos[period]) {
         container.scrollLeft = 0;
         trendOffset = 0;
@@ -1977,7 +1977,6 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         const sorted = cacheTendenciasJuegos[period];
         const topGames = sorted.slice(0, 15);
 
-        // Reconstruimos las tarjetas desde la RAM
         topGames.forEach((juego, index) => {
             const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
@@ -1997,10 +1996,9 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
         trendPeriod = period;
         trendCargando = false;
-        return; // ¡CORTAMOS AQUÍ! 0 llamadas a internet.
+        return;
     }
 
-    // SI NO HAY CACHÉ, HACEMOS LA CARGA NORMAL
     if (intentos === 0) {
         container.scrollLeft = 0;
     }
@@ -2021,17 +2019,6 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     }
 
     try {
-        const dateRange = getDateRange(period);
-        const hoy = Math.floor(Date.now() / 1000);
-        const haceUnAño = hoy - (365 * 24 * 60 * 60);
-
-        // Si las fechas son inválidas (en el futuro o muy antiguas), usar fallback
-        let from = dateRange.from;
-        let to = dateRange.to;
-
-        if (from > hoy || from < 0) from = haceUnAño;
-        if (to > hoy || to < 0) to = hoy;
-
         let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&lang=${currentLang}`;
 
         const response = await fetch(url);
@@ -2052,7 +2039,6 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
         const sorted = [...data].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-        // 2. GUARDAMOS EN CACHÉ PARA EL FUTURO
         if (resetear) {
             cacheTendenciasJuegos[period] = sorted;
         }
@@ -2112,13 +2098,11 @@ async function cargarMasTendencias(period = 'day') {
     const container = document.getElementById('trend-games');
     if (!container) return;
 
-    // Eliminar el indicador "más" para que no se duplique
     const moreIndicator = container.querySelector('.trend-more-indicator');
     if (moreIndicator) {
         moreIndicator.remove();
     }
 
-    // Añadir loader en su lugar
     const loader = document.createElement('div');
     loader.className = 'trend-load-more';
     loader.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;';
@@ -2132,11 +2116,10 @@ async function cargarMasTendencias(period = 'day') {
 
     try {
         // Aumentar el offset para cargar más
-        trendOffset += 15; // Ya hemos mostrado 15, ahora cargamos los siguientes
+        trendOffset += 15;
 
-        const dateRange = getDateRange(period);
-        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc`;
-        url += `&dateMin=${dateRange.from}&dateMax=${dateRange.to}`;
+        // 🔥 ELIMINAMOS LAS FECHAS
+        let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&lang=${currentLang}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -10007,10 +9990,6 @@ async function cargarUltimosTrailers() {
     `;
 
     try {
-        // 1. Obtener fecha para juegos (última semana)
-        const dateRange = getDateRange('week');
-
-        // 2. Definir URLs - pedimos 5 de cada uno
         const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&lang=${currentLang}`;
         const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
         const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
