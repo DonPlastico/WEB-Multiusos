@@ -57,6 +57,7 @@ export default async function handler(req, res) {
         res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
         let whereClauses = [];
+        whereClauses.push('category = (0,8,9,10)');
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
@@ -110,9 +111,8 @@ export default async function handler(req, res) {
 
         const dataRaw = await igdbRes.json();
 
-        // FILTRAR
+        // FILTRAR (Solo modos de juego, la categoría ya viene filtrada de la BD)
         const juegosIGDB = dataRaw.filter(j => {
-            const categoriaCorrecta = j.category === undefined || j.category === 0 || j.category === 8 || j.category === 9 || j.category === 10;
             let modoCorrecto = true;
             if (modes && j.game_modes) {
                 const modoSeleccionadoArray = modes.split(',');
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
             } else if (modes) {
                 modoCorrecto = false;
             }
-            return categoriaCorrecta && modoCorrecto;
+            return modoCorrecto;
         });
 
         if (juegosIGDB.length === 0) {
