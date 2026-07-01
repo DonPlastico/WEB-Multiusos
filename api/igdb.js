@@ -57,7 +57,9 @@ export default async function handler(req, res) {
         res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
         let whereClauses = [];
-        whereClauses.push('category = (0,8,9,10)');
+        // Filtro base: solo juegos, remakes, remasters y expansiones
+        whereClauses.push('category = (0, 8, 9, 10)');
+
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
@@ -74,7 +76,7 @@ export default async function handler(req, res) {
         const tieneFechas = dateMin || dateMax;
         const esOrdenRating = sortField.includes('rating');
 
-        if (!busqueda && whereClauses.length === 0 && !esOrdenRating && !tieneFechas) {
+        if (!busqueda && whereClauses.length === 1 && !esOrdenRating && !tieneFechas) {
             whereClauses.push('total_rating > 80');
         }
 
