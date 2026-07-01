@@ -175,10 +175,12 @@ export default async function handler(req, res) {
             const categoriaValida = !juego.category || CATEGORIAS_VALIDAS.includes(juego.category);
             const tieneNombre = juego.name && juego.name.length > 0;
             const noEsDLC = juego.category === undefined || juego.category < 1 || juego.category > 6;
-            return categoriaValida && tieneNombre && noEsDLC;
+
+            const tienePortada = juego.cover && juego.cover.url;
+
+            return categoriaValida && tieneNombre && noEsDLC && tienePortada;
         });
 
-        // 🔥 NUEVO: Ordenar por fecha de lanzamiento (más reciente primero)
         // Esto asegura que aunque IGDB devuelva desordenado, nosotros lo ordenamos bien
         juegosFiltrados.sort((a, b) => {
             const fechaA = a.first_release_date || 0;
