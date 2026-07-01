@@ -174,6 +174,8 @@ window.addEventListener('popstate', function () {
     setTimeout(detectPageAndUpdate, 50);
 });
 
+console.log('✅ Open Graph meta tags dinámicos activados');
+
 // ==========================================================================
 //   MENÚ CONTEXTUAL FLOTANTE: GUARDAR EN LISTA (estilo YouTube)
 // ==========================================================================
@@ -1351,6 +1353,15 @@ function applyTranslations() {
     document.querySelectorAll('.user-dropdown-header .dropdown-subtext').forEach(el => {
         el.textContent = t('user.view_profile');
     });
+
+    // 'dropdown-username' se crea con t('user.guest') en el momento en que main.js arranca,
+    // ANTES de que las traducciones hayan cargado (fetch async). Si el usuario sigue siendo
+    // invitado (no hay sesión), lo volvemos a traducir aquí. Si ya hay sesión, NO lo tocamos:
+    // ya contiene el nombre real del usuario, no la palabra "Invitado".
+    if (!window._nexus_user_id) {
+        const dropdownUsernameEl = document.getElementById('dropdown-username');
+        if (dropdownUsernameEl) dropdownUsernameEl.textContent = t('user.guest');
+    }
 
     // Actualizar botones del menú de usuario usando IDs específicos (fiable, no depende
     // de que el texto siga siendo literalmente el string en español)
