@@ -174,8 +174,6 @@ window.addEventListener('popstate', function () {
     setTimeout(detectPageAndUpdate, 50);
 });
 
-console.log('✅ Open Graph meta tags dinámicos activados');
-
 // ==========================================================================
 //   MENÚ CONTEXTUAL FLOTANTE: GUARDAR EN LISTA (estilo YouTube)
 // ==========================================================================
