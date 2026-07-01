@@ -518,7 +518,11 @@ const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
 async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
-    // antes de cambiar, guardo donde estaba
+    // Si ya estamos en esa vista, no hacer nada (excepto si es profile con otro usuario)
+    if (vistaActualGlobal === target && target !== 'profile') {
+        return;
+    }
+
     memoriaScroll[vistaActualGlobal] = window.scrollY;
 
     // cambio el color del menu
@@ -554,14 +558,29 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     if (target === 'games' && !juegosCargados) {
         aplicarFiltros();
         juegosCargados = true;
+        // Cargar tendencias de juegos si no están cargadas
+        const containerGames = document.getElementById('trend-games');
+        if (containerGames && containerGames.children.length === 0) {
+            cargarTendencias('day', true);
+        }
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
         cargarGeneros('movie');
+        // Cargar tendencias de películas si no están cargadas
+        const containerMovies = document.getElementById('trend-movies');
+        if (containerMovies && containerMovies.children.length === 0) {
+            cargarTendenciasPeliculas('day', true);
+        }
     } else if (target === 'series' && !seriesCargadas) {
         cargarTMDB('tv');
         seriesCargadas = true;
         cargarGeneros('tv');
+        // Cargar tendencias de series si no están cargadas
+        const containerSeries = document.getElementById('trend-series');
+        if (containerSeries && containerSeries.children.length === 0) {
+            cargarTendenciasSeries('day', true);
+        }
     } else if (target === 'profile') {
         // Si no hay usernameUrl, usamos el de la sesión
         if (!usernameUrl) {
@@ -671,6 +690,16 @@ function arrancarEnrutador() {
         vistaInicial = 'movies';
     } else if (rutaActual.startsWith('/series')) {
         vistaInicial = 'series';
+    } else if (rutaActual.startsWith('/admin')) {
+        vistaInicial = 'admin-panel';
+    } else if (rutaActual.startsWith('/mis-listas')) {
+        vistaInicial = 'mis-listas';
+    } else if (rutaActual.startsWith('/editar-perfil')) {
+        vistaInicial = 'edit-profile';
+    } else if (rutaActual.startsWith('/login')) {
+        vistaInicial = 'login';
+    } else if (rutaActual.startsWith('/registro')) {
+        vistaInicial = 'register';
     } else {
         for (const [idVista, url] of Object.entries(mapaRutas)) {
             if (url === rutaActual) {
@@ -680,10 +709,19 @@ function arrancarEnrutador() {
         }
     }
 
-    // muestro esa vista sin empujarla al historial todavía
+    // NO FORZAR HOME - Cambiar directamente a la vista detectada
     cambiarVista(vistaInicial, false, userInitial);
 
-    // Mantenemos la url actual si es un modal (para no borrar el /juegos/Mufasa de la barra)
+    // ACTUALIZAR EL MENÚ ACTIVO
+    linksMenu.forEach(link => {
+        if (link.getAttribute('data-target') === vistaInicial) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // Mantenemos la url actual
     const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : rutaActual;
     window.history.replaceState({ vista: vistaInicial, user: userInitial }, '', urlFinal);
 
@@ -696,7 +734,6 @@ function arrancarEnrutador() {
             if (mediaAbierta) {
                 const data = JSON.parse(mediaAbierta);
                 if (rutaActual.includes(data.urlAmigable)) {
-                    // Si la URL coincide con lo guardado, ¡abrimos el modal! (false = no empujar al historial otra vez)
                     abrirModalMedia(data.id, data.tipo, false);
                 } else {
                     localStorage.removeItem('modalMediaAbierto');
@@ -713,7 +750,7 @@ function arrancarEnrutador() {
                 }
             }
         }
-    }, 300); // Le damos 300ms a la web para que pinte el fondo antes de lanzar el modal
+    }, 300);
 }
 
 // ==========================================================================
@@ -1780,13 +1817,11 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         // Si IGDB no encontró resultados y hay búsqueda, probar en Steam
         let datosFinales = juegos;
         if (juegos.length === 0 && busquedaActual) {
-            console.log('🔍 IGDB sin resultados, buscando en Steam...');
             try {
                 const steamRes = await fetch(`/api/steam?query=${encodeURIComponent(busquedaActual)}`);
                 if (steamRes.ok) {
                     const steamData = await steamRes.json();
                     if (steamData.length > 0) {
-                        console.log(`✅ Steam devolvió ${steamData.length} resultados`);
                         datosFinales = steamData;
                     }
                 }
@@ -2036,7 +2071,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
         const data = await response.json();
 
-        // ✅ SOPORTAR NUEVO FORMATO DE IGDB
+        // SOPORTAR NUEVO FORMATO DE IGDB
         let juegosData;
         if (data.juegos && Array.isArray(data.juegos)) {
             juegosData = data.juegos;
@@ -2144,7 +2179,7 @@ async function cargarMasTendencias(period = 'day') {
 
         const data = await response.json();
 
-        // ✅ SOPORTAR NUEVO FORMATO
+        // SOPORTAR NUEVO FORMATO
         let juegosData;
         if (data.juegos && Array.isArray(data.juegos)) {
             juegosData = data.juegos;
@@ -2354,6 +2389,13 @@ function initTrendTabs() {
 
 // Cargar tendencias de JUEGOS al iniciar
 function cargarTendenciasInicial() {
+    // Verificar que el contenedor existe antes de cargar
+    const container = document.getElementById('trend-games');
+    if (!container) return;
+
+    // Si ya tiene contenido, no recargar
+    if (container.children.length > 0) return;
+
     setTimeout(() => {
         cargarTendencias('day', true);
         initTrendTabs();
@@ -3790,7 +3832,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         msgBox.textContent = '❌ ' + error.message;
     } else {
         msgBox.style.color = 'var(--success)';
-        msgBox.textContent = '✅ ¡Cuenta creada! Revisa tu correo.';
+        msgBox.textContent = '¡Cuenta creada! Revisa tu correo.';
 
         // mando a la pantalla de esperando confirmacion
         setTimeout(() => {
@@ -3862,7 +3904,7 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
         }
     } else {
         msgBox.style.color = 'var(--success)';
-        msgBox.textContent = '✅ ¡Acceso concedido!';
+        msgBox.textContent = '¡Acceso concedido!';
         setTimeout(() => {
             cambiarVista('home');
             verificarSesion();
@@ -5137,7 +5179,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
                 // Si no hay tiempo restante, mostrar "¡Completada!"
                 if (restantes === 0 && totalEpisodios > 0) {
-                    document.getElementById('media-detail-remaining-time').textContent = `✅ ${t('details_extra.completed')}`;
+                    document.getElementById('media-detail-remaining-time').textContent = `${t('details_extra.completed')}`;
                 }
             } else {
                 document.getElementById('media-detail-remaining-time').textContent = '--';
@@ -5414,7 +5456,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                             const remainingEl = document.getElementById('media-detail-remaining-time');
                             if (remainingEl) {
                                 if (restantes === 0 && totalEpisodios > 0) {
-                                    remainingEl.textContent = '✅ ¡Completada!';
+                                    remainingEl.textContent = '¡Completada!';
                                 } else {
                                     remainingEl.textContent = formatearTiempo(tiempoRestanteMin);
                                 }
@@ -9807,6 +9849,10 @@ function initTrendMoviesTabs() {
 
 // Función para cargar tendencias de películas al inicio
 function cargarTendenciasPeliculasInicial() {
+    const container = document.getElementById('trend-movies');
+    if (!container) return;
+    if (container.children.length > 0) return;
+
     setTimeout(() => {
         cargarTendenciasPeliculas('day', true);
         initTrendMoviesTabs();
@@ -9986,13 +10032,17 @@ function crearTarjetaTrendSerie(serie, posicion) {
 
 // Cargar tendencias de series al inicio
 function cargarTendenciasSeriesInicial() {
+    const container = document.getElementById('trend-series');
+    if (!container) return;
+    if (container.children.length > 0) return;
+
     setTimeout(() => {
         cargarTendenciasSeries('day', true);
         const container = document.getElementById('trend-series');
         if (container) {
             setTimeout(() => { container.scrollLeft = 0; }, 100);
         }
-    }, 700); // 100ms después de las pelis para no saturar la red de golpe
+    }, 700);
 }
 
 // ==========================================================================
@@ -10794,15 +10844,39 @@ configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_w
 configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializamos las funciones de carga de datos
-    cargarTendenciasInicial();
-    cargarTendenciasPeliculasInicial();
-    cargarTendenciasSeriesInicial();
+    // NO CARGAR TENDENCIAS SIEMPRE - Solo si estamos en HOME o GAMES
+    const rutaActual = window.location.pathname;
+    const vistaActual = rutaActual === '/' ? 'home' :
+        rutaActual.startsWith('/juegos') ? 'games' :
+            rutaActual.startsWith('/peliculas') ? 'movies' :
+                rutaActual.startsWith('/series') ? 'series' : 'home';
 
-    // INICIAMOS LOS TRÁILERS
-    setTimeout(() => {
-        cargarUltimosTrailers();
-    }, 1000);
+    // SOLO cargar tendencias SI estamos en HOME o en su vista correspondiente
+    if (vistaActual === 'home' || vistaActual === 'games') {
+        // Solo cargar tendencias de juegos si estamos en HOME o GAMES
+        setTimeout(() => {
+            cargarTendenciasInicial();
+        }, 500);
+    }
+
+    if (vistaActual === 'home' || vistaActual === 'movies') {
+        setTimeout(() => {
+            cargarTendenciasPeliculasInicial();
+        }, 600);
+    }
+
+    if (vistaActual === 'home' || vistaActual === 'series') {
+        setTimeout(() => {
+            cargarTendenciasSeriesInicial();
+        }, 700);
+    }
+
+    // TRÁILERS - Solo cargar si estamos en HOME
+    if (vistaActual === 'home') {
+        setTimeout(() => {
+            cargarUltimosTrailers();
+        }, 1000);
+    }
 
     // Activamos el vigilante de pestañas unificado para TODAS las secciones
     setTimeout(() => {
