@@ -1911,6 +1911,9 @@ function getDateRange(period) {
     const now = new Date();
     let startDate = new Date(now);
 
+    // Guardamos la fecha actual en timestamp
+    const nowTimestamp = Math.floor(now.getTime() / 1000);
+
     switch (period) {
         case 'day':
             startDate.setDate(now.getDate() - 1);
@@ -1932,9 +1935,25 @@ function getDateRange(period) {
     startDate.setHours(0, 0, 0, 0);
     now.setHours(23, 59, 59, 999);
 
+    // Usa getTime() correctamente (en milisegundos -> dividir por 1000)
+    const fromTimestamp = Math.floor(startDate.getTime() / 1000);
+    const toTimestamp = Math.floor(now.getTime() / 1000);
+
+    // Si la fecha de inicio es mayor que la actual, usar un año atrás
+    let finalFrom = fromTimestamp;
+    if (fromTimestamp > nowTimestamp) {
+        const fallback = new Date(now);
+        fallback.setFullYear(now.getFullYear() - 1);
+        fallback.setHours(0, 0, 0, 0);
+        finalFrom = Math.floor(fallback.getTime() / 1000);
+        console.warn('⚠️ Fecha de inicio en el futuro, usando fallback:', new Date(finalFrom * 1000));
+    }
+
+    console.log(`📅 Período ${period}: from=${finalFrom} (${new Date(finalFrom * 1000).toISOString()}) to=${toTimestamp} (${new Date(toTimestamp * 1000).toISOString()})`);
+
     return {
-        from: Math.floor(startDate.getTime() / 1000),
-        to: Math.floor(now.getTime() / 1000)
+        from: finalFrom,
+        to: toTimestamp
     };
 }
 
@@ -2003,7 +2022,17 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
 
     try {
         const dateRange = getDateRange(period);
-        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&dateMin=${dateRange.from}&dateMax=${dateRange.to}&lang=${currentLang}`;
+        const hoy = Math.floor(Date.now() / 1000);
+        const haceUnAño = hoy - (365 * 24 * 60 * 60);
+
+        // Si las fechas son inválidas (en el futuro o muy antiguas), usar fallback
+        let from = dateRange.from;
+        let to = dateRange.to;
+
+        if (from > hoy || from < 0) from = haceUnAño;
+        if (to > hoy || to < 0) to = hoy;
+
+        let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&lang=${currentLang}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
