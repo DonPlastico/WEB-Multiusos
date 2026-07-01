@@ -169,30 +169,70 @@ export default async function handler(req, res) {
         // =============================================
         // 4. FILTRAR JUEGOS VÁLIDOS
         // =============================================
-        const CATEGORIAS_VALIDAS = [0, 8, 9, 10, 11, 12];
+        const CATEGORIAS_PERMITIDAS = [0, 1, 2, 4]; // Main game, DLC, Expansion, Standalone expansion
+        const CATEGORIAS_BLOQUEADAS = [3, 8, 9, 10, 11, 12]; // Bundle, Remake, Remaster, Expanded, Port, Spinoff
+
+        // Lista de keywords que indican ediciones especiales a bloquear (incluso si IGDB las pone como Main Game)
+        const KEYWORDS_BLOQUEADAS = [
+            'complete edition', 'complete collection', 'game of the year', 'goty',
+            'launch edition', 'regalla edition', 'special edition', 'collector\'s edition',
+            'deluxe edition', 'ultimate edition', 'premium edition', 'gold edition',
+            'platinum edition', 'diamond edition', 'limited edition', 'exclusive edition',
+            'definitive edition', 'final edition', 'legendary edition', 'mythic edition',
+            'bundle', 'collection', 'compilation', 'triple pack', 'double pack'
+        ];
 
         let juegosFiltrados = dataRaw.filter(juego => {
-            const categoriaValida = !juego.category || CATEGORIAS_VALIDAS.includes(juego.category);
+            const categoria = juego.category ?? -1;
             const tieneNombre = juego.name && juego.name.length > 0;
-            const noEsDLC = juego.category === undefined || juego.category < 1 || juego.category > 6;
-
             const tienePortada = juego.cover && juego.cover.url;
+            const nombreLower = (juego.name || '').toLowerCase();
 
-            return categoriaValida && tieneNombre && noEsDLC && tienePortada;
+            // 1. Bloquear por categoría (bundles, remakes, ports, etc.)
+            if (CATEGORIAS_BLOQUEADAS.includes(categoria)) return false;
+
+            // 2. Si es MAIN GAME (categoría 0) pero tiene keywords de edición especial → BLOQUEAR
+            if (categoria === 0) {
+                const esEdicionEspecial = KEYWORDS_BLOQUEADAS.some(kw => nombreLower.includes(kw));
+                if (esEdicionEspecial) return false;
+            }
+
+            // 3. DLCs, Expansiones y Standalone: SIEMPRE mostrarlos (son contenido adicional válido)
+            // No filtramos por nombre en DLCs, porque pueden tener "Complete Edition" en su nombre
+            // pero son DLCs sueltos.
+
+            // 4. Requisitos mínimos
+            return categoria === 0 || CATEGORIAS_PERMITIDAS.includes(categoria) && tieneNombre && tienePortada;
         });
 
-        // Esto asegura que aunque IGDB devuelva desordenado, nosotros lo ordenamos bien
-        juegosFiltrados.sort((a, b) => {
-            const fechaA = a.first_release_date || 0;
-            const fechaB = b.first_release_date || 0;
-            return fechaB - fechaA; // Descendente (más reciente primero)
+        // Eliminar duplicados por nombre base (mantener el primer juego que aparece)
+        const vistos = new Set();
+        const juegosUnicos = [];
+
+        juegosFiltrados.forEach(juego => {
+            // Extraer nombre base (quitar todo lo que esté después de ":" o "-" si es una edición)
+            let nombreBase = juego.name;
+            const separadores = [':', '—', '–', '-'];
+            for (const sep of separadores) {
+                if (nombreBase.includes(sep)) {
+                    nombreBase = nombreBase.split(sep)[0].trim();
+                    break;
+                }
+            }
+
+            // Si es un juego base (categoría 0) y ya tenemos otro con el mismo nombre base, lo saltamos
+            if (juego.category === 0 && vistos.has(nombreBase.toLowerCase())) {
+                return;
+            }
+
+            // Guardar el nombre base para futuras comparaciones
+            vistos.add(nombreBase.toLowerCase());
+            juegosUnicos.push(juego);
         });
 
-        console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos`);
+        juegosFiltrados = juegosUnicos;
 
-        if (juegosFiltrados.length === 0) {
-            return res.status(200).json([]);
-        }
+        console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos (únicos)`);
 
         // =============================================
         // 5. CONSULTAR ITAD (PRECIOS)
