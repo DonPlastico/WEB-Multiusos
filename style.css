@@ -3996,10 +3996,9 @@ cast-carousel::-webkit-scrollbar {
 
 /* --- PC: Abajo derecha, encima del chatbox --- */
 .toast-desktop {
-    bottom: calc(20px + 185px);
-    /* Altura del chatbox colapsado (50px + margen) */
-    right: 25px;
     align-items: flex-end;
+    bottom: 60px !important;
+    right: 32px;
 }
 
 /* Cuando el chatbox está expandido, los toasts suben */
