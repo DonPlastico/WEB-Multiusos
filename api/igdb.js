@@ -167,32 +167,82 @@ export default async function handler(req, res) {
         console.log(`📥 IGDB devolvió ${dataRaw.length} juegos`);
 
         // =============================================
-        // 4. FILTRAR JUEGOS VÁLIDOS
+        // 4. FILTRAR JUEGOS VÁLIDOS (VERSIÓN CORREGIDA)
         // =============================================
-        const CATEGORIAS_VALIDAS = [0, 8, 9, 10, 11, 12];
 
+        // Solo bloqueamos categorías que son OBVIAMENTE basura
+        const CATEGORIAS_BLOQUEADAS = [3]; // 3 = Bundle (Complete Edition, etc.)
+
+        // Palabras clave para bloquear EDICIONES ESPECIALES (solo si están en el nombre)
+        const KEYWORDS_BLOQUEADAS = [
+            'complete edition', 'complete collection', 'game of the year', 'goty',
+            'launch edition', 'regalla edition', 'special edition', 'collector\'s edition',
+            'deluxe edition', 'ultimate edition', 'premium edition', 'gold edition',
+            'platinum edition', 'diamond edition', 'limited edition', 'exclusive edition',
+            'definitive edition', 'final edition', 'legendary edition', 'mythic edition',
+            'bundle', 'collection', 'compilation', 'triple pack', 'double pack'
+        ];
+
+        // 1. Filtro básico: juegos con nombre y portada
         let juegosFiltrados = dataRaw.filter(juego => {
-            const categoriaValida = !juego.category || CATEGORIAS_VALIDAS.includes(juego.category);
             const tieneNombre = juego.name && juego.name.length > 0;
-            const noEsDLC = juego.category === undefined || juego.category < 1 || juego.category > 6;
-
             const tienePortada = juego.cover && juego.cover.url;
-
-            return categoriaValida && tieneNombre && noEsDLC && tienePortada;
+            return tieneNombre && tienePortada;
         });
 
-        // Esto asegura que aunque IGDB devuelva desordenado, nosotros lo ordenamos bien
-        juegosFiltrados.sort((a, b) => {
-            const fechaA = a.first_release_date || 0;
-            const fechaB = b.first_release_date || 0;
-            return fechaB - fechaA; // Descendente (más reciente primero)
-        });
-
-        console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos`);
-
-        if (juegosFiltrados.length === 0) {
-            return res.status(200).json([]);
+        // 2. Si hay búsqueda activa, NO aplicamos filtros de categoría (para no romper búsquedas)
+        if (!busqueda) {
+            // Solo en carga inicial (tendencias), bloqueamos bundles (categoría 3)
+            juegosFiltrados = juegosFiltrados.filter(juego => {
+                const categoria = juego.category ?? -1;
+                return !CATEGORIAS_BLOQUEADAS.includes(categoria);
+            });
         }
+
+        // 3. NUNCA bloqueamos por categoría si hay búsqueda (la gente busca DLCs, Remakes, etc.)
+        // 4. NUNCA bloqueamos DLCs (categoría 1) porque son contenido válido
+
+        // 5. Desduplicación: mantener SOLO la primera versión de cada juego
+        const vistos = new Map(); // Usamos Map para guardar el mejor juego
+        const juegosUnicos = [];
+
+        juegosFiltrados.forEach(juego => {
+            // Extraer nombre base (antes del primer ":" o "-")
+            let nombreBase = juego.name;
+            const separadores = [':', '—', '–', '-'];
+            for (const sep of separadores) {
+                const idx = nombreBase.indexOf(sep);
+                if (idx > 0) {
+                    nombreBase = nombreBase.substring(0, idx).trim();
+                    break;
+                }
+            }
+
+            const key = nombreBase.toLowerCase();
+
+            // Si ya tenemos un juego con este nombre base
+            if (vistos.has(key)) {
+                const existente = vistos.get(key);
+
+                // PRIORIDAD: mantener el juego base (category 0) sobre ediciones especiales
+                const esBase = juego.category === 0;
+                const existenteEsBase = existente.category === 0;
+
+                // Si el nuevo es base y el existente no, reemplazar
+                if (esBase && !existenteEsBase) {
+                    vistos.set(key, juego);
+                }
+                // Si ambos son base, mantener el que tenga portada (ambos ya tienen)
+                return;
+            }
+
+            vistos.set(key, juego);
+        });
+
+        // Convertir Map a array
+        juegosFiltrados = Array.from(vistos.values());
+
+        console.log(`✅ Filtrados ${juegosFiltrados.length} juegos válidos (únicos)`);
 
         // =============================================
         // 5. CONSULTAR ITAD (PRECIOS)
