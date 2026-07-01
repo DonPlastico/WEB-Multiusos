@@ -3,7 +3,13 @@ export default async function handler(req, res) {
     const busqueda = query.query || '';
 
     if (!busqueda) {
-        return res.status(200).json([]);
+        return res.status(200).json({
+            juegos: [],
+            total: 0,
+            offset: 0,
+            limit: 50,
+            hasMore: false
+        });
     }
 
     try {
@@ -28,7 +34,6 @@ export default async function handler(req, res) {
             first_release_date: null,
             platforms: [{ name: 'PC' }],
             category: 0,
-            // Marcar como juego de Steam
             itad: {
                 precio: null,
                 stores: 'steam',
@@ -37,10 +42,24 @@ export default async function handler(req, res) {
             _source: 'steam'
         }));
 
-        res.status(200).json(juegosSteam);
+        // ✅ DEVOLVER EN EL MISMO FORMATO QUE IGDB
+        res.status(200).json({
+            juegos: juegosSteam,
+            total: juegosSteam.length,
+            offset: 0,
+            limit: 50,
+            hasMore: false
+        });
 
     } catch (error) {
         console.error('Error en Steam API:', error);
-        res.status(500).json({ error: 'Error buscando en Steam' });
+        res.status(500).json({
+            juegos: [],
+            total: 0,
+            offset: 0,
+            limit: 50,
+            hasMore: false,
+            error: 'Error buscando en Steam'
+        });
     }
 }

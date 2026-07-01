@@ -2035,7 +2035,26 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        if (!Array.isArray(data)) throw new Error('Formato de respuesta inválido');
+
+        let juegosData;
+        if (data.juegos && Array.isArray(data.juegos)) {
+            juegosData = data.juegos;
+        } else if (Array.isArray(data)) {
+            juegosData = data;
+        } else {
+            throw new Error('Formato de respuesta inválido');
+        }
+
+        // Ahora usa juegosData en lugar de data
+        if (!juegosData || juegosData.length === 0) {
+            if (resetear) {
+                container.innerHTML = `<div class="trends-empty"><i class="fas fa-gamepad"></i><span>No hay tendencias</span></div>`;
+            }
+            trendCargando = false;
+            return;
+        }
+
+        const sorted = [...juegosData].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
         if (resetear) container.innerHTML = '';
 
@@ -2134,7 +2153,15 @@ async function cargarMasTendencias(period = 'day') {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        if (!Array.isArray(data)) throw new Error('Formato inválido');
+
+        let juegosData;
+        if (data.juegos && Array.isArray(data.juegos)) {
+            juegosData = data.juegos;
+        } else if (Array.isArray(data)) {
+            juegosData = data;
+        } else {
+            throw new Error('Formato inválido');
+        }
 
         // Eliminar el loader
         loader.remove();
@@ -4814,7 +4841,9 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
         const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
-        const datos = await respuesta.json();
+        const data = await respuesta.json();
+
+        const datos = data.juegos || data;
         const juego = datos.find(j => j.id.toString() === idJuego.toString());
 
         if (!juego) {
