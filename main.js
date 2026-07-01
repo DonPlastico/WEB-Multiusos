@@ -19,35 +19,37 @@ injectSpeedInsights();
 /**
  * CONFIGURACIÓN DE META TAGS POR PÁGINA
  */
+const baseUrl = 'https://web-multiusos.vercel.app';
+
 const OG_CONFIG = {
     home: {
         title: 'DP-SYS | Nexus - Tu centro multimedia personal',
-        description: 'DP-SYS - Tu nexus personal de juegos, películas y series. Descubre las últimas tendencias, guarda tu progreso en cada título, personaliza tu perfil y conecta con otros usuarios que comparten tus mismos gustos. Todo en un solo lugar, diseñado para los amantes del entretenimiento digital.',
-        image: '/img/Pruebas/HOME.png',
+        description: 'DP-SYS - Tu nexus personal de juegos, películas y series. Descubre tendencias, guarda tu progreso y conecta con otros usuarios que comparten tus gustos.',
+        image: `${baseUrl}/img/Pruebas/HOME.png`,
         url: '/'
     },
     games: {
         title: 'DP-SYS | Nexus - Juegos: Tu biblioteca de videojuegos',
-        description: 'DP-SYS - Explora una extensa base de datos de videojuegos para PC, consolas y móviles. Descubre títulos populares, próximos lanzamientos, ofertas especiales y precios actualizados. Crea tu lista de juegos pendientes, marca los que has completado y comparte tus experiencias con la comunidad. Conéctate con otros jugadores y descubre nuevas aventuras que te esperan.',
-        image: '/img/Pruebas/JUEGOS.png',
+        description: 'Explora una extensa base de datos de videojuegos para PC, consolas y móviles. Descubre ofertas, crea tu lista de pendientes y comparte tus experiencias.',
+        image: `${baseUrl}/img/Pruebas/JUEGOS.png`,
         url: '/juegos'
     },
     movies: {
         title: 'DP-SYS | Nexus - Películas: Tu cine personal',
-        description: 'DP-SYS - Sumérgete en el mundo del cine con nuestra completa colección de películas. Explora los últimos estrenos, clásicos atemporales y géneros variados. Guarda tu progreso, califica las películas que has visto, crea tu lista de pendientes y descubre recomendaciones personalizadas basadas en tus gustos. Comparte tus reseñas y conecta con otros cinéfilos que comparten tu pasión por el séptimo arte.',
-        image: '/img/Pruebas/PELÍCULAS.png',
+        description: 'Sumérgete en el mundo del cine con nuestra colección de películas. Guarda tu progreso, califica y descubre recomendaciones personalizadas.',
+        image: `${baseUrl}/img/Pruebas/PELÍCULAS.png`,
         url: '/peliculas'
     },
     series: {
         title: 'DP-SYS | Nexus - Series: Tu maratón perfecta',
-        description: 'DP-SYS - Explora el fascinante mundo de las series con nuestra guía completa. Descubre nuevas series, temporadas y episodios de tus shows favoritos. Controla tu progreso en cada serie, marca los capítulos que has visto, y nunca pierdas el hilo de tus historias favoritas. Obtén recomendaciones basadas en tus gustos y conecta con otros aficionados que siguen las mismas series que tú.',
-        image: '/img/Pruebas/SERIES.png',
+        description: 'Explora el fascinante mundo de las series con nuestra guía completa. Controla tu progreso y nunca pierdas el hilo de tus historias favoritas.',
+        image: `${baseUrl}/img/Pruebas/SERIES.png`,
         url: '/series'
     },
     profile: {
         title: 'DP-SYS | Nexus - Perfil: Tu espacio personal',
-        description: 'DP-SYS - Personaliza tu perfil dentro de Nexus. Gestiona tu información personal, elige tu avatar y banner favorito, configura tu idioma y ajusta tus preferencias de visualización. Controla tu lista de amistades, comparte tu progreso en juegos, películas y series, y muestra tu colección personal al resto de la comunidad. Tu perfil, tu espacio, tu identidad dentro del multiverso del entretenimiento.',
-        image: '/img/Pruebas/PERFIL.png',
+        description: 'Personaliza tu perfil, gestiona tu información, controla tu lista de amistades y comparte tu progreso con la comunidad.',
+        image: `${baseUrl}/img/Pruebas/PERFIL.png`,
         url: '/perfil'
     }
 };
@@ -67,8 +69,6 @@ const VIEW_TO_CONFIG = {
     'waiting-confirmation': 'home',
     'verified-account': 'home'
 };
-
-const baseUrl = 'https://web-multiusos.vercel.app';
 
 /**
  * Actualiza las meta tags de Open Graph
