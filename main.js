@@ -847,6 +847,17 @@ loadSavedTheme();
 let currentLang = 'es';
 let translations = {};
 
+// Promesa compartida: se resuelve la PRIMERA vez que las traducciones terminan de
+// cargar y aplicarse. Cualquier carga inicial de datos (juegos/películas/series/
+// tendencias) debe esperar a esto antes de pintar textos con t(), para no mostrar
+// la key cruda mientras el fetch de /locales/<lang>.json todavía está en curso.
+let _resolveTranslationsReady;
+const translationsReadyPromise = new Promise(resolve => { _resolveTranslationsReady = resolve; });
+// Red de seguridad: si por lo que sea initLanguage() nunca llega a resolver esto
+// (error inesperado en otra parte del código), no queremos que TODA la carga de
+// datos se quede colgada para siempre. Pasados 4s, se desbloquea igualmente.
+setTimeout(() => _resolveTranslationsReady(), 4000);
+
 // 1. Cargar idioma guardado
 function loadSavedLanguage() {
     // Primero intentamos desde localStorage (para usuarios no logueados)
@@ -1444,6 +1455,9 @@ async function initLanguage() {
     // 4. Aplicar al DOM
     applyTranslations();
 
+    // Avisamos a cualquier carga inicial de datos que ya puede pintar textos con t()
+    _resolveTranslationsReady();
+
     // 5. Sincronizar el menú de idiomas con el idioma actual
     document.querySelectorAll('.lang-option').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.lang === idiomaFinal);
@@ -1690,6 +1704,7 @@ function crearTarjeta(juego) {
 }
 
 async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
+    await translationsReadyPromise; // Esperamos a que t() tenga datos reales antes de pintar nada
     // 1. SISTEMA DE FRENADO DE EMERGENCIA
     if (resetear) {
         // GUARDAR BÚSQUEDA PARA PERSISTENCIA F5
@@ -1890,6 +1905,7 @@ function getDateRange(period) {
 }
 
 async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
+    await translationsReadyPromise;
     if (trendCargando) return;
     trendCargando = true;
 
@@ -2684,6 +2700,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
 }
 
 async function cargarTMDB(tipo, busqueda = '', resetear = true) {
+    await translationsReadyPromise;
     if (cargandoTMDB) return;
     cargandoTMDB = true;
 
@@ -9544,6 +9561,7 @@ let trendMoviesOffset = 0;
 
 // Función para cargar tendencias de películas
 async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
+    await translationsReadyPromise;
     if (trendMoviesCargando) return;
     trendMoviesCargando = true;
 
@@ -9767,6 +9785,7 @@ let trendSeriesPeriod = 'day';
 
 // Función para cargar tendencias de Series (Idéntica a Películas pero apuntando a TV)
 async function cargarTendenciasSeries(period = 'day', resetear = true) {
+    await translationsReadyPromise;
     if (trendSeriesCargando) return;
     trendSeriesCargando = true;
 
@@ -9912,6 +9931,7 @@ function cargarTendenciasSeriesInicial() {
 // ==========================================================================
 
 async function cargarUltimosTrailers() {
+    await translationsReadyPromise;
     const container = document.getElementById('latest-trailers');
     if (!container) return;
 
