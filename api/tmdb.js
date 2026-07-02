@@ -283,7 +283,6 @@ export default async function handler(req, res) {
         const dateMax = query.dateMax || '';
 
         let urlLista;
-        let urlLista;
         if (busqueda) {
             // TMDB ignora vote_count en /search, así que lo quitamos de la URL y lo haremos en JS
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
