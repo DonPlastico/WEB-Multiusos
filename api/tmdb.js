@@ -283,8 +283,10 @@ export default async function handler(req, res) {
         const dateMax = query.dateMax || '';
 
         let urlLista;
+        let urlLista;
         if (busqueda) {
-            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}${minVotes > 0 ? `&vote_count.gte=${minVotes}` : ''}`;
+            // TMDB ignora vote_count en /search, así que lo quitamos de la URL y lo haremos en JS
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
         } else {
             let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
 
@@ -342,7 +344,7 @@ export default async function handler(req, res) {
             return res.status(200).json([]);
         }
 
-        const jsonFinal = detallesRAW.map(data => {
+        let jsonFinal = detallesRAW.map(data => {
             const providersES = data['watch/providers']?.results?.ES;
             const plataformas = [];
             if (providersES && providersES.flatrate) {
@@ -373,6 +375,15 @@ export default async function handler(req, res) {
                 certification: releaseDates
             };
         });
+
+        // 🔥 ORDENAR POR RELEVANCIA REAL (VOTOS) Y FILTRAR EN BÚSQUEDAS
+        if (busqueda) {
+            if (minVotes > 0) {
+                jsonFinal = jsonFinal.filter(item => item.votos >= minVotes);
+            }
+            // Ordenamos de mayor a menor cantidad de votos para mandar al fondo la "basura"
+            jsonFinal.sort((a, b) => b.votos - a.votos);
+        }
 
         res.status(200).json(jsonFinal);
 
