@@ -11045,13 +11045,9 @@ async function procesarImportTVTime(file) {
     const episodiosVistos = parseCSV(archivosImportantes['seen_episode_latest.csv'] || '');
     const valoraciones = parseCSV(archivosImportantes['ratings-3-prod-episode_votes.csv'] || '');
 
-    // Mapa para no duplicar
-    const seriesMap = new Map();
     let totalSeries = seriesTVTime.length;
     let procesadas = 0;
 
-    // ARRAY PARA GUARDAR TODOS LOS ITEMS QUE IRÁN A LA LISTA
-    const itemsParaLista = [];
     // ARRAY PARA GUARDAR LAS SERIES PROCESADAS (para la lista)
     const seriesProcesadas = [];
 
@@ -11163,7 +11159,7 @@ async function procesarImportTVTime(file) {
             }
 
             procesadas++;
-            const progreso = 25 + ((procesadas / totalSeries) * 60); // 60% para el procesamiento, 15% para la lista
+            const progreso = 25 + ((procesadas / totalSeries) * 60);
             actualizarProgreso(progreso, `Procesado: ${titulo}`);
 
         } catch (err) {
@@ -11172,54 +11168,55 @@ async function procesarImportTVTime(file) {
     }
 
     // ============================================================
-    // 🔥 NUEVO: GUARDAR EN LISTA "IMPORTADA DE TV TIME"
+    // 🔥 GUARDAR EN LISTA "SERIES" (DEFAULT)
     // ============================================================
 
     if (seriesProcesadas.length > 0) {
-        actualizarProgreso(88, 'Creando lista con todo el contenido importado...');
+        actualizarProgreso(88, 'Guardando series en la lista "SERIES"...');
 
-        // 1. Buscar o crear la lista "TV Time - Importada"
-        const nombreLista = '📺 TV Time - Importada';
-        const { data: listaExistente } = await supabase
+        // 1. Buscar o crear la lista "SERIES"
+        const nombreListaSeries = 'SERIES';
+        const { data: listaSeriesExistente } = await supabase
             .from('listas_maestra')
             .select('id')
             .eq('owner_id', userId)
-            .eq('titulo', nombreLista)
+            .eq('titulo', nombreListaSeries)
             .maybeSingle();
 
-        let listaId;
+        let listaSeriesId;
 
-        if (listaExistente) {
-            listaId = listaExistente.id;
+        if (listaSeriesExistente) {
+            listaSeriesId = listaSeriesExistente.id;
             // Limpiar items anteriores para evitar duplicados
             await supabase
                 .from('listas_items')
                 .delete()
-                .eq('lista_id', listaId);
+                .eq('lista_id', listaSeriesId);
         } else {
-            // Crear la lista
+            // Crear la lista "SERIES"
             const { data: nuevaLista, error: errorLista } = await supabase
                 .from('listas_maestra')
                 .insert({
-                    titulo: nombreLista,
-                    descripcion: `Contenido importado desde TV Time el ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+                    titulo: nombreListaSeries,
+                    descripcion: `Todas las series importadas desde TV Time (${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })})`,
                     owner_id: userId,
                     is_public: false,
-                    tag_tipo: 'mixta'
+                    tag_tipo: 'tv'
                 })
                 .select()
                 .single();
 
             if (errorLista) throw errorLista;
-            listaId = nuevaLista.id;
+            listaSeriesId = nuevaLista.id;
         }
 
-        // 2. Preparar los items para la lista
-        actualizarProgreso(91, `Preparando ${seriesProcesadas.length} elementos para la lista...`);
+        // 2. Preparar los items para la lista de series
+        actualizarProgreso(91, `Preparando ${seriesProcesadas.length} series para la lista...`);
 
+        const itemsSeries = [];
         for (const serie of seriesProcesadas) {
-            itemsParaLista.push({
-                lista_id: listaId,
+            itemsSeries.push({
+                lista_id: listaSeriesId,
                 media_id: serie.mediaId,
                 media_tipo: 'tv',
                 added_by_user_id: userId
@@ -11227,25 +11224,31 @@ async function procesarImportTVTime(file) {
         }
 
         // 3. Insertar en batches de 50
-        actualizarProgreso(93, `Guardando ${itemsParaLista.length} elementos en la lista...`);
+        actualizarProgreso(93, `Guardando ${itemsSeries.length} series en la lista...`);
 
-        for (let i = 0; i < itemsParaLista.length; i += 50) {
-            const batch = itemsParaLista.slice(i, i + 50);
+        for (let i = 0; i < itemsSeries.length; i += 50) {
+            const batch = itemsSeries.slice(i, i + 50);
             const { error: itemsError } = await supabase
                 .from('listas_items')
                 .insert(batch);
 
             if (itemsError) {
-                console.warn('Error guardando items en lote:', itemsError);
+                console.warn('Error guardando series en lote:', itemsError);
             }
         }
 
-        actualizarProgreso(96, `✅ Lista "${nombreLista}" creada con ${itemsParaLista.length} elementos.`);
+        actualizarProgreso(95, `✅ Lista "SERIES" actualizada con ${itemsSeries.length} elementos.`);
     } else {
-        actualizarProgreso(88, 'No se encontraron series para guardar en lista.');
+        actualizarProgreso(88, 'No se encontraron series para guardar.');
     }
 
-    actualizarProgreso(98, 'Finalizando importación...');
+    // ============================================================
+    // 🔥 GUARDAR EN LISTA "PELÍCULAS" (DEFAULT) - Cuando importes películas
+    // ============================================================
+    // NOTA: TV Time solo exporta series, pero si en el futuro añades películas,
+    // aquí iría la lógica similar con peliculasProcesadas
+
+    actualizarProgreso(97, 'Finalizando importación...');
 
     // Esperar un momento para que se sincronice
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -11255,14 +11258,15 @@ async function procesarImportTVTime(file) {
         await window.sincronizarWatchlistGlobal();
     }
 
-    // Invalidar caché de listas para que aparezca la nueva lista
+    // Invalidar caché de listas para que aparezcan las nuevas listas
     if (window.listasCache) {
         window.listasCache.mias = null;
+        window.listasEditablesCache = null;
     }
 
     actualizarProgreso(100, '✅ ¡Importación completada!');
 
-    const mensaje = `Se importaron ${totalSeries} series desde TV Time. ${itemsParaLista.length > 0 ? `Se creó la lista "📺 TV Time - Importada" con ${itemsParaLista.length} elementos.` : ''}`;
+    const mensaje = `Se importaron ${seriesProcesadas.length} series desde TV Time. Se creó/actualizó la lista "SERIES" con ${seriesProcesadas.length} elementos.`;
     showToast('success', '¡Importación exitosa!', mensaje);
 
     setTimeout(() => {
