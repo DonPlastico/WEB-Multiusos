@@ -11099,7 +11099,18 @@ async function procesarImportTVTime(file) {
             }
 
             // Buscar en TMDB por título
-            const tmdbData = await buscarEnTMDB(titulo, 'tv');
+            let tmdbData = await buscarEnTMDB(titulo, 'tv');
+
+            // Si no se encontró, reintentar quitando sufijos tipo (2011), (KR), (TH), etc.
+            if (!tmdbData) {
+                const tituloLimpio = titulo.replace(/\s*\([^)]*\)\s*$/, '').trim();
+                if (tituloLimpio !== titulo && tituloLimpio.length > 0) {
+                    tmdbData = await buscarEnTMDB(tituloLimpio, 'tv');
+                    if (tmdbData) {
+                        console.log(`✅ Encontrada tras limpiar título: "${titulo}" → "${tituloLimpio}"`);
+                    }
+                }
+            }
 
             if (!tmdbData) {
                 console.warn('❌ No encontrada en TMDB:', titulo, '(TVTime ID:', serie.tv_show_id + ')');
