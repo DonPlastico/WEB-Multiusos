@@ -11050,6 +11050,11 @@ async function procesarImportTVTime(file) {
     let totalSeries = seriesTVTime.length;
     let procesadas = 0;
 
+    // ARRAY PARA GUARDAR TODOS LOS ITEMS QUE IRÁN A LA LISTA
+    const itemsParaLista = [];
+    // ARRAY PARA GUARDAR LAS SERIES PROCESADAS (para la lista)
+    const seriesProcesadas = [];
+
     actualizarProgreso(25, `Procesando ${totalSeries} series...`);
 
     // Procesar cada serie de TV Time
@@ -11067,6 +11072,13 @@ async function procesarImportTVTime(file) {
 
             if (tmdbData) {
                 const mediaId = tmdbData.id.toString();
+
+                // 🔹 GUARDAMOS EL ID PARA LA LISTA
+                seriesProcesadas.push({
+                    mediaId: mediaId,
+                    titulo: titulo,
+                    estado: estado
+                });
 
                 // Verificar si ya existe en user_media
                 const { data: existente } = await supabase
@@ -11151,7 +11163,7 @@ async function procesarImportTVTime(file) {
             }
 
             procesadas++;
-            const progreso = 25 + ((procesadas / totalSeries) * 70);
+            const progreso = 25 + ((procesadas / totalSeries) * 60); // 60% para el procesamiento, 15% para la lista
             actualizarProgreso(progreso, `Procesado: ${titulo}`);
 
         } catch (err) {
@@ -11159,7 +11171,81 @@ async function procesarImportTVTime(file) {
         }
     }
 
-    actualizarProgreso(95, 'Finalizando importación...');
+    // ============================================================
+    // 🔥 NUEVO: GUARDAR EN LISTA "IMPORTADA DE TV TIME"
+    // ============================================================
+
+    if (seriesProcesadas.length > 0) {
+        actualizarProgreso(88, 'Creando lista con todo el contenido importado...');
+
+        // 1. Buscar o crear la lista "TV Time - Importada"
+        const nombreLista = '📺 TV Time - Importada';
+        const { data: listaExistente } = await supabase
+            .from('listas_maestra')
+            .select('id')
+            .eq('owner_id', userId)
+            .eq('titulo', nombreLista)
+            .maybeSingle();
+
+        let listaId;
+
+        if (listaExistente) {
+            listaId = listaExistente.id;
+            // Limpiar items anteriores para evitar duplicados
+            await supabase
+                .from('listas_items')
+                .delete()
+                .eq('lista_id', listaId);
+        } else {
+            // Crear la lista
+            const { data: nuevaLista, error: errorLista } = await supabase
+                .from('listas_maestra')
+                .insert({
+                    titulo: nombreLista,
+                    descripcion: `Contenido importado desde TV Time el ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+                    owner_id: userId,
+                    is_public: false,
+                    tag_tipo: 'mixta'
+                })
+                .select()
+                .single();
+
+            if (errorLista) throw errorLista;
+            listaId = nuevaLista.id;
+        }
+
+        // 2. Preparar los items para la lista
+        actualizarProgreso(91, `Preparando ${seriesProcesadas.length} elementos para la lista...`);
+
+        for (const serie of seriesProcesadas) {
+            itemsParaLista.push({
+                lista_id: listaId,
+                media_id: serie.mediaId,
+                media_tipo: 'tv',
+                added_by_user_id: userId
+            });
+        }
+
+        // 3. Insertar en batches de 50
+        actualizarProgreso(93, `Guardando ${itemsParaLista.length} elementos en la lista...`);
+
+        for (let i = 0; i < itemsParaLista.length; i += 50) {
+            const batch = itemsParaLista.slice(i, i + 50);
+            const { error: itemsError } = await supabase
+                .from('listas_items')
+                .insert(batch);
+
+            if (itemsError) {
+                console.warn('Error guardando items en lote:', itemsError);
+            }
+        }
+
+        actualizarProgreso(96, `✅ Lista "${nombreLista}" creada con ${itemsParaLista.length} elementos.`);
+    } else {
+        actualizarProgreso(88, 'No se encontraron series para guardar en lista.');
+    }
+
+    actualizarProgreso(98, 'Finalizando importación...');
 
     // Esperar un momento para que se sincronice
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -11169,13 +11255,19 @@ async function procesarImportTVTime(file) {
         await window.sincronizarWatchlistGlobal();
     }
 
+    // Invalidar caché de listas para que aparezca la nueva lista
+    if (window.listasCache) {
+        window.listasCache.mias = null;
+    }
+
     actualizarProgreso(100, '✅ ¡Importación completada!');
 
-    showToast('success', '¡Importación exitosa!', `Se importaron ${totalSeries} series desde TV Time.`);
+    const mensaje = `Se importaron ${totalSeries} series desde TV Time. ${itemsParaLista.length > 0 ? `Se creó la lista "📺 TV Time - Importada" con ${itemsParaLista.length} elementos.` : ''}`;
+    showToast('success', '¡Importación exitosa!', mensaje);
 
     setTimeout(() => {
         cerrarModalProgreso();
-    }, 2000);
+    }, 3000);
 }
 
 // ==========================================================================
