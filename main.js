@@ -11089,9 +11089,10 @@ async function procesarImportTVTime(file) {
     for (const serie of seriesTVTime) {
         try {
             // Extraer datos básicos
-            const titulo = serie.tv_show_title || serie.title || serie.show_title;
-            const tmdbId = serie.tv_show_id || serie.show_id;
-            const estado = serie.watch_status || serie.status;
+            const titulo = serie.tv_show_name;
+            const tmdbId = serie.tv_show_id;
+            const episodiosVistosCount = parseInt(serie.nb_episodes_seen) || 0;
+            const estaVista = episodiosVistosCount > 0;
 
             if (!titulo) continue;
 
@@ -11129,7 +11130,7 @@ async function procesarImportTVTime(file) {
 
                 // Buscar episodios vistos de esta serie
                 const episodiosSerie = episodiosVistos.filter(ep =>
-                    ep.show_id === serie.tv_show_id || ep.tv_show_id === serie.tv_show_id
+                    ep.tv_show_name === serie.tv_show_name
                 );
 
                 if (episodiosSerie.length > 0) {
@@ -11163,7 +11164,7 @@ async function procesarImportTVTime(file) {
                     const episodiosMap = new Map();
 
                     for (const ep of episodiosSerie) {
-                        const seasonNum = parseInt(ep.season_number) || 0;
+                        const seasonNum = parseInt(ep.episode_season_number) || 0;
                         const epNum = parseInt(ep.episode_number) || 0;
 
                         if (seasonNum === 0 || epNum === 0) continue;
