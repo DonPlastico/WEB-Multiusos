@@ -11617,7 +11617,7 @@ async function buscarEnTMDB(titulo, tipo) {
             return data.results[0];
         }
 
-        return data || null;
+        return null;
     } catch (e) {
         console.warn('Error buscando en TMDB:', titulo, e);
         return null;
