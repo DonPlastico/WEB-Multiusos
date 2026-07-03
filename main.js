@@ -11110,8 +11110,7 @@ async function procesarImportTVTime(file) {
                 // 🔹 GUARDAMOS EL ID PARA LA LISTA
                 seriesProcesadas.push({
                     mediaId: mediaId,
-                    titulo: titulo,
-                    estado: estado
+                    titulo: titulo
                 });
 
                 // Verificar si ya existe en user_media
@@ -11124,7 +11123,6 @@ async function procesarImportTVTime(file) {
                     .maybeSingle();
 
                 // Si está completada o vista, guardar como "vista"
-                const estaVista = estado === 'completed' || estado === 'watching' || estado === 'watched';
                 let vecesVista = 0;
                 let fechaVista = null;
 
