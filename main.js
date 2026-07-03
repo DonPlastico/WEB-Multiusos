@@ -10999,7 +10999,7 @@ function cerrarModalProgreso() {
 }
 
 // ==========================================================================
-//   IMPORTAR TV TIME
+//   IMPORTAR TV TIME (CON DEPURACIÓN)
 // ==========================================================================
 
 async function procesarImportTVTime(file) {
@@ -11015,9 +11015,11 @@ async function procesarImportTVTime(file) {
     // Leer el archivo ZIP
     const zipData = await readZipFile(file);
 
-    actualizarProgreso(10, 'Extrayendo archivos CSV...');
+    // 🔍 LOG: Mostrar qué archivos se encontraron en el ZIP
+    console.log('📦 Archivos encontrados en el ZIP:', Object.keys(zipData));
+    actualizarProgreso(10, `Encontrados ${Object.keys(zipData).length} archivos en el ZIP...`);
 
-    // Archivos relevantes de TV Time
+    // Archivos relevantes de TV Time (BUSCANDO CON EXACTITUD)
     const archivosImportantes = {
         'user_tv_show_data.csv': null,
         'seen_episode_latest.csv': null,
@@ -11025,25 +11027,46 @@ async function procesarImportTVTime(file) {
         'user.csv': null
     };
 
-    // Buscar archivos en el ZIP
+    // Buscar archivos en el ZIP (con coincidencia exacta de nombre)
     for (const [nombre, contenido] of Object.entries(zipData)) {
-        const nombreLimpio = nombre.split('/').pop();
+        const nombreLimpio = nombre.split('/').pop().trim();
+
+        // 🔍 LOG: Mostrar cada archivo encontrado
+        console.log('📄 Archivo encontrado:', nombreLimpio, 'Tamaño:', contenido.length);
+
         if (archivosImportantes[nombreLimpio] !== undefined) {
             archivosImportantes[nombreLimpio] = contenido;
+            console.log(`✅ Archivo encontrado: ${nombreLimpio} (${contenido.length} caracteres)`);
         }
     }
 
     // Verificar que tenemos los archivos necesarios
     if (!archivosImportantes['user_tv_show_data.csv']) {
+        // 🔍 LOG: Mostrar todos los archivos disponibles
+        console.error('❌ Archivos disponibles en el ZIP:', Object.keys(zipData));
         throw new Error('No se encontró el archivo user_tv_show_data.csv en el ZIP.');
     }
 
     actualizarProgreso(20, 'Procesando series de TV Time...');
 
     // 1. Procesar series (user_tv_show_data.csv)
-    const seriesTVTime = parseCSV(archivosImportantes['user_tv_show_data.csv']);
+    const csvContent = archivosImportantes['user_tv_show_data.csv'];
+
+    // 🔍 LOG: Mostrar primeras líneas del CSV para depuración
+    const primerasLineas = csvContent.split('\n').slice(0, 5).join('\n');
+    console.log('📄 Primeras líneas del CSV:', primerasLineas);
+
+    const seriesTVTime = parseCSV(csvContent);
+
+    // 🔍 LOG: Mostrar cuántas series se encontraron
+    console.log(`📊 Series encontradas en CSV: ${seriesTVTime.length}`);
+    actualizarProgreso(25, `Encontradas ${seriesTVTime.length} series en el archivo...`);
+
     const episodiosVistos = parseCSV(archivosImportantes['seen_episode_latest.csv'] || '');
     const valoraciones = parseCSV(archivosImportantes['ratings-3-prod-episode_votes.csv'] || '');
+
+    console.log(`📊 Episodios vistos: ${episodiosVistos.length}`);
+    console.log(`📊 Valoraciones: ${valoraciones.length}`);
 
     let totalSeries = seriesTVTime.length;
     let procesadas = 0;
@@ -11051,7 +11074,16 @@ async function procesarImportTVTime(file) {
     // ARRAY PARA GUARDAR LAS SERIES PROCESADAS (para la lista)
     const seriesProcesadas = [];
 
-    actualizarProgreso(25, `Procesando ${totalSeries} series...`);
+    // Si no hay series, mostrar advertencia
+    if (totalSeries === 0) {
+        console.warn('⚠️ No se encontraron series en el CSV. Verifica el formato del archivo.');
+        // Mostrar las primeras líneas para depuración
+        const primerasLineasCompletas = csvContent.split('\n').slice(0, 10).join('\n');
+        console.log('📄 Contenido del CSV (primeras 10 líneas):', primerasLineasCompletas);
+        throw new Error('El archivo user_tv_show_data.csv está vacío o tiene un formato incorrecto.');
+    }
+
+    actualizarProgreso(30, `Procesando ${totalSeries} series...`);
 
     // Procesar cada serie de TV Time
     for (const serie of seriesTVTime) {
@@ -11062,6 +11094,11 @@ async function procesarImportTVTime(file) {
             const estado = serie.watch_status || serie.status;
 
             if (!titulo) continue;
+
+            // 🔍 LOG: Mostrar progreso cada 100 series
+            if (procesadas % 100 === 0) {
+                console.log(`🔄 Procesando serie ${procesadas}/${totalSeries}: ${titulo}`);
+            }
 
             // Buscar en TMDB por título
             const tmdbData = await buscarEnTMDB(titulo, 'tv');
@@ -11159,20 +11196,22 @@ async function procesarImportTVTime(file) {
             }
 
             procesadas++;
-            const progreso = 25 + ((procesadas / totalSeries) * 60);
-            actualizarProgreso(progreso, `Procesado: ${titulo}`);
+            const progreso = 30 + ((procesadas / totalSeries) * 55);
+            actualizarProgreso(Math.min(85, progreso), `Procesado: ${titulo || 'Serie sin título'}`);
 
         } catch (err) {
             console.warn('Error procesando serie:', serie, err);
         }
     }
 
+    console.log(`✅ Series procesadas: ${seriesProcesadas.length}`);
+
     // ============================================================
     // 🔥 GUARDAR EN LISTA "SERIES" (DEFAULT)
     // ============================================================
 
     if (seriesProcesadas.length > 0) {
-        actualizarProgreso(88, 'Guardando series en la lista "SERIES"...');
+        actualizarProgreso(88, `Guardando ${seriesProcesadas.length} series en la lista "SERIES"...`);
 
         // 1. Buscar o crear la lista "SERIES"
         const nombreListaSeries = 'SERIES';
@@ -11187,6 +11226,7 @@ async function procesarImportTVTime(file) {
 
         if (listaSeriesExistente) {
             listaSeriesId = listaSeriesExistente.id;
+            console.log(`✅ Lista "${nombreListaSeries}" encontrada (ID: ${listaSeriesId})`);
             // Limpiar items anteriores para evitar duplicados
             await supabase
                 .from('listas_items')
@@ -11194,6 +11234,7 @@ async function procesarImportTVTime(file) {
                 .eq('lista_id', listaSeriesId);
         } else {
             // Crear la lista "SERIES"
+            console.log(`🆕 Creando lista "${nombreListaSeries}"...`);
             const { data: nuevaLista, error: errorLista } = await supabase
                 .from('listas_maestra')
                 .insert({
@@ -11208,6 +11249,7 @@ async function procesarImportTVTime(file) {
 
             if (errorLista) throw errorLista;
             listaSeriesId = nuevaLista.id;
+            console.log(`✅ Lista "${nombreListaSeries}" creada (ID: ${listaSeriesId})`);
         }
 
         // 2. Preparar los items para la lista de series
@@ -11237,18 +11279,13 @@ async function procesarImportTVTime(file) {
             }
         }
 
-        actualizarProgreso(95, `✅ Lista "SERIES" actualizada con ${itemsSeries.length} elementos.`);
+        actualizarProgreso(96, `✅ Lista "SERIES" actualizada con ${itemsSeries.length} elementos.`);
     } else {
-        actualizarProgreso(88, 'No se encontraron series para guardar.');
+        actualizarProgreso(88, '⚠️ No se encontraron series para guardar en lista.');
+        console.warn('⚠️ No se encontraron series para guardar en lista.');
     }
 
-    // ============================================================
-    // 🔥 GUARDAR EN LISTA "PELÍCULAS" (DEFAULT) - Cuando importes películas
-    // ============================================================
-    // NOTA: TV Time solo exporta series, pero si en el futuro añades películas,
-    // aquí iría la lógica similar con peliculasProcesadas
-
-    actualizarProgreso(97, 'Finalizando importación...');
+    actualizarProgreso(98, 'Finalizando importación...');
 
     // Esperar un momento para que se sincronice
     await new Promise(resolve => setTimeout(resolve, 500));
