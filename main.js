@@ -3583,16 +3583,16 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option" id="btn-export-backup" title="Guardar copia local">
-        <i class="fas fa-cloud-download-alt" style="color: var(--accent);"></i>
-        <span>Exportar Backup</span>
+    <button class="theme-option" id="btn-import-tvtime">
+        <i class="fas fa-file-import" style="color: var(--success);"></i>
+        <span style="color: var(--success);">Importar TV Time</span>
     </button>
-    <label for="hidden-import-file" class="theme-option" style="cursor: pointer; margin: 0; display: flex; align-items: center; width: 100%;" title="Importar GDPR TVTime o Backup">
-        <i class="fas fa-file-import" style="color: var(--primary-color, #6366f1);"></i>
-        <span>Importar TVTime/Datos</span>
-    </label>
-    <input type="file" id="hidden-import-file" accept=".json" style="display: none;">
-
+    
+    <button class="theme-option" id="btn-export-data">
+        <i class="fas fa-file-export" style="color: var(--primary);"></i>
+        <span style="color: var(--primary);">Exportar mis datos</span>
+    </button>
+    
     <div class="dropdown-divider"></div>
     
     <button class="theme-option" id="btn-logout">
@@ -3738,6 +3738,63 @@ if (editProfileBtn) {
 } else {
     console.warn('⚠️ No se encontró el botón "Editar perfil" en el menú');
 }
+
+// ==========================================================================
+//   IMPORTAR TV TIME - EVENT LISTENER
+// ==========================================================================
+
+// Crear input oculto para seleccionar archivo ZIP
+const importInput = document.createElement('input');
+importInput.type = 'file';
+importInput.id = 'tvtime-import-input';
+importInput.accept = '.zip';
+importInput.style.display = 'none';
+document.body.appendChild(importInput);
+
+document.getElementById('btn-import-tvtime')?.addEventListener('click', () => {
+    // Cerrar el menú de usuario
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+
+    // Abrir el selector de archivos
+    importInput.click();
+});
+
+// Evento al seleccionar archivo
+importInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Mostrar modal de progreso
+    mostrarModalProgreso('Importando TV Time', 'Preparando archivo...');
+
+    try {
+        await procesarImportTVTime(file);
+    } catch (error) {
+        console.error('Error en importación:', error);
+        showToast('error', 'Error de importación', error.message || 'No se pudo importar los datos.');
+    } finally {
+        importInput.value = ''; // Resetear input
+    }
+});
+
+// ==========================================================================
+//   EXPORTAR DATOS - EVENT LISTENER
+// ==========================================================================
+
+document.getElementById('btn-export-data')?.addEventListener('click', async () => {
+    // Cerrar el menú de usuario
+    userMenu.classList.remove('show');
+    userMenuOpen = false;
+
+    try {
+        mostrarModalProgreso('Exportando datos', 'Preparando archivo...');
+        await exportarDatosUsuario();
+    } catch (error) {
+        console.error('Error en exportación:', error);
+        showToast('error', 'Error de exportación', error.message || 'No se pudo exportar los datos.');
+    }
+});
 
 // ==========================================================================
 //   FLATPICKR PARA FECHAS
@@ -10834,6 +10891,603 @@ function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'wa
 // Inicializa ambos:
 configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
 configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
+
+// ==========================================================================
+//   MODAL DE PROGRESO PARA IMPORTACIÓN/EXPORTACIÓN
+// ==========================================================================
+
+let modalProgreso = null;
+
+function mostrarModalProgreso(titulo, mensaje) {
+    // Si ya existe, lo actualizamos
+    if (!modalProgreso) {
+        modalProgreso = document.createElement('div');
+        modalProgreso.id = 'progress-modal';
+        modalProgreso.className = 'modal-overlay';
+        modalProgreso.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-cyber);
+        `;
+
+        modalProgreso.innerHTML = `
+            <div style="
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 40px;
+                max-width: 500px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            ">
+                <h2 id="progress-title" style="color: var(--neon-white); margin-bottom: 12px; font-size: 1.2rem;">${titulo}</h2>
+                <p id="progress-message" style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">${mensaje}</p>
+                <div style="
+                    width: 100%;
+                    height: 6px;
+                    background: var(--bg-secondary);
+                    border-radius: 4px;
+                    overflow: hidden;
+                    margin-bottom: 16px;
+                ">
+                    <div id="progress-bar-fill" style="
+                        width: 0%;
+                        height: 100%;
+                        background: linear-gradient(90deg, var(--primary), var(--secondary));
+                        border-radius: 4px;
+                        transition: width 0.3s ease;
+                    "></div>
+                </div>
+                <span id="progress-percent" style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">0%</span>
+                <div id="progress-details" style="
+                    margin-top: 16px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    text-align: left;
+                    font-size: 0.75rem;
+                    color: var(--text-muted);
+                    border-top: 1px solid var(--border-color);
+                    padding-top: 12px;
+                "></div>
+            </div>
+        `;
+
+        document.body.appendChild(modalProgreso);
+    }
+
+    modalProgreso.style.display = 'flex';
+    document.getElementById('progress-title').textContent = titulo;
+    document.getElementById('progress-message').textContent = mensaje;
+    document.getElementById('progress-bar-fill').style.width = '0%';
+    document.getElementById('progress-percent').textContent = '0%';
+    document.getElementById('progress-details').innerHTML = '';
+}
+
+function actualizarProgreso(porcentaje, detalle = '') {
+    if (!modalProgreso) return;
+    const bar = document.getElementById('progress-bar-fill');
+    const percent = document.getElementById('progress-percent');
+    const details = document.getElementById('progress-details');
+
+    if (bar) bar.style.width = `${Math.min(100, porcentaje)}%`;
+    if (percent) percent.textContent = `${Math.round(porcentaje)}%`;
+
+    if (detalle && details) {
+        const line = document.createElement('div');
+        line.textContent = `▸ ${detalle}`;
+        line.style.padding = '2px 0';
+        line.style.borderBottom = '1px solid var(--border-color)';
+        details.appendChild(line);
+        details.scrollTop = details.scrollHeight;
+    }
+}
+
+function cerrarModalProgreso() {
+    if (modalProgreso) {
+        modalProgreso.style.display = 'none';
+    }
+}
+
+// ==========================================================================
+//   IMPORTAR TV TIME
+// ==========================================================================
+
+async function procesarImportTVTime(file) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        throw new Error('Debes iniciar sesión para importar datos.');
+    }
+
+    const userId = session.user.id;
+
+    actualizarProgreso(5, 'Leyendo archivo ZIP...');
+
+    // Leer el archivo ZIP
+    const zipData = await readZipFile(file);
+
+    actualizarProgreso(10, 'Extrayendo archivos CSV...');
+
+    // Archivos relevantes de TV Time
+    const archivosImportantes = {
+        'user_tv_show_data.csv': null,
+        'seen_episode_latest.csv': null,
+        'ratings-3-prod-episode_votes.csv': null,
+        'user.csv': null
+    };
+
+    // Buscar archivos en el ZIP
+    for (const [nombre, contenido] of Object.entries(zipData)) {
+        const nombreLimpio = nombre.split('/').pop();
+        if (archivosImportantes[nombreLimpio] !== undefined) {
+            archivosImportantes[nombreLimpio] = contenido;
+        }
+    }
+
+    // Verificar que tenemos los archivos necesarios
+    if (!archivosImportantes['user_tv_show_data.csv']) {
+        throw new Error('No se encontró el archivo user_tv_show_data.csv en el ZIP.');
+    }
+
+    actualizarProgreso(20, 'Procesando series de TV Time...');
+
+    // 1. Procesar series (user_tv_show_data.csv)
+    const seriesTVTime = parseCSV(archivosImportantes['user_tv_show_data.csv']);
+    const episodiosVistos = parseCSV(archivosImportantes['seen_episode_latest.csv'] || '');
+    const valoraciones = parseCSV(archivosImportantes['ratings-3-prod-episode_votes.csv'] || '');
+
+    // Mapa para no duplicar
+    const seriesMap = new Map();
+    let totalSeries = seriesTVTime.length;
+    let procesadas = 0;
+
+    actualizarProgreso(25, `Procesando ${totalSeries} series...`);
+
+    // Procesar cada serie de TV Time
+    for (const serie of seriesTVTime) {
+        try {
+            // Extraer datos básicos
+            const titulo = serie.tv_show_title || serie.title || serie.show_title;
+            const tmdbId = serie.tv_show_id || serie.show_id;
+            const estado = serie.watch_status || serie.status;
+
+            if (!titulo) continue;
+
+            // Buscar en TMDB por título
+            const tmdbData = await buscarEnTMDB(titulo, 'tv');
+
+            if (tmdbData) {
+                const mediaId = tmdbData.id.toString();
+
+                // Verificar si ya existe en user_media
+                const { data: existente } = await supabase
+                    .from('user_media')
+                    .select('id')
+                    .eq('user_id', userId)
+                    .eq('media_id', mediaId)
+                    .eq('tipo', 'tv')
+                    .maybeSingle();
+
+                // Si está completada o vista, guardar como "vista"
+                const estaVista = estado === 'completed' || estado === 'watching' || estado === 'watched';
+                let vecesVista = 0;
+                let fechaVista = null;
+
+                // Buscar episodios vistos de esta serie
+                const episodiosSerie = episodiosVistos.filter(ep =>
+                    ep.show_id === serie.tv_show_id || ep.tv_show_id === serie.tv_show_id
+                );
+
+                if (episodiosSerie.length > 0) {
+                    // Tiene episodios vistos
+                    const fechas = episodiosSerie.map(ep => ep.watched_at || ep.updated_at).filter(Boolean);
+                    if (fechas.length > 0) {
+                        fechas.sort();
+                        fechaVista = formatearFecha(fechas[0]);
+                    }
+                    vecesVista = episodiosSerie.length > 0 ? 1 : 0;
+                } else if (estaVista) {
+                    vecesVista = 1;
+                    fechaVista = new Date().toISOString().split('T')[0];
+                }
+
+                if (!existente && (vecesVista > 0 || estaVista)) {
+                    // Insertar la serie en user_media
+                    await supabase.from('user_media').insert({
+                        user_id: userId,
+                        media_id: mediaId,
+                        tipo: 'tv',
+                        visto: estaVista || vecesVista > 0,
+                        veces_vista: vecesVista > 0 ? vecesVista : 1,
+                        fecha_vista: fechaVista || null,
+                        nota_personal: null
+                    });
+                }
+
+                // 2. Procesar episodios individuales
+                if (episodiosSerie.length > 0) {
+                    const episodiosMap = new Map();
+
+                    for (const ep of episodiosSerie) {
+                        const seasonNum = parseInt(ep.season_number) || 0;
+                        const epNum = parseInt(ep.episode_number) || 0;
+
+                        if (seasonNum === 0 || epNum === 0) continue;
+
+                        const epKey = `${mediaId}_T${seasonNum}_E${epNum}`;
+                        if (!episodiosMap.has(epKey)) {
+                            episodiosMap.set(epKey, {
+                                media_id: epKey,
+                                tipo: 'tv_episode',
+                                visto: true,
+                                veces_vista: 1,
+                                fecha_vista: ep.watched_at ? formatearFecha(ep.watched_at) : new Date().toISOString().split('T')[0]
+                            });
+                        }
+                    }
+
+                    // Insertar episodios en batches
+                    const epArray = Array.from(episodiosMap.values());
+                    for (let i = 0; i < epArray.length; i += 50) {
+                        const batch = epArray.slice(i, i + 50);
+                        const { error: epError } = await supabase
+                            .from('user_media')
+                            .upsert(
+                                batch.map(ep => ({ ...ep, user_id: userId })),
+                                { onConflict: 'user_id,media_id' }
+                            );
+                        if (epError) console.warn('Error insertando episodios:', epError);
+                    }
+                }
+            }
+
+            procesadas++;
+            const progreso = 25 + ((procesadas / totalSeries) * 70);
+            actualizarProgreso(progreso, `Procesado: ${titulo}`);
+
+        } catch (err) {
+            console.warn('Error procesando serie:', serie, err);
+        }
+    }
+
+    actualizarProgreso(95, 'Finalizando importación...');
+
+    // Esperar un momento para que se sincronice
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Sincronizar watchlist
+    if (window.sincronizarWatchlistGlobal) {
+        await window.sincronizarWatchlistGlobal();
+    }
+
+    actualizarProgreso(100, '✅ ¡Importación completada!');
+
+    showToast('success', '¡Importación exitosa!', `Se importaron ${totalSeries} series desde TV Time.`);
+
+    setTimeout(() => {
+        cerrarModalProgreso();
+    }, 2000);
+}
+
+// ==========================================================================
+//   EXPORTAR DATOS DEL USUARIO
+// ==========================================================================
+
+async function exportarDatosUsuario() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        throw new Error('Debes iniciar sesión para exportar tus datos.');
+    }
+
+    const userId = session.user.id;
+
+    actualizarProgreso(5, 'Recopilando datos del perfil...');
+
+    // 1. Datos del perfil
+    const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    actualizarProgreso(15, 'Recopilando películas vistas...');
+
+    // 2. Películas vistas
+    const { data: peliculas } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('tipo', 'movie')
+        .eq('visto', true);
+
+    actualizarProgreso(30, 'Recopilando series vistas...');
+
+    // 3. Series vistas
+    const { data: series } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('tipo', 'tv')
+        .eq('visto', true);
+
+    actualizarProgreso(45, 'Recopilando episodios vistos...');
+
+    // 4. Episodios vistos
+    const { data: episodios } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('tipo', 'tv_episode')
+        .eq('visto', true);
+
+    actualizarProgreso(60, 'Recopilando listas...');
+
+    // 5. Listas creadas
+    const { data: listas } = await supabase
+        .from('listas_maestra')
+        .select('*')
+        .eq('owner_id', userId);
+
+    // 6. Items de listas
+    const listasIds = listas?.map(l => l.id) || [];
+    const { data: listasItems } = listasIds.length > 0
+        ? await supabase
+            .from('listas_items')
+            .select('*')
+            .in('lista_id', listasIds)
+        : { data: [] };
+
+    actualizarProgreso(75, 'Recopilando amistades...');
+
+    // 7. Amistades (seguidores)
+    const { data: siguiendo } = await supabase
+        .from('amistades')
+        .select('*')
+        .eq('solicitante_id', userId);
+
+    const { data: seguidores } = await supabase
+        .from('amistades')
+        .select('*')
+        .eq('receptor_id', userId);
+
+    actualizarProgreso(85, 'Consultando detalles de TMDB...');
+
+    // 8. Enriquecer con datos de TMDB
+    const peliculasDetalle = [];
+    const seriesDetalle = [];
+
+    // Películas
+    for (const peli of (peliculas || [])) {
+        try {
+            const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
+            if (res.ok) {
+                const data = await res.json();
+                peliculasDetalle.push({
+                    ...peli,
+                    detalle: {
+                        titulo: data.titulo,
+                        poster: data.poster,
+                        fecha: data.fecha,
+                        sinopsis: data.sinopsis,
+                        generos: data.generos,
+                        nota: data.nota
+                    }
+                });
+            } else {
+                peliculasDetalle.push(peli);
+            }
+        } catch (e) {
+            peliculasDetalle.push(peli);
+        }
+        actualizarProgreso(85 + ((peliculasDetalle.length / (peliculas?.length || 1)) * 10), `Detalle película: ${peli.media_id}`);
+    }
+
+    // Series
+    for (const serie of (series || [])) {
+        try {
+            const res = await fetch(`/api/tmdb?id=${serie.media_id}&tipo=tv&lang=${currentLang}`);
+            if (res.ok) {
+                const data = await res.json();
+                seriesDetalle.push({
+                    ...serie,
+                    detalle: {
+                        titulo: data.titulo,
+                        poster: data.poster,
+                        fecha: data.fecha,
+                        sinopsis: data.sinopsis,
+                        generos: data.generos,
+                        nota: data.nota,
+                        temporadas: data.temporadas,
+                        episodios: data.episodios
+                    }
+                });
+            } else {
+                seriesDetalle.push(serie);
+            }
+        } catch (e) {
+            seriesDetalle.push(serie);
+        }
+        actualizarProgreso(85 + ((seriesDetalle.length / (series?.length || 1)) * 10), `Detalle serie: ${serie.media_id}`);
+    }
+
+    actualizarProgreso(95, 'Generando archivo de exportación...');
+
+    // Construir objeto de exportación
+    const exportData = {
+        version: '1.0',
+        fecha_exportacion: new Date().toISOString(),
+        usuario: {
+            id: perfil?.id || userId,
+            username: perfil?.username,
+            email: perfil?.email,
+            avatar: perfil?.avatar,
+            banner: perfil?.banner,
+            nombre: perfil?.nombre,
+            apellidos: perfil?.apellidos,
+            descripcion: perfil?.descripcion,
+            sexo: perfil?.sexo,
+            color_destacado: perfil?.color_destacado,
+            created_at: perfil?.created_at
+        },
+        estadisticas: {
+            total_peliculas_vistas: peliculas?.length || 0,
+            total_series_vistas: series?.length || 0,
+            total_episodios_vistos: episodios?.length || 0,
+            total_listas: listas?.length || 0,
+            total_siguiendo: siguiendo?.length || 0,
+            total_seguidores: seguidores?.length || 0
+        },
+        peliculas: peliculasDetalle,
+        series: seriesDetalle,
+        episodios: episodios || [],
+        listas: listas || [],
+        listas_items: listasItems || [],
+        amistades: {
+            siguiendo: siguiendo || [],
+            seguidores: seguidores || []
+        }
+    };
+
+    actualizarProgreso(100, '✅ ¡Exportación completada!');
+
+    // Descargar archivo JSON
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nexus_export_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('success', '¡Exportación exitosa!', `Archivo descargado con ${exportData.estadisticas.total_peliculas_vistas + exportData.estadisticas.total_series_vistas} contenidos.`);
+
+    setTimeout(() => {
+        cerrarModalProgreso();
+    }, 2000);
+}
+
+// ==========================================================================
+//   FUNCIONES AUXILIARES
+// ==========================================================================
+
+// Leer archivo ZIP y extraer CSVs
+async function readZipFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const arrayBuffer = e.target.result;
+                // Usar JSZip si está disponible, o implementar lectura simple
+                // Como no tenemos JSZip instalado, intentamos leer como texto
+                // y detectar si es un ZIP o un JSON
+                const text = new TextDecoder('utf-8').decode(arrayBuffer);
+
+                // Si parece JSON, intentar parsear
+                if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+                    try {
+                        const jsonData = JSON.parse(text);
+                        resolve({ 'data.json': JSON.stringify(jsonData, null, 2) });
+                        return;
+                    } catch (_) { }
+                }
+
+                // Si no, asumimos que es un CSV directo (para simplificar)
+                // En producción, deberías usar JSZip
+                // Por ahora, intentamos detectar si es CSV
+                if (text.includes(',') || text.includes('\t')) {
+                    resolve({ 'data.csv': text });
+                } else {
+                    reject(new Error('Formato de archivo no soportado. Asegúrate de subir el ZIP de TV Time.'));
+                }
+            } catch (err) {
+                reject(err);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Parsear CSV a array de objetos
+function parseCSV(csvText) {
+    if (!csvText || csvText.trim() === '') return [];
+
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) return [];
+
+    // Detectar separador
+    const firstLine = lines[0];
+    let separator = ',';
+    if (firstLine.includes('\t')) separator = '\t';
+    if (firstLine.includes(';') && !firstLine.includes(',')) separator = ';';
+
+    // Extraer headers
+    const headers = firstLine.split(separator).map(h => h.trim().replace(/^"|"$/g, ''));
+
+    // Parsear datos
+    const result = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(separator).map(v => v.trim().replace(/^"|"$/g, ''));
+        const obj = {};
+        headers.forEach((h, idx) => {
+            obj[h] = values[idx] || '';
+        });
+        result.push(obj);
+    }
+
+    return result;
+}
+
+// Buscar en TMDB por título
+async function buscarEnTMDB(titulo, tipo) {
+    try {
+        const url = `/api/tmdb?tipo=${tipo}&query=${encodeURIComponent(titulo)}&lang=${currentLang}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+
+        // Si es un array, tomar el primero
+        if (Array.isArray(data) && data.length > 0) {
+            return data[0];
+        }
+
+        // Si es un objeto con resultados
+        if (data && data.results && data.results.length > 0) {
+            return data.results[0];
+        }
+
+        return data || null;
+    } catch (e) {
+        console.warn('Error buscando en TMDB:', titulo, e);
+        return null;
+    }
+}
+
+// Formatear fecha para Supabase
+function formatearFecha(fechaStr) {
+    if (!fechaStr) return new Date().toISOString().split('T')[0];
+    try {
+        const fecha = new Date(fechaStr);
+        if (!isNaN(fecha.getTime())) {
+            return fecha.toISOString().split('T')[0];
+        }
+        return new Date().toISOString().split('T')[0];
+    } catch {
+        return new Date().toISOString().split('T')[0];
+    }
+}
 
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
