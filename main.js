@@ -11015,7 +11015,7 @@ async function procesarImportTVTime(file) {
     // Leer el archivo ZIP
     const zipData = await readZipFile(file);
 
-    // 🔍 LOG: Mostrar qué archivos se encontraron en el ZIP
+    // LOG: Mostrar qué archivos se encontraron en el ZIP
     console.log('📦 Archivos encontrados en el ZIP:', Object.keys(zipData));
     actualizarProgreso(10, `Encontrados ${Object.keys(zipData).length} archivos en el ZIP...`);
 
@@ -11031,7 +11031,7 @@ async function procesarImportTVTime(file) {
     for (const [nombre, contenido] of Object.entries(zipData)) {
         const nombreLimpio = nombre.split('/').pop().trim();
 
-        // 🔍 LOG: Mostrar cada archivo encontrado
+        // LOG: Mostrar cada archivo encontrado
         console.log('📄 Archivo encontrado:', nombreLimpio, 'Tamaño:', contenido.length);
 
         if (archivosImportantes[nombreLimpio] !== undefined) {
@@ -11042,7 +11042,7 @@ async function procesarImportTVTime(file) {
 
     // Verificar que tenemos los archivos necesarios
     if (!archivosImportantes['user_tv_show_data.csv']) {
-        // 🔍 LOG: Mostrar todos los archivos disponibles
+        // LOG: Mostrar todos los archivos disponibles
         console.error('❌ Archivos disponibles en el ZIP:', Object.keys(zipData));
         throw new Error('No se encontró el archivo user_tv_show_data.csv en el ZIP.');
     }
@@ -11052,21 +11052,18 @@ async function procesarImportTVTime(file) {
     // 1. Procesar series (user_tv_show_data.csv)
     const csvContent = archivosImportantes['user_tv_show_data.csv'];
 
-    // 🔍 LOG: Mostrar primeras líneas del CSV para depuración
+    // LOG: Mostrar primeras líneas del CSV para depuración
     const primerasLineas = csvContent.split('\n').slice(0, 5).join('\n');
     console.log('📄 Primeras líneas del CSV:', primerasLineas);
 
     const seriesTVTime = parseCSV(csvContent);
 
-    // 🔍 LOG: Mostrar cuántas series se encontraron
+    // LOG: Mostrar cuántas series se encontraron
     console.log(`📊 Series encontradas en CSV: ${seriesTVTime.length}`);
     actualizarProgreso(25, `Encontradas ${seriesTVTime.length} series en el archivo...`);
 
     const episodiosVistos = parseCSV(archivosImportantes['seen_episode_latest.csv'] || '');
     const valoraciones = parseCSV(archivosImportantes['ratings-3-prod-episode_votes.csv'] || '');
-
-    console.log(`📊 Episodios vistos: ${episodiosVistos.length}`);
-    console.log(`📊 Valoraciones: ${valoraciones.length}`);
 
     let totalSeries = seriesTVTime.length;
     let procesadas = 0;
@@ -11096,18 +11093,22 @@ async function procesarImportTVTime(file) {
 
             if (!titulo) continue;
 
-            // 🔍 LOG: Mostrar progreso cada 100 series
-            if (procesadas % 100 === 0) {
+            // LOG: Mostrar progreso cada 100 series
+            if (procesadas % 200 === 0) {
                 console.log(`🔄 Procesando serie ${procesadas}/${totalSeries}: ${titulo}`);
             }
 
             // Buscar en TMDB por título
             const tmdbData = await buscarEnTMDB(titulo, 'tv');
 
+            if (!tmdbData) {
+                console.warn('❌ No encontrada en TMDB:', titulo, '(TVTime ID:', serie.tv_show_id + ')');
+            }
+
             if (tmdbData) {
                 const mediaId = tmdbData.id.toString();
 
-                // 🔹 GUARDAMOS EL ID PARA LA LISTA
+                // GUARDAMOS EL ID PARA LA LISTA
                 seriesProcesadas.push({
                     mediaId: mediaId,
                     titulo: titulo
