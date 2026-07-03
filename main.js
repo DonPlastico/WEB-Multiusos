@@ -11385,37 +11385,54 @@ async function exportarDatosUsuario() {
 // Leer archivo ZIP y extraer CSVs
 async function readZipFile(file) {
     return new Promise((resolve, reject) => {
+        // Verificar si JSZip está disponible
+        if (typeof JSZip === 'undefined') {
+            reject(new Error('JSZip no está cargado. Asegúrate de incluir la librería en el HTML.'));
+            return;
+        }
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 const arrayBuffer = e.target.result;
-                // Usar JSZip si está disponible, o implementar lectura simple
-                // Como no tenemos JSZip instalado, intentamos leer como texto
-                // y detectar si es un ZIP o un JSON
-                const text = new TextDecoder('utf-8').decode(arrayBuffer);
+                const zip = await JSZip.loadAsync(arrayBuffer);
 
-                // Si parece JSON, intentar parsear
-                if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
-                    try {
-                        const jsonData = JSON.parse(text);
-                        resolve({ 'data.json': JSON.stringify(jsonData, null, 2) });
-                        return;
-                    } catch (_) { }
+                const files = {};
+                const entries = Object.keys(zip.files);
+
+                if (entries.length === 0) {
+                    reject(new Error('El archivo ZIP está vacío.'));
+                    return;
                 }
 
-                // Si no, asumimos que es un CSV directo (para simplificar)
-                // En producción, deberías usar JSZip
-                // Por ahora, intentamos detectar si es CSV
-                if (text.includes(',') || text.includes('\t')) {
-                    resolve({ 'data.csv': text });
-                } else {
-                    reject(new Error('Formato de archivo no soportado. Asegúrate de subir el ZIP de TV Time.'));
+                for (const entryName of entries) {
+                    const entry = zip.files[entryName];
+                    if (!entry.dir) {
+                        try {
+                            // Solo extraemos archivos .csv (los que nos interesan)
+                            if (entryName.toLowerCase().endsWith('.csv')) {
+                                const content = await entry.async('string');
+                                // Guardamos solo el nombre del archivo sin la ruta
+                                const fileName = entryName.split('/').pop();
+                                files[fileName] = content;
+                            }
+                        } catch (err) {
+                            console.warn('No se pudo leer:', entryName, err);
+                        }
+                    }
                 }
+
+                if (Object.keys(files).length === 0) {
+                    reject(new Error('No se encontraron archivos CSV en el ZIP.'));
+                    return;
+                }
+
+                resolve(files);
             } catch (err) {
-                reject(err);
+                reject(new Error('Error al descomprimir el ZIP: ' + err.message));
             }
         };
-        reader.onerror = reject;
+        reader.onerror = () => reject(new Error('Error al leer el archivo'));
         reader.readAsArrayBuffer(file);
     });
 }
