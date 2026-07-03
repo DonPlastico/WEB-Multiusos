@@ -11112,6 +11112,14 @@ async function procesarImportTVTime(file) {
                 }
             }
 
+            // Si sigue sin encontrarse, reintentar activando el filtro +18
+            if (!tmdbData) {
+                tmdbData = await buscarEnTMDB(titulo, 'tv', true);
+                if (tmdbData) {
+                    console.log(`✅ Encontrada activando filtro +18: "${titulo}"`);
+                }
+            }
+
             if (!tmdbData) {
                 console.warn('❌ No encontrada en TMDB:', titulo, '(TVTime ID:', serie.tv_show_id + ')');
             }
@@ -11612,9 +11620,9 @@ function parseCSV(csvText) {
 }
 
 // Buscar en TMDB por título
-async function buscarEnTMDB(titulo, tipo) {
+async function buscarEnTMDB(titulo, tipo, incluirAdultos = false) {
     try {
-        const url = `/api/tmdb?tipo=${tipo}&query=${encodeURIComponent(titulo)}&lang=${currentLang}`;
+        const url = `/api/tmdb?tipo=${tipo}&query=${encodeURIComponent(titulo)}&lang=${currentLang}${incluirAdultos ? '&adult=true' : ''}`;
         const res = await fetch(url);
         if (!res.ok) return null;
         const data = await res.json();
@@ -11628,7 +11636,6 @@ async function buscarEnTMDB(titulo, tipo) {
         if (data && data.results && data.results.length > 0) {
             return data.results[0];
         }
-
         return null;
     } catch (e) {
         console.warn('Error buscando en TMDB:', titulo, e);
