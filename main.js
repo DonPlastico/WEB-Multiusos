@@ -3583,6 +3583,18 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
+    <button class="theme-option" id="btn-export-backup" title="Guardar copia local">
+        <i class="fas fa-cloud-download-alt" style="color: var(--accent);"></i>
+        <span>Exportar Backup</span>
+    </button>
+    <label for="hidden-import-file" class="theme-option" style="cursor: pointer; margin: 0; display: flex; align-items: center; width: 100%;" title="Importar GDPR TVTime o Backup">
+        <i class="fas fa-file-import" style="color: var(--primary-color, #6366f1);"></i>
+        <span>Importar TVTime/Datos</span>
+    </label>
+    <input type="file" id="hidden-import-file" accept=".json" style="display: none;">
+
+    <div class="dropdown-divider"></div>
+    
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
         <span style="color: var(--error);">${t('user.logout')}</span>
