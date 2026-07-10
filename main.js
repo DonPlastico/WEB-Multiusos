@@ -9564,61 +9564,61 @@ async function reordenarWatchlist(userId, tmdbIdMarcado) {
 }
 
 // Obtener solo IDs de series en progreso
-async function obtenerSeriesEnProgreso(userId) {
-    let todosLosEp = [];
-    let keepFetching = true;
-    let offset = 0;
-    const LIMIT = 1000;
+// async function obtenerSeriesEnProgreso(userId) {
+//     let todosLosEp = [];
+//     let keepFetching = true;
+//     let offset = 0;
+//     const LIMIT = 1000;
 
-    while (keepFetching) {
-        const { data, error } = await supabase
-            .from('user_media')
-            .select('media_id')
-            .eq('user_id', userId)
-            .eq('tipo', 'tv_episode')
-            .eq('visto', true)
-            .range(offset, offset + LIMIT - 1);
+//     while (keepFetching) {
+//         const { data, error } = await supabase
+//             .from('user_media')
+//             .select('media_id')
+//             .eq('user_id', userId)
+//             .eq('tipo', 'tv_episode')
+//             .eq('visto', true)
+//             .range(offset, offset + LIMIT - 1);
 
-        if (error || !data || data.length === 0) {
-            keepFetching = false;
-            break;
-        }
-        todosLosEp.push(...data);
-        offset += LIMIT;
-        if (data.length < LIMIT) keepFetching = false;
-    }
+//         if (error || !data || data.length === 0) {
+//             keepFetching = false;
+//             break;
+//         }
+//         todosLosEp.push(...data);
+//         offset += LIMIT;
+//         if (data.length < LIMIT) keepFetching = false;
+//     }
 
-    if (todosLosEp.length === 0) return [];
+//     if (todosLosEp.length === 0) return [];
 
-    const seriesSet = new Set();
-    todosLosEp.forEach(item => {
-        const partes = item.media_id.split('_');
-        if (partes.length >= 3) {
-            seriesSet.add(partes[0]);
-        }
-    });
+//     const seriesSet = new Set();
+//     todosLosEp.forEach(item => {
+//         const partes = item.media_id.split('_');
+//         if (partes.length >= 3) {
+//             seriesSet.add(partes[0]);
+//         }
+//     });
 
-    const idsSeries = [...seriesSet];
-    const enProgreso = [];
+//     const idsSeries = [...seriesSet];
+//     const enProgreso = [];
 
-    for (const tmdbId of idsSeries) {
-        try {
-            const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
-            if (!res.ok) continue;
-            const data = await res.json();
+//     for (const tmdbId of idsSeries) {
+//         try {
+//             const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
+//             if (!res.ok) continue;
+//             const data = await res.json();
 
-            const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
-            const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
-            const vistosSerie = todosLosEp.filter(ep => ep.media_id.startsWith(`${tmdbId}_`)).length;
+//             const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
+//             const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+//             const vistosSerie = todosLosEp.filter(ep => ep.media_id.startsWith(`${tmdbId}_`)).length;
 
-            if (vistosSerie < totalEpsSerie && totalEpsSerie > 0) {
-                enProgreso.push(tmdbId);
-            }
-        } catch (_) { /* ignorar errores */ }
-    }
+//             if (vistosSerie < totalEpsSerie && totalEpsSerie > 0) {
+//                 enProgreso.push(tmdbId);
+//             }
+//         } catch (_) { /* ignorar errores */ }
+//     }
 
-    return enProgreso;
-}
+//     return enProgreso;
+// }
 
 // Funcion principal que carga la watchlist de series en progreso
 async function cargarWatchlistTVTime(userId, esMiPerfil) {
@@ -9708,9 +9708,9 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const idsEnWatchlist = Object.keys(ordenGuardado);
 
     // 4. Filtrar SOLO las series que están en la watchlist (tienen orden guardado)
-    const entriesFiltradas = [...seriesMap.entries()].filter(([tmdbId]) =>
-        idsEnWatchlist.includes(tmdbId)
-    );
+    const entriesFiltradas = [...seriesMap.entries()]
+        .filter(([tmdbId]) => idsEnWatchlist.includes(tmdbId))
+        .slice(0, 20);
 
     console.log(`📊 Series con episodios vistos: ${seriesMap.size}, en watchlist: ${entriesFiltradas.length}`);
 
