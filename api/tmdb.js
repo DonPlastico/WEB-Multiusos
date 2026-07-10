@@ -287,7 +287,8 @@ export default async function handler(req, res) {
             // TMDB ignora vote_count en /search, así que lo quitamos de la URL y lo haremos en JS
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
         } else {
-            let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
+            // Bajamos el filtro base a 5 votos para descartar solo el spam absoluto, no las películas reales
+            let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=5`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
