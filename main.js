@@ -5598,7 +5598,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         const tituloLimpio = data.titulo.replace(/[^\w\s-]/g, '').trim();
         const tituloParaURL = encodeURIComponent(tituloLimpio);
         const tituloParaIMDb = encodeURIComponent(data.titulo);
-        
+
         // URLs para cada plataforma
         const urls = {
             imdb: `https://www.imdb.com/find?q=${tituloParaIMDb}&s=${tipo === 'movie' ? 'tt' : 'nm'}`,
@@ -5606,28 +5606,28 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             metacritic: `https://www.metacritic.com/search/?search_type=all&sort=date&direction=desc&page=1&ts=${tituloParaURL}`,
             popcorn: `https://www.popcornmeter.com/search?q=${tituloParaURL}`
         };
-        
+
         // Determinar cuál es la plataforma "recomendada" con más votos
         // Como no tenemos acceso a APIs de pago, usamos IMDb por defecto (tiene más reseñas generalmente)
         let plataformaRecomendada = 'imdb';
         let urlRecomendada = urls.imdb;
-        
+
         // Heurística: si TMDB tiene muchos votos, priorizamos TMDB
         if (data.votos && data.votos > 1000) {
             plataformaRecomendada = 'tmdb';
             urlRecomendada = `https://www.themoviedb.org/${tipo === 'movie' ? 'movie' : 'tv'}/${data.id}`;
         }
-        
+
         // Configurar el badge interactivo
         const badgeElement = document.getElementById('media-platform-badge');
         if (badgeElement) {
             // Texto del badge según la plataforma
             const textoBadge = plataformaRecomendada === 'tmdb' ? 'TMDB' : 'IMDb';
             badgeElement.textContent = textoBadge;
-            
+
             // Hacer clickeable para abrir la página de la plataforma
             badgeElement.onclick = () => window.open(urlRecomendada, '_blank');
-            
+
             // Efecto hover
             badgeElement.onmouseover = () => {
                 badgeElement.style.background = 'var(--primary)';
@@ -8943,9 +8943,12 @@ function inicializarEditProfile() {
     // Cargar datos del perfil (rellena los inputs)
     cargarDatosPerfil();
 
-    // Traducir textos estaticos
-    document.querySelector('.edit-profile-description').textContent = t('edit_extra.description');
-    document.querySelector('.edit-personal-title').textContent = t('edit.personal_data');
+    // Traducir textos estaticos (con validación para que no rompa si no existen)
+    const descLabel = document.querySelector('.edit-profile-description');
+    if (descLabel) descLabel.textContent = t('edit_extra.description');
+
+    const personalTitle = document.querySelector('.edit-personal-title');
+    if (personalTitle) personalTitle.textContent = t('edit.personal_data');
 
     // Guardar la vista anterior para poder volver
     if (vistaActualGlobal !== 'edit-profile') {
