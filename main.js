@@ -588,14 +588,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         seriesCargadas = true;
         cargarGeneros('tv');
     } else if (target === 'profile') {
-        cargarPerfilPublico(usernameUrl).then(() => {
-            // FORZAR SINCRONIZACIÓN DE WATCHLIST DESPUÉS DE CARGAR EL PERFIL
-            setTimeout(() => {
-                if (window.sincronizarWatchlistGlobal) {
-                    window.sincronizarWatchlistGlobal();
-                }
-            }, 500);
-        }).catch(err => console.error(err));
+        // Ejecutamos en segundo plano, sin recargas extra al terminar
+        cargarPerfilPublico(usernameUrl).catch(err => console.error(err));
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
@@ -5886,13 +5880,13 @@ async function cargarPerfilPublico(usernameTarget) {
         // === CARGAR WATCHLIST DE SERIES PENDIENTES ===
         await cargarWatchlistTVTime(perfilTarget.auth_id, miPropioUsername === usuarioABuscar);
 
-        if (miPropioUsername === usuarioABuscar && window.sincronizarWatchlistGlobal) {
-            window.sincronizarWatchlistGlobal();
-        }
+        // if (miPropioUsername === usuarioABuscar && window.sincronizarWatchlistGlobal) {
+        //     window.sincronizarWatchlistGlobal();
+        // }
 
         // === CARGAR RECOMENDACIONES DINÁMICAS ===
         if (miPropioUsername === usuarioABuscar) {
-            await cargarRecomendaciones(perfilTarget.auth_id);
+            cargarRecomendaciones(perfilTarget.auth_id).catch(err => console.error(err));
         } else {
             const recSection = document.getElementById('recommendations-section');
             if (recSection) recSection.style.display = 'none';
