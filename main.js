@@ -9543,22 +9543,22 @@ async function guardarOrdenWatchlist(userId, tmdbIds) {
 
 // Reordenar al marcar un episodio (la serie marcada pasa a #1)
 async function reordenarWatchlist(userId, tmdbIdMarcado) {
-    // 1. Obtener orden actual
-    const ordenActual = await obtenerOrdenWatchlist(userId);
+    // 1. Obtener ÚNICAMENTE el orden numérico que ya teníamos guardado en DB (es instantáneo)
+    const ordenActualMap = await obtenerOrdenWatchlist(userId);
 
-    // 2. Obtener lista de series en progreso (IDs)
-    const seriesEnProgreso = await obtenerSeriesEnProgreso(userId);
+    // 2. Extraer los IDs ordenados por su posición actual
+    const todosLosIdsConOrden = Object.keys(ordenActualMap).sort((a, b) => ordenActualMap[a] - ordenActualMap[b]);
 
-    // 3. Filtrar la serie marcada
-    const otrosIds = seriesEnProgreso.filter(id => id !== tmdbIdMarcado);
+    // 3. Filtrar para quitar la serie que acabamos de marcar (para que no esté duplicada)
+    const otrosIds = todosLosIdsConOrden.filter(id => id !== String(tmdbIdMarcado));
 
-    // 4. Nuevo orden: [marcado, ...resto]
-    const nuevoOrden = [tmdbIdMarcado, ...otrosIds];
+    // 4. Nuevo orden: La serie marcada pasa a ser la primera (#1), el resto va detrás
+    const nuevoOrden = [String(tmdbIdMarcado), ...otrosIds];
 
-    // 5. Guardar nuevo orden
+    // 5. Guardar el nuevo mapeo de posiciones de golpe en la base de datos
     await guardarOrdenWatchlist(userId, nuevoOrden);
 
-    // 6. Invalidar caché para que recargue con el nuevo orden
+    // 6. Invalidar caché local en RAM
     const cacheKey = `watchlist_tv_${userId}`;
     sessionStorage.removeItem(cacheKey);
 }
