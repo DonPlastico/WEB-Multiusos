@@ -5589,6 +5589,27 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
 
         // ==========================================
+        // GENERAR URLs PARA PLATAFORMAS EXTERNAS
+        // ==========================================
+        // Limpiamos el título para usarlo en búsquedas
+        const tituloLimpio = data.titulo.replace(/[^\w\s-]/g, '').trim();
+        const tituloParaURL = encodeURIComponent(tituloLimpio);
+        const tituloParaIMDb = encodeURIComponent(data.titulo);
+        
+        // URLs para cada plataforma
+        const urls = {
+            imdb: `https://www.imdb.com/find?q=${tituloParaIMDb}&s=${tipo === 'movie' ? 'tt' : 'nm'}`,
+            rottenTomatoes: `https://www.rottentomatoes.com/search?search=${tituloParaURL}`,
+            metacritic: `https://www.metacritic.com/search/?search_type=all&sort=date&direction=desc&page=1&ts=${tituloParaURL}`,
+            popcorn: `https://www.popcornmeter.com/search?q=${tituloParaURL}`
+        };
+        
+        // Configurar los listeners de los botones
+        document.getElementById('btn-view-imdb').onclick = () => window.open(urls.imdb, '_blank');
+        document.getElementById('btn-view-rotten').onclick = () => window.open(urls.rottenTomatoes, '_blank');
+        document.getElementById('btn-view-metacritic').onclick = () => window.open(urls.metacritic, '_blank');
+        document.getElementById('btn-view-popcorn').onclick = () => window.open(urls.popcorn, '_blank');
+        // ==========================================
         // CONSTRUIR SINOPSIS COMPLETA (TAGLINE + OVERVIEW)
         // ==========================================
         let sinopsisCompleta = '';

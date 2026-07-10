@@ -2282,7 +2282,7 @@
 
                             <!-- Valoración Global (DIV 2) - de TMDB -->
                             <div class="global-rating-section" style="flex: 1; display: flex; flex-direction: column;">
-                                <h3 class="detail-section-title">Valoración Global</h3>
+                                <h3 class="detail-section-title">Valoración TMDB</h3>
                                 <div class="rating-content global-rating-mini"
                                     style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                                     <div class="rating-score">
@@ -2292,6 +2292,25 @@
                                     </div>
                                     <div id="media-detail-rating-count" class="rating-count"
                                         style="font-size: 0.75rem;">-- valoraciones</div>
+                                </div>
+                                
+                                <!-- Botones para ver en otras plataformas -->
+                                <div id="external-ratings-container" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 5px;">Ver en otras plataformas:</div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                        <button id="btn-view-imdb" class="auth-btn secondary" style="padding: 8px 12px; font-size: 0.8rem; flex: 1;" title="Ver en IMDb">
+                                            <i class="fab fa-imdb"></i> IMDb
+                                        </button>
+                                        <button id="btn-view-rotten" class="auth-btn secondary" style="padding: 8px 12px; font-size: 0.8rem; flex: 1;" title="Ver en Rotten Tomatoes">
+                                            <i class="fas fa-tomato"></i> RT
+                                        </button>
+                                        <button id="btn-view-metacritic" class="auth-btn secondary" style="padding: 8px 12px; font-size: 0.8rem; flex: 1;" title="Ver en Metacritic">
+                                            <i class="fas fa-m"></i> Meta
+                                        </button>
+                                        <button id="btn-view-popcorn" class="auth-btn secondary" style="padding: 8px 12px; font-size: 0.8rem; flex: 1;" title="Ver en Popcornmeter">
+                                            <i class="fas fa-fire"></i> Pop
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
