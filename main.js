@@ -800,13 +800,18 @@ function arrancarEnrutador() {
 //   TEMAS CLARO OSCURO Y ESO
 // ==========================================================================
 
+// Pillamos el boton que cambia el tema, el que tiene el icono de la luna/sol
 const themeBtn = document.getElementById('theme-toggle');
+// Le ponemos un aria-label pa que los lectores de pantalla sepan lo que hace
 themeBtn.setAttribute('aria-label', 'Cambiar tema');
+// Y guardamos el icono que hay dentro del boton, que es el que cambia segun el tema
 const themeIcon = themeBtn.querySelector('i');
 
 // creo el menu de temas
+// Este es el desplegable que sale cuando haces click en el boton del tema
 const themeMenu = document.createElement('div');
 themeMenu.className = 'theme-menu';
+// Le meto los tres botones: sistema (para que siga al SO), claro y oscuro
 themeMenu.innerHTML = `
     <button class="theme-option" data-theme="system">
         <i class="fas fa-desktop"></i>
@@ -823,6 +828,8 @@ themeMenu.innerHTML = `
 `;
 
 // agrgo el menu al boton
+// Para que el menu sepa donde tiene que aparecer, lo metemos dentro de un contenedor
+// que tiene el boton y el menu. Asi podemos controlar el posicionamiento.
 const themeContainer = document.createElement('div');
 themeContainer.className = 'theme-dropdown';
 themeBtn.parentNode.insertBefore(themeContainer, themeBtn);
@@ -830,14 +837,18 @@ themeContainer.appendChild(themeBtn);
 themeContainer.appendChild(themeMenu);
 
 // funcion pa cambiar el tema
+// Esta es la funcion principal que se encarga de cambiar el tema y guardarlo
 function setTheme(theme) {
     // guardo en localStorage
+    // Asi cuando el usuario recargue la pagina, recordamos su preferencia
     localStorage.setItem('dp_sys_theme', theme);
 
     // aplico el atributo al root
+    // El CSS usa el atributo data-theme en el html para saber que colores mostrar
     document.documentElement.setAttribute('data-theme', theme);
 
     // actualizo el icono segun el tema
+    // Cambiamos el icono del boton para que refleje el tema actual
     if (theme === 'system') {
         themeIcon.className = 'fas fa-desktop';
     } else if (theme === 'light') {
@@ -847,6 +858,7 @@ function setTheme(theme) {
     }
 
     // actualizo el active en el menu
+    // Marcamos cual de las opciones del menu esta activa actualmente
     document.querySelectorAll('.theme-option').forEach(opt => {
         if (opt.getAttribute('data-theme') === theme) {
             opt.classList.add('active');
@@ -856,13 +868,18 @@ function setTheme(theme) {
     });
 
     // detecto si el sistema prefiere oscuro
+    // Esto lo usamos para saber si el sistema esta en modo oscuro, en caso de que
+    // el usuario haya seleccionado "Sistema". La variable no se usa pero la dejo
+    // por si acaso la necesito luego para algo.
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 // cargo el tema guardado o el default
+// Al cargar la pagina, miramos que tema tenia guardado el usuario
 function loadSavedTheme() {
     const savedTheme = localStorage.getItem('dp_sys_theme');
 
+    // Si el usuario tenia un tema guardado y es valido, lo usamos. Si no, el sistema.
     if (savedTheme && ['system', 'light', 'dark'].includes(savedTheme)) {
         setTheme(savedTheme);
     } else {
@@ -871,10 +888,13 @@ function loadSavedTheme() {
 }
 
 // controlo si el menu esta abierto
+// Esta variable me sirve para saber si el menu desplegable esta visible o no
 let menuOpen = false;
+// Cuando hacemos click en el boton del tema, abrimos o cerramos el menu
 themeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Evitamos que el click se propague y cierre el menu accidentalmente
     // cierra los otros menus
+    // Si el menu de idioma o el de usuario estan abiertos, los cerramos para que no se pisen
     langMenu.classList.remove('show');
     langMenuOpen = false;
     userMenu.classList.remove('show');
@@ -886,6 +906,7 @@ themeBtn.addEventListener('click', (e) => {
 });
 
 // Cerrar menú al hacer clic fuera
+// Si el usuario hace click en cualquier sitio que no sea el menu, lo cerramos
 document.addEventListener('click', (e) => {
     if (!themeContainer.contains(e.target)) {
         themeMenu.classList.remove('show');
@@ -894,11 +915,13 @@ document.addEventListener('click', (e) => {
 });
 
 // cuando hago click en una opcion de tema
+// Cada opcion del menu (Sistema, Claro, Oscuro) tiene su propio listener
 document.querySelectorAll('.theme-option').forEach(option => {
     option.addEventListener('click', (e) => {
         const theme = option.getAttribute('data-theme');
 
         // Si el botón no tiene un tema (porque es del menú de usuario o del ojo), ignoramos esta función
+        // Esto es un filtro de seguridad por si el selector pilla otros botones que no son de tema
         if (!theme) return;
 
         setTheme(theme);
@@ -908,8 +931,10 @@ document.querySelectorAll('.theme-option').forEach(option => {
 });
 
 // detecto si cambia el modo oscuro del sistema
+// Escuchamos cuando el sistema operativo cambia de modo oscuro a claro o viceversa
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     const currentTheme = localStorage.getItem('dp_sys_theme');
+    // Si el usuario tiene seleccionado "Sistema", actualizamos el tema para que siga al SO
     if (currentTheme === 'system') {
         // fuerzo actualizar el tema
         setTheme('system');
@@ -917,43 +942,52 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 });
 
 // cargo el tema al iniciar
+// Llamamos a la funcion que carga el tema guardado nada mas cargar la pagina
 loadSavedTheme();
 
 // ==========================================================================
 //   SISTEMA DE TRADUCCIONES (INTERNACIONALIZACIÓN)
 // ==========================================================================
 
+// Variable global que guarda el idioma actual (es, en, fr, etc.)
 let currentLang = 'es';
+// Aqui se guardan todas las traducciones cargadas desde el archivo JSON
 let translations = {};
 
 // Promesa compartida: se resuelve la PRIMERA vez que las traducciones terminan de
 // cargar y aplicarse. Cualquier carga inicial de datos (juegos/películas/series/
 // tendencias) debe esperar a esto antes de pintar textos con t(), para no mostrar
 // la key cruda mientras el fetch de /locales/<lang>.json todavía está en curso.
+// Básicamente, es un semaforo que dice "ya puedes usar t() sin miedo a que te devuelva la key".
 let _resolveTranslationsReady;
 const translationsReadyPromise = new Promise(resolve => { _resolveTranslationsReady = resolve; });
 // Red de seguridad: si por lo que sea initLanguage() nunca llega a resolver esto
 // (error inesperado en otra parte del código), no queremos que TODA la carga de
 // datos se quede colgada para siempre. Pasados 4s, se desbloquea igualmente.
+// Esto es por si el fetch de traducciones se queda colgado, que no se bloquee todo.
 setTimeout(() => _resolveTranslationsReady(), 4000);
 
 // 1. Cargar idioma guardado
+// Esta funcion intenta recuperar el idioma del localStorage
 function loadSavedLanguage() {
     // Primero intentamos desde localStorage (para usuarios no logueados)
     const saved = localStorage.getItem('dp_sys_lang');
+    // Comprobamos que el idioma guardado sea uno de los que soportamos
     if (saved && ['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(saved)) {
         currentLang = saved;
     } else {
+        // Si no hay nada guardado o no es valido, usamos español por defecto
         currentLang = 'es';
     }
     return currentLang;
 }
 
 // 1.5. Cargar idioma desde Supabase (para usuarios logueados)
+// Si el usuario esta logueado, su preferencia de idioma puede estar en la base de datos
 async function loadLanguageFromSupabase() {
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return null;
+        if (!session) return null; // Si no hay sesion, no podemos hacer nada
 
         const { data: perfil, error } = await supabase
             .from('usuarios')
@@ -962,6 +996,7 @@ async function loadLanguageFromSupabase() {
             .single();
 
         if (error) throw error;
+        // Si el perfil tiene un idioma valido, lo devolvemos
         if (perfil?.idioma && ['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(perfil.idioma)) {
             return perfil.idioma;
         }
@@ -973,6 +1008,7 @@ async function loadLanguageFromSupabase() {
 }
 
 // 1.6. Guardar idioma en Supabase
+// Cuando el usuario cambia de idioma, guardamos la preferencia en la base de datos
 async function saveLanguageToSupabase(lang) {
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -992,6 +1028,7 @@ async function saveLanguageToSupabase(lang) {
 }
 
 // 2. Cargar archivo de traducciones
+// Esta funcion hace un fetch al archivo JSON del idioma correspondiente
 async function loadTranslations(lang) {
     try {
         const response = await fetch(`/locales/${lang}.json`);
@@ -1001,22 +1038,27 @@ async function loadTranslations(lang) {
     } catch (error) {
         console.error(`❌ Error cargando traducciones para ${lang}:`, error);
         // Fallback a español si falla
+        // Si no podemos cargar el idioma que pide el usuario, intentamos con español
         if (lang !== 'es') {
             return loadTranslations('es');
         }
+        // Si ni español funciona, dejamos un objeto vacio para que no pete
         translations = {};
         return {};
     }
 }
 
 // 3. Función de traducción t(key, params)
+// Esta es la funcion magica que traduce una clave en el idioma actual
 function t(key, params = {}) {
     // RED DE SEGURIDAD: Si las traducciones aún no han cargado, devolvemos la key sin saturar la consola
+    // Esto evita que se vean las claves en bruto si el fetch aun no ha terminado
     if (!translations || Object.keys(translations).length === 0) {
         return key;
     }
 
     // Navegación por puntos: "nav.home" -> translations.nav.home
+    // Esto permite tener traducciones anidadas en el JSON
     const keys = key.split('.');
     let value = translations;
     for (const k of keys) {
@@ -1034,6 +1076,7 @@ function t(key, params = {}) {
     }
 
     // Reemplazar parámetros {param}
+    // Esto permite hacer cosas como t('saludo', {nombre: 'Juan'}) y que ponga "Hola Juan"
     for (const [param, val] of Object.entries(params)) {
         value = value.replace(new RegExp(`\\{${param}\\}`, 'g'), val);
     }
@@ -1042,18 +1085,22 @@ function t(key, params = {}) {
 }
 
 // 4. Aplicar traducciones al DOM
+// Esta funcion recorre todos los elementos del DOM que tienen texto y los traduce
 function applyTranslations() {
     // Si no hay traducciones, NO hacer nada (esto ya no debería pasar porque siempre cargamos el JSON)
+    // Pero por si acaso, si no hay traducciones, no hacemos nada para no machacar el DOM
     if (!translations || Object.keys(translations).length === 0) {
         return;
     }
 
+    // Traduccion del mensaje de chat vacio (el que sale cuando no tienes conversaciones)
     const emptyChat = document.querySelector('.chatbox-messages-area .empty-chat-message');
     if (emptyChat) {
         emptyChat.textContent = t('chat_extra.select_friend');
     }
 
     // --- NAVEGACIÓN ---
+    // Traducimos los textos del menu de navegacion (Inicio, Juegos, Peliculas, etc.)
     const navMap = {
         'nav-home': 'nav.home',
         'nav-games': 'nav.games',
@@ -1067,6 +1114,7 @@ function applyTranslations() {
     }
 
     // --- HERO ---
+    // Traducimos el hero de la pagina principal (el banner grande con el titulo y los botones)
     const heroMap = {
         'hero-title': 'hero.title',
         'hero-subtitle': 'hero.subtitle',
@@ -1077,10 +1125,11 @@ function applyTranslations() {
     };
     for (const [id, key] of Object.entries(heroMap)) {
         const el = document.getElementById(id);
-        if (el) el.innerHTML = t(key);
+        if (el) el.innerHTML = t(key); // Usamos innerHTML porque puede tener etiquetas HTML
     }
 
     // --- TENDENCIAS (títulos de sección) ---
+    // Traducimos los titulos de las secciones de tendencias
     const trendsMap = {
         'trends-games-title': 'trends.games_title',
         'trends-movies-title': 'trends.movies_title',
@@ -1094,6 +1143,7 @@ function applyTranslations() {
     }
 
     // --- BOTONES DE TENDENCIAS (día, semana, mes) ---
+    // Los botones que filtran las tendencias por periodo (Hoy, Esta semana, Este mes)
     document.querySelectorAll('.trend-tab').forEach(tab => {
         const period = tab.dataset.period;
         if (period === 'day') {
@@ -1108,6 +1158,7 @@ function applyTranslations() {
     });
 
     // --- BUSCADORES ---
+    // Traducimos los placeholders y textos de los buscadores
     const searchMap = {
         'search-juegos': 'search.games_placeholder',
         'search-movies': 'search.movies_placeholder',
@@ -1124,13 +1175,14 @@ function applyTranslations() {
     for (const [id, key] of Object.entries(searchMap)) {
         const el = document.getElementById(id);
         if (el && el.tagName === 'INPUT') {
-            el.placeholder = t(key);
+            el.placeholder = t(key); // Si es un input, cambiamos el placeholder
         } else if (el) {
-            el.textContent = t(key);
+            el.textContent = t(key); // Si es otro elemento, cambiamos el texto
         }
     }
 
     // --- FILTROS (acordeones) ---
+    // Traducimos los encabezados de los filtros (Plataformas, Tiendas, Generos, etc.)
     const filterMap = {
         'filter-plats': 'filters.platforms',
         'filter-stores': 'filters.stores',
@@ -1162,6 +1214,7 @@ function applyTranslations() {
     }
 
     // --- PRECIO ---
+    // Placeholders de los inputs de precio minimo y maximo
     const priceMap = {
         'price-min': 'filters.price_min',
         'price-max': 'filters.price_max',
@@ -1174,6 +1227,7 @@ function applyTranslations() {
     }
 
     // --- MODALES ---
+    // Textos de los modales (el de recortar imagen, etc.)
     const modalMap = {
         'modal-title': 'modal.select_title',
         'btn-save-crop': 'modal.upload',
@@ -1187,6 +1241,7 @@ function applyTranslations() {
     // 'close-modal' tiene un icono <i class="fas fa-times"> dentro: NO usar textContent
     // (lo borraría y dejaría el texto "Cerrar" en vez del icono). Solo se traduce el
     // aria-label/title, el icono se queda intacto.
+    // Esto es importante porque el boton de cerrar modal tiene un icono, no texto
     const closeModalBtn = document.getElementById('close-modal');
     if (closeModalBtn) {
         closeModalBtn.setAttribute('aria-label', t('modal.close'));
@@ -1194,6 +1249,7 @@ function applyTranslations() {
     }
 
     // --- LOGIN / REGISTRO ---
+    // Traducimos todos los textos de las vistas de login y registro
     const authMap = {
         'login-title': 'auth.login_title',
         'login-identifier': 'auth.login_identifier',
@@ -1223,16 +1279,17 @@ function applyTranslations() {
         const el = document.getElementById(id);
         if (el) {
             if (el.tagName === 'INPUT') {
-                el.placeholder = t(key);
+                el.placeholder = t(key); // Si es input, es un placeholder
             } else if (el.tagName === 'BUTTON') {
-                el.innerHTML = t(key);
+                el.innerHTML = t(key); // Si es boton, puede tener HTML
             } else {
-                el.textContent = t(key);
+                el.textContent = t(key); // Si es otro, texto plano
             }
         }
     }
 
     // --- PERFIL ---
+    // Traducimos los textos de la vista de perfil de usuario
     const profileMap = {
         'profile-username': 'profile.username',
         'profile-stats-following': 'profile.following',
@@ -1266,7 +1323,7 @@ function applyTranslations() {
         const el = document.getElementById(id);
         if (el) {
             if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                el.placeholder = t(key);
+                el.placeholder = t(key); // Placeholders para inputs y textareas
             } else {
                 el.textContent = t(key);
             }
@@ -1274,6 +1331,7 @@ function applyTranslations() {
     }
 
     // --- ADMIN ---
+    // Traducciones del panel de administracion
     const adminMap = {
         'admin-title': 'admin.title',
         'admin-search': 'admin.search',
@@ -1312,6 +1370,7 @@ function applyTranslations() {
     }
 
     // --- CHATBOX ---
+    // Textos del chat en la esquina inferior derecha
     const chatMap = {
         'tab-btn-chat': 'chat.chat_tab',
         'tab-btn-notifs': 'chat.notifs_tab',
@@ -1330,6 +1389,7 @@ function applyTranslations() {
     }
 
     // --- FAVORITOS ---
+    // Tooltip del boton de favoritos
     const favMap = {
         'btn-add-to-favorites': 'favorites.add_btn',
     };
@@ -1342,6 +1402,7 @@ function applyTranslations() {
     }
 
     // --- CARGAR MÁS ---
+    // Botones de "cargar más" que aparecen al final de las listas
     const loadMoreMap = {
         'btn-cargar-mas': 'search.load_more',
         'btn-cargar-mas-movie': 'search.load_more',
@@ -1356,6 +1417,7 @@ function applyTranslations() {
     }
 
     // --- MODAL DE DETALLES (juegos) ---
+    // Etiquetas del modal que muestra los detalles de un juego
     const detailMap = {
         'detail-price-label': 'details.price',
         'detail-dev-label': 'details.developer',
@@ -1372,6 +1434,7 @@ function applyTranslations() {
     }
 
     // --- MODAL DE MEDIA (películas/series) ---
+    // Etiquetas del modal de peliculas y series
     const mediaMap = {
         'media-detail-rating-label': 'details.rating',
         'media-detail-original-title-label': 'details.original_title',
@@ -1405,6 +1468,7 @@ function applyTranslations() {
     // 'btn-watch-toggle' tiene un icono <i id="icon-watch-status"> dentro que cambia
     // dinámicamente (ojo / ojo tachado según visto/no visto). NO usar textContent aquí
     // porque borraría el icono. Se traduce solo como title/aria-label.
+    // Esto es para el boton de "marcar como visto" en el modal de peliculas/series
     const watchToggleBtn = document.getElementById('btn-watch-toggle');
     if (watchToggleBtn) {
         const watchLabel = window.estadoMediaActual?.visto ? t('details.watch_status') : t('details.watch_btn');
@@ -1413,17 +1477,20 @@ function applyTranslations() {
     }
 
     // --- GÉNEROS (checkbox labels) ---
+    // Los generos vienen de la API y ya estan en el idioma correcto, no los traducimos
     document.querySelectorAll('.genre-item input, .genre-item-movie input, .genre-item-tv input').forEach(cb => {
         const label = cb.closest('label');
         if (label) {
             const textNode = label.childNodes[2];
             if (textNode) {
                 // No traducimos nombres de géneros porque vienen de la API
+                // y ya estan en el idioma que pedimos a la API
             }
         }
     });
 
     // --- ESTADOS DE VISTO (watch status) ---
+    // Texto que dice "No vista" o "Vista" en el modal
     const watchStatusMap = {
         'media-detail-watch-status': 'details.not_watched',
     };
@@ -1434,6 +1501,7 @@ function applyTranslations() {
         }
     }
     // --- ACTUALIZAR MENÚ DE TEMAS (si existe) ---
+    // Traducimos las opciones del menu de temas (Sistema, Claro, Oscuro)
     document.querySelectorAll('.theme-option[data-theme]').forEach(opt => {
         const theme = opt.dataset.theme;
         const label = opt.querySelector('span');
@@ -1445,6 +1513,7 @@ function applyTranslations() {
     });
 
     // --- ACTUALIZAR TEXTO DE MENÚ DE USUARIO (solo textos estáticos) ---
+    // Traducimos el texto "Ver perfil" en el menu de usuario
     document.querySelectorAll('.user-dropdown-header .dropdown-subtext').forEach(el => {
         el.textContent = t('user.view_profile');
     });
@@ -1453,6 +1522,7 @@ function applyTranslations() {
     // ANTES de que las traducciones hayan cargado (fetch async). Si el usuario sigue siendo
     // invitado (no hay sesión), lo volvemos a traducir aquí. Si ya hay sesión, NO lo tocamos:
     // ya contiene el nombre real del usuario, no la palabra "Invitado".
+    // Esto es para que cuando el usuario entra como invitado, el menu diga "Invitado" traducido
     if (!window._nexus_user_id) {
         const dropdownUsernameEl = document.getElementById('dropdown-username');
         if (dropdownUsernameEl) dropdownUsernameEl.textContent = t('user.guest');
@@ -1460,6 +1530,7 @@ function applyTranslations() {
 
     // Actualizar botones del menú de usuario usando IDs específicos (fiable, no depende
     // de que el texto siga siendo literalmente el string en español)
+    // Traducimos las opciones del menu de usuario (Mis listas, Editar perfil, etc.)
     const userMenuIdMap = {
         'btn-mis-listas': 'user.lists',
         'btn-editar-perfil': 'user.edit_profile',
@@ -1472,6 +1543,7 @@ function applyTranslations() {
     }
 
     // --- ACTUALIZAR MENÚ CONTEXTUAL DE TARJETAS ---
+    // El menu que sale al hacer click derecho en una tarjeta de pelicula/serie
     document.querySelectorAll('#card-watch-menu .theme-option span').forEach(span => {
         const text = span.textContent.trim();
         if (text === 'Vista de nuevo') span.textContent = t('details.rewatch_btn');
@@ -1480,29 +1552,38 @@ function applyTranslations() {
 }
 
 // 5. Cambiar idioma y recargar
+// Esta es la funcion que se llama cuando el usuario selecciona un idioma del menu
 async function setLanguage(lang) {
+    // Comprobamos que el idioma sea uno de los que soportamos
     if (!['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(lang)) return;
     currentLang = lang;
 
     // 1. Guardar en localStorage (siempre, para todos los usuarios)
+    // Guardamos la preferencia en el navegador
     localStorage.setItem('dp_sys_lang', lang);
 
     // 2. Guardar en Supabase (SOLO si hay sesión)
+    // Si el usuario esta logueado, guardamos su preferencia en la base de datos
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
         await saveLanguageToSupabase(lang);
     }
 
     // 3. Cargar traducciones
+    // Hacemos fetch del archivo JSON del nuevo idioma
     await loadTranslations(lang);
 
     // 4. Aplicar al DOM
+    // Recorremos toda la pagina y cambiamos los textos
     applyTranslations();
 
     // 5. Actualizar API de IGDB y TMDB con el nuevo idioma
+    // Lanzamos un evento personalizado para que las funciones de las APIs sepan que tienen que
+    // recargar los datos en el nuevo idioma
     document.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
 
     // 6. Recargar tendencias y datos si es necesario
+    // Si estamos en una vista que tiene datos cargados, los recargamos en el nuevo idioma
     if (vistaActualGlobal === 'games') {
         cargarTendencias(trendPeriod, true);
         cargarJuegosIGDB(busquedaActual, true, filtrosGlobales);
@@ -1516,10 +1597,12 @@ async function setLanguage(lang) {
 }
 
 // 6. Inicializar idioma al cargar (con prioridad: Supabase > localStorage > español)
+// Esta funcion se llama al cargar la pagina para determinar que idioma usar
 async function initLanguage() {
     let idiomaFinal = 'es'; // Fallback
 
     // 1. Intentar cargar desde Supabase (si hay sesión)
+    // Si el usuario esta logueado, su preferencia de la base de datos tiene prioridad
     const idiomaSupabase = await loadLanguageFromSupabase();
     if (idiomaSupabase) {
         idiomaFinal = idiomaSupabase;
@@ -1540,6 +1623,7 @@ async function initLanguage() {
     applyTranslations();
 
     // Avisamos a cualquier carga inicial de datos que ya puede pintar textos con t()
+    // Esto resuelve la promesa que estaban esperando las funciones de carga de datos
     _resolveTranslationsReady();
 
     // 5. Sincronizar el menú de idiomas con el idioma actual
@@ -1548,6 +1632,7 @@ async function initLanguage() {
     });
 
     // 6. Actualizar bandera en el botón
+    // Cambiamos la bandera que se muestra en el boton del idioma
     const flagBtn = document.querySelector('.lang-option.active');
     if (flagBtn) {
         const flagImg = document.getElementById('lang-toggle').querySelector('img');
@@ -1558,6 +1643,8 @@ async function initLanguage() {
 }
 
 // 8. Exponer funciones globalmente
+// Hacemos que las funciones principales esten disponibles en window para que
+// puedan ser usadas desde otros scripts o desde la consola para depurar
 window.t = t;
 window.setLanguage = setLanguage;
 window.currentLang = currentLang;
@@ -1566,10 +1653,13 @@ window.currentLang = currentLang;
 //   IDIOMA - MENU DESPLEGABLE (igual que el de tema)
 // ==========================================================================
 
+// Cogemos el boton que abre el menu de idiomas
 const langBtn = document.getElementById('lang-toggle');
 langBtn.setAttribute('aria-label', 'Cambiar idioma');
+// Guardamos la imagen de la bandera que hay dentro del boton
 const langFlagImg = langBtn.querySelector('img');
 
+// Creamos el menu desplegable de idiomas, con todas las banderas y nombres
 const langMenu = document.createElement('div');
 langMenu.className = 'theme-menu lang-menu';
 langMenu.innerHTML = `
@@ -1599,16 +1689,20 @@ langMenu.innerHTML = `
     </button>
 `;
 
+// Creamos un contenedor para el boton y el menu, igual que con el tema
 const langContainer = document.createElement('div');
 langContainer.className = 'theme-dropdown';
 langBtn.parentNode.insertBefore(langContainer, langBtn);
 langContainer.appendChild(langBtn);
 langContainer.appendChild(langMenu);
 
+// Variable para controlar si el menu de idiomas esta abierto
 let langMenuOpen = false;
+// Cuando hacemos click en el boton de idioma, abrimos o cerramos el menu
 langBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     // cierra el de tema si está abierto
+    // Para que no se pisen los menus, cerramos los otros
     themeMenu.classList.remove('show');
     menuOpen = false;
     // cierra el de usuario si está abierto
@@ -1620,6 +1714,7 @@ langBtn.addEventListener('click', (e) => {
     else langMenu.classList.remove('show');
 });
 
+// Cerrar menu de idioma al hacer click fuera
 document.addEventListener('click', (e) => {
     if (!langContainer.contains(e.target)) {
         langMenu.classList.remove('show');
@@ -1627,6 +1722,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Cuando hacemos click en una opcion de idioma
 document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
     opt.addEventListener('click', async function (e) {
         e.preventDefault();
@@ -1634,10 +1730,12 @@ document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
         const flag = this.dataset.flag;
 
         // ACTUALIZAR TAMAÑO DE LA BANDERA A 32x24
+        // Cambiamos la bandera del boton por la del idioma seleccionado
         langFlagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
         langFlagImg.alt = lang.toUpperCase();
 
         // marca el active
+        // Quitamos la clase active de todas las opciones y la ponemos en la seleccionada
         document.querySelectorAll('.theme-option.lang-option').forEach(o => o.classList.remove('active'));
         this.classList.add('active');
 
@@ -1654,11 +1752,14 @@ document.querySelectorAll('.theme-option.lang-option').forEach(opt => {
 // ==========================================================================
 
 // vigilo el scroll para cargar mas cosas
+// Creamos un IntersectionObserver que detecta cuando el boton de "cargar mas"
+// entra en la pantalla y automaticamente carga mas contenido
 const observadorScroll = new IntersectionObserver((entradas) => {
     entradas.forEach(entrada => {
         if (entrada.isIntersecting) {
             const id = entrada.target.id;
             // si veo el boton y no esta cargando, cargo mas
+            // Dependiendo de que boton sea, llamamos a una funcion u otra
             if (id === 'btn-cargar-mas' && !cargando) {
                 cargarMas();
             } else if (id === 'btn-cargar-mas-movie' && !cargandoTMDB) {
@@ -1669,33 +1770,43 @@ const observadorScroll = new IntersectionObserver((entradas) => {
         }
     });
 }, { rootMargin: '300px' }); // cargo antes para que no se vea
+// El rootMargin de 300px hace que el observador se active cuando el boton esta
+// a 300px de aparecer, dando tiempo a cargar los datos antes de que el usuario llegue
 
+// Pillamos los elementos del DOM que vamos a necesitar
 const gridJuegos = document.getElementById('games-grid');
 const btnBuscar = document.getElementById('btn-buscar-juegos');
 const inputBuscar = document.getElementById('search-juegos');
 
-let offsetActual = 0;
-let busquedaActual = '';
-let cargando = false;
-let filtrosGlobales = {};
+// Variables de estado para la carga de juegos
+let offsetActual = 0; // Cuantos juegos hemos cargado ya (para la paginacion)
+let busquedaActual = ''; // La busqueda actual
+let cargando = false; // Si estamos en medio de una peticion
+let filtrosGlobales = {}; // Los filtros activos
 
-let autoScanTimeout = null;
-let peticionAbort = null;
+// Variables para el control de peticiones
+let autoScanTimeout = null; // Timeout para el auto-escaneo
+let peticionAbort = null; // AbortController para cancelar peticiones
 
+// Funcion que crea la tarjeta HTML de un juego
 function crearTarjeta(juego) {
     // 1. Lógica de la imagen
+    // Comprobamos si el juego tiene portada
     const tienePortada = juego.cover && juego.cover.url;
+    // Si tiene, formateamos la URL para que sea de mayor tamaño
     const portada = tienePortada
         ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
         : '';
 
+    // Formateamos la fecha de lanzamiento
     const fechaFormateada = juego.first_release_date
         ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
             day: 'numeric', month: 'long', year: 'numeric'
         })
-        : t('common.tba');
+        : t('common.tba'); // Si no tiene fecha, ponemos "TBA" (To Be Announced)
 
     // Obtener todas las plataformas únicas
+    // Sacamos los nombres de las plataformas, eliminamos duplicados y creamos las etiquetas
     let htmlPlataformas = '';
     if (juego.platforms && juego.platforms.length > 0) {
         const nombresPlat = [...new Set(juego.platforms.map(p => p.name))];
@@ -1705,28 +1816,36 @@ function crearTarjeta(juego) {
     }
 
     // guardo datos ocultos para el filtro (Y AHORA LA URL DE COMPRA)
+    // Estos datos se guardan en atributos data-* de la tarjeta para usarlos en filtros
     const storesData = juego.itad ? juego.itad.stores : 'none';
     const storeUrlData = (juego.itad && juego.itad.url) ? juego.itad.url : ''; // Extraemos URL
     const platformsData = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()).join(',') : '';
 
+    // Comprobamos si el juego esta disponible en PC (para saber si mostrar ofertas)
     const pNamesLower = juego.platforms ? juego.platforms.map(p => p.name.toLowerCase()) : [];
     const hasPC = pNamesLower.some(n => n.includes('pc') || n.includes('windows'));
 
+    // Logica del precio
     let htmlPrecio = '';
     if (juego.itad && juego.itad.precio !== null) {
+        // Si tiene precio en ITAD, lo mostramos
         htmlPrecio = `<span class="price-badge">${t('games.from')} <strong>${juego.itad.precio.toFixed(2)} €</strong></span>`;
     } else if (!hasPC) {
+        // Si no es de PC, mostramos un mensaje de "Edicion de consola"
         htmlPrecio = `<span class="price-na" style="color: var(--text-muted);"><i class="fas fa-gamepad"></i> ${t('games.console_edition')}</span>`;
     } else {
+        // Si es de PC pero no tiene ofertas, mostramos "Sin ofertas"
         htmlPrecio = `<span class="price-na">${t('games.no_offers')}</span>`;
     }
 
     // 2. Lógica del contenedor de imagen
+    // Generamos el HTML de la imagen o del placeholder si no hay
     const imgHtml = tienePortada
         ? `<img src="${portada}" alt="${juego.name}" class="game-cover" loading="lazy" width="264" height="374" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas fa-gamepad\\'></i></div>'">`
         : `<div class="no-cover"><i class="fas fa-gamepad"></i></div>`;
 
     // Inyectamos el data-store-url en la etiqueta principal de la tarjeta
+    // Esto es para que al hacer click en la tarjeta, podamos saber si tiene url de compra
     return `
         <div class="game-card" data-game-id="${juego.id}" data-game-title="${juego.name}" data-stores="${storesData}" data-store-url="${storeUrlData}" data-platforms="${platformsData}">
             <div class="game-cover-container">
@@ -1744,6 +1863,7 @@ function crearTarjeta(juego) {
                     ${htmlPrecio}
                 </div>
 
+                <!-- Boton para añadir a listas -->
                 <div style="display: flex;gap: 5px;width: 100%;margin-top: 5px;padding-top: 5px;border-top: 1px solid var(--border-color);">
                     <button class="btn-add-list" title="${t('movies.add_to_list')}" style="flex: 1; background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onclick="event.stopPropagation(); abrirMenuAddToList(event, '${juego.id}', 'game');" onmouseover="this.style.background='var(--warning)'; this.style.color='white';" onmouseout="this.style.background='rgba(245, 158, 11, 0.15)'; this.style.color='var(--warning)';">
                         <i class="fas fa-plus"></i>
@@ -1754,12 +1874,17 @@ function crearTarjeta(juego) {
     `;
 }
 
+// Funcion principal para cargar juegos desde la API de IGDB
 async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) {
-    await translationsReadyPromise; // Esperamos a que t() tenga datos reales antes de pintar nada
+    // Esperamos a que t() tenga datos reales antes de pintar nada
+    // Esto evita que se muestren las claves de traduccion en bruto
+    await translationsReadyPromise;
 
     // 1. SISTEMA DE FRENADO DE EMERGENCIA
+    // Si estamos reseteando (nueva busqueda o filtros), cancelamos todo lo anterior
     if (resetear) {
         // GUARDAR BÚSQUEDA PARA PERSISTENCIA F5
+        // Guardamos la busqueda en localStorage para que al recargar la pagina se mantenga
         if (busqueda) {
             localStorage.setItem('last_search_games', busqueda);
         } else {
@@ -1774,11 +1899,13 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         busquedaActual = busqueda;
         totalJuegosCargados = 0;
 
+        // Si nos pasan filtros, los guardamos
         if (filtros !== null) {
             filtrosGlobales = filtros;
         }
 
         // Mostrar loader inicial
+        // Ponemos un spinner mientras se cargan los datos
         gridJuegos.innerHTML = `
             <div id="loader-games" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0;">
                 <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"></i>
@@ -1786,8 +1913,11 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             </div>
         `;
 
+        // Eliminamos el boton de cargar mas si existe
         document.getElementById('btn-cargar-mas')?.remove();
     } else {
+        // Si no estamos reseteando, es que estamos cargando mas juegos
+        // Mostramos un spinner en el boton de cargar mas
         const btnMas = document.getElementById('btn-cargar-mas');
         if (btnMas) {
             btnMas.innerHTML = `
@@ -1799,14 +1929,17 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
     }
 
+    // Si ya estamos cargando, no hacemos nada (evitamos peticiones dobles)
     if (cargando) return;
     cargando = true;
 
     // 2. CREAMOS UNA NUEVA SEÑAL PARA ESTA PETICIÓN
+    // Esto nos permite cancelar la peticion si el usuario hace una nueva busqueda
     const miAbort = new AbortController();
     peticionAbort = miAbort;
 
     try {
+        // Construimos la URL con todos los parametros
         let url = `/api/igdb?offset=${offsetActual}&lang=${currentLang}`;
         if (busquedaActual) url += `&query=${encodeURIComponent(busquedaActual)}`;
         if (filtrosGlobales.platforms) url += `&platforms=${filtrosGlobales.platforms}`;
@@ -1815,7 +1948,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         if (filtrosGlobales.dateMax) url += `&dateMax=${filtrosGlobales.dateMax}`;
         if (filtrosGlobales.modes) url += `&modes=${filtrosGlobales.modes}`;
 
-        // Le pasamos la señal a la llamada de red
+        // Le pasamos la señal a la llamada de red para poder cancelarla
         const respuesta = await fetch(url, { signal: miAbort.signal });
         if (!respuesta.ok) throw new Error(`Error HTTP ${respuesta.status}`);
 
@@ -1826,10 +1959,13 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         const total = data.total || juegos.length;
         const hasMore = data.hasMore !== undefined ? data.hasMore : (juegos.length >= 50);
 
+        // Si estamos reseteando, vaciamos el grid
         if (resetear) gridJuegos.innerHTML = '';
+        // Eliminamos el boton de cargar mas si existe
         document.getElementById('btn-cargar-mas')?.remove();
 
         // Si IGDB no encontró resultados y hay búsqueda, probar en Steam
+        // Esto es un fallback para cuando IGDB no tiene el juego
         let datosFinales = juegos;
         if (juegos.length === 0 && busquedaActual) {
             try {
@@ -1845,6 +1981,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
             }
         }
 
+        // Si no hay resultados, mostramos un mensaje
         if (datosFinales.length === 0) {
             if (resetear) {
                 gridJuegos.innerHTML = `<div style="color:var(--text-muted); text-align:center; width:100%; padding: 2rem;">${t('games.no_results')}</div>`;
@@ -1854,6 +1991,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
 
         // Ahora usa datosFinales en lugar de datos para todo lo demás
+        // Aplicamos filtros de precio y tiendas
         const precioMin = filtrosGlobales.precioMin ?? 0;
         const precioMax = filtrosGlobales.precioMax ?? 9999;
         const tiendasFiltro = filtrosGlobales.stores || [];
@@ -1875,6 +2013,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         });
 
         // Filtrar juegos sin portada
+        // Solo mostramos juegos que tengan portada, porque quedan mejor
         const juegosConPortada = datosFiltrados.filter(juego => {
             return juego.cover && juego.cover.url;
         });
@@ -1889,6 +2028,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
 
         // Renderizar solo juegos con portada
+        // Añadimos cada tarjeta al grid
         juegosConPortada.forEach(juego => {
             gridJuegos.innerHTML += crearTarjeta(juego);
         });
@@ -1896,11 +2036,14 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         totalJuegosCargados += juegosConPortada.length;
 
         // 3. AUTO-ESCANEO (SOLO SI NO NOS HAN CANCELADO)
+        // Si hay mas juegos para cargar, mostramos el boton de "cargar mas"
         if (hasMore && juegosConPortada.length > 0) {
             const btnMas = document.createElement('div');
             btnMas.id = 'btn-cargar-mas';
             btnMas.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0;";
 
+            // Si no hay juegos filtrados, entramos en modo "deep scan"
+            // Esto pasa cuando los filtros son muy restrictivos y no hay resultados
             if (datosFiltrados.length === 0) {
                 btnMas.innerHTML = `
                     <div style="color: var(--warning); letter-spacing: 1px; font-size: 0.9rem; padding: 20px;">
@@ -1910,6 +2053,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 gridJuegos.after(btnMas);
 
                 // Programamos el siguiente escáner
+                // Esto intenta cargar mas juegos automaticamente despues de un tiempo
                 autoScanTimeout = setTimeout(() => {
                     if (peticionAbort === miAbort) {
                         cargando = false;
@@ -1918,14 +2062,17 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
                 }, 800);
 
             } else {
+                // Si hay resultados, mostramos el boton normal
                 btnMas.innerHTML = `<button onclick="cargarMas()" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600; transition: all 0.3s;" 
                 onmouseover="this.style.background='var(--primary)'; this.style.color='white';" 
                 onmouseout="this.style.background='transparent'; this.style.color='var(--primary)';"
                 aria-label="Cargar más juegos">${t('games.load_more_btn')} (${totalJuegosCargados})</button>`;
                 gridJuegos.after(btnMas);
+                // Observamos el boton para cargar automaticamente al hacer scroll
                 observadorScroll.observe(btnMas);
             }
         } else if (juegosConPortada.length > 0 && !hasMore) {
+            // Si no hay mas juegos, mostramos un mensaje de fin
             const finDiv = document.createElement('div');
             finDiv.id = 'fin-juegos';
             finDiv.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; padding: 20px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border);";
@@ -1934,12 +2081,14 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
 
         // Liberamos solo si somos la petición actual
+        // Esto evita que una peticion antigua modifique el estado
         if (peticionAbort === miAbort) {
             offsetActual += juegos.length;
             cargando = false;
         }
 
     } catch (error) {
+        // Si la peticion fue cancelada, no hacemos nada
         if (error.name === 'AbortError') return;
 
         console.error("❌ Error cargando juegos:", error);
@@ -1950,30 +2099,38 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
     }
 }
 
+// Funcion para cargar mas juegos (wrapper de cargarJuegosIGDB)
 function cargarMas() {
     cargarJuegosIGDB(busquedaActual, false);
 }
 
-// ==========================================================================
+/// ==========================================================================
 //   TENDENCIAS EN JUEGOS (RETRO + NEON)
 // ==========================================================================
 
+// Variable que guarda el periodo actual de las tendencias (dia, semana, mes)
 let trendPeriod = 'day'; // 'day', 'week', 'month'
+// Offset para la paginacion de las tendencias (cargar mas)
 let trendOffset = 0;
+// Flag para saber si estamos cargando tendencias y no duplicar peticiones
 let trendCargando = false;
 
 // SISTEMA DE CACHÉ EN MEMORIA PARA TENDENCIAS
+// Guardamos las tendencias ya cargadas para no pedirlas otra vez a la API
+// Esto ahorra peticiones y hace que la pagina vaya mas rapida
 let cacheTendenciasJuegos = {};
 let cacheTendenciasPelis = {};
 
 // Mapeo de períodos a fecha de inicio
+// Esta funcion calcula la fecha de inicio y fin segun el periodo seleccionado
 function getDateRange(period) {
     const now = new Date();
     let startDate = new Date(now);
 
-    // Guardamos la fecha actual en timestamp
+    // Guardamos la fecha actual en timestamp (segundos desde 1970)
     const nowTimestamp = Math.floor(now.getTime() / 1000);
 
+    // Segun el periodo, restamos dias/meses/años a la fecha actual
     switch (period) {
         case 'day':
             startDate.setDate(now.getDate() - 1);
@@ -1992,6 +2149,7 @@ function getDateRange(period) {
     }
 
     // Poner a 00:00:00 y 23:59:59 para evitar problemas
+    // Esto asegura que las fechas sean correctas y no haya desfases de hora
     startDate.setHours(0, 0, 0, 0);
     now.setHours(23, 59, 59, 999);
 
@@ -2000,6 +2158,8 @@ function getDateRange(period) {
     const toTimestamp = Math.floor(now.getTime() / 1000);
 
     // Si la fecha de inicio es mayor que la actual, usar un año atrás
+    // Esto es un fallback por si la fecha calculada es erronea (por ejemplo si el sistema
+    // tiene la hora mal o algo raro)
     let finalFrom = fromTimestamp;
     if (fromTimestamp > nowTimestamp) {
         const fallback = new Date(now);
@@ -2015,8 +2175,11 @@ function getDateRange(period) {
     };
 }
 
+// Funcion principal para cargar las tendencias de juegos
 async function cargarTendencias(period = 'week', resetear = true, intentos = 0) {
+    // Esperamos a que las traducciones esten listas para poder usar t() sin problemas
     await translationsReadyPromise;
+    // Si ya estamos cargando, no hacemos nada para evitar duplicados
     if (trendCargando) {
         return;
     }
@@ -2030,6 +2193,8 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     }
 
     // 1. INTERCEPTOR DE CACHÉ
+    // Si tenemos los datos en cache y estamos reseteando, los usamos directamente
+    // Esto ahorra una peticion a la API y va mucho mas rapido
     if (resetear && intentos === 0 && cacheTendenciasJuegos[period]) {
         container.scrollLeft = 0;
         trendOffset = 0;
@@ -2038,11 +2203,13 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         const sorted = cacheTendenciasJuegos[period];
         const topGames = sorted.slice(0, 15);
 
+        // Pintamos los 15 primeros juegos del cache
         topGames.forEach((juego, index) => {
             const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
         });
 
+        // Si hay mas de 15, mostramos un indicador de "mas"
         if (sorted.length > 15) {
             const moreIndicator = document.createElement('div');
             moreIndicator.className = 'trend-more-indicator';
@@ -2060,10 +2227,12 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         return;
     }
 
+    // Si no estamos reseteando (cargando mas), mantenemos el scroll
     if (intentos === 0) {
         container.scrollLeft = 0;
     }
 
+    // Si estamos reseteando, mostramos un loader
     if (resetear && intentos === 0) {
         trendOffset = 0;
         const textos = {
@@ -2080,6 +2249,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     }
 
     try {
+        // Construimos la URL con los parametros necesarios
         let url = `/api/igdb?offset=${trendOffset}&limit=20&sort=rating.desc&period=${period}&lang=${currentLang}`;
 
         const response = await fetch(url);
@@ -2088,6 +2258,7 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         const data = await response.json();
 
         // SOPORTAR NUEVO FORMATO DE IGDB
+        // La API puede devolver los datos en diferentes formatos, esto los normaliza
         let juegosData;
         if (data.juegos && Array.isArray(data.juegos)) {
             juegosData = data.juegos;
@@ -2106,21 +2277,27 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
             return;
         }
 
+        // Ordenamos los juegos por rating (de mayor a menor)
         const sorted = [...juegosData].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
+        // Si estamos reseteando, guardamos en cache
         if (resetear) {
             cacheTendenciasJuegos[period] = sorted;
         }
 
+        // Si estamos reseteando, vaciamos el contenedor
         if (resetear) container.innerHTML = '';
 
+        // Cogemos los 15 mejores para mostrarlos
         const topGames = sorted.slice(0, 15);
 
+        // Pintamos cada juego
         topGames.forEach((juego, index) => {
             const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
         });
 
+        // Si hay mas de 15, mostramos un indicador de "mas"
         if (juegosData.length > 15) {
             const moreIndicator = document.createElement('div');
             moreIndicator.className = 'trend-more-indicator';
@@ -2138,12 +2315,14 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
     } catch (error) {
         console.error(`Error cargando tendencias (Intento ${intentos + 1}):`, error);
 
+        // Si falla, reintentamos una vez mas despues de 1.5 segundos
         if (intentos < 1) {
             trendCargando = false;
             setTimeout(() => cargarTendencias(period, resetear, intentos + 1), 1500);
             return;
         }
 
+        // Si ya hemos reintentado y sigue fallando, mostramos un mensaje de error
         if (resetear) {
             container.innerHTML = `
             <div class="trends-empty">
@@ -2156,24 +2335,29 @@ async function cargarTendencias(period = 'week', resetear = true, intentos = 0) 
         trendCargando = false;
     }
 
+    // Volvemos el scroll al principio (para que se vea el primer elemento)
     requestAnimationFrame(() => {
         if (container) container.scrollLeft = 0;
     });
 }
 
 // Cargar más juegos en tendencias (botón +5 más)
+// Esta funcion carga 5 juegos adicionales cuando el usuario hace click en "mas"
 async function cargarMasTendencias(period = 'day') {
+    // Si ya estamos cargando, no hacemos nada
     if (trendCargando) return;
     trendCargando = true;
 
     const container = document.getElementById('trend-games');
     if (!container) return;
 
+    // Eliminamos el indicador de "mas" que habia
     const moreIndicator = container.querySelector('.trend-more-indicator');
     if (moreIndicator) {
         moreIndicator.remove();
     }
 
+    // Mostramos un loader mientras se cargan los datos
     const loader = document.createElement('div');
     loader.className = 'trend-load-more';
     loader.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;';
@@ -2186,6 +2370,7 @@ async function cargarMasTendencias(period = 'day') {
     container.appendChild(loader);
 
     try {
+        // Aumentamos el offset para que la API nos devuelva los siguientes
         trendOffset += 15;
 
         let url = `/api/igdb?offset=${trendOffset}&limit=10&sort=rating.desc&period=${period}&lang=${currentLang}`;
@@ -2205,8 +2390,10 @@ async function cargarMasTendencias(period = 'day') {
             throw new Error('Formato inválido');
         }
 
+        // Quitamos el loader
         loader.remove();
 
+        // Si no hay mas juegos, mostramos un mensaje
         if (juegosData.length === 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.style.cssText = 'display:flex;align-items:center;justify-content:center;min-width:120px;padding:20px;color:var(--text-muted);font-size:0.7rem;text-align:center;';
@@ -2221,14 +2408,17 @@ async function cargarMasTendencias(period = 'day') {
             return;
         }
 
+        // Ordenamos y cogemos los 5 primeros
         const sorted = [...juegosData].sort((a, b) => (b.rating || 0) - (a.rating || 0));
         const newGames = sorted.slice(0, 5);
 
+        // Pintamos los nuevos juegos
         newGames.forEach((juego, index) => {
             const card = crearTarjetaTrend(juego, trendOffset + index + 1);
             container.appendChild(card);
         });
 
+        // Si quedan mas juegos por cargar, mostramos otro boton de "mas"
         if (juegosData.length > 5) {
             const remaining = juegosData.length - 5;
             const moreBtn = document.createElement('div');
@@ -2253,6 +2443,7 @@ async function cargarMasTendencias(period = 'day') {
     } catch (error) {
         console.error('Error cargando más tendencias:', error);
         loader.remove();
+        // Si falla, mostramos un boton de reintentar
         const retryBtn = document.createElement('div');
         retryBtn.className = 'trend-more-indicator';
         retryBtn.style.cursor = 'pointer';
@@ -2271,7 +2462,9 @@ async function cargarMasTendencias(period = 'day') {
     trendCargando = false;
 }
 
+// Funcion que crea una tarjeta de tendencia (con el numero de posicion)
 function crearTarjetaTrend(juego, posicion) {
+    // Creamos el elemento de la tarjeta
     const card = document.createElement('div');
     card.className = 'trend-card';
     card.setAttribute('data-game-id', juego.id);
@@ -2295,6 +2488,7 @@ function crearTarjetaTrend(juego, posicion) {
     }
 
     // Mantenemos las clases por si quieres conservar los colores (oro, plata, bronce)
+    // Esto es para que el top 1, 2 y 3 tengan colores especiales (dorado, plateado, bronce)
     let posClass = '';
     if (posicion === 1) posClass = 'top1';
     else if (posicion === 2) posClass = 'top2';
@@ -2304,9 +2498,11 @@ function crearTarjetaTrend(juego, posicion) {
     const posText = `#${posicion}`;
 
     // Rating - IGDB usa 'rating' (0-100) o 'total_rating' (0-100)
+    // Lo dividimos entre 10 para que sea una puntuacion del 1 al 10
     const rating = juego.rating ? (juego.rating / 10).toFixed(1) :
         juego.total_rating ? (juego.total_rating / 10).toFixed(1) : '--';
 
+    // Construimos el HTML de la tarjeta
     card.innerHTML = `
         <div class="game-cover-container">
             <div class="trend-position ${posClass}">${posText}</div>
@@ -2329,6 +2525,7 @@ function crearTarjetaTrend(juego, posicion) {
     `;
 
     // Evento click para abrir modal
+    // Cuando el usuario hace click en la tarjeta, abrimos el modal con los detalles del juego
     card.addEventListener('click', () => {
         const juegoData = {
             idJuego: juego.id,
@@ -2351,6 +2548,8 @@ function crearTarjetaTrend(juego, posicion) {
 // ==========================================================================
 //   SISTEMA UNIFICADO DE PESTAÑAS (GAMES, MOVIES Y SERIES)
 // ==========================================================================
+// Esta funcion inicializa las pestañas de tendencias (dia, semana, mes) para
+// todas las secciones (juegos, peliculas, series)
 function initTrendTabs() {
     const seccionesTendencias = document.querySelectorAll('.trends-container');
 
@@ -2362,25 +2561,30 @@ function initTrendTabs() {
 
         const tipoTendencia = scrollContainer.id;
 
+        // Clonamos cada tab para evitar problemas con los listeners duplicados
         tabs.forEach(tab => {
             const newTab = tab.cloneNode(true);
             tab.parentNode.replaceChild(newTab, tab);
 
+            // Añadimos el listener a cada pestaña
             newTab.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
 
+                // Marcamos esta pestaña como activa y desactivamos las otras
                 const allTabsThisSection = seccion.querySelectorAll('.trend-tab');
                 allTabsThisSection.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
 
                 const period = this.getAttribute('data-period');
 
+                // Hacemos un efecto de fade-out mientras se cargan los datos
                 if (scrollContainer) {
                     scrollContainer.style.opacity = '0.5';
                     scrollContainer.style.transition = 'opacity 0.2s';
                 }
 
+                // Segun el tipo de tendencia, llamamos a la funcion correspondiente
                 if (tipoTendencia === 'trend-games') {
                     trendOffset = 0;
                     cargarTendencias(period, true);
@@ -2392,6 +2596,7 @@ function initTrendTabs() {
                     cargarTendenciasSeries(period, true);
                 }
 
+                // Hacemos un fade-in cuando los datos esten cargados
                 setTimeout(() => {
                     if (scrollContainer) {
                         scrollContainer.style.opacity = '1';
@@ -2404,6 +2609,7 @@ function initTrendTabs() {
 }
 
 // Cargar tendencias de JUEGOS al iniciar
+// Esta funcion se llama al cargar la pagina para mostrar las tendencias de juegos
 function cargarTendenciasInicial() {
     const container = document.getElementById('trend-games');
     if (!container) {
@@ -2412,6 +2618,7 @@ function cargarTendenciasInicial() {
     }
 
     // Si ya están cargadas, no recargar
+    // Esto evita hacer peticiones innecesarias a la API
     if (tendenciasJuegosCargadas) {
         return; // Si ya están, me salgo y no hago nada
     }
@@ -2419,6 +2626,7 @@ function cargarTendenciasInicial() {
     cargarTendencias('day', true);
     tendenciasJuegosCargadas = true;
     initTrendTabs();
+    // Nos aseguramos de que el scroll empiece al principio
     setTimeout(() => {
         const container = document.getElementById('trend-games');
         if (container) {
@@ -2429,6 +2637,8 @@ function cargarTendenciasInicial() {
 
 // También cargar cuando se cambie a la vista de juegos
 // Modificar la función cambiarVista para que cargue tendencias al entrar a juegos
+// Esto es un "hack" para que cuando el usuario navegue a la vista de juegos,
+// las tendencias se carguen automaticamente
 const originalCambiarVista = cambiarVista;
 cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
     // Llamar a la función original
@@ -2447,14 +2657,19 @@ cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = 
 // ==========================================================================
 //   PERSISTENCIA DE FILTROS EN LOCALSTORAGE
 // ==========================================================================
+// Esta funcion guarda los filtros seleccionados en localStorage para que
+// persistan entre recargas de pagina
 function guardarFiltros() {
+    // Recolectamos todas las plataformas seleccionadas
     const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
         .map(cb => cb.value)
         .filter(val => val && val !== 'on');
 
+    // Recolectamos todas las tiendas seleccionadas
     const tiendasSeleccionadas = Array.from(document.querySelectorAll('.tienda-item:checked'))
         .map(cb => cb.value);
 
+    // Recolectamos todos los generos seleccionados
     const generosSeleccionados = Array.from(document.querySelectorAll('.genre-item input:checked'))
         .map(cb => cb.value);
 
@@ -2462,15 +2677,19 @@ function guardarFiltros() {
     const modosSeleccionados = Array.from(document.querySelectorAll('.mode-item:checked'))
         .map(cb => cb.value);
 
+    // Recolectamos los valores de precio
     const precioMin = document.getElementById('precio-min')?.value || '';
     const precioMax = document.getElementById('precio-max')?.value || '';
 
+    // Recolectamos las fechas
     const dateMin = document.getElementById('date-min')?.value || '';
     const dateMax = document.getElementById('date-max')?.value || '';
 
+    // Recolectamos el filtro de contenido adulto para peliculas y series
     const adultMovie = document.getElementById('adult-filter-movie')?.checked || false;
     const adultSeries = document.getElementById('adult-filter-series')?.checked || false;
 
+    // Creamos un objeto con todos los filtros
     const filtrosState = {
         games: {
             platforms: platSeleccionadas,
@@ -2486,9 +2705,11 @@ function guardarFiltros() {
         series: { adult: adultSeries }
     };
 
+    // Guardamos en localStorage
     localStorage.setItem('dp_sys_filters_v2', JSON.stringify(filtrosState));
 }
 
+// Esta funcion restaura los filtros guardados en localStorage y los aplica al DOM
 function restaurarFiltrosDOM() {
     const guardados = localStorage.getItem('dp_sys_filters_v2');
     if (!guardados) return;
@@ -2532,6 +2753,7 @@ function restaurarFiltrosDOM() {
                 });
             }
 
+            // Restaurar precios y fechas
             if (state.games.precioMin) document.getElementById('precio-min').value = state.games.precioMin;
             if (state.games.precioMax) document.getElementById('precio-max').value = state.games.precioMax;
             if (state.games.dateMin) document.getElementById('date-min').value = state.games.dateMin;
@@ -2539,6 +2761,7 @@ function restaurarFiltrosDOM() {
         }
 
         // ... resto de lógica de pelis/series igual ...
+        // Restauramos los filtros de contenido adulto
         if (state.movies && state.movies.adult) {
             const cbMovie = document.getElementById('adult-filter-movie');
             if (cbMovie) cbMovie.checked = true;
@@ -2553,29 +2776,35 @@ function restaurarFiltrosDOM() {
 }
 
 // Ejecutamos la restauración del DOM antes de cargar nada
+// Esto asegura que los filtros se carguen antes de que se haga la primera peticion
 restaurarFiltrosDOM();
 
+// Exponemos la funcion cargarMas globalmente para que pueda ser llamada desde el HTML
 window.cargarMas = cargarMas;
 
+// Arrancamos el enrutador para detectar en que pagina estamos
 arrancarEnrutador();
 
 let temporizadorBusqueda; // para la busqueda
 
 // cuando el usuario escribe busco automaticamente
+// Esto hace que la busqueda se ejecute automaticamente mientras el usuario escribe
 inputBuscar.addEventListener('input', () => {
     clearTimeout(temporizadorBusqueda); // si sigue escribiendo borro el anterior
     temporizadorBusqueda = setTimeout(() => {
         cargarJuegosIGDB(inputBuscar.value.trim());
-    }, 500); // espero 0.5 segs
+    }, 500); // espero 0.5 segs para no hacer peticiones mientras escribe
 });
 
 // click en la lupa directa
+// El boton de buscar hace la busqueda inmediata
 btnBuscar.addEventListener('click', () => {
     clearTimeout(temporizadorBusqueda);
     cargarJuegosIGDB(inputBuscar.value.trim());
 });
 
 // pulsar enter tambien funciona
+// El usuario puede pulsar Enter en el input de busqueda
 inputBuscar.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         clearTimeout(temporizadorBusqueda);
@@ -2586,6 +2815,7 @@ inputBuscar.addEventListener('keypress', (e) => {
 // ==========================================================================
 //   BUSCADOR DE GÉNEROS
 // ==========================================================================
+// Este buscador filtra los generos en el panel de filtros
 const buscadorGeneros = document.getElementById('search-genre');
 const itemsGenero = document.querySelectorAll('.genre-item');
 
@@ -2602,6 +2832,7 @@ if (buscadorGeneros) {
 
             if (txt === '') {
                 // Si borras la búsqueda, los "hidden" se vuelven a ocultar (SALVO que estén marcados)
+                // Esto es para que los generos que estan en el "ver mas" solo se vean si estan marcados
                 item.style.display = (esOculto && !checkbox.checked) ? 'none' : '';
             } else {
                 // Si hay texto, revelamos todo lo que coincida
@@ -2615,18 +2846,22 @@ if (buscadorGeneros) {
 //   FILTROS DE TIENDAS, PLATAFORMAS Y GÉNEROS
 // ==========================================================================
 
+// Guardamos referencias a los elementos de los filtros
 const tiendasItems = document.querySelectorAll('.tienda-item');
 const platItems = document.querySelectorAll('.plat-item input');
 const genreItemsInputs = document.querySelectorAll('.genre-item input');
 
 // Temporizador global para el escudo anti-spam
+// Esto evita que se hagan demasiadas peticiones a la vez
 let temporizadorFiltrosPrincipal;
 
+// Funcion que aplica los filtros y recarga los juegos
 function aplicarFiltros() {
     clearTimeout(temporizadorFiltrosPrincipal);
 
     // Esperamos 500ms (medio segundo) antes de lanzar la petición. 
     // Así evitamos el Error 500 si haces muchos clics seguidos.
+    // Esto es un "debounce" para evitar sobrecargar la API
     temporizadorFiltrosPrincipal = setTimeout(() => {
         // 1. Recolectar valores de las plataformas
         const platSeleccionadas = Array.from(document.querySelectorAll('.plat-item input:checked'))
@@ -2657,6 +2892,7 @@ function aplicarFiltros() {
         const dateMax = document.getElementById('date-max')?.value || '';
 
         // GUARDAR ESTADO EN LA MEMORIA
+        // Guardamos los filtros en localStorage para que persistan
         guardarFiltros();
 
         // Lanzar carga pasando todos los filtros
@@ -2674,6 +2910,7 @@ function aplicarFiltros() {
 }
 
 // Listeners: Ahora todos apuntan directamente a aplicarFiltros (que ya tiene el retraso incorporado)
+// Cada vez que el usuario cambia un filtro, se ejecuta aplicarFiltros
 tiendasItems.forEach(cb => {
     cb.addEventListener('change', aplicarFiltros);
 });
@@ -2692,12 +2929,14 @@ modeItems.forEach(cb => {
     cb.addEventListener('change', aplicarFiltros);
 });
 
+// Listeners para los inputs de precio y fechas
 document.getElementById('precio-min')?.addEventListener('input', aplicarFiltros);
 document.getElementById('precio-max')?.addEventListener('input', aplicarFiltros);
 document.getElementById('date-min')?.addEventListener('change', aplicarFiltros);
 document.getElementById('date-max')?.addEventListener('change', aplicarFiltros);
 
 // boton para ver todas las plataformas
+// Este boton muestra/oculta las plataformas adicionales (las que estan en el "ver mas")
 const btnVerPlats = document.getElementById('btn-ver-plats');
 const platExtra = document.getElementById('plat-extra');
 let platExtraVisible = false;
@@ -2712,8 +2951,10 @@ btnVerPlats?.addEventListener('click', () => {
 //   ACORDEONES
 // ==========================================================================
 
+// Cogemos todos los encabezados de los acordeones (los filtros)
 const accordions = document.querySelectorAll('.accordion-header');
 
+// Cuando el usuario hace click en un encabezado, abrimos o cerramos el acordeon
 accordions.forEach(header => {
     header.addEventListener('click', () => {
         const parentItem = header.parentElement;
@@ -2725,34 +2966,44 @@ accordions.forEach(header => {
 //   PELICULAS Y SERIES CON TMDB API
 // ==========================================================================
 
+// Variables de paginacion para peliculas y series
 let pageMovies = 1;
 let searchMoviesActual = '';
 let pageSeries = 1;
 let searchSeriesActual = '';
+// Flag para evitar cargas simultaneas
 let cargandoTMDB = false;
+// Filtros de pais para peliculas y series
 let countryFilterMovie = [];
 let countryFilterSeries = [];
+// Filtros de generos para peliculas y series
 let genreFilterMovie = [];
 let genreFilterSeries = [];
+// Flags para saber si los generos ya estan cargados
 let generosCargadosMovie = false;
 let generosCargadosSeries = false;
+// Listas de generos para peliculas y series
 let listaGenerosMovie = [];
 let listaGenerosSeries = [];
+// Filtros de fechas para peliculas y series
 let dateMinMovie = '';
 let dateMaxMovie = '';
 let dateMinSeries = '';
 let dateMaxSeries = '';
 
+// Funcion que crea una tarjeta para pelicula o serie (TMDB)
 function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     const isMovie = tipo === 'movie';
     // FECHA COMPLETA (AÑO-MES-DIA)
     const fechaFormat = media.fecha ? media.fecha : t('common.tba');
 
     // Filtro nativo de TMDB para mostrar etiqueta NSFW
+    // Si TMDB lo marca como +18, mostramos una etiqueta
     const esContenidoAdulto = media.adult;
     const nsfwTag = esContenidoAdulto ? '<span class="nsfw-tag">+18</span>' : '';
 
     // info extra segun si es peli o serie
+    // Para pelis mostramos duracion, para series temporadas y episodios
     let extraInfo = '';
     if (isMovie) {
         extraInfo = media.duracion ? `<span class="plat-count">${media.duracion} min</span>` : '';
@@ -2761,6 +3012,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     }
 
     // SIMPLIFICACIÓN DE TEXTO DE PLATAFORMAS
+    // Si no tiene plataformas, mostramos "No disponible en streaming"
     const textoPlataforma = media.plataformas === 'No disponible en streaming'
         ? t('movies.not_streaming')
         : t('movies.streaming');
@@ -2769,8 +3021,10 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     let btnVistoHtml = '';
 
     // MAGIA: Solo inyectamos el botón del ojo si es una PELÍCULA
+    // Las series no tienen boton de "visto" en las tarjetas para simplificar
     if (isMovie) {
         if (userMediaInfo) {
+            // Si la pelicula ya fue vista, mostramos el ojo con el numero de veces
             const veces = userMediaInfo.veces_vista || 1;
             const badgeExtra = veces > 1 ? `<span style="position: absolute; top: -6px; right: -6px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${veces > 20 ? '+20' : 'x' + veces}</span>` : '';
 
@@ -2781,7 +3035,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                 </button>
             `;
         } else {
-            // Botón gris: ahora tiene el evento onclick="marcarVistaRapida" que corta la propagación
+            // Si no esta vista, mostramos el ojo tachado (no vista)
             btnVistoHtml = `
                 <button class="btn-watch-indicator not-watched" data-id="${media.id}" data-tipo="${tipo}" data-db-id="" data-veces="0" title="Marcar como vista" style="position: relative; flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-muted); height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.color='var(--neon-white)'; this.style.borderColor='var(--text-muted)';" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border-color)';" onclick="marcarVistaRapida(event, this, ${media.id}, '${tipo}')">
                     <i class="fas fa-eye-slash" style="font-size: 0.9rem;"></i>
@@ -2790,6 +3044,7 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
         }
     }
 
+    // Retornamos el HTML de la tarjeta
     return `
         <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
@@ -2820,18 +3075,22 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     `;
 }
 
+// Funcion principal para cargar peliculas o series desde TMDB
 async function cargarTMDB(tipo, busqueda = '', resetear = true) {
+    // Esperamos a que las traducciones esten listas
     await translationsReadyPromise;
+    // Si ya estamos cargando, no hacemos nada
     if (cargandoTMDB) return;
     cargandoTMDB = true;
 
     const grid = document.getElementById(tipo === 'movie' ? 'movies-grid' : 'series-grid');
 
     if (resetear) {
+        // Si estamos reseteando (nueva busqueda), reiniciamos las variables
         if (tipo === 'movie') {
             pageMovies = 1;
             searchMoviesActual = busqueda;
-            // GUARDAR BÚSQUEDA DE PELÍCULAS
+            // GUARDAR BÚSQUEDA DE PELÍCULAS en localStorage para persistencia
             if (busqueda) {
                 localStorage.setItem('last_search_movies', busqueda);
             } else {
@@ -2840,7 +3099,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         } else {
             pageSeries = 1;
             searchSeriesActual = busqueda;
-            // GUARDAR BÚSQUEDA DE SERIES
+            // GUARDAR BÚSQUEDA DE SERIES en localStorage para persistencia
             if (busqueda) {
                 localStorage.setItem('last_search_tv', busqueda);
             } else {
@@ -2856,9 +3115,10 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             </div>
         `;
 
+        // Eliminamos el boton de cargar mas si existe
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
     } else {
-        // transformo el boton en loader
+        // Si no estamos reseteando, mostramos un loader en el boton de cargar mas
         const btnMas = document.getElementById(`btn-cargar-mas-${tipo}`);
         if (btnMas) {
             const textoTipo = tipo === 'movie' ? t('common.movies_uppercase') : t('common.series_uppercase');
@@ -2879,6 +3139,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     const searchActual = tipo === 'movie' ? searchMoviesActual : searchSeriesActual;
 
     // === LEER ESTADO DEL FILTRO +18 (SIEMPRE CONSULTAMOS EL DOM) ===
+    // Esto permite que el filtro de contenido adulto se aplique en tiempo real
     const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
     // FORZAMOS a que sea 'true' o 'false' en minúsculas, sin excepciones
     const isAdult = checkboxAdulto && checkboxAdulto.checked ? 'true' : 'false';
@@ -2886,7 +3147,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     try {
         // Le pasamos el &adult=true o false al servidor
         const timestamp = Date.now();
-        // Leer el valor del slider de votos
+        // Leer el valor del slider de votos minimos
         const minVotes = tipo === 'movie'
             ? parseInt(document.getElementById('votes-slider-movie')?.value || 0)
             : parseInt(document.getElementById('votes-slider-tv')?.value || 0);
@@ -2903,7 +3164,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         const dateMin = tipo === 'movie' ? window.dateMinMovie : window.dateMinSeries;
         const dateMax = tipo === 'movie' ? window.dateMaxMovie : window.dateMaxSeries;
 
-        // Construir URL base
+        // Construir URL base con todos los parametros
         let url = `/api/tmdb?tipo=${tipo}&page=${pageActual}&adult=${isAdult}&minVotes=${minVotes}&lang=${currentLang}`;
 
         // Añadir país SOLO si hay algo seleccionado
@@ -2929,12 +3190,13 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             url += `&query=${encodeURIComponent(searchActual)}`;
         }
 
-        // Añadir timestamp para evitar caché
+        // Añadir timestamp para evitar caché del navegador
         url += `&_=${timestamp}`;
         const respuesta = await fetch(url);
         const datos = await respuesta.json();
 
         // FILTRAR DUPLICADOS Y BLOQUEAR "MAKING OF / DETRÁS DE CÁMARAS"
+        // Esto evita que aparezcan documentales y extras en los resultados
         const vistos = new Set();
         const datosUnicos = datos.filter(item => {
             const key = item.titulo ? item.titulo.toLowerCase().trim() : '';
@@ -2943,6 +3205,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             if (!key || vistos.has(key)) return false;
 
             // 2. ESCUDO ANTI-EXTRAS
+            // Palabras que indican que es un extra o documental, no una pelicula/serie
             const palabrasProhibidas = [
                 'making of',
                 'behind the scenes',
@@ -2967,6 +3230,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
         document.getElementById(`btn-cargar-mas-${tipo}`)?.remove();
 
         // CRUCE DE DATOS CON SUPABASE
+        // Consultamos la base de datos para saber que peliculas/series tiene el usuario vistas
         const { data: { session } } = await supabase.auth.getSession();
         let vistosMap = {};
 
@@ -2984,6 +3248,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             }
         }
 
+        // Pintamos cada item en el grid
         datosUnicos.forEach(item => {
             const checkboxAdulto = document.getElementById(tipo === 'movie' ? 'adult-filter-movie' : 'adult-filter-series');
             const isAdultFilterActive = checkboxAdulto && checkboxAdulto.checked;
@@ -2998,6 +3263,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             grid.innerHTML += crearTarjetaTMDB(item, tipo, userMediaInfo);
         });
 
+        // Si hay resultados, mostramos el boton de cargar mas
         if (datosUnicos.length > 0) {
             const btnMas = document.createElement('div');
             btnMas.id = `btn-cargar-mas-${tipo}`;
@@ -3005,10 +3271,11 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
             btnMas.innerHTML = `<button onclick="cargarMasTMDB('${tipo}')" style="background:transparent; border:1px solid var(--primary); color:var(--primary); padding:0.8rem 2.5rem; border-radius:40px; cursor:pointer; font-weight:600;" aria-label="Cargar más ${tipo === 'movie' ? 'películas' : 'series'}">Cargar más</button>`;
             grid.after(btnMas);
 
-            // Le decimos al vigilante que vigile este botón
+            // Le decimos al vigilante que vigile este botón (carga automatica al hacer scroll)
             observadorScroll.observe(btnMas);
         }
 
+        // Incrementamos la pagina para la siguiente carga
         if (tipo === 'movie') pageMovies++; else pageSeries++;
 
     } catch (error) {
@@ -3027,6 +3294,7 @@ async function cargarTMDB(tipo, busqueda = '', resetear = true) {
     cargandoTMDB = false;
 }
 
+// Funcion para cargar mas peliculas o series (wrapper de cargarTMDB)
 window.cargarMasTMDB = function (tipo) {
     cargarTMDB(tipo, tipo === 'movie' ? searchMoviesActual : searchSeriesActual, false);
 };
@@ -3035,6 +3303,7 @@ window.cargarMasTMDB = function (tipo) {
 //   FILTROS DE VOTOS MÍNIMOS (PELÍCULAS Y SERIES)
 // ==========================================================================
 
+// Funcion que inicializa los sliders de votos minimos
 function initVoteFilters() {
     // Slider de Películas
     const sliderMovie = document.getElementById('votes-slider-movie');
@@ -3067,7 +3336,7 @@ function initVoteFilters() {
 //   FILTROS DE PAÍS / IDIOMA - SOLO PAÍSES VISIBLES POR DEFECTO
 // ==========================================================================
 
-// Países que se muestran SIEMPRE en la lista
+// Países que se muestran SIEMPRE en la lista (sin buscar)
 const PAISES_VISIBLES = [
     // Occidentales (solo Español e Inglés)
     { code: 'ES', name: 'España' },
@@ -3079,6 +3348,7 @@ const PAISES_VISIBLES = [
 ];
 
 // Países OCULTOS que SOLO aparecen al buscar
+// Esto es para no saturar la interfaz con demasiados paises
 const PAISES_OCULTOS = [
     // Occidentales (ocultos)
     { code: 'FR', name: 'Francia' },
@@ -3130,6 +3400,7 @@ const PAISES_OCULTOS = [
     { code: 'CA', name: 'Canadá' },
 ];
 
+// Funcion que inicializa los filtros de pais para un tipo (pelicula o serie)
 function initCountryFilters() {
     // --- PELÍCULAS ---
     initCountryFilterForType('movie', 'lang-item-movie', 'search-lang-movie', 'lang-extra-list-movie', 'lang-extra-movie');
@@ -3142,6 +3413,7 @@ function initCountryFilters() {
 //   FILTROS DE FECHAS (PELÍCULAS Y SERIES) - CON FLATPICKR
 // ==========================================================================
 
+// Funcion que inicializa los calendarios de fechas para peliculas y series
 function initDateFilters() {
     // --- PELÍCULAS ---
     const dateMinMovie = document.getElementById('date-min-movie');
@@ -3212,7 +3484,7 @@ function initDateFilters() {
     }
 }
 
-// Función para aplicar filtros de fecha
+// Función para aplicar filtros de fecha y recargar
 function aplicarFechas(tipo) {
     const isMovie = tipo === 'movie';
     const dateMin = isMovie ? window.dateMinMovie : window.dateMinSeries;
@@ -3228,6 +3500,7 @@ function aplicarFechas(tipo) {
 //   FILTROS DE GÉNEROS (PELÍCULAS Y SERIES)
 // ==========================================================================
 
+// Funcion que carga los generos desde la API de TMDB
 async function cargarGeneros(tipo) {
     const isMovie = tipo === 'movie';
     const containerId = isMovie ? 'genre-list-movie' : 'genre-list-tv';
@@ -3235,7 +3508,7 @@ async function cargarGeneros(tipo) {
 
     if (!container) return;
 
-    // Si ya están cargados, no volver a cargar
+    // Si ya están cargados, no volver a cargar (usamos cache)
     if (isMovie && generosCargadosMovie) {
         renderGeneros('movie');
         return;
@@ -3257,6 +3530,7 @@ async function cargarGeneros(tipo) {
         const data = await response.json();
 
         if (data && data.genres) {
+            // Guardamos en la variable correspondiente y marcamos como cargados
             if (isMovie) {
                 listaGenerosMovie = data.genres;
                 generosCargadosMovie = true;
@@ -3283,6 +3557,7 @@ async function cargarGeneros(tipo) {
     }
 }
 
+// Funcion que renderiza los generos en el DOM
 function renderGeneros(tipo) {
     const isMovie = tipo === 'movie';
     const containerId = isMovie ? 'genre-list-movie' : 'genre-list-tv';
@@ -3294,7 +3569,7 @@ function renderGeneros(tipo) {
 
     if (!container) return;
 
-    // Ordenar géneros alfabéticamente
+    // Ordenar géneros alfabéticamente para que sea mas facil encontrar
     const generosOrdenados = [...listaGeneros].sort((a, b) => a.name.localeCompare(b.name));
 
     let html = '';
@@ -3310,7 +3585,7 @@ function renderGeneros(tipo) {
 
     container.innerHTML = html;
 
-    // Añadir eventos a los checkboxes
+    // Añadir eventos a los checkboxes de generos
     container.querySelectorAll(`input[type="checkbox"]`).forEach(cb => {
         cb.addEventListener('change', function () {
             const selected = [];
@@ -3324,14 +3599,14 @@ function renderGeneros(tipo) {
                 genreFilterSeries = selected;
             }
 
-            // Recargar con los filtros
+            // Recargar con los filtros aplicados
             cargarTMDB(tipo, isMovie ? searchMoviesActual : searchSeriesActual, true);
         });
     });
 
-    // Configurar buscador de géneros
+    // Configurar buscador de géneros (para filtrar la lista de generos)
     if (searchInput) {
-        // Remover event listeners anteriores
+        // Remover event listeners anteriores (para evitar duplicados)
         const newSearchInput = searchInput.cloneNode(true);
         searchInput.parentNode.replaceChild(newSearchInput, searchInput);
 
@@ -3351,6 +3626,7 @@ function renderGeneros(tipo) {
     }
 }
 
+// Funcion que inicializa el filtro de pais para un tipo especifico
 function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraContainerId) {
     const searchInput = document.getElementById(searchId);
     const items = document.querySelectorAll(`.${itemClass}`);
@@ -3560,33 +3836,54 @@ function initCountryFilterForType(tipo, itemClass, searchId, extraListId, extraC
     }, 100);
 }
 
-// listeners para pelis
+// ==========================================================================
+//   BUSCADORES DE PELICULAS (con auto-busqueda)
+// ==========================================================================
+
+// listeners para peliculas
 const inputMovies = document.getElementById('search-movies');
 const btnMovies = document.getElementById('btn-buscar-movies');
 let tempMovies;
 
+// Busqueda automatica mientras el usuario escribe
 inputMovies.addEventListener('input', () => {
     clearTimeout(tempMovies);
     tempMovies = setTimeout(() => cargarTMDB('movie', inputMovies.value.trim()), 500);
 });
+// Click en el boton de buscar
 btnMovies.addEventListener('click', () => { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); });
+// Pulsar Enter en el input
 inputMovies.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempMovies); cargarTMDB('movie', inputMovies.value.trim()); } });
+
+// ==========================================================================
+//   BUSCADORES DE SERIES (con auto-busqueda)
+// ==========================================================================
 
 // listeners para series
 const inputSeries = document.getElementById('search-series');
 const btnSeries = document.getElementById('btn-buscar-series');
 let tempSeries;
 
+// Busqueda automatica mientras el usuario escribe
 inputSeries.addEventListener('input', () => {
     clearTimeout(tempSeries);
     tempSeries = setTimeout(() => cargarTMDB('tv', inputSeries.value.trim()), 500);
 });
+// Click en el boton de buscar
 btnSeries.addEventListener('click', () => { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); });
+// Pulsar Enter en el input
 inputSeries.addEventListener('keypress', (e) => { if (e.key === 'Enter') { clearTimeout(tempSeries); cargarTMDB('tv', inputSeries.value.trim()); } });
 
+// ==========================================================================
+//   CAPTURAR CLIC EN TARJETAS (para abrir el modal)
+// ==========================================================================
+
+// Delegacion de eventos para los grids de peliculas y series
+// Cuando el usuario hace click en una tarjeta, abrimos el modal
 document.getElementById('movies-grid')?.addEventListener('click', (e) => capturarClicMedia(e, 'movie'));
 document.getElementById('series-grid')?.addEventListener('click', (e) => capturarClicMedia(e, 'tv'));
 
+// Funcion que captura el click en una tarjeta y abre el modal
 function capturarClicMedia(e, tipo) {
     const card = e.target.closest('.game-card');
     if (!card) return;
@@ -3599,12 +3896,16 @@ function capturarClicMedia(e, tipo) {
 //   AUTENTICACION Y SESION
 // ==========================================================================
 
+// Pillamos el boton del perfil (el que tiene el icono del usuario en la navbar)
 const btnPerfil = document.getElementById('user-profile');
+// Le ponemos un aria-label pa que los lectores de pantalla sepan que es
 btnPerfil.setAttribute('aria-label', 'Perfil de usuario');
 
 // creo el menu para el usuario
+// Este es el desplegable que sale al hacer click en el icono del usuario
 const userMenu = document.createElement('div');
 userMenu.className = 'theme-menu user-menu-panel';
+// Le metemos todas las opciones del menu: ver perfil, listas, editar, etc.
 userMenu.innerHTML = `
     <div class="user-dropdown-header" id="btn-ver-perfil">
         <span id="dropdown-username" class="dropdown-username">Invitado</span>
@@ -3641,6 +3942,7 @@ userMenu.innerHTML = `
 `;
 
 // envolevo el boton del perfil para que funcione el menu
+// Hacemos lo mismo que con el tema y el idioma: un contenedor que tiene el boton y el menu
 const userContainer = document.createElement('div');
 userContainer.className = 'theme-dropdown';
 btnPerfil.parentNode.insertBefore(userContainer, btnPerfil);
@@ -3648,6 +3950,7 @@ userContainer.appendChild(btnPerfil);
 userContainer.appendChild(userMenu);
 
 // click en la cabecera del menu va al perfil
+// Cuando el usuario hace click en su nombre en el menu, va a su perfil
 document.getElementById('btn-ver-perfil')?.addEventListener('click', () => {
     cambiarVista('profile');
     userMenu.classList.remove('show');
@@ -3655,6 +3958,7 @@ document.getElementById('btn-ver-perfil')?.addEventListener('click', () => {
 });
 
 // click en "Mis Listas" abre la nueva vista de listas sociales
+// Navega a la vista de listas del usuario
 document.getElementById('btn-mis-listas')?.addEventListener('click', () => {
     cambiarVista('mis-listas');
     linksMenu.forEach(l => l.classList.remove('active'));
@@ -3662,14 +3966,17 @@ document.getElementById('btn-mis-listas')?.addEventListener('click', () => {
     userMenuOpen = false;
 });
 
+// Variable para controlar si el menu de usuario esta abierto o no
 let userMenuOpen = false;
 
 // 2. Lógica del botón de perfil
+// Cuando el usuario hace click en el icono del perfil
 btnPerfil.addEventListener('click', (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Evitamos que el click se propague
+    // Verificamos si hay sesion activa
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            // cierra los otros menus
+            // Si hay sesion, cerramos los otros menus y abrimos/cerramos el de usuario
             themeMenu.classList.remove('show');
             menuOpen = false;
             langMenu.classList.remove('show');
@@ -3680,6 +3987,7 @@ btnPerfil.addEventListener('click', (e) => {
             else userMenu.classList.remove('show');
         } else {
             // si no estoy logueado voy a login
+            // Si no hay sesion, redirigimos a la pantalla de login
             cambiarVista('login');
             // quito el active del menu
             linksMenu.forEach(l => l.classList.remove('active'));
@@ -3688,6 +3996,7 @@ btnPerfil.addEventListener('click', (e) => {
 });
 
 // cierro el menu si hago click afuera
+// Si el usuario hace click en cualquier sitio que no sea el menu, lo cerramos
 document.addEventListener('click', (e) => {
     if (!userContainer.contains(e.target) && userMenu) {
         userMenu.classList.remove('show');
@@ -3696,11 +4005,12 @@ document.addEventListener('click', (e) => {
 });
 
 // logica de cerrar sesion
+// Cuando el usuario hace click en "Cerrar sesion"
 document.getElementById('btn-logout').addEventListener('click', async () => {
-    // cierro la sesion
+    // cierro la sesion en Supabase
     await supabase.auth.signOut();
 
-    // Limpiar favoritos
+    // Limpiar favoritos y datos de la sesion
     delete window._nexus_user_id;
     localStorage.removeItem('nexus_user_id');
 
@@ -3708,24 +4018,27 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
     userMenu.classList.remove('show');
     userMenuOpen = false;
 
-    // vuelvo a home
+    // vuelvo a home y verifico la sesion (que ahora esta cerrada)
     cambiarVista('home');
     verificarSesion();
 });
 
 // boton para ir a registro
+// Desde el login, el usuario puede ir a registrarse
 document.getElementById('btn-go-register')?.addEventListener('click', () => {
     cambiarVista('register');
     linksMenu.forEach(l => l.classList.remove('active'));
 });
 
 // boton para volver a login
+// Desde el registro, el usuario puede volver al login
 document.getElementById('btn-go-login')?.addEventListener('click', () => {
     cambiarVista('login');
     linksMenu.forEach(l => l.classList.remove('active'));
 });
 
 // historial del navegador
+// Funcion para navegar y guardar en el historial (para el boton atras)
 function navegarA(vista) {
     history.pushState({ vista }, '', `#${vista}`);
     cambiarVista(vista);
@@ -3735,12 +4048,14 @@ function navegarA(vista) {
     });
 }
 
+// Detectamos cuando el usuario usa los botones de atras/adelante
 window.addEventListener('popstate', (e) => {
     const vista = e.state?.vista || 'home';
     cambiarVista(vista);
 });
 
 // mostro/oculto la contraseña
+// Para los inputs de contraseña en login y registro, mostramos/ocultamos la contraseña
 document.querySelectorAll('.toggle-password-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const input = btn.previousElementSibling;
@@ -3760,12 +4075,13 @@ document.querySelectorAll('.toggle-password-btn').forEach(btn => {
 // ==========================================================================
 
 // El menú se crea dinámicamente en el bloque de AUTENTICACION Y SESION. Buscamos el botón "Editar perfil" dentro del userMenu que ya existe
+// Esto es un poco "hacky" pero es la forma de encontrar el boton que creamos dinamicamente
 const editProfileBtn = userMenu.querySelector('.theme-option .fa-user-edit')?.closest('.theme-option');
 if (editProfileBtn) {
     editProfileBtn.addEventListener('click', (e) => {
         e.stopPropagation(); // Evita que el click se propague al botón de perfil
 
-        // Guardar la vista actual para volver después
+        // Guardar la vista actual para volver después (cuando el usuario guarde o cancele)
         vistaAnteriorAlEditar = vistaActualGlobal;
         localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
 
@@ -3783,6 +4099,7 @@ if (editProfileBtn) {
 // ==========================================================================
 
 // Crear input oculto para seleccionar archivo ZIP
+// Esto es para la funcionalidad de importar datos de TV Time (una app de seguimiento de series)
 const importInput = document.createElement('input');
 importInput.type = 'file';
 importInput.id = 'tvtime-import-input';
@@ -3790,6 +4107,7 @@ importInput.accept = '.zip';
 importInput.style.display = 'none';
 document.body.appendChild(importInput);
 
+// Cuando el usuario hace click en "Importar TV Time", abrimos el selector de archivos
 document.getElementById('btn-import-tvtime')?.addEventListener('click', () => {
     // Cerrar el menú de usuario
     userMenu.classList.remove('show');
@@ -3800,11 +4118,12 @@ document.getElementById('btn-import-tvtime')?.addEventListener('click', () => {
 });
 
 // Evento al seleccionar archivo
+// Cuando el usuario selecciona un archivo ZIP, procesamos la importacion
 importInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Mostrar modal de progreso
+    // Mostrar modal de progreso (para que el usuario sepa que esta pasando algo)
     mostrarModalProgreso('Importando TV Time', 'Preparando archivo...');
 
     try {
@@ -3813,7 +4132,7 @@ importInput.addEventListener('change', async (e) => {
         console.error('Error en importación:', error);
         showToast('error', 'Error de importación', error.message || 'No se pudo importar los datos.');
     } finally {
-        importInput.value = ''; // Resetear input
+        importInput.value = ''; // Resetear input para que pueda volver a seleccionar el mismo archivo
     }
 });
 
@@ -3821,6 +4140,7 @@ importInput.addEventListener('change', async (e) => {
 //   EXPORTAR DATOS - EVENT LISTENER
 // ==========================================================================
 
+// Cuando el usuario hace click en "Exportar mis datos"
 document.getElementById('btn-export-data')?.addEventListener('click', async () => {
     // Cerrar el menú de usuario
     userMenu.classList.remove('show');
@@ -3838,6 +4158,7 @@ document.getElementById('btn-export-data')?.addEventListener('click', async () =
 // ==========================================================================
 //   FLATPICKR PARA FECHAS
 // ==========================================================================
+// Inicializamos el calendario para la fecha de nacimiento en el registro
 if (document.getElementById('register-birthdate')) {
     flatpickr("#register-birthdate", {
         locale: "es",                  // Idioma español
@@ -3852,11 +4173,13 @@ if (document.getElementById('register-birthdate')) {
 // --------
 // REGISTRO
 // --------
+// Cuando el usuario envia el formulario de registro
 document.getElementById('form-register')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Evitamos que se recargue la pagina
     const msgBox = document.getElementById('register-message');
     const btnSubmit = document.getElementById('btn-register-submit');
 
+    // Cogemos todos los valores del formulario
     const username = document.getElementById('register-username').value.trim();
     const email = document.getElementById('register-email').value.trim();
     const emailConf = document.getElementById('register-email-confirm').value.trim();
@@ -3865,6 +4188,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     const birthdate = document.getElementById('register-birthdate').value;
 
     // CORTAFUEGOS ANTI-CLONES: Extraemos la parte de antes del @
+    // Esto evita que la gente use correos con puntos o + para crear cuentas duplicadas
     const [localPart, domainPart] = email.split('@');
 
     // Bloqueo absoluto: Ni puntos (.) ni símbolos (+) antes del @
@@ -3874,7 +4198,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         return;
     }
 
-    // valido en el cliente
+    // valido en el cliente antes de enviar a Supabase (para ahorrar peticiones)
     if (email !== emailConf) {
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ Los correos no coinciden.';
@@ -3891,9 +4215,11 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         return;
     }
 
+    // Cambiamos el boton a "cargando" para que el usuario no haga doble click
     btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
     btnSubmit.disabled = true;
 
+    // Intentamos crear la cuenta en Supabase
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -3901,13 +4227,16 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
     });
 
     if (error) {
+        // Si hay error, lo mostramos
         msgBox.style.color = 'var(--error)';
         msgBox.textContent = '❌ ' + error.message;
     } else {
+        // Si todo fue bien, mostramos mensaje de exito
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '¡Cuenta creada! Revisa tu correo.';
 
         // mando a la pantalla de esperando confirmacion
+        // El usuario debe confirmar su correo antes de poder entrar
         setTimeout(() => {
             cambiarVista('waiting-confirmation');
             // reseteo el formulario
@@ -3915,6 +4244,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
         }, 1500);
     }
 
+    // Restauramos el boton
     btnSubmit.innerHTML = '<i class="fas fa-rocket"></i> REGÍSTRATE';
     btnSubmit.disabled = false;
 });
@@ -3922,6 +4252,7 @@ document.getElementById('form-register')?.addEventListener('submit', async (e) =
 // --------
 // LOGIN
 // --------
+// Cuando el usuario envia el formulario de login
 document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msgBox = document.getElementById('login-message');
@@ -3930,12 +4261,14 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
     const identifier = document.getElementById('login-identifier').value.trim();
     const password = document.getElementById('login-password').value.trim();
 
+    // Cambiamos el boton a "cargando"
     btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ACCEDIENDO...';
     btnSubmit.disabled = true;
 
     let emailToUse = identifier;
 
     // CORTAFUEGOS ANTI-CLONES EN LOGIN
+    // Si el usuario puso un correo, verificamos que no tenga puntos o +
     if (identifier.includes('@')) {
         const localPart = identifier.split('@')[0];
         if (localPart.includes('+') || localPart.includes('.')) {
@@ -3947,9 +4280,10 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
         }
     }
 
-    // si no tiene @ es un usuario
+    // si no tiene @ es un usuario (nombre de usuario en lugar de correo)
     if (!identifier.includes('@')) {
         // Usamos la función segura (RPC) para obtener el email sin romper la seguridad
+        // Esta funcion de Supabase busca el email asociado a un nombre de usuario
         const { data: correoDevuelto, error: errorRpc } = await supabase
             .rpc('get_email_por_usuario', { username_buscado: identifier });
 
@@ -3964,11 +4298,12 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
         }
     }
 
-    // intento loguearme con el correo
+    // intento loguearme con el correo (normal o el obtenido desde el username)
     const { data, error } = await supabase.auth.signInWithPassword({ email: emailToUse, password });
 
     if (error) {
         msgBox.style.color = 'var(--error)';
+        // Si el error es que el correo no esta confirmado, mostramos un mensaje especial
         if (error.message.includes('Email not confirmed')) {
             msgBox.style.color = 'var(--warning)';
             msgBox.innerHTML = '<i class="fas fa-envelope-open-text"></i> Pendiente de confirmación al correo...';
@@ -3976,19 +4311,23 @@ document.getElementById('form-login')?.addEventListener('submit', async (e) => {
             msgBox.textContent = '❌ Credenciales incorrectas.';
         }
     } else {
+        // Login exitoso
         msgBox.style.color = 'var(--success)';
         msgBox.textContent = '¡Acceso concedido!';
+        // Esperamos un segundo y vamos al home, actualizando la sesion
         setTimeout(() => {
             cambiarVista('home');
             verificarSesion();
         }, 1000);
     }
 
+    // Restauramos el boton
     btnSubmit.innerHTML = '<i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS';
     btnSubmit.disabled = false;
 });
 
 // === Función matemática para calcular la edad exacta ===
+// Calcula la edad a partir de una fecha de nacimiento
 function calcularEdad(fechaNacimiento) {
     const hoy = new Date();
     const cumple = new Date(fechaNacimiento);
@@ -4001,19 +4340,22 @@ function calcularEdad(fechaNacimiento) {
 }
 
 // verifico si tengo sesion activa
+// Esta funcion se llama al cargar la pagina y despues de cada login/logout
 async function verificarSesion() {
+    // Pedimos la sesion actual a Supabase
     const { data: { session } } = await supabase.auth.getSession();
     const btnAdmin = document.getElementById('btn-admin');
 
     if (session) {
         // GUARDAR ID PARA FAVORITOS
+        // Guardamos el ID del usuario en una variable global y en localStorage
         window._nexus_user_id = session.user.id;
         localStorage.setItem('nexus_user_id', session.user.id);
 
-        // pongo el astronauta temporalmente
+        // pongo el astronauta temporalmente (el icono del perfil)
         btnPerfil.innerHTML = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
 
-        // cargo el avatar guardado
+        // cargo el avatar guardado (la foto de perfil)
         cargarDisenoPerfil(session.user.email);
 
         // leo el username y la fecha de nacimiento de la sesion
@@ -4021,6 +4363,7 @@ async function verificarSesion() {
         const birthdate = session.user.user_metadata?.birthdate;
 
         if (usernameDisplay) {
+            // Si tiene username en los metadatos, lo usamos, si no, usamos la parte del email antes del @
             const nombreReal = session.user.user_metadata?.username || session.user.email.split('@')[0];
             usernameDisplay.textContent = nombreReal;
 
@@ -4029,16 +4372,18 @@ async function verificarSesion() {
         }
 
         // === LOGICA +18 ===
+        // Determinamos si el usuario es mayor de edad para mostrar contenido adulto
         let esAdulto = false;
         if (birthdate) {
             const edad = calcularEdad(birthdate);
             esAdulto = edad >= 18;
         }
 
-        // Mostramos u ocultamos el panel secreto
+        // Mostramos u ocultamos el panel de filtros +18
         document.querySelectorAll('.nsfw-filter-container').forEach(el => {
             el.style.display = esAdulto ? 'block' : 'none';
             // SEGURIDAD: Si no es adulto, forzamos a que esté apagado en el DOM y en su disco duro
+            // Esto evita que un menor pueda activar el filtro de contenido adulto
             if (!esAdulto) {
                 const cb = el.querySelector('.adult-checkbox');
                 if (cb && cb.checked) {
@@ -4048,19 +4393,21 @@ async function verificarSesion() {
             }
         });
 
+        // Verificamos si el usuario es administrador
         const { data: datosRol } = await supabase
             .from('roles')
             .select('rol')
             .eq('email', session.user.email)
             .maybeSingle();
 
+        // Si es admin, mostramos el boton de admin en la navbar
         if (datosRol?.rol === 'admin') {
             btnAdmin.style.display = 'inline-flex';
         } else {
             btnAdmin.style.display = 'none';
         }
 
-        // Cargar color del usuario
+        // Cargar color del usuario (el color destacado que eligio en su perfil)
         const { data: perfilColor } = await supabase
             .from('usuarios')
             .select('color_destacado')
@@ -4072,10 +4419,11 @@ async function verificarSesion() {
         }
 
         // Cargar idioma del usuario desde Supabase
+        // Si el usuario tiene un idioma guardado en la base de datos, lo aplicamos
         if (perfilColor?.idioma) {
             const idiomaGuardado = perfilColor.idioma;
             if (['es', 'en', 'fr', 'it', 'de', 'zh', 'ja', 'ko'].includes(idiomaGuardado)) {
-                // Solo si no es el mismo que ya tenemos cargado
+                // Solo si no es el mismo que ya tenemos cargado (para evitar recargas innecesarias)
                 if (idiomaGuardado !== localStorage.getItem('dp_sys_lang')) {
                     await setLanguage(idiomaGuardado);
                 }
@@ -4083,13 +4431,16 @@ async function verificarSesion() {
         }
     } else {
         // LIMPIAR ID AL CERRAR SESIÓN
+        // Si no hay sesion, limpiamos los datos del usuario
         delete window._nexus_user_id;
         localStorage.removeItem('nexus_user_id');
 
+        // Cambiamos el icono del perfil al de "invitado"
         btnPerfil.innerHTML = '<i class="fas fa-user-circle"></i>';
         if (btnAdmin) btnAdmin.style.display = 'none';
 
         // === Si no hay sesión (usuario temporal), ocultar y apagar +18 ===
+        // Los usuarios no logueados no pueden ver contenido adulto
         let borrado = false;
         document.querySelectorAll('.nsfw-filter-container').forEach(el => {
             el.style.display = 'none';
@@ -4104,20 +4455,21 @@ async function verificarSesion() {
     }
 }
 
+// Llamamos a verificarSesion al cargar la pagina
 verificarSesion();
 
 // ==========================================================================
 //   CONFIRMACION DE CORREO
 // ==========================================================================
-// cuando supabase me redirecciona desde el correo
+// cuando supabase me redirecciona desde el correo (despues de confirmar el email)
 if (window.location.hash.includes('type=signup')) {
     cambiarVista('verified-account');
 
-    // limpio la url
+    // limpio la url (quito el hash feo que pone Supabase)
     window.history.replaceState(null, null, window.location.pathname);
 }
 
-// boton para ir a login
+// boton para ir a login desde la pagina de "cuenta verificada"
 document.getElementById('btn-go-login-verified')?.addEventListener('click', () => {
     cambiarVista('login');
 });
@@ -4125,19 +4477,19 @@ document.getElementById('btn-go-login-verified')?.addEventListener('click', () =
 // ==========================================================================
 //   CONFIRMACION AUTOMATICA
 // ==========================================================================
-// supabase trae el token en la url
+// supabase trae el token en la url cuando el usuario confirma su correo
 if (window.location.hash.includes('type=signup') || window.location.hash.includes('access_token')) {
     // muestro la pantalla de exito
     cambiarVista('verified-account');
 
-    // espero a que supabase procese
+    // espero a que supabase procese el token y luego actualizo la sesion
     setTimeout(() => {
         window.history.replaceState(null, null, window.location.pathname); // Limpiar URL fea
         verificarSesion(); // Actualiza el icono para que salga el casco de astronauta
     }, 1000);
 }
 
-// boton para ir a home
+// boton para ir a home desde la pagina de "cuenta verificada"
 document.getElementById('btn-go-home-verified')?.addEventListener('click', () => {
     cambiarVista('home');
 });
@@ -4145,11 +4497,14 @@ document.getElementById('btn-go-home-verified')?.addEventListener('click', () =>
 // ==========================================================================
 //   SCROLL TOP
 // ==========================================================================
+// Pillamos el boton que sube al principio de la pagina
 const btnScrollTop = document.getElementById('btn-scroll-top');
+// Le ponemos un aria-label para los lectores de pantalla
 btnScrollTop.setAttribute('aria-label', 'Volver arriba');
 
 if (btnScrollTop) {
     // detecto cuando scrollean
+    // Cuando el usuario hace scroll, mostramos u ocultamos el boton
     window.addEventListener('scroll', () => {
         if (window.scrollY > 500) {
             btnScrollTop.classList.add('visible');
@@ -4159,6 +4514,7 @@ if (btnScrollTop) {
     });
 
     // subo al tope
+    // Cuando el usuario hace click en el boton, subimos arriba del todo con animacion suave
     btnScrollTop.addEventListener('click', () => {
         window.scrollTo({
             top: 0,
@@ -4170,27 +4526,31 @@ if (btnScrollTop) {
 // ==========================================================================
 //   MODALES PERFIL BANNER Y AVATAR
 // ==========================================================================
+// Referencias a los elementos del modal de personalizacion
 const modalEdit = document.getElementById('edit-modal');
 const modalClose = document.getElementById('close-modal');
 modalClose.setAttribute('aria-label', 'Cerrar modal');
 const modalTitle = document.getElementById('modal-title');
 const modalGrid = document.getElementById('modal-grid');
 
+// Los botones que abren el modal (click en el banner o en el avatar)
 const triggerBanner = document.getElementById('banner-edit-trigger');
 const triggerAvatar = document.getElementById('avatar-edit-trigger');
 
+// Funcion que abre el modal de personalizacion (banner, avatar o stats)
 function openCustomizationModal(type) {
-    // limpio las clases
+    // limpio las clases del grid (para que no se mezclen estilos de banner y avatar)
     modalGrid.className = 'modal-grid';
 
     // acumulo el html
     let htmlAcumulado = '';
 
     if (type === 'banner') {
+        // Modal para seleccionar banner de portada
         modalTitle.innerHTML = '<i class="fas fa-image"></i> SELECCIONAR PORTADA';
         modalGrid.classList.add('banner-grid');
 
-        // opcion sin banner
+        // opcion sin banner (para que el usuario pueda quitar el banner)
         htmlAcumulado += `
             <div class="custom-card-item" onclick="seleccionarDiseño('banner', 'default')">
                 <div style="width:100%; height:100%; background: var(--bg-elevated); display:flex; align-items:center; justify-content:center; color: var(--text-muted); font-family: var(--font-cyber);">
@@ -4199,7 +4559,7 @@ function openCustomizationModal(type) {
             </div>
         `;
 
-        // agrego los 5 banners
+        // agrego los 5 banners predefinidos (los que estan en el repositorio de imagenes)
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
@@ -4208,7 +4568,7 @@ function openCustomizationModal(type) {
             `;
         }
 
-        // agrego opcion de custom
+        // agrego opcion de custom (subir una imagen propia)
         htmlAcumulado += `
             <div class="custom-card-item special-custom" onclick="seleccionarDiseño('banner', 'custom')">
                 <i class="fas fa-upload"></i>
@@ -4216,10 +4576,11 @@ function openCustomizationModal(type) {
             </div>
         `;
     } else if (type === 'avatar') {
+        // Modal para seleccionar avatar
         modalTitle.innerHTML = '<i class="fas fa-user-circle"></i> SELECCIONAR AVATAR';
         modalGrid.classList.add('avatar-grid');
 
-        // avatar por defecto
+        // avatar por defecto (el astronauta)
         htmlAcumulado += `
             <div class="custom-card-item" onclick="seleccionarDiseño('avatar', 'default')">
                 <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size: 3.5rem; color: var(--primary);">
@@ -4228,7 +4589,7 @@ function openCustomizationModal(type) {
             </div>
         `;
 
-        // los avatares locales
+        // los avatares locales (personajes masculinos y femeninos)
         const avataresLocales = ['1_m', '1_f', '2_m', '2_f', '3_m', '3_f', '4_m', '4_f'];
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
@@ -4238,7 +4599,7 @@ function openCustomizationModal(type) {
             `;
         });
 
-        // opcion de custom
+        // opcion de custom (subir un avatar propio)
         htmlAcumulado += `
             <div class="custom-card-item special-custom avatar-custom-btn" onclick="seleccionarDiseño('avatar', 'custom')">
                 <i class="fas fa-cloud-upload-alt"></i>
@@ -4246,7 +4607,7 @@ function openCustomizationModal(type) {
             </div>
         `;
     } else if (type === 'stats') {
-        // solo un placeholder de estadisticas
+        // solo un placeholder de estadisticas (para futuro)
         modalTitle.innerHTML = '<i class="fas fa-chart-bar"></i> ESTADÍSTICAS GLOBALES';
         modalGrid.className = 'modal-grid'; // Aseguramos que no tenga formato de banner o avatar
 
@@ -4259,10 +4620,10 @@ function openCustomizationModal(type) {
         `;
     }
 
-    // inyecto todo el html
+    // inyecto todo el html en el grid del modal
     modalGrid.innerHTML = htmlAcumulado;
 
-    // muestro el modal
+    // muestro el modal (con scroll bloqueado para que no se mueva la pagina de fondo)
     modalEdit.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
@@ -4271,13 +4632,15 @@ function openCustomizationModal(type) {
 // ============================================
 // GUARDAR DISEÑO EN BD
 // ============================================
+// Funcion que se llama cuando el usuario selecciona un banner o avatar
 window.seleccionarDiseño = async function (tipo, idCard) {
-    // 1. Cierro el modal al toque
+    // 1. Cierro el modal al toque (para que la UI sea rapida)
     modalEdit.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
     // 2. INTERCEPTACIÓN PARA SUBIDA CUSTOM (Avatar O Banner)
+    // Si el usuario selecciono "custom", abrimos el explorador de archivos
     if (idCard === 'custom') {
         // Seleccionamos el input correcto según el tipo
         const inputId = (tipo === 'banner') ? 'banner-upload-input' : 'avatar-upload-input';
@@ -4292,23 +4655,25 @@ window.seleccionarDiseño = async function (tipo, idCard) {
     }
 
     // 3. Lógica normal para avatares/banners predefinidos
+    // Obtenemos la sesion del usuario
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const email = session.user.email;
     const datoActualizar = {};
 
+    // Preparamos el objeto con el campo a actualizar
     if (tipo === 'banner') datoActualizar.banner = idCard;
     if (tipo === 'avatar') datoActualizar.avatar = idCard;
 
-    // guardo en la bd
+    // guardo en la bd de Supabase
     const { error } = await supabase
         .from('usuarios')
         .update(datoActualizar)
         .eq('email', email);
 
     if (!error) {
-        // si va bien recargo el diseño
+        // si va bien recargo el diseño en la UI
         cargarDisenoPerfil(email);
     } else {
         console.error("Error al guardar diseño:", error);
@@ -4318,12 +4683,13 @@ window.seleccionarDiseño = async function (tipo, idCard) {
 // ============================================
 // CARGAR DISEÑO DE LA BD
 // ============================================
+// Funcion que carga el banner y avatar del usuario desde la base de datos
 async function cargarDisenoPerfil(email) {
-    // defaults
+    // defaults (por si no hay nada guardado)
     let avatarId = 'default';
     let bannerId = 'default';
 
-    // pregunto a la bd
+    // pregunto a la bd que tiene guardado el usuario
     try {
         const { data: userData } = await supabase
             .from('usuarios')
@@ -4348,7 +4714,7 @@ async function cargarDisenoPerfil(email) {
             bannerEl.style.backgroundSize = '';
             bannerEl.style.backgroundPosition = '';
         }
-        // Caso 2: Banner es una URL de Supabase (empieza con http)
+        // Caso 2: Banner es una URL de Supabase (empieza con http) - imagen subida por el usuario
         else if (bannerId.startsWith('http')) {
             bannerEl.style.backgroundImage = `url('${bannerId}')`;
             bannerEl.style.backgroundSize = 'cover';
@@ -4365,22 +4731,26 @@ async function cargarDisenoPerfil(email) {
     // PINTAR EL AVATAR (ya funciona correctamente)
     let avatarHtml = '';
     if (avatarId === 'default' || avatarId === 'custom') {
+        // Avatar por defecto: el astronauta
         avatarHtml = '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>';
     } else if (avatarId.startsWith('http')) {
+        // Avatar subido por el usuario (URL de Supabase)
         avatarHtml = `<img src="${avatarId}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
+        // Avatar predefinido de la galeria
         avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
-    // Cambiar el icono del botón de la navbar
+    // Cambiar el icono del botón de la navbar (el que esta en el menu de usuario)
     const navAvatarEl = document.getElementById('user-profile');
     if (navAvatarEl) {
         navAvatarEl.innerHTML = avatarHtml;
     }
 
-    // Cambiar el avatar gigante del perfil
+    // Cambiar el avatar gigante del perfil (el que se ve en la pagina de perfil)
     const perfilAvatarEl = document.querySelector('.profile-avatar');
     if (perfilAvatarEl) {
+        // Guardamos el overlay (el icono de lapiz que permite editar) para no perderlo
         const overlay = perfilAvatarEl.querySelector('.edit-overlay-avatar');
         perfilAvatarEl.innerHTML = '';
         if (overlay) perfilAvatarEl.appendChild(overlay);
@@ -4392,11 +4762,13 @@ async function cargarDisenoPerfil(email) {
 //   DRAWER DE FILTROS — SOLO MÓVIL
 // ==========================================================================
 
+// Para los filtros en movil, usamos un drawer que se desliza desde la izquierda
 const btnMobileFilters = document.getElementById('btn-mobile-filters');
 const btnCloseDrawer = document.getElementById('btn-close-filters-drawer');
 const filtersOverlay = document.getElementById('filters-overlay');
 const filterSidebar = document.querySelector('.filter-sidebar');
 
+// Funciones para abrir y cerrar el drawer
 function abrirDrawerFiltros() {
     filterSidebar?.classList.add('drawer-open');
     filtersOverlay?.classList.add('active');
@@ -4407,6 +4779,7 @@ function cerrarDrawerFiltros() {
     filtersOverlay?.classList.remove('active');
 }
 
+// Listeners para abrir y cerrar
 btnMobileFilters?.addEventListener('click', abrirDrawerFiltros);
 btnCloseDrawer?.addEventListener('click', cerrarDrawerFiltros);
 filtersOverlay?.addEventListener('click', cerrarDrawerFiltros);
@@ -4420,25 +4793,25 @@ document.addEventListener('keydown', (e) => {
 // LISTENERS
 // ============================================
 
-// click en el banner
+// click en el banner (para editarlo)
 triggerBanner?.addEventListener('click', () => {
     openCustomizationModal('banner');
 });
 
-// click en el avatar
+// click en el avatar (para editarlo)
 triggerAvatar?.addEventListener('click', (evento) => {
-    evento.stopPropagation();
+    evento.stopPropagation(); // Evitamos que se propague al contenedor del avatar
     openCustomizationModal('avatar');
 });
 
-// cierro con la x
+// cierro con la x del modal
 modalClose?.addEventListener('click', () => {
     modalEdit.classList.remove('show');
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 });
 
-// cierro click afuera
+// cierro click afuera del modal (en el overlay)
 modalEdit?.addEventListener('click', (evento) => {
     if (evento.target === modalEdit) {
         modalEdit.classList.remove('show');
@@ -4447,7 +4820,7 @@ modalEdit?.addEventListener('click', (evento) => {
     }
 });
 
-// click en estadisticas
+// click en estadisticas (abre el modal de stats)
 document.getElementById('btn-open-stats-modal')?.addEventListener('click', () => {
     openCustomizationModal('stats');
 });
@@ -4455,6 +4828,7 @@ document.getElementById('btn-open-stats-modal')?.addEventListener('click', () =>
 // ==========================================================================
 //   BUSCADOR DE AMIGOS / CONTACTOS (AÑADIR)
 // ==========================================================================
+// Referencias al modal de añadir amigos
 const modalAddFriend = document.getElementById('add-friend-modal');
 const btnCloseAddFriend = document.getElementById('close-add-friend-modal');
 btnCloseAddFriend.setAttribute('aria-label', 'Cerrar búsqueda de amigos');
@@ -4470,7 +4844,7 @@ function openAddFriendModal() {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
-    // Limpiar búsqueda anterior
+    // Limpiar búsqueda anterior (para que no queden resultados viejos)
     if (inputSearchFriend) inputSearchFriend.value = '';
     if (friendResultsGrid) {
         friendResultsGrid.style.display = 'none';
@@ -4501,6 +4875,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modalAddFriend?.classList.contains('show')) closeAddFriendModal();
 });
 
+// Funcion principal para buscar amigos por nombre de usuario
 async function buscarAmigos() {
     const query = inputSearchFriend.value.trim();
     if (!query) return;
@@ -4519,6 +4894,7 @@ async function buscarAmigos() {
         const miId = session.user.id;
 
         // 2. BUSQUEDA: Traer usuarios que coincidan y no sea yo (ahora pedimos el auth_id)
+        // Usamos la vista 'perfiles_publicos' que tiene username y avatar
         const { data: coincidencias, error } = await supabase
             .from('perfiles_publicos')
             .select('auth_id, username, avatar')
@@ -4529,6 +4905,7 @@ async function buscarAmigos() {
         if (error) throw error;
 
         // 3. Traer a todos los que YA SIGO usando mi ID
+        // Esto es para no mostrar a la gente que ya sigo
         const { data: seguidos } = await supabase
             .from('amistades')
             .select('receptor_id')
@@ -4546,12 +4923,13 @@ async function buscarAmigos() {
             return;
         }
 
-        // 6. Pintar grid
+        // 6. Pintar grid con los resultados
         friendEmptyState.style.display = 'none';
         friendResultsGrid.style.display = 'flex';
         friendResultsGrid.innerHTML = '';
 
         resultadosFinales.forEach(user => {
+            // Construimos el avatar del usuario (si tiene uno personalizado)
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
@@ -4585,6 +4963,7 @@ inputSearchFriend?.addEventListener('keypress', (e) => {
 });
 
 // 4. Acción de seguir (Ahora usa el targetId)
+// Esta funcion se llama cuando el usuario hace click en "seguir" en el modal de amigos
 window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -4620,10 +4999,10 @@ window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
 
         showToast('success', 'Nueva Conexión', `Ahora sigues a ${targetUsername}.`);
 
-        // 1. Ocultar el botón
+        // 1. Ocultar el botón (para que no se pueda hacer click otra vez)
         if (btnElement) btnElement.style.display = 'none';
 
-        // 2. Refrescar contadores
+        // 2. Refrescar contadores del perfil
         const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
         if (mainProfileUsername) {
             cargarPerfilPublico(mainProfileUsername);
@@ -4638,23 +5017,27 @@ window.seguirUsuario = async function (targetId, targetUsername, btnElement) {
 // ============================================
 // LISTENERS PARA FILTROS +18 Y BOTONES LIMPIAR
 // ============================================
+// Cuando el usuario cambia el filtro de contenido adulto en peliculas
 document.getElementById('adult-filter-movie')?.addEventListener('change', (e) => {
-    guardarFiltros();
-    cargarTMDB('movie', searchMoviesActual, true);
+    guardarFiltros(); // Guardamos la preferencia
+    cargarTMDB('movie', searchMoviesActual, true); // Recargamos con el nuevo filtro
 });
 
+// Cuando el usuario cambia el filtro de contenido adulto en series
 document.getElementById('adult-filter-series')?.addEventListener('change', (e) => {
     guardarFiltros();
     cargarTMDB('tv', searchSeriesActual, true);
 });
 
 // Botón de Limpiar Filtros de JUEGOS
+// Resetea todos los filtros de la seccion de juegos
 document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
-    // 1. Limpiamos todos los checkboxes
+    // 1. Limpiamos todos los checkboxes (plataformas, tiendas, modos)
     document.querySelectorAll('.plat-item input').forEach(cb => cb.checked = false);
     document.querySelectorAll('.tienda-item').forEach(cb => cb.checked = false);
     document.querySelectorAll('.mode-item').forEach(cb => cb.checked = false);
 
+    // Limpiamos los generos seleccionados
     document.querySelectorAll('.genre-item input').forEach(cb => {
         cb.checked = false;
         // Si el género era oculto, lo volvemos a esconder al limpiar
@@ -4673,13 +5056,13 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
         busquedaActual = ''; // Reseteamos la memoria de búsqueda
     }
 
-    // 3. Limpiamos precios
+    // 3. Limpiamos precios (minimo y maximo)
     const pMin = document.getElementById('precio-min');
     if (pMin) pMin.value = '';
     const pMax = document.getElementById('precio-max');
     if (pMax) pMax.value = '';
 
-    // 4. Limpiamos fechas
+    // 4. Limpiamos fechas (desde y hasta)
     const dMin = document.getElementById('date-min');
     if (dMin) dMin.value = '';
     const dMax = document.getElementById('date-max');
@@ -4689,6 +5072,7 @@ document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     aplicarFiltros();
 });
 
+// Botones de limpiar para peliculas y series (especificos)
 document.querySelectorAll('#btn-reset-filters[data-target]').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const target = e.target.getAttribute('data-target');
@@ -4706,21 +5090,26 @@ document.querySelectorAll('#btn-reset-filters[data-target]').forEach(btn => {
     });
 });
 
-// Botones de Limpiar de SERIES y PELÍCULAS
+// Botones de Limpiar de SERIES y PELÍCULAS (resetean TODOS los filtros de TMDB)
 document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const target = e.target.getAttribute('data-target');
         if (target === 'movie') {
+            // Resetear filtro +18
             const cb = document.getElementById('adult-filter-movie');
             if (cb) cb.checked = false;
+            // Resetear slider de votos
             const slider = document.getElementById('votes-slider-movie');
             const display = document.getElementById('votes-display-movie');
             if (slider) slider.value = 0;
             if (display) display.textContent = '0 votos';
+            // Resetear paises
             document.querySelectorAll('.lang-item-movie input:checked').forEach(c => c.checked = false);
             countryFilterMovie = [];
+            // Resetear generos
             document.querySelectorAll('.genre-item-movie input:checked').forEach(c => c.checked = false);
             genreFilterMovie = [];
+            // Resetear fechas
             const dateMinMovie = document.getElementById('date-min-movie');
             const dateMaxMovie = document.getElementById('date-max-movie');
             if (dateMinMovie) {
@@ -4734,16 +5123,21 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
             guardarFiltros();
             cargarTMDB('movie', searchMoviesActual, true);
         } else if (target === 'tv') {
+            // Resetear filtro +18
             const cb = document.getElementById('adult-filter-series');
             if (cb) cb.checked = false;
+            // Resetear slider de votos
             const slider = document.getElementById('votes-slider-tv');
             const display = document.getElementById('votes-display-tv');
             if (slider) slider.value = 0;
             if (display) display.textContent = '0 votos';
+            // Resetear paises
             document.querySelectorAll('.lang-item-tv input:checked').forEach(c => c.checked = false);
             countryFilterSeries = [];
+            // Resetear generos
             document.querySelectorAll('.genre-item-tv input:checked').forEach(c => c.checked = false);
             genreFilterSeries = [];
+            // Resetear fechas
             const dateMinTv = document.getElementById('date-min-tv');
             const dateMaxTv = document.getElementById('date-max-tv');
             if (dateMinTv) {
@@ -4763,6 +5157,7 @@ document.querySelectorAll('.btn-reset-tmdb').forEach(btn => {
 // ==========================================================================
 //   DRAWER DE FILTROS MÓVIL (SISTEMA DINÁMICO PARA LAS 3 SECCIONES)
 // ==========================================================================
+// Funcion generica para configurar un drawer de filtros en movil
 function configurarDrawer(btnAbrir, btnCerrar, overlay, sidebar) {
     if (!btnAbrir || !sidebar) return;
 
@@ -4785,7 +5180,7 @@ function configurarDrawer(btnAbrir, btnCerrar, overlay, sidebar) {
     overlay?.addEventListener('click', cerrar);
 }
 
-// 1. Juegos
+// 1. Juegos - Configuramos el drawer de filtros para juegos
 configurarDrawer(
     document.getElementById('btn-mobile-filters'),
     document.getElementById('btn-close-filters-drawer'),
@@ -4793,7 +5188,7 @@ configurarDrawer(
     document.querySelector('#games .filter-sidebar')
 );
 
-// Para Juegos
+// Añadimos aria-labels para accesibilidad
 document.getElementById('btn-mobile-filters')?.setAttribute('aria-label', 'Abrir filtros de juegos');
 document.getElementById('btn-close-filters-drawer')?.setAttribute('aria-label', 'Cerrar filtros de juegos');
 
@@ -4805,7 +5200,7 @@ document.getElementById('btn-close-movies-mobile')?.setAttribute('aria-label', '
 document.getElementById('btn-filters-series-mobile')?.setAttribute('aria-label', 'Abrir filtros de series');
 document.getElementById('btn-close-series-mobile')?.setAttribute('aria-label', 'Cerrar filtros de series');
 
-// 2. Películas
+// 2. Películas - Configuramos el drawer de filtros para peliculas
 configurarDrawer(
     document.getElementById('btn-filters-movies-mobile'),
     document.getElementById('btn-close-movies-mobile'),
@@ -4813,7 +5208,7 @@ configurarDrawer(
     document.getElementById('sidebar-filters-movies')
 );
 
-// 3. Series
+// 3. Series - Configuramos el drawer de filtros para series
 configurarDrawer(
     document.getElementById('btn-filters-series-mobile'),
     document.getElementById('btn-close-series-mobile'),
@@ -4824,16 +5219,18 @@ configurarDrawer(
 // ==========================================================================
 //   MODAL DE DETALLES DEL JUEGO (Estilo Playnite)
 // ==========================================================================
+// Referencias al modal de detalles del juego
 const modalJuego = document.getElementById('game-details-modal');
 const btnCerrarModalJuego = document.getElementById('close-game-modal');
 btnCerrarModalJuego.setAttribute('aria-label', 'Cerrar detalles del juego');
 
 // Escuchamos los clics en toda la grilla de juegos
+// Cuando el usuario hace click en una tarjeta de juego, abrimos el modal
 document.getElementById('games-grid')?.addEventListener('click', (e) => {
     const card = e.target.closest('.game-card');
     if (!card) return;
 
-    // 1. Extraemos info de la tarjeta
+    // 1. Extraemos info de la tarjeta (datos que ya teniamos en la tarjeta)
     const titulo = card.getAttribute('data-game-title');
     const juegoData = {
         idJuego: card.getAttribute('data-game-id'),
@@ -4852,16 +5249,20 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
 });
 
 // Función centralizada para abrir (usada por click y por F5)
+// Esta funcion se encarga de abrir el modal y cargar los detalles del juego
 window.procesarAperturaModalJuego = function (data, updateHistory = true) {
     if (updateHistory) {
+        // Guardamos en el historial para que el boton atras funcione
         history.pushState({ modal: 'detalles_juego' }, '', `/juegos/${data.urlAmigable}`);
     }
-    // Guardamos recuerdo para el F5
+    // Guardamos recuerdo para el F5 (si el usuario recarga, volvemos a abrir el modal)
     localStorage.setItem('modalJuegoAbierto', JSON.stringify(data));
 
+    // Rellenamos los datos basicos del juego en el modal
     document.getElementById('detail-title').textContent = data.titulo;
     document.getElementById('detail-platforms').innerHTML = data.htmlPlataformas;
 
+    // Configuramos la imagen de portada y el fondo del hero
     if (data.portadaSrc) {
         document.getElementById('detail-cover-img').src = data.portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
@@ -4873,6 +5274,7 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
 
     document.getElementById('detail-date').textContent = data.fecha;
 
+    // Configuramos la informacion del precio y enlaces a tiendas
     const detailPriceEl = document.getElementById('detail-price');
     if (detailPriceEl) {
         detailPriceEl.style.display = 'flex';
@@ -4881,6 +5283,7 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
 
         let htmlPrecioOficial = '';
         if (data.priceText) {
+            // Si tiene precio, mostramos el enlace a la tienda oficial
             if (data.storesRaw && data.storesRaw !== 'none') {
                 const storeMap = { 'steam': 'Steam', 'epic': 'Epic Games', 'gog': 'GOG', 'blizzard': 'Battle.net', 'ubisoft': 'Ubisoft Connect', 'ea': 'EA App' };
                 let primeraTienda = data.storesRaw.split(',')[0].trim().toLowerCase();
@@ -4900,6 +5303,7 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
             htmlPrecioOficial = '<span style="color: var(--text-muted);">--</span>';
         }
 
+        // Enlaces a AllKeyShop y CDKeys para comparar precios
         const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
         detailPriceEl.innerHTML = `
             <div style="margin-bottom: 6px;">${htmlPrecioOficial}</div>
@@ -4910,16 +5314,19 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
         `;
     }
 
+    // Ponemos los campos en estado de carga mientras se obtienen los detalles
     document.getElementById('detail-description').innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary);"></i> Estableciendo conexión cifrada...';
     document.getElementById('detail-dev').textContent = 'Escaneando...';
     document.getElementById('detail-pub').textContent = 'Escaneando...';
     document.getElementById('detail-genres').textContent = 'Escaneando...';
     document.getElementById('detail-modes').textContent = 'Escaneando...';
 
+    // Mostramos el modal y bloqueamos el scroll
     modalJuego.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
+    // Llamamos a la funcion que trae los detalles del juego desde la API
     llamarDetallesJuego(data.idJuego, data.titulo);
 };
 
@@ -4930,14 +5337,17 @@ function cerrarModalJuego() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
+    // Limpiamos el localStorage y el historial
     localStorage.removeItem('modalJuegoAbierto');
     history.pushState({ vista: 'games' }, '', '/juegos');
 }
 
+// Listeners para cerrar el modal
 btnCerrarModalJuego?.addEventListener('click', cerrarModalJuego);
 modalJuego?.addEventListener('click', (e) => { if (e.target === modalJuego) cerrarModalJuego(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalJuego(); });
 
+// Funcion que obtiene los detalles del juego desde la API de IGDB
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
         const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
@@ -4968,7 +5378,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
         document.getElementById('detail-dev').textContent = dev;
         document.getElementById('detail-pub').textContent = pub;
 
-        // Rellenar Géneros y Modos
+        // Rellenar Géneros y Modos de juego
         document.getElementById('detail-genres').textContent = juego.genres
             ? juego.genres.map(g => g.name).join(', ')
             : 'N/A';
@@ -4977,7 +5387,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
             ? juego.game_modes.map(m => m.name).join(', ')
             : 'N/A';
 
-        // Enlaces
+        // Enlaces (sitio web oficial del juego)
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
             const web = juego.websites[0];
@@ -4994,11 +5404,13 @@ async function llamarDetallesJuego(idJuego, titulo) {
 // ==========================================================================
 //   MODAL DE DETALLES PELÍCULAS/SERIES
 // ==========================================================================
+// Referencias al modal de detalles de peliculas y series
 const modalMedia = document.getElementById('media-details-modal');
 const btnCerrarMedia = document.getElementById('close-media-modal');
 btnCerrarMedia.setAttribute('aria-label', 'Cerrar detalles');
 
-// Escuchador genérico para ambas grillas
+// Escuchador genérico para ambas grillas (peliculas y series)
+// Cuando el usuario hace click en una tarjeta, abrimos el modal con los detalles
 document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
     grid.addEventListener('click', (e) => {
         const card = e.target.closest('.game-card');
@@ -5012,13 +5424,15 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
     });
 });
 
+// Funcion principal que abre el modal de detalles de pelicula/serie
 async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
-    // Guardar el tipo en el modal para futuras referencias
+    // Guardar el tipo en el modal para futuras referencias (saber si es peli o serie)
     modalMedia.setAttribute('data-current-type', tipo);
 
     // 1. Resetear y preparar UI
+    // Ponemos todos los campos en estado de carga mientras se obtienen los datos
     document.getElementById('media-detail-title').textContent = t('details_extra.connecting');
     document.getElementById('media-detail-description').textContent = t('details_extra.downloading');
     document.getElementById('media-detail-duration').textContent = "--";
@@ -5026,7 +5440,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('media-detail-watch-date').textContent = "--";
     document.getElementById('media-detail-watch-status').textContent = t('details.not_watched');
 
-    // Resetear nuevos campos
+    // Resetear nuevos campos (los que se añadieron para mas informacion)
     document.getElementById('media-detail-original-title').textContent = "--";
     document.getElementById('media-detail-release-date').textContent = "--";
     document.getElementById('media-detail-status').textContent = "--";
@@ -5035,12 +5449,14 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('media-detail-episodes-count').textContent = "--";
     document.getElementById('media-detail-remaining-time').textContent = "--";
 
+    // Resetear el contenedor de temporadas
     const seasonsContainer = document.getElementById('media-detail-seasons');
     if (seasonsContainer) {
         seasonsContainer.innerHTML = '';
         seasonsContainer.style.display = 'none';
     }
 
+    // Resetear proveedores de streaming
     document.getElementById('providers-flatrate').innerHTML = '';
     document.getElementById('providers-rent').innerHTML = '';
     document.getElementById('providers-buy').innerHTML = '';
@@ -5052,7 +5468,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     // Reseteamos el panel de actores con un loader
     document.getElementById('media-detail-cast').innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; width: 100%;"><i class="fas fa-circle-notch fa-spin"></i> Cargando actores...</div>';
 
-    // 2. Abrir Modal
+    // 2. Abrir Modal (con scroll bloqueado)
     modalMedia.classList.add('show');
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
@@ -5060,8 +5476,9 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     // ==========================================
     // APLICAR OCULTAMIENTOS SEGÚN EL TIPO
     // ==========================================
+    // Las series y peliculas tienen campos diferentes, ocultamos/mostramos segun corresponda
     if (tipo === 'tv') {
-        // SERIES: Ocultamos lo que no toca
+        // SERIES: Ocultamos lo que no toca (el rating y algunas columnas)
         const ratingCol = document.querySelector('.media-rating-col');
         if (ratingCol) ratingCol.style.display = 'none';
 
@@ -5079,18 +5496,18 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 // Retransmisión: ocupa todo
                 col.style.gridColumn = '1 / -1';
             } else {
-                // Alquiler y Compra: ocultos
+                // Alquiler y Compra: ocultos (las series no se suelen alquilar/comprar por episodio)
                 col.style.display = 'none';
             }
         });
 
         // Detalles Técnicos: ocultar ciertas filas para series
-        // Ocultar presupuesto en series (no aplica)
+        // Ocultar presupuesto en series (no aplica, las series tienen presupuesto por temporada)
         document.getElementById('row-budget').style.display = 'none';
         // Ocultar divider-1
         document.getElementById('divider-tech-1').style.display = 'none';
 
-        // Mostrar temporadas y episodios
+        // Mostrar temporadas y episodios (que son especificos de series)
         document.getElementById('row-seasons').style.display = 'flex';
         document.getElementById('row-episodes').style.display = 'flex';
 
@@ -5098,7 +5515,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         document.getElementById('row-watch-date').style.display = 'none';
         document.getElementById('row-watch-status').style.display = 'none';
 
-        // Mostrar tiempo restante
+        // Mostrar tiempo restante (cuanto le queda al usuario para terminar la serie)
         document.getElementById('row-remaining-time').style.display = 'flex';
 
     } else {
@@ -5118,19 +5535,19 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             col.style.gridColumn = '';
         });
 
-        // Mostrar presupuesto para películas
+        // Mostrar presupuesto para películas (es un dato relevante)
         document.getElementById('row-budget').style.display = 'flex';
         document.getElementById('divider-tech-1').style.display = 'flex';
 
-        // Ocultar temporadas y episodios en películas
+        // Ocultar temporadas y episodios en películas (no tienen)
         document.getElementById('row-seasons').style.display = 'none';
         document.getElementById('row-episodes').style.display = 'none';
 
-        // Mostrar watch-date y watch-status en películas
+        // Mostrar watch-date y watch-status en películas (cuando la vio y si la vio)
         document.getElementById('row-watch-date').style.display = 'flex';
         document.getElementById('row-watch-status').style.display = 'flex';
 
-        // Ocultar tiempo restante en películas
+        // Ocultar tiempo restante en películas (no aplica)
         document.getElementById('row-remaining-time').style.display = 'none';
 
         // Restaurar media-bottom-grid a 3 columnas
@@ -5140,7 +5557,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
     }
 
-    // 3. Llamada al servidor
+    // 3. Llamada al servidor para obtener los detalles
     try {
         const respuesta = await fetch(`/api/tmdb?id=${id}&tipo=${tipo}&lang=${currentLang}`);
         const data = await respuesta.json();
@@ -5148,6 +5565,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // ====================================================
         // MAGIA DE URL Y PERSISTENCIA (Para F5)
         // ====================================================
+        // Generamos una URL amigable para compartir y para que al recargar se abra el modal
         const urlAmigable = data.titulo.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
         const rutaBase = tipo === 'movie' ? '/peliculas' : '/series';
 
@@ -5179,6 +5597,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
 
         // 3. Si la sinopsis sigue siendo muy corta (< 100 caracteres), intentamos buscar más
+        // Esto es por si la descripcion es muy corta, intentamos usar una alternativa
         if (sinopsisCompleta.length < 100) {
             // Intentamos obtener datos alternativos (si el backend los devuelve)
             if (data.sinopsis_alternativa && data.sinopsis_alternativa.trim() !== '') {
@@ -5196,13 +5615,13 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // ==========================================
         // CARGA DE DATOS TÉCNICOS (NUEVO FORMATO)
         // ==========================================
-        // Título original
+        // Título original (el que tiene en su idioma original)
         document.getElementById('media-detail-original-title').textContent = data.original_title || data.titulo;
 
         // Fecha de lanzamiento
         document.getElementById('media-detail-release-date').textContent = data.fecha || t('common.not_available');
 
-        // Estado (Mapeo de estados de TMDB)
+        // Estado (Mapeo de estados de TMDB a español)
         const estadoMap = {
             'Returning Series': t('details_extra.returning'),
             'Ended': t('details_extra.ended'),
@@ -5229,7 +5648,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // BLOQUE 2: SERIES VS PELÍCULAS (DURACIÓN Y TEMPORADAS)
         // ==========================================
         if (tipo === 'tv') {
-            // Mostrar temporadas y episodios
+            // Mostrar temporadas y episodios para series
             document.getElementById('media-detail-seasons-count').textContent = `${data.temporadas || '--'} ${t('details.seasons')}`;
             document.getElementById('media-detail-episodes-count').textContent = `${data.episodios || '--'} ${t('details.episodes')}`;
 
@@ -5259,11 +5678,12 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             }
 
         } else {
-            // PELÍCULAS
+            // PELÍCULAS: solo mostramos la duracion en minutos
             document.getElementById('media-detail-duration').textContent = `${data.duracion || '--'} min`;
         }
 
         // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
+        // Esta funcion recibe una lista de plataformas y las pinta en el contenedor correspondiente
         function inyectarPlataformas(lista, contenedorId) {
             const contenedor = document.getElementById(contenedorId);
             contenedor.innerHTML = '';
@@ -5274,6 +5694,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
                 unicos.forEach(plat => {
                     // LIMPIEZA INTELIGENTE DE NOMBRES DE JUSTWATCH
+                    // Esto es para que los nombres de las plataformas queden bonitos y cortos
                     let nombreCorto = plat.name
                         .replace(' Amazon Channel', '') // Quita la coletilla de los canales de Amazon
                         .replace(' (with Ads)', '')     // Quita lo de "con anuncios"
@@ -5308,6 +5729,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             }
         }
 
+        // Inyectamos las plataformas en las 3 columnas (suscripcion, alquiler, compra)
         inyectarPlataformas(data.suscripcion, 'providers-flatrate');
         inyectarPlataformas(data.alquiler, 'providers-rent');
         inyectarPlataformas(data.compra, 'providers-buy');
@@ -5315,24 +5737,28 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // 8. Tráiler
         let urlTrailer = '';
         if (data.trailer_id) {
+            // Si tenemos ID de trailer de YouTube, lo usamos
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
             document.getElementById('media-detail-trailer-duration').textContent = t('details_extra.official');
             document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
         } else {
+            // Si no, hacemos una busqueda en YouTube con el titulo + "Trailer español"
             const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
             urlTrailer = `https://www.youtube.com/results?search_query=Trailer+${tituloLimpio}+español`;
             document.getElementById('media-detail-trailer-duration').textContent = t('details_extra.search');
             document.getElementById('media-detail-trailer-img').src = data.backdrop || data.poster;
         }
+        // Cuando el usuario hace click en el boton del trailer, se abre en una nueva pestaña
         document.getElementById('media-detail-trailer-btn').onclick = () => window.open(urlTrailer, '_blank');
 
-        // 9. Valoración
+        // 9. Valoración (nota y estrellas)
         const notaNum = parseFloat(data.nota || 0);
         document.getElementById('media-detail-rating-value').textContent = notaNum.toFixed(1);
 
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
         document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} ${t('details_extra.ratings')}`;
 
+        // Convertimos la nota de 0-10 a 0-5 para las estrellas
         const notaSobre5 = notaNum / 2;
         let estrellasHtml = '';
         for (let i = 1; i <= 5; i++) {
@@ -5368,6 +5794,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
 
         // 10.5 TEMPORADAS Y EPISODIOS (SOLO PARA SERIES)
+        // Esta seccion carga los episodios de cada temporada de forma lazy (cuando el usuario abre)
         if (seasonsContainer) {
             if (tipo === 'tv' && data.temporadas_info && data.temporadas_info.length > 0) {
                 seasonsContainer.style.display = 'block';
@@ -5399,6 +5826,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 seasonsContainer.innerHTML = `<h3 class="detail-section-title">${t('details_extra.all_episodes')}</h3>` + seasonsHtml;
 
                 // Lógica del clic para abrir/cerrar y cargar episodios (Lazy Load)
+                // Cuando el usuario hace click en una temporada, se cargan sus episodios
                 const headers = seasonsContainer.querySelectorAll('.season-header');
                 headers.forEach(header => {
                     header.addEventListener('click', async function () {
@@ -5407,15 +5835,18 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         const contentDiv = document.getElementById(`season-content-${seasonNumber}`);
                         const isActive = seasonItem.classList.contains('active');
 
+                        // Cerramos todas las temporadas abiertas
                         document.querySelectorAll('.season-item').forEach(item => {
                             item.classList.remove('active');
                             const content = item.querySelector('.season-content');
                             content.style.maxHeight = null;
                         });
 
+                        // Abrimos solo la que se ha clickado
                         if (!isActive) {
                             seasonItem.classList.add('active');
 
+                            // Si no tiene el flag data-loaded, cargamos los episodios desde la API
                             if (!contentDiv.hasAttribute('data-loaded')) {
                                 contentDiv.style.maxHeight = "100px";
 
@@ -5429,6 +5860,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                         const fecha = ep.air_date ? new Date(ep.air_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
                                         const nota = ep.vote_average ? ep.vote_average.toFixed(1) : '0.0';
 
+                                        // Comprobamos si el episodio esta visto por el usuario
                                         const isWatched = window.episodiosVistosActuales.has(`${seasonNumber}_${ep.episode_number}`);
                                         const colorBtn = isWatched ? 'var(--primary)' : 'var(--text-muted)';
                                         const iconClass = isWatched ? 'fas fa-eye' : 'fas fa-eye-slash';
@@ -5458,15 +5890,18 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                                     contentDiv.innerHTML = episodesHtml;
                                     contentDiv.setAttribute('data-loaded', 'true');
 
+                                    // Animamos la apertura
                                     contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
                                 } catch (e) {
                                     console.error(e);
                                     contentDiv.innerHTML = '<div style="color: var(--error); padding: 15px; text-align: center;">Error de conexión con el servidor.</div>';
                                 }
                             } else {
+                                // Si ya estaban cargados, solo los mostramos
                                 contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
                             }
 
+                            // Despues de la animacion, quitamos el max-height para que sea dinamico
                             setTimeout(() => {
                                 if (seasonItem.classList.contains('active')) {
                                     contentDiv.style.maxHeight = "none";
@@ -5483,6 +5918,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
 
         // PREPARAR DATOS DE LA SERIE EN MEMORIA
+        // Guardamos la informacion de la serie para usarla en otras funciones
         window.serieInfoActual = { id: id, temporadas: data.temporadas_info || [] };
         window.episodiosVistosActuales = new Set();
 
@@ -5491,13 +5927,14 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             window.sincronizarWatchlistGlobal();
         }
 
-        // Actualizar barra de progreso
+        // Actualizar barra de progreso de la serie
         actualizarBarraProgresoSeries();
 
         // 11. OBTENER ESTADO PERSONAL DEL USUARIO (Mi Nota y Visto)
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
+            // Para series: cargamos los episodios que el usuario tiene marcados como vistos
             if (tipo === 'tv') {
                 const { data: epVistos } = await supabase
                     .from('user_media')
@@ -5516,6 +5953,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         }
                     });
 
+                    // Refrescamos la UI despues de cargar los episodios vistos
                     setTimeout(() => {
                         if (window.refrescarUIEpisodiosYTemporadas) {
                             window.refrescarUIEpisodiosYTemporadas();
@@ -5537,12 +5975,14 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         }
                     }, 300);
 
+                    // Actualizar barra de progreso despues de cargar los datos
                     setTimeout(() => {
                         actualizarBarraProgresoSeries();
                     }, 100);
                 }
             }
 
+            // Cargar el estado personal de la pelicula/serie (si la tiene marcada como vista)
             const { data: userMedia } = await supabase
                 .from('user_media')
                 .select('*')
@@ -5563,8 +6003,9 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     }
 }
 
-// Cierre del modal y limpieza
+// Cierre del modal y limpieza de todo
 function cerrarModalMedia() {
+    // Ocultamos la barra de progreso de series
     const container = document.getElementById('series-progress-container');
     if (container) container.style.display = 'none';
 
@@ -5573,9 +6014,11 @@ function cerrarModalMedia() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
+    // Ocultamos el boton de favoritos
     mostrarBotonFavorito(false);
 
     // ACTUALIZACIÓN VISUAL INMEDIATA EN LA TARJETA
+    // Esto sincroniza el estado de la tarjeta con lo que hemos cambiado en el modal
     try {
         const memoInfoStr = localStorage.getItem('modalMediaAbierto');
         if (memoInfoStr && window.estadoMediaActual) {
@@ -5620,11 +6063,13 @@ function cerrarModalMedia() {
         }
     } catch (e) { console.error("Error sincronizando tarjeta:", e); }
 
+    // Limpiamos el localStorage y el historial
     localStorage.removeItem('modalMediaAbierto');
     const vista = vistaActualGlobal === 'series' ? '/series' : '/peliculas';
     history.pushState({ vista: vistaActualGlobal }, '', vista);
 
     // LIMPIAR ESTILOS AL CERRAR (para que no se queden pegados)
+    // Restauramos todos los estilos que habiamos modificado al abrir el modal
     const ratingCol = document.querySelector('.media-rating-col');
     if (ratingCol) ratingCol.style.display = 'flex';
 
@@ -5660,6 +6105,7 @@ function cerrarModalMedia() {
     if (castCol) castCol.style.gridColumn = '';
 }
 
+// Listeners para cerrar el modal (X, click fuera, Escape)
 btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
 modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalMedia(); });
@@ -5667,6 +6113,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 // ==========================================================================
 //   CARGA DINÁMICA DE PERFILES PÚBLICOS
 // ==========================================================================
+// Funcion que carga el perfil de un usuario por su nombre de usuario
 async function cargarPerfilPublico(usernameTarget) {
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -5705,7 +6152,7 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
-        // Buscamos en Supabase
+        // Buscamos en Supabase el perfil del usuario
         const { data: perfilTarget, error } = await supabase
             .from('perfiles_publicos')
             .select('*')
@@ -5718,11 +6165,11 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
-        // Pintamos el Nombre
+        // Pintamos el Nombre de usuario
         const profileUsername = document.querySelector('.profile-username');
         if (profileUsername) profileUsername.textContent = perfilTarget.username;
 
-        // Pintar Avatar
+        // Pintar Avatar (con el mismo sistema que en cargarDisenoPerfil)
         const avatarDB = perfilTarget.avatar ? perfilTarget.avatar.replace(/'/g, "") : 'default';
         const bannerDB = perfilTarget.banner ? perfilTarget.banner.replace(/'/g, "") : 'default';
 
@@ -5766,16 +6213,19 @@ async function cargarPerfilPublico(usernameTarget) {
         try {
             const targetId = perfilTarget.auth_id;
 
+            // Contamos a cuantos sigue el usuario
             const { count: siguiendoCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
                 .eq('solicitante_id', targetId);
 
+            // Contamos cuantos seguidores tiene el usuario
             const { count: seguidoresCount } = await supabase
                 .from('amistades')
                 .select('*', { count: 'exact', head: true })
                 .eq('receptor_id', targetId);
 
+            // Actualizamos los numeros en la UI
             const statNums = document.querySelectorAll('.profile-stats .stat-num');
             if (statNums.length >= 2) {
                 statNums[0].textContent = siguiendoCount || 0;
@@ -5785,9 +6235,11 @@ async function cargarPerfilPublico(usernameTarget) {
             // ============================================
             // SISTEMA MATEMÁTICO DE TIEMPO (CACHÉ INTELIGENTE SWR)
             // ============================================
+            // Usamos un cache en localStorage para no recalcular las estadisticas cada vez
             const cacheKey = `nexus_stats_${targetId}`;
             const statsGuardadas = localStorage.getItem(cacheKey);
 
+            // Funcion que pinta las estadisticas en la UI
             const pintarEstadisticas = (totalEp, tiempoSer, totalPel, tiempoPel) => {
                 const elEpisodes = document.getElementById('stat-series-episodes');
                 if (elEpisodes) elEpisodes.textContent = totalEp.toLocaleString('es-ES');
@@ -5814,10 +6266,12 @@ async function cargarPerfilPublico(usernameTarget) {
                 if (elHoursPel) elHoursPel.textContent = tiempoPel.horas;
             };
 
+            // Si tenemos estadisticas en cache, las mostramos inmediatamente
             if (statsGuardadas) {
                 const stats = JSON.parse(statsGuardadas);
                 pintarEstadisticas(stats.totalEpisodios, stats.tiempoSeries, stats.totalPelis, stats.tiempoPelis);
             } else {
+                // Si no hay cache, ponemos placeholders de carga
                 const elEpisodes = document.getElementById('stat-series-episodes');
                 if (elEpisodes) elEpisodes.textContent = "...";
 
@@ -5825,12 +6279,14 @@ async function cargarPerfilPublico(usernameTarget) {
                 if (elMoviesCount) elMoviesCount.textContent = "...";
             }
 
+            // Calculamos las estadisticas reales en segundo plano
             setTimeout(async () => {
                 let mediaVisto = [];
                 let keepFetching = true;
                 let currentOffset = 0;
                 const fetchLimit = 1000;
 
+                // Recogemos todos los media que el usuario ha marcado como vistos
                 while (keepFetching) {
                     const { data, error } = await supabase
                         .from('user_media')
@@ -5849,6 +6305,7 @@ async function cargarPerfilPublico(usernameTarget) {
                     }
                 }
 
+                // Calculamos totales
                 let totalPelis = 0;
                 let totalEpisodios = 0;
 
@@ -5858,6 +6315,7 @@ async function cargarPerfilPublico(usernameTarget) {
                     if (item.tipo === 'tv_episode') totalEpisodios += cantidad;
                 });
 
+                // Calculamos el tiempo invertido (120min por pelicula, 45min por episodio)
                 const minTotalesPelis = totalPelis * 120;
                 const minTotalesSeries = totalEpisodios * 45;
 
@@ -5880,6 +6338,7 @@ async function cargarPerfilPublico(usernameTarget) {
                     tiempoPelis: tiempoPelis
                 };
 
+                // Guardamos en cache y actualizamos la UI
                 const nuevasStatsString = JSON.stringify(nuevasStats);
                 if (statsGuardadas !== nuevasStatsString) {
                     localStorage.setItem(cacheKey, nuevasStatsString);
@@ -5892,6 +6351,8 @@ async function cargarPerfilPublico(usernameTarget) {
         }
 
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
+        // Si estamos viendo nuestro propio perfil, mostramos los botones de edicion
+        // Si estamos viendo el perfil de otro, los ocultamos
         const overlayBanner = document.querySelector('.edit-overlay');
         const overlayAvatar = document.querySelector('.edit-overlay-avatar');
 
@@ -5900,6 +6361,7 @@ async function cargarPerfilPublico(usernameTarget) {
         const btnAddFriend = document.getElementById('btn-add-friend');
 
         if (miPropioUsername === usuarioABuscar) {
+            // Es nuestro perfil: mostramos editores
             if (overlayBanner) overlayBanner.style.display = 'flex';
             if (overlayAvatar) overlayAvatar.style.display = 'flex';
             if (triggerBanner) triggerBanner.style.pointerEvents = 'auto';
@@ -5913,6 +6375,7 @@ async function cargarPerfilPublico(usernameTarget) {
 
             if (btnAddFriend) btnAddFriend.style.display = 'flex';
         } else {
+            // Es perfil de otro: ocultamos editores
             if (overlayBanner) overlayBanner.style.display = 'none';
             if (overlayAvatar) overlayAvatar.style.display = 'none';
             if (triggerBanner) triggerBanner.style.pointerEvents = 'none';
@@ -5928,13 +6391,11 @@ async function cargarPerfilPublico(usernameTarget) {
         }
 
         // === CARGAR WATCHLIST DE SERIES PENDIENTES ===
+        // Cargamos la lista de series que el usuario tiene pendientes
         await cargarWatchlistTVTime(perfilTarget.auth_id, miPropioUsername === usuarioABuscar);
 
-        // if (miPropioUsername === usuarioABuscar && window.sincronizarWatchlistGlobal) {
-        //     window.sincronizarWatchlistGlobal();
-        // }
-
         // === CARGAR RECOMENDACIONES DINÁMICAS ===
+        // Solo mostramos recomendaciones en nuestro propio perfil
         if (miPropioUsername === usuarioABuscar) {
             cargarRecomendaciones(perfilTarget.auth_id).catch(err => console.error(err));
         } else {
@@ -5951,6 +6412,7 @@ async function cargarPerfilPublico(usernameTarget) {
 //   RECOMENDACIONES DINÁMICAS (BASADAS EN ÚLTIMOS 7 VISIONADOS)
 // ==========================================================================
 
+// Funcion que genera recomendaciones personalizadas basadas en lo que el usuario ha visto
 async function cargarRecomendaciones(userId) {
     const container = document.getElementById('recommendations-list');
     const loading = document.getElementById('rec-loading');
@@ -5962,19 +6424,20 @@ async function cargarRecomendaciones(userId) {
         return;
     }
 
-    // Mostrar loading
+    // Mostrar loading mientras se cargan los datos
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
     if (emptyMsg) emptyMsg.style.display = 'none';
     container.innerHTML = '';
 
-    // Forzar gap
+    // Forzar gap entre las tarjetas de recomendacion
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
 
     try {
         // 1. OBTENER TODOS LOS VISIONADOS
+        // Pedimos a Supabase todas las peliculas y series que el usuario ha marcado como vistas
         const { data: todosVistos, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista, veces_vista')
@@ -5985,6 +6448,7 @@ async function cargarRecomendaciones(userId) {
 
         if (error) throw error;
 
+        // Si no ha visto nada, mostramos un mensaje vacio
         if (!todosVistos || todosVistos.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) {
@@ -6000,7 +6464,7 @@ async function cargarRecomendaciones(userId) {
         const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
         const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
 
-        // 3. OBTENER EPISODIOS VISTOS
+        // 3. OBTENER EPISODIOS VISTOS (para saber que episodios ha visto de cada serie)
         const { data: episodiosVistos } = await supabase
             .from('user_media')
             .select('media_id')
@@ -6010,7 +6474,7 @@ async function cargarRecomendaciones(userId) {
 
         const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
 
-        // 4. PELÍCULAS: Últimas 5
+        // 4. PELÍCULAS: Últimas 5 vistas
         const peliculasConFecha = peliculasVistas.map(p => ({
             media_id: p.media_id,
             tipo: 'movie',
@@ -6023,6 +6487,7 @@ async function cargarRecomendaciones(userId) {
         let recuentoRecomendaciones = 0;
 
         // 5. PROCESAR PELÍCULAS (con timeout para evitar bloqueos)
+        // Por cada pelicula vista, sacamos su genero principal y buscamos contenido similar
         if (ultimasPeliculas.length > 0) {
             if (loading) loading.style.display = 'none';
             if (emptyMsg) {
@@ -6032,7 +6497,7 @@ async function cargarRecomendaciones(userId) {
 
             for (const peli of ultimasPeliculas) {
                 try {
-                    // Timeout de 5 segundos para evitar bloqueos
+                    // Timeout de 5 segundos para evitar bloqueos (por si la API de TMDB va lenta)
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -6056,6 +6521,7 @@ async function cargarRecomendaciones(userId) {
                     const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
                     if (generosList.length === 0) continue;
 
+                    // Cogemos el primer genero de la lista y buscamos recomendaciones
                     const generoPrincipal = generosList[0];
                     try {
                         const controllerRec = new AbortController();
@@ -6070,7 +6536,9 @@ async function cargarRecomendaciones(userId) {
                             const recs = await resRec.json();
                             recs.forEach(item => {
                                 const idStr = item.id.toString();
+                                // Evitamos recomendar la misma pelicula que ya vimos
                                 if (idStr === peli.media_id) return;
+                                // Evitamos duplicados en el contenedor
                                 const existing = container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`);
                                 if (existing) return;
 
@@ -6103,9 +6571,10 @@ async function cargarRecomendaciones(userId) {
         }
 
         // 6. SERIES COMPLETADAS (con timeout)
+        // Ahora procesamos las series que el usuario ha completado al 100%
         const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
 
-        // Si no hay series, mostrar mensaje y salir
+        // Si no hay series, mostramos mensaje y salimos
         if (idsSeriesUnicas.length === 0) {
             if (loading) loading.style.display = 'none';
             if (container.children.length === 0) {
@@ -6119,6 +6588,7 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
+        // Por cada serie que el usuario ha visto, verificamos si la ha completado
         for (const serieId of idsSeriesUnicas) {
             try {
 
@@ -6143,6 +6613,7 @@ async function cargarRecomendaciones(userId) {
                     continue;
                 }
 
+                // Filtramos temporadas especiales (season_number 0)
                 const temporadasReales = data.temporadas_info.filter(s => s.season_number > 0);
                 const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
 
@@ -6151,6 +6622,7 @@ async function cargarRecomendaciones(userId) {
                     continue;
                 }
 
+                // Contamos cuantos episodios de esta serie ha visto el usuario
                 let vistosSerie = 0;
                 for (const temp of temporadasReales) {
                     for (let ep = 1; ep <= temp.episode_count; ep++) {
@@ -6165,6 +6637,7 @@ async function cargarRecomendaciones(userId) {
 
                     const titulo = data.titulo || '';
                     const sinopsis = data.sinopsis || '';
+                    // Detectamos si es un K-Drama para forzar generos de romance/drama
                     const esKdrama = titulo.includes('K-Drama') ||
                         titulo.includes('Corea') ||
                         titulo.includes('Korean') ||
@@ -6184,7 +6657,7 @@ async function cargarRecomendaciones(userId) {
                     if (generosList.length === 0) continue;
 
                     const generoPrincipal = generosList[0];
-                    // 1 película
+                    // Recomendamos 1 película basada en el genero de la serie
                     try {
                         const controllerRec = new AbortController();
                         const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
@@ -6216,7 +6689,7 @@ async function cargarRecomendaciones(userId) {
                         console.warn(`⏱️ Timeout en recomendación de película para serie ${serieId}`);
                     }
 
-                    // 1 serie
+                    // Recomendamos 1 serie basada en el mismo genero
                     try {
                         const controllerRec = new AbortController();
                         const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
@@ -6291,6 +6764,7 @@ async function cargarRecomendaciones(userId) {
 //   FUNCIÓN AUXILIAR: Crear tarjeta de recomendación
 // ==========================================================================
 
+// Funcion que crea una tarjeta visual para cada recomendacion
 function crearTarjetaRecomendacion(item) {
     const poster = item.poster || '';
     const titulo = item.titulo || t('common.untitled');
@@ -6327,12 +6801,13 @@ function crearTarjetaRecomendacion(item) {
         </div>
     `;
 
-    // Evento para abrir el modal
+    // Evento para abrir el modal cuando el usuario hace click en la tarjeta
     card.addEventListener('click', (e) => {
         if (e.target.closest('.watchlist-check-btn')) return;
         abrirModalMedia(item.id, item.tipo);
     });
 
+    // Evento para el boton de ver detalles (abre el modal tambien)
     const btnDetail = card.querySelector('.watchlist-check-btn');
     if (btnDetail) {
         btnDetail.addEventListener('click', (e) => {
@@ -6347,9 +6822,11 @@ function crearTarjetaRecomendacion(item) {
 // ==========================================================================
 //   PANEL DE ADMINISTRACIÓN (NEXUS)
 // ==========================================================================
+// Variables globales del panel de administracion
 let adminPanelIniciado = false;
 let miEmailGlobalAdmin = null;
 
+// Funcion que inicia el panel de administracion
 async function iniciarPanelAdmin() {
     if (adminPanelIniciado) return; // Solo lo arrancamos la primera vez
     adminPanelIniciado = true;
@@ -6365,12 +6842,13 @@ async function iniciarPanelAdmin() {
     // Arrancamos la carga de la tabla (sin simulador de telemetría falso)
     cargarTablaUsuarios();
 
-    // Evento del buscador de la tabla
+    // Evento del buscador de la tabla (filtra usuarios en tiempo real)
     document.getElementById('admin-search-input')?.addEventListener('input', (e) => {
         cargarTablaUsuarios(e.target.value.toLowerCase());
     });
 
     // Escuchador para crear usuario de pruebas verificado instantáneo
+    // Esto es util para probar la aplicacion sin tener que registrarse manualmente
     document.getElementById('btn-admin-create-test-user')?.addEventListener('click', async () => {
         addAdminLog("Generando clon de pruebas en el Nexus...", "warning");
         try {
@@ -6401,6 +6879,7 @@ async function iniciarPanelAdmin() {
     });
 
     // Función global para cambiar de cuenta al instante con un clic
+    // Esto permite al admin suplantar a un usuario de pruebas
     window.loginComoTestUser = async function (emailUser) {
         addAdminLog(`Destruyendo sesión de administrador e iniciando bypass para ${emailUser}...`, "warning");
         try {
@@ -6427,6 +6906,7 @@ async function iniciarPanelAdmin() {
 }
 
 // TERMINAL DE REGISTRO DE EVENTOS
+// Funcion que añade mensajes a la terminal del panel de admin
 function addAdminLog(mensaje, tipo = "system") {
     const terminal = document.getElementById('admin-terminal-logs');
     if (!terminal) return;
@@ -6442,15 +6922,16 @@ function addAdminLog(mensaje, tipo = "system") {
     linea.innerHTML = `<span class="log-time" style="color: var(--text-muted);">[${hora}] ${prefijo}</span> ${mensaje}`;
 
     terminal.appendChild(linea);
-    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+    terminal.scrollTop = terminal.scrollHeight; // Auto-scroll al final
 }
 
 // GESTIÓN DE BASE DE DATOS (USUARIOS Y ROLES)
+// Funcion que carga la tabla de usuarios en el panel de admin
 async function cargarTablaUsuarios(filtro = "") {
     addAdminLog("Descargando identidades y cruce de roles...", "system");
 
     try {
-        // 1. Extraemos TODOS los usuarios
+        // 1. Extraemos TODOS los usuarios de la tabla 'usuarios'
         const { data: usuarios, error: errUsuarios } = await supabase
             .from('usuarios')
             .select('*')
@@ -6458,7 +6939,7 @@ async function cargarTablaUsuarios(filtro = "") {
 
         if (errUsuarios) throw errUsuarios;
 
-        // 2. Extraemos TODOS los roles de la segunda tabla
+        // 2. Extraemos TODOS los roles de la segunda tabla 'roles'
         const { data: roles, error: errRoles } = await supabase
             .from('roles')
             .select('email, rol');
@@ -6469,7 +6950,7 @@ async function cargarTablaUsuarios(filtro = "") {
         if (!tbody) return;
         tbody.innerHTML = ''; // Limpiamos tabla
 
-        // Filtrado
+        // Filtrado por nombre de usuario o email
         const usuariosFiltrados = usuarios.filter(u =>
             u.username.toLowerCase().includes(filtro) ||
             u.email.toLowerCase().includes(filtro)
@@ -6479,13 +6960,14 @@ async function cargarTablaUsuarios(filtro = "") {
         const metricTotal = document.getElementById('metric-total-users');
         if (metricTotal) metricTotal.textContent = usuarios.length;
 
+        // Pintamos cada usuario en la tabla
         usuariosFiltrados.forEach(u => {
             const esMiCuenta = u.email === miEmailGlobalAdmin;
 
             // Detectar si es cuenta de pruebas automática
             const esTestUser = u.username.startsWith('test_');
 
-            // Cruzamos datos usando el email
+            // Cruzamos datos usando el email para saber el rol
             const infoRol = roles.find(r => r.email === u.email);
             const nombreRol = infoRol ? infoRol.rol : 'user';
             const esAdmin = nombreRol === 'admin';
@@ -6522,6 +7004,7 @@ async function cargarTablaUsuarios(filtro = "") {
     }
 }
 
+// Funcion global para cambiar el rol de un usuario (admin/user)
 window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCuenta) {
     if (esMiCuenta && nuevoRol === 'user') {
         alert("🛡️ PROTOCOLO DE SEGURIDAD: No puedes quitarte el rol de Administrador a ti mismo.");
@@ -6534,13 +7017,16 @@ window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCu
     addAdminLog(`Actualizando rol de ${username} a ${nuevoRol}...`, "system");
 
     try {
+        // Verificamos si el usuario ya tiene un registro en la tabla roles
         const { data: existeRol } = await supabase.from('roles').select('id').eq('email', emailUser).maybeSingle();
 
         let errorQuery = null;
         if (existeRol) {
+            // Si existe, actualizamos
             const { error } = await supabase.from('roles').update({ rol: nuevoRol }).eq('email', emailUser);
             errorQuery = error;
         } else {
+            // Si no existe, insertamos
             const { error } = await supabase.from('roles').insert([{ email: emailUser, rol: nuevoRol }]);
             errorQuery = error;
         }
@@ -6548,13 +7034,14 @@ window.cambiarRolUsuario = async function (emailUser, username, nuevoRol, esMiCu
         if (errorQuery) throw errorQuery;
 
         addAdminLog(`Permisos de ${username} modificados con éxito.`, "success");
-        cargarTablaUsuarios();
+        cargarTablaUsuarios(); // Recargamos la tabla para reflejar los cambios
 
     } catch (err) {
         addAdminLog(`Fallo al cambiar rol de ${username}: ${err.message}`, "error");
     }
 };
 
+// Funcion global para borrar un usuario desde el panel de admin
 window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCuenta) {
     if (esMiCuenta) {
         alert("🛡️ PROTOCOLO DE SEGURIDAD: No puedes eliminar tu propia cuenta desde el panel de administrador.");
@@ -6567,19 +7054,23 @@ window.borrarUsuarioPanel = async function (idUser, emailUser, username, esMiCue
     addAdminLog(`Iniciando purga de datos para el usuario ${username}...`, "warning");
 
     try {
+        // Primero eliminamos el rol del usuario
         await supabase.from('roles').delete().eq('email', emailUser);
+        // Luego eliminamos el usuario de la tabla principal
         const { error } = await supabase.from('usuarios').delete().eq('id', idUser);
 
         if (error) throw error;
 
         addAdminLog(`Usuario ${username} eliminado de los registros exitosamente.`, "success");
-        cargarTablaUsuarios();
+        cargarTablaUsuarios(); // Recargamos la tabla
+
     } catch (err) {
         addAdminLog(`Error crítico al intentar purgar a ${username}: ${err.message}`, "error");
     }
 };
 
 // ACCIONES RÁPIDAS (Botones Globales)
+// Boton para limpiar la cache de las APIs
 document.getElementById('btn-admin-clear-cache')?.addEventListener('click', () => {
     addAdminLog("Iniciando purga de caché de APIs...", "warning");
     setTimeout(() => {
@@ -6588,6 +7079,7 @@ document.getElementById('btn-admin-clear-cache')?.addEventListener('click', () =
     }, 1200);
 });
 
+// Boton de bloqueo global (actualmente solo muestra un mensaje de "acceso denegado")
 document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
     addAdminLog("⚠️ PROTOCOLO DE BLOQUEO RECHAZADO: Se requiere autorización de nivel 5.", "error");
     showToast('error', 'Acceso Denegado', 'Se requiere autorización de nivel 5 para iniciar el Bloqueo Global.');
@@ -6596,9 +7088,11 @@ document.getElementById('btn-admin-lockdown')?.addEventListener('click', () => {
 // ==========================================================================
 //   MODAL DE TRANSMISIÓN GLOBAL (ANUNCIOS)
 // ==========================================================================
+// Referencias al modal de anuncios del panel de admin
 const modalAnnounce = document.getElementById('announce-modal');
 const btnCloseAnnounce = document.getElementById('btn-close-announce');
 btnCloseAnnounce.setAttribute('aria-label', 'Cerrar anuncio');
+// Elementos del selector de destinatarios (cyber-select personalizado)
 const selectWrapper = document.getElementById('announce-select-wrapper');
 const selectTrigger = document.getElementById('announce-select-trigger');
 const selectLabel = document.getElementById('announce-select-label');
@@ -6620,6 +7114,7 @@ function closeAnnounceModal() {
     modalAnnounce?.classList.remove('show');  // era .active
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
+    // Limpiamos los campos al cerrar
     if (announceMessage) announceMessage.value = '';
     if (announceSpecificUser) announceSpecificUser.value = '';
     if (specificUserGroup) specificUserGroup.style.display = 'none';
@@ -6630,7 +7125,7 @@ function closeAnnounceModal() {
     selectWrapper?.classList.remove('open');
 }
 
-// Abrir
+// Abrir el modal desde el boton de admin
 document.getElementById('btn-admin-announce')?.addEventListener('click', openAnnounceModal);
 
 // Cerrar con botón X
@@ -6641,18 +7136,21 @@ modalAnnounce?.addEventListener('click', (e) => {
     if (e.target === modalAnnounce) closeAnnounceModal();
 });
 
-// Cyber Select
+// Cyber Select - Selector personalizado estilo cyberpunk
+// Cuando el usuario hace click en el trigger, se abre/cierra el dropdown
 selectTrigger?.addEventListener('click', (e) => {
     e.stopPropagation();
     selectWrapper.classList.toggle('open');
 });
 
+// Cuando el usuario selecciona una opcion del dropdown
 selectOptions.forEach(opt => {
     opt.addEventListener('click', () => {
         selectOptions.forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
         selectLabel.textContent = opt.textContent.trim();
         selectInput.value = opt.dataset.value;
+        // Si selecciona "Usuario específico", mostramos el input para escribir el nombre
         specificUserGroup.style.display = opt.dataset.value === 'specific_user' ? 'flex' : 'none';
         selectWrapper.classList.remove('open');
     });
@@ -6665,12 +7163,13 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Enviar Alerta
+// Enviar Alerta - Envia el anuncio a los destinatarios seleccionados
 btnSendAnnounce?.addEventListener('click', () => {
     const target = selectInput?.value || 'all_users';
     const message = announceMessage?.value.trim();
     const specificUser = announceSpecificUser?.value.trim();
 
+    // Validaciones basicas
     if (!message) {
         showToast('error', 'Error de transmisión', 'El cuerpo del mensaje no puede estar vacío.');
         return;
@@ -6681,15 +7180,18 @@ btnSendAnnounce?.addEventListener('click', () => {
         return;
     }
 
+    // Log del destinatario para la terminal
     const destinatarioLog = target === 'all_users' ? 'Todos los Usuarios' :
         target === 'all_admins' ? 'Administradores' : specificUser;
 
     addAdminLog(`Transmitiendo mensaje a [${destinatarioLog}]: "${message}"`, "system");
 
+    // Simulamos el envio con un timeout (en el futuro esto iria a un websocket)
     setTimeout(() => {
         addAdminLog(`Transmisión completada exitosamente.`, "success");
         showToast('success', 'Transmisión Enviada', `El mensaje ha sido entregado a la red.`);
 
+        // Si es a todos o a admins, mostramos un toast adicional con el mensaje
         if (target === 'all_users' || target === 'all_admins') {
             setTimeout(() => showToast('success', 'NUEVA TRANSMISIÓN', message), 1500);
         }
@@ -6701,8 +7203,10 @@ btnSendAnnounce?.addEventListener('click', () => {
 // ==========================================================================
 //   SISTEMA DE NOTIFICACIONES FLOTANTES (TOASTS)
 // ==========================================================================
+// Funcion global para mostrar notificaciones tipo toast
 window.showToast = async function (tipo, titulo, descripcion) {
     // 1. REGLA ESTRICTA: Solo mostrar si hay sesión iniciada
+    // Esto evita spamear a usuarios no logueados
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
@@ -6724,6 +7228,7 @@ window.showToast = async function (tipo, titulo, descripcion) {
         return window.showToast(tipo, titulo, descripcion);
     }
 
+    // Cogemos la plantilla correspondiente (success o error)
     const templateId = tipo === 'success' ? 'toast-success-template' : 'toast-error-template';
     const template = document.getElementById(templateId);
 
@@ -6743,7 +7248,7 @@ window.showToast = async function (tipo, titulo, descripcion) {
     titleEl.textContent = titulo;
     descEl.textContent = descripcion;
 
-    // 6. Funcionalidad de cerrar manual
+    // 6. Funcionalidad de cerrar manual (el usuario puede cerrar el toast antes de tiempo)
     closeBtn.addEventListener('click', () => {
         wrapper.classList.add('toast-leave');
         setTimeout(() => wrapper.remove(), 250);
@@ -6769,6 +7274,7 @@ window.showToast = async function (tipo, titulo, descripcion) {
 // ==========================================================================
 //   FUNCIÓN PARA ACTUALIZAR POSICIÓN DE TOASTS EN PC (según chatbox)
 // ==========================================================================
+// Esta funcion mueve los toasts para que no se solapen con el chatbox
 function actualizarPosicionToastsPC() {
     const chatbox = document.getElementById('nexus-chatbox');
     const toastContainer = document.getElementById('toast-container');
@@ -6789,7 +7295,7 @@ function actualizarPosicionToastsPC() {
 // ==========================================================================
 //   ESCUCHAR CAMBIOS EN EL CHATBOX PARA ACTUALIZAR TOASTS
 // ==========================================================================
-// Observar cambios en la clase del chatbox
+// Observar cambios en la clase del chatbox para reposicionar los toasts
 const chatboxObserver = new MutationObserver(() => {
     const chatbox = document.getElementById('nexus-chatbox');
     if (chatbox && window.innerWidth > 768) {
@@ -6820,6 +7326,7 @@ window.addEventListener('resize', () => {
 // ==========================================================================
 //   CHATBOX Y NOTIFICACIONES FLOTANTE
 // ==========================================================================
+// Referencias al chatbox (el panel flotante de la esquina inferior derecha)
 const nexusChatbox = document.getElementById('nexus-chatbox');
 const chatboxNavBar = document.querySelector('.chatbox-nav-bar');
 const tabChat = document.getElementById('tab-btn-chat');
@@ -6828,6 +7335,7 @@ const viewChat = document.getElementById('chat-view-messages');
 const viewNotifs = document.getElementById('chat-view-notifs');
 
 // 1. Abrir/Expandir el panel
+// Funcion global para abrir el chatbox desde cualquier parte
 window.abrirChatbox = function (pestaña = 'chat') {
     if (!nexusChatbox) return;
     nexusChatbox.classList.remove('collapsed');
@@ -6860,7 +7368,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// 2. Cambio de Pestañas
+// 2. Cambio de Pestañas (Chat / Notificaciones)
 tabChat?.addEventListener('click', (e) => {
     e.stopPropagation(); // Evita que se dispare el evento del header
     nexusChatbox.classList.remove('collapsed'); // Asegura expansión
@@ -6878,13 +7386,14 @@ tabNotifs?.addEventListener('click', (e) => {
     viewNotifs.style.display = 'flex';
     viewChat.style.display = 'none';
 
-    cargarAlertas();
+    cargarAlertas(); // Cargamos las notificaciones al cambiar a la pestaña
 });
 
 // ==========================================================================
 //   LOGICA DE ALERTAS / NOTIFICACIONES (Simplificado a Seguidores)
 // ==========================================================================
 
+// Funcion que carga las alertas/notificaciones del usuario
 window.cargarAlertas = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -6892,12 +7401,14 @@ window.cargarAlertas = async function () {
     const areaNotifs = document.getElementById('chatbox-notifs-scroll');
     if (!areaNotifs) return;
 
+    // Mostramos un loader mientras se cargan los datos
     areaNotifs.innerHTML = `<div style="text-align:center; padding: 40px;"><i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px; color:var(--text-muted);">${t('chat_extra.synchronizing')}</p></div>`;
 
     try {
         const miId = session.user.id; // Usamos nuestro UUID directamente
 
         // 1. Buscamos quién nos sigue (en la tabla amistades usando receptor_id)
+        // Esto nos dice quien nos ha seguido recientemente
         const { data: seguidores, error } = await supabase
             .from('amistades')
             .select('solicitante_id, created_at')
@@ -6906,6 +7417,7 @@ window.cargarAlertas = async function () {
 
         if (error) throw error;
 
+        // Si no hay seguidores, mostramos un mensaje vacio
         if (!seguidores || seguidores.length === 0) {
             areaNotifs.innerHTML = `
                 <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
@@ -6919,6 +7431,7 @@ window.cargarAlertas = async function () {
         const solicitantesIds = seguidores.map(s => s.solicitante_id);
         const { data: perfiles } = await supabase.from('perfiles_publicos').select('auth_id, username, avatar').in('auth_id', solicitantesIds);
 
+        // Limpiamos y pintamos las notificaciones
         areaNotifs.innerHTML = '';
 
         seguidores.forEach(seg => {
@@ -6949,6 +7462,7 @@ window.cargarAlertas = async function () {
 };
 
 // 3. Escuchador inteligente para abrir el chat
+// Cuando el usuario hace click en "Mensajes" en las estadisticas del perfil, abre el chat
 document.addEventListener('click', (e) => {
     const statBoxClick = e.target.closest('.stat-box');
     if (statBoxClick) {
@@ -6962,6 +7476,7 @@ document.addEventListener('click', (e) => {
 // ==========================================================================
 //   MODAL DE LISTAS SOCIALES (SIGUIENDO / SEGUIDORES)
 // ==========================================================================
+// Referencias al modal que muestra la lista de seguidos/seguidores
 const socialModal = document.getElementById('social-list-modal');
 const btnCloseSocial = document.getElementById('close-social-list-modal');
 btnCloseSocial.setAttribute('aria-label', 'Cerrar lista social');
@@ -6974,12 +7489,14 @@ const btnSocialPrev = document.getElementById('btn-social-prev');
 const btnSocialNext = document.getElementById('btn-social-next');
 const socialIcon = document.querySelector('#social-list-icon i');
 
+// Variables de estado para la paginacion
 let currentSocialType = 'siguiendo'; // 'siguiendo' o 'seguidores'
 let currentSocialPage = 1;
 const ITEMS_PER_SOCIAL_PAGE = 8; // Cuántos usuarios mostrar por página
 let totalSocialItems = 0;
 
 // 1. Abrir Modal
+// Funcion global para abrir la lista de seguidos o seguidores
 window.abrirListaSocial = function (tipo) {
     currentSocialType = tipo;
     currentSocialPage = 1; // Reiniciamos a la página 1 siempre que se abre
@@ -6988,6 +7505,7 @@ window.abrirListaSocial = function (tipo) {
     document.body.classList.add('no-scroll');
     document.documentElement.classList.add('no-scroll');
 
+    // Cambiamos el titulo y el icono segun el tipo
     if (tipo === 'siguiendo') {
         socialTitle.textContent = 'SIGUIENDO';
         socialSubtitle.textContent = 'Usuarios a los que sigue';
@@ -7018,11 +7536,12 @@ socialModal?.addEventListener('click', (e) => {
 });
 
 // 3. Cargar Datos Paginados de Supabase
+// Funcion que carga los datos de seguidos/seguidores con paginacion
 async function cargarDatosSociales() {
     const usuarioVisto = document.getElementById('main-profile-username')?.textContent;
     if (!usuarioVisto) return;
 
-    // Saber quién soy yo (Mi ID)
+    // Saber quién soy yo (Mi ID) para mostrar botones de "dejar de seguir" si es mi perfil
     const { data: { session } } = await supabase.auth.getSession();
     let miId = session?.user?.id;
 
@@ -7045,12 +7564,12 @@ async function cargarDatosSociales() {
         let query = supabase.from('amistades').select('*', { count: 'exact' });
 
         if (currentSocialType === 'siguiendo') {
-            query = query.eq('solicitante_id', targetId);
+            query = query.eq('solicitante_id', targetId); // Usuarios a los que sigue
         } else {
-            query = query.eq('receptor_id', targetId);
+            query = query.eq('receptor_id', targetId); // Usuarios que le siguen
         }
 
-        // Ordenar y aplicar límite
+        // Ordenar y aplicar límite (paginacion)
         const { data: relaciones, count, error } = await query
             .order('created_at', { ascending: false })
             .range(fromIdx, toIdx);
@@ -7064,6 +7583,7 @@ async function cargarDatosSociales() {
         btnSocialPrev.disabled = currentSocialPage <= 1;
         btnSocialNext.disabled = currentSocialPage >= totalPages;
 
+        // Si no hay resultados
         if (!relaciones || relaciones.length === 0) {
             socialEmpty.innerHTML = '<i class="fas fa-user-astronaut fa-fade empty-icon"></i><p id="social-empty-text">La red está vacía.</p>';
             return;
@@ -7073,7 +7593,7 @@ async function cargarDatosSociales() {
         const idsBuscar = relaciones.map(r => currentSocialType === 'siguiendo' ? r.receptor_id : r.solicitante_id);
         const { data: perfiles } = await supabase.from('perfiles_publicos').select('auth_id, username, avatar').in('auth_id', idsBuscar);
 
-        // Pintar cuadrícula
+        // Pintar cuadrícula con los resultados
         socialEmpty.style.display = 'none';
         socialGrid.style.display = 'grid';
         socialGrid.innerHTML = '';
@@ -7088,7 +7608,7 @@ async function cargarDatosSociales() {
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
                 : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
-            // Botón de Dejar de Seguir (Comparamos MI ID con el TARGET ID)
+            // Botón de Dejar de Seguir (solo si estamos viendo nuestro propio perfil y es la lista de "siguiendo")
             let actionBtnHtml = '';
             if (currentSocialType === 'siguiendo' && miId === targetId) {
                 actionBtnHtml = `
@@ -7137,8 +7657,9 @@ btnSocialNext?.addEventListener('click', () => {
 });
 
 // 5. Función de Dejar de Seguir (Ahora usa ID)
+// Permite al usuario dejar de seguir a alguien desde la lista
 window.dejarDeSeguir = async function (targetId, targetUsername, btnElement, evento) {
-    evento.stopPropagation();
+    evento.stopPropagation(); // Evita que se abra el perfil al hacer click en el boton
 
     if (!confirm(`¿Estás seguro de que quieres dejar de seguir a ${targetUsername}?`)) return;
 
@@ -7147,6 +7668,7 @@ window.dejarDeSeguir = async function (targetId, targetUsername, btnElement, eve
         if (!session) return;
         const miId = session.user.id;
 
+        // Eliminamos la relacion de amistad
         const { error } = await supabase.from('amistades')
             .delete()
             .eq('solicitante_id', miId)
@@ -7156,9 +7678,11 @@ window.dejarDeSeguir = async function (targetId, targetUsername, btnElement, eve
 
         showToast('warning', 'Enlace cortado', `Has dejado de seguir a ${targetUsername}.`);
 
+        // Ocultamos la tarjeta del usuario que hemos dejado de seguir
         const card = btnElement.closest('.friend-user-card');
         if (card) card.style.display = 'none';
 
+        // Recargamos el perfil para actualizar los contadores
         const mainProfileUsername = document.getElementById('main-profile-username')?.textContent;
         if (mainProfileUsername) cargarPerfilPublico(mainProfileUsername);
 
@@ -7178,6 +7702,7 @@ window.irAPerfilDesdeLista = function (usernameTarget) {
 //   SISTEMA DE VISIONADO Y NOTA PERSONAL
 // ==========================================================================
 
+// Variable global que guarda el estado del media que se esta viendo en el modal
 window.estadoMediaActual = null; // Guardará en RAM el estado del modal abierto
 
 // 1. DIBUJAR INTERFAZ: Esta función pinta las estrellas, el ojo y el badge según los datos
@@ -7194,9 +7719,11 @@ window.actualizarUIMediaPersonal = async function (data) {
     const iconWatchStatus = document.getElementById('icon-watch-status');
     const btnWatchToggle = document.getElementById('btn-watch-toggle');
 
+    // Si el media esta visto
     if (window.estadoMediaActual.visto) {
         watchDate.textContent = window.estadoMediaActual.fecha_vista || '--';
 
+        // Badge de veces vistas (x2, x3, etc.)
         let badgeText = '';
         if (window.estadoMediaActual.veces_vista > 1) {
             let num = window.estadoMediaActual.veces_vista;
@@ -7228,6 +7755,7 @@ window.actualizarUIMediaPersonal = async function (data) {
             btnWatchToggle.classList.add('watched');
         }
 
+        // Texto de la nota personal
         if (window.estadoMediaActual.nota_personal !== null && window.estadoMediaActual.nota_personal !== undefined) {
             personalText.textContent = t('details_extra.your_rating');
         } else {
@@ -7235,6 +7763,7 @@ window.actualizarUIMediaPersonal = async function (data) {
         }
 
     } else {
+        // Si el media NO esta visto
         watchDate.textContent = '--';
 
         const badgeElement = document.getElementById('watch-count-badge');
@@ -7259,8 +7788,10 @@ window.actualizarUIMediaPersonal = async function (data) {
         personalText.textContent = t('details_extra.click_to_rate');
     }
 
+    // Resetear las estrellas de la nota personal
     resetearEstrellasPersonal();
 
+    // LOGICA DE FAVORITOS: Solo mostrar el boton si el usuario ha visto el contenido
     const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
     const tipo = memoInfo.tipo;
 
@@ -7286,6 +7817,7 @@ window.actualizarUIMediaPersonal = async function (data) {
 };
 
 // 2. SINCRONIZAR CON BASE DE DATOS
+// Funcion que guarda en Supabase el estado de visionado y nota personal
 async function guardarInteraccionMedia(updates) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -7301,7 +7833,7 @@ async function guardarInteraccionMedia(updates) {
     actualizarUIMediaPersonal(window.estadoMediaActual); // Actualiza la UI instantáneamente (sensación de rapidez)
 
     try {
-        // Buscamos si ya existe el registro
+        // Buscamos si ya existe el registro en la base de datos
         const { data: exist } = await supabase
             .from('user_media')
             .select('id')
@@ -7311,6 +7843,7 @@ async function guardarInteraccionMedia(updates) {
             .maybeSingle();
 
         if (exist) {
+            // Si existe, actualizamos
             await supabase.from('user_media').update({
                 visto: window.estadoMediaActual.visto,
                 veces_vista: window.estadoMediaActual.veces_vista,
@@ -7318,6 +7851,7 @@ async function guardarInteraccionMedia(updates) {
                 nota_personal: window.estadoMediaActual.nota_personal
             }).eq('id', exist.id);
         } else {
+            // Si no existe, insertamos
             await supabase.from('user_media').insert({
                 user_id: session.user.id,
                 media_id: memoInfo.id.toString(),
@@ -7345,14 +7879,15 @@ btnToggleWatched?.addEventListener('click', (e) => {
     if (!window.estadoMediaActual) return;
 
     if (window.estadoMediaActual.visto) {
-        // Si YA está vista, el toque abre el menú directamente
+        // Si YA está vista, el toque abre el menú directamente (para cambiar a no vista o rewatch)
         contextMenuWatched.style.display = 'block';
         contextMenuWatched.classList.toggle('show');
     } else {
+        // Si NO está vista, la marcamos como vista (con fecha de hoy)
         const fechaHoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
         guardarInteraccionMedia({ visto: true, veces_vista: 1, fecha_vista: fechaHoy });
 
-        // Si es serie, marca todos los episodios de golpe
+        // Si es serie, marca todos los episodios de golpe (por si el usuario quiere marcar toda la serie)
         const memoInfo = JSON.parse(localStorage.getItem('modalMediaAbierto') || '{}');
         if (memoInfo.tipo === 'tv' && window.gestionarBloqueEpisodios) {
             window.gestionarBloqueEpisodios('marcar', null);
@@ -7360,7 +7895,7 @@ btnToggleWatched?.addEventListener('click', (e) => {
     }
 });
 
-// Mantenemos el CLIC DERECHO por instinto para los usuarios de PC
+// Mantenemos el CLIC DERECHO por instinto para los usuarios de PC (abre el menu contextual)
 btnToggleWatched?.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -7376,6 +7911,7 @@ document.addEventListener('click', (e) => {
 });
 
 // Botón "Vista de nuevo" (Suma x2, x3...)
+// Incrementa el contador de veces vistas
 document.getElementById('btn-context-rewatch')?.addEventListener('click', () => {
     contextMenuWatched.classList.remove('show');
     if (!window.estadoMediaActual) return;
@@ -7384,6 +7920,7 @@ document.getElementById('btn-context-rewatch')?.addEventListener('click', () => 
 });
 
 // Botón "Cambiar a NO VISTA" (Resetea todo)
+// Marca el contenido como no visto y resetea todos los datos
 document.getElementById('btn-context-unwatch')?.addEventListener('click', () => {
     contextMenuWatched.classList.remove('show');
     guardarInteraccionMedia({ visto: false, veces_vista: 0, fecha_vista: null, nota_personal: null });
@@ -7400,6 +7937,7 @@ document.getElementById('btn-context-unwatch')?.addEventListener('click', () => 
 // ==========================================================================
 
 // Función para actualizar las estrellas según la nota (0-10)
+// Convierte una nota de 0-10 a estrellas de 0-5 (con medias estrellas)
 function actualizarEstrellasPersonal(nota) {
     const stars = document.querySelectorAll('#media-detail-personal-stars i');
     const notaSobre5 = nota / 2; // 0-10 -> 0-5
@@ -7407,16 +7945,17 @@ function actualizarEstrellasPersonal(nota) {
     stars.forEach((star, index) => {
         const starValue = index + 1; // 1, 2, 3, 4, 5
         if (notaSobre5 >= starValue) {
-            star.className = 'fas fa-star';
+            star.className = 'fas fa-star'; // Estrella completa
         } else if (notaSobre5 >= starValue - 0.5) {
-            star.className = 'fas fa-star-half-alt';
+            star.className = 'fas fa-star-half-alt'; // Media estrella
         } else {
-            star.className = 'far fa-star';
+            star.className = 'far fa-star'; // Estrella vacia
         }
     });
 }
 
 // Función para resetear las estrellas al estado guardado
+// Vuelve a poner las estrellas como estaban antes de que el usuario pasara el raton por encima
 function resetearEstrellasPersonal() {
     const stars = document.querySelectorAll('#media-detail-personal-stars i');
     const starsContainer = document.getElementById('media-detail-personal-stars');
@@ -7424,10 +7963,12 @@ function resetearEstrellasPersonal() {
     const notaActual = window.estadoMediaActual?.nota_personal || null;
 
     if (notaActual !== null && notaActual !== undefined) {
+        // Si tiene nota guardada, la mostramos
         actualizarEstrellasPersonal(notaActual);
         starsContainer.classList.add('voted');
         personalText.textContent = 'Tu nota personal';
     } else {
+        // Si no tiene nota, mostramos estrellas vacias
         stars.forEach(star => star.className = 'far fa-star');
         starsContainer.classList.remove('voted');
         personalText.textContent = 'Haz clic para puntuar';
@@ -7435,14 +7976,16 @@ function resetearEstrellasPersonal() {
 }
 
 // EVENTO: Hover sobre las estrellas (se iluminan con medias estrellas)
+// Cuando el usuario pasa el raton por encima, las estrellas se iluminan mostrando la nota que daria
 document.addEventListener('mouseover', (e) => {
     const star = e.target.closest('#media-detail-personal-stars i');
     if (!star) return;
 
     const starsContainer = document.getElementById('media-detail-personal-stars');
+    // Si ya tiene una nota guardada, no permitimos hover (para no confundir)
     if (starsContainer.classList.contains('voted')) return;
 
-    // Obtener posición del mouse dentro de la estrella
+    // Obtener posición del mouse dentro de la estrella para saber si es media o completa
     const rect = star.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const isHalf = mouseX < rect.width / 2;
@@ -7450,6 +7993,7 @@ document.addEventListener('mouseover', (e) => {
     const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
     const stars = starsContainer.querySelectorAll('i');
 
+    // Pintamos las estrellas segun la posicion del raton
     stars.forEach((s, index) => {
         s.className = 'far fa-star';
         s.style.color = '';
@@ -7468,7 +8012,7 @@ document.addEventListener('mouseover', (e) => {
         }
     });
 
-    // Mostrar nota temporal
+    // Mostrar nota temporal (mientras el raton esta encima)
     let nota = (starIndex) * 2; // Estrellas completas antes
     if (isHalf) {
         nota += 1; // +1 por la media
@@ -7479,6 +8023,7 @@ document.addEventListener('mouseover', (e) => {
 });
 
 // EVENTO: Salir del hover (resetear)
+// Cuando el raton sale de las estrellas, volvemos al estado guardado
 document.addEventListener('mouseout', (e) => {
     const starsContainer = document.getElementById('media-detail-personal-stars');
     if (!e.target.closest('#media-detail-personal-stars') && !e.target.closest('#media-detail-personal-text')) {
@@ -7487,6 +8032,7 @@ document.addEventListener('mouseout', (e) => {
 });
 
 // EVENTO: Click en estrella (guardar nota)
+// Cuando el usuario hace click en una estrella, guardamos la nota en la base de datos
 document.addEventListener('click', (e) => {
     const star = e.target.closest('#media-detail-personal-stars i');
     if (!star) return;
@@ -7494,7 +8040,7 @@ document.addEventListener('click', (e) => {
     // Solo verificamos que la tarjeta esté cargada, sin importar si está vista o no
     if (!window.estadoMediaActual) return;
 
-    // Calcular nota basada en hover
+    // Calcular nota basada en hover (usamos la misma logica que en el hover)
     const starsContainer = document.getElementById('media-detail-personal-stars');
     const starIndex = Array.from(starsContainer.querySelectorAll('i')).indexOf(star);
 
@@ -7510,9 +8056,10 @@ document.addEventListener('click', (e) => {
         nota += 2; // +2 por la estrella completa
     }
 
-    // Limitar a 10
+    // Limitar a 10 (nota maxima)
     nota = Math.min(nota, 10);
 
+    // Guardamos la nota en la base de datos
     guardarInteraccionMedia({ nota_personal: nota });
 });
 
@@ -7521,10 +8068,11 @@ document.addEventListener('click', (e) => {
 // ==========================================================================
 
 // 1. DIBUJAR LOS BOTONES (Sincroniza la UI con la RAM)
+// Refresca todos los botones de temporadas y episodios para reflejar el estado actual
 window.refrescarUIEpisodiosYTemporadas = function () {
     if (!window.serieInfoActual) return;
 
-    // Refrescar Temporadas
+    // Refrescar Temporadas (botones de marcar temporada completa)
     document.querySelectorAll('.btn-watch-season').forEach(btn => {
         const s = parseInt(btn.getAttribute('data-season'));
         const totalEp = parseInt(btn.getAttribute('data-episodes'));
@@ -7534,6 +8082,7 @@ window.refrescarUIEpisodiosYTemporadas = function () {
             if (window.episodiosVistosActuales.has(`${s}_${i}`)) vistosDeEstaTemp++;
         }
 
+        // Si todos los episodios de la temporada estan vistos, el boton se pone verde
         if (vistosDeEstaTemp === totalEp && totalEp > 0) {
             btn.style.color = 'var(--primary)';
             btn.style.borderColor = 'var(--primary)';
@@ -7545,7 +8094,7 @@ window.refrescarUIEpisodiosYTemporadas = function () {
         }
     });
 
-    // Refrescar Episodios cargados
+    // Refrescar Episodios cargados (botones individuales de cada episodio)
     document.querySelectorAll('.btn-watch-episode').forEach(btn => {
         const s = parseInt(btn.getAttribute('data-season'));
         const e = parseInt(btn.getAttribute('data-episode'));
@@ -7561,10 +8110,11 @@ window.refrescarUIEpisodiosYTemporadas = function () {
         }
     });
 
-    actualizarBarraProgresoSeries();
+    actualizarBarraProgresoSeries(); // Actualizamos tambien la barra de progreso
 };
 
 // 2. FUNCIÓN MAESTRA DE INYECCIÓN (Sirve para 1 Temporada o TODA la serie)
+// Marca o desmarca episodios en bloque (toda una temporada o toda la serie)
 window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -7576,9 +8126,10 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
     let nuevosVistos = [];
     let aBorrarKeys = [];
 
+    // Recorremos todas las temporadas de la serie
     window.serieInfoActual.temporadas.forEach(temp => {
         const s = temp.season_number;
-        if (s === 0) return; // Saltamos especiales
+        if (s === 0) return; // Saltamos especiales (season_number 0)
 
         // Si mandamos un target (ej: season 2), ignoramos las demás
         if (seasonTarget !== null && s !== seasonTarget) return;
@@ -7603,7 +8154,7 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
         }
     });
 
-    // Mandar a Supabase
+    // Mandar a Supabase las inserciones o borrados
     if (modo === 'marcar' && nuevosVistos.length > 0) {
         await supabase.from('user_media').insert(nuevosVistos);
     } else if (modo === 'desmarcar' && aBorrarKeys.length > 0) {
@@ -7624,6 +8175,7 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
         }
     }
 
+    // Refrescamos la UI para reflejar los cambios
     window.refrescarUIEpisodiosYTemporadas();
 
     // --- Sincronizar Watchlist al instante ---
@@ -7638,6 +8190,7 @@ window.gestionarBloqueEpisodios = async function (modo, seasonTarget = null) {
 };
 
 // 3. LISTENERS GLOBALES (Clics de UI)
+// Escuchamos todos los clics en la pagina para manejar los botones de temporadas y episodios
 document.addEventListener('click', async (e) => {
 
     // A. CLIC EN BOTÓN DE TEMPORADA
@@ -7657,12 +8210,15 @@ document.addEventListener('click', async (e) => {
             if (window.episodiosVistosActuales.has(`${season}_${i}`)) vistos++;
         }
 
+        // Mostramos spinner mientras se procesa
         btnSeason.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         if (vistos === totalEp) {
+            // Si ya estaba completa, la desmarcamos entera
             await window.gestionarBloqueEpisodios('desmarcar', season);
             showToast('warning', 'Desmarcada', `Temporada ${season} no vista.`);
         } else {
+            // Si no estaba completa, la marcamos entera
             await window.gestionarBloqueEpisodios('marcar', season);
             showToast('success', 'Completada', `Temporada ${season} marcada.`);
         }
@@ -7679,6 +8235,7 @@ document.addEventListener('click', async (e) => {
         const episode = parseInt(btnEp.getAttribute('data-episode'));
         const isWatched = window.episodiosVistosActuales.has(`${season}_${episode}`);
 
+        // Mostramos spinner mientras se procesa
         btnEp.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
         if (isWatched) {
@@ -7688,12 +8245,13 @@ document.addEventListener('click', async (e) => {
             window.episodiosVistosActuales.delete(`${season}_${episode}`);
             window.refrescarUIEpisodiosYTemporadas();
 
-            // Sincronizar
+            // Sincronizar watchlist
             if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
 
             actualizarBarraProgresoSeries();
         } else {
             // Marcar este y TODOS LOS ANTERIORES (Magia cascada)
+            // Cuando marcas un episodio, automaticamente se marcan todos los anteriores
             const miId = session.user.id;
             const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
             let nuevosVistos = [];
@@ -7719,7 +8277,7 @@ document.addEventListener('click', async (e) => {
             window.refrescarUIEpisodiosYTemporadas();
             showToast('success', 'Progreso guardado', `Visto hasta T${season} - E${episode}`);
 
-            // Sincronizar
+            // Sincronizar watchlist
             if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
 
             actualizarBarraProgresoSeries();
@@ -7731,7 +8289,8 @@ document.addEventListener('click', async (e) => {
 //   MENÚ CONTEXTUAL FLOTANTE PARA LAS TARJETAS (PELÍCULAS/SERIES)
 // ==========================================================================
 
-// Fabricamos el menú HTML dinámico
+// Fabricamos el menú HTML dinámico para las tarjetas de peliculas/series
+// Este menu aparece al hacer click en el ojo de una tarjeta que ya esta marcada como vista
 const cardMenu = document.createElement('div');
 cardMenu.className = 'theme-menu user-menu-panel';
 cardMenu.id = 'card-watch-menu';
@@ -7748,11 +8307,14 @@ cardMenu.innerHTML = `
 `;
 document.body.appendChild(cardMenu);
 
+// Variable que guarda a que tarjeta pertenece el menu abierto
 let targetCardData = null; // Guardará a qué tarjeta hemos clicado
 
+// Funcion global que abre el menu contextual de una tarjeta
 window.abrirMenuTarjeta = function (e, btn) {
     e.stopPropagation(); // Evita que al hacer clic se abra el modal gigante de la peli
 
+    // Guardamos los datos de la tarjeta
     targetCardData = {
         id: btn.getAttribute('data-id'),
         tipo: btn.getAttribute('data-tipo'),
@@ -7785,6 +8347,7 @@ document.addEventListener('click', (e) => {
 });
 
 // === ACCIÓN 1: Ver de Nuevo (x2, x3...) ===
+// Incrementa el contador de veces vistas desde la tarjeta
 document.getElementById('btn-card-rewatch')?.addEventListener('click', async (e) => {
     e.stopPropagation();
     if (!targetCardData) return;
@@ -7809,6 +8372,7 @@ document.getElementById('btn-card-rewatch')?.addEventListener('click', async (e)
     const { error } = await query;
 
     if (!error) {
+        // Actualizamos el boton con el nuevo contador
         targetCardData.btnElement.setAttribute('data-veces', nuevaVez);
         const badgeExtra = nuevaVez > 1 ? `<span style="position: absolute; top: -8px; right: -8px; background: var(--primary); font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; font-weight: bold; border: 1px solid var(--bg-card); color: white;">${nuevaVez > 20 ? '+20' : 'x' + nuevaVez}</span>` : '';
         targetCardData.btnElement.innerHTML = `<i class="fas fa-eye" style="font-size: 0.9rem;"></i>${badgeExtra}`;
@@ -7820,6 +8384,7 @@ document.getElementById('btn-card-rewatch')?.addEventListener('click', async (e)
 });
 
 // === ACCIÓN 2: Desmarcar Todo ===
+// Marca el contenido como no visto desde la tarjeta
 document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e) => {
     e.stopPropagation();
     if (!targetCardData) return;
@@ -7843,6 +8408,7 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
     const { error } = await query;
 
     if (!error) {
+        // Si es una serie, tambien borramos todos los episodios
         if (targetCardData.tipo === 'tv') {
             await supabase.from('user_media')
                 .delete()
@@ -7850,7 +8416,7 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
                 .eq('tipo', 'tv_episode')
                 .like('media_id', `${targetCardData.id}_T%`);
 
-            // Sincronizar
+            // Sincronizar watchlist
             if (window.sincronizarWatchlistGlobal) window.sincronizarWatchlistGlobal();
         }
 
@@ -7875,6 +8441,7 @@ document.getElementById('btn-card-unwatch')?.addEventListener('click', async (e)
 // ==========================================================================
 //   FORMATEAR TIEMPO EN DÍAS/HORAS/MINUTOS
 // ==========================================================================
+// Funcion auxiliar que convierte minutos a un formato legible (dias, horas, minutos)
 function formatearTiempo(minutos) {
     if (!minutos || minutos === 0) return "--";
 
@@ -7894,6 +8461,7 @@ function formatearTiempo(minutos) {
 //   BARRA DE PROGRESO DE EPISODIOS (MODAL SERIES)
 // ==========================================================================
 
+// Funcion que actualiza la barra de progreso de una serie en el modal
 function actualizarBarraProgresoSeries() {
     // Solo ejecutar si estamos en una serie
     const tipo = modalMedia.getAttribute('data-current-type');
@@ -7913,7 +8481,7 @@ function actualizarBarraProgresoSeries() {
 
     if (!container || !bar) return;
 
-    // Calcular total de episodios de la serie
+    // Calcular total de episodios de la serie (excluyendo especiales)
     let totalEpisodios = 0;
     if (window.serieInfoActual && window.serieInfoActual.temporadas) {
         window.serieInfoActual.temporadas.forEach(temp => {
@@ -7944,7 +8512,7 @@ function actualizarBarraProgresoSeries() {
     if (totalEl) totalEl.textContent = totalEpisodios;
     if (percentEl) percentEl.textContent = porcentajeRedondeado;
 
-    // Actualizar barra (con animación suave)
+    // Actualizar barra (con animación suave via CSS)
     bar.style.width = `${porcentaje}%`;
 
     // Actualizar color de la barra según el color del usuario
@@ -7954,7 +8522,7 @@ function actualizarBarraProgresoSeries() {
     // Mostrar el contenedor
     container.style.display = 'block';
 
-    // Actualizar estado y etiqueta
+    // Actualizar estado y etiqueta (completada o en progreso)
     if (statusEl) {
         if (vistos >= totalEpisodios && totalEpisodios > 0) {
             statusEl.textContent = t('series.completed');
@@ -7971,6 +8539,7 @@ function actualizarBarraProgresoSeries() {
 // ==========================================================================
 //   MARCAR COMO VISTA DESDE LA TARJETA (SOLO PELÍCULAS)
 // ==========================================================================
+// Funcion global que permite marcar una pelicula como vista directamente desde la tarjeta
 window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
     e.stopPropagation(); // Evita que se abra el modal gigante
 
@@ -7985,6 +8554,7 @@ window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
 
     const hoy = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 
+    // Insertamos el registro en la base de datos
     const { data, error } = await supabase.from('user_media').insert({
         user_id: session.user.id,
         media_id: mediaId.toString(),
@@ -8018,11 +8588,12 @@ window.marcarVistaRapida = async function (e, btn, mediaId, tipo) {
 // ==========================================================================
 
 // Variables globales para el perfil
-let perfilDataActual = {};
-let timeoutOcultarCorreo = null;
-let vistaAnteriorAlEditar = 'profile';
+let perfilDataActual = {}; // Guarda los datos del perfil en memoria
+let timeoutOcultarCorreo = null; // Timeout para ocultar el correo automaticamente
+let vistaAnteriorAlEditar = 'profile'; // Guarda la vista anterior para volver
 
 // === FUNCIÓN: Cargar datos del perfil en el formulario ===
+// Esta funcion se llama al entrar a la vista de editar perfil
 async function cargarDatosPerfil() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -8031,6 +8602,7 @@ async function cargarDatosPerfil() {
     }
 
     try {
+        // Traemos todos los datos del usuario desde la tabla 'usuarios'
         const { data: perfil, error } = await supabase
             .from('usuarios')
             .select('*')
@@ -8041,7 +8613,7 @@ async function cargarDatosPerfil() {
 
         perfilDataActual = perfil || {};
 
-        // Rellenar campos del formulario
+        // Rellenar campos del formulario con los datos del perfil
         const emailDisplay = document.getElementById('edit-email-display');
         if (emailDisplay) emailDisplay.textContent = session.user.email;
 
@@ -8064,6 +8636,7 @@ async function cargarDatosPerfil() {
             genderSelect.value = sexo;
 
             // ACTUALIZAR EL LABEL DEL SELECTOR PERSONALIZADO
+            // El selector de sexo es un dropdown personalizado estilo cyberpunk
             const genderLabel = document.getElementById('gender-select-label');
             const genderInput = document.getElementById('edit-gender');
             if (genderLabel && genderInput) {
@@ -8081,16 +8654,16 @@ async function cargarDatosPerfil() {
             }
         }
 
-        // Correo borroso
+        // Correo borroso (por seguridad, el correo se muestra borroso por defecto)
         const emailContainer = document.getElementById('edit-email-container');
         if (emailContainer) {
             emailContainer.classList.add('blurred');
         }
 
-        // Actualizar contador
+        // Actualizar contador de caracteres de la descripcion
         actualizarContadorCaracteres();
 
-        // Panel de información
+        // Panel de información (la parte derecha del formulario con datos estáticos)
         const infoUsername = document.getElementById('edit-profile-username-display');
         const infoJoined = document.getElementById('edit-profile-joined-display');
         const infoColorText = document.getElementById('edit-profile-color-text');
@@ -8109,6 +8682,7 @@ async function cargarDatosPerfil() {
             infoJoined.textContent = '--';
         }
 
+        // Mostrar el color actual del usuario
         const color = perfil?.color_destacado || '#6366f1';
         if (infoColorText) infoColorText.textContent = color;
         if (infoColorDot) infoColorDot.style.background = color;
@@ -8120,12 +8694,14 @@ async function cargarDatosPerfil() {
 }
 
 // === FUNCIÓN: Actualizar contador de caracteres ===
+// Actualiza el contador de la descripcion mientras el usuario escribe
 function actualizarContadorCaracteres() {
     const descInput = document.getElementById('edit-description');
     const counter = document.getElementById('edit-char-counter');
     if (descInput && counter) {
         const current = descInput.value.length;
         counter.textContent = `${current}/1500`;
+        // Si pasa de 1500, se pone rojo (pero ya tenemos validacion al guardar)
         if (current > 1500) {
             counter.style.color = 'var(--error)';
         } else {
@@ -8135,6 +8711,7 @@ function actualizarContadorCaracteres() {
 }
 
 // === FUNCIÓN: Actualizar vista previa del color ===
+// Muestra el color seleccionado en el circulo de preview
 function actualizarVistaPreviaColor(color) {
     const preview = document.getElementById('edit-color-preview');
     if (preview) {
@@ -8144,6 +8721,7 @@ function actualizarVistaPreviaColor(color) {
 }
 
 // === FUNCIÓN: Manejar el correo borroso ===
+// Al hacer click en el correo, se revela temporalmente (5 minutos)
 function toggleCorreoVisibility() {
     const container = document.getElementById('edit-email-container');
     if (!container) return;
@@ -8173,6 +8751,8 @@ function toggleCorreoVisibility() {
     }
 }
 
+// === FUNCIÓN: Guardar cambios del perfil ===
+// Esta funcion se ejecuta al hacer click en "Guardar Cambios"
 async function guardarCambiosPerfil(e) {
     if (e) e.preventDefault();
 
@@ -8182,6 +8762,7 @@ async function guardarCambiosPerfil(e) {
         return;
     }
 
+    // Recogemos los valores del formulario
     const username = document.getElementById('edit-username').value.trim();
     const nombre = document.getElementById('edit-firstname').value.trim();
     const apellidos = document.getElementById('edit-lastname').value.trim();
@@ -8190,6 +8771,7 @@ async function guardarCambiosPerfil(e) {
     const colorPicker = document.getElementById('edit-color-picker');
     const colorHex = colorPicker ? colorPicker.value : '#6366f1';
 
+    // Validaciones basicas
     if (!username || username.length < 3) {
         showToast('error', 'Error', 'El nombre de usuario debe tener al menos 3 caracteres.');
         return;
@@ -8200,6 +8782,7 @@ async function guardarCambiosPerfil(e) {
         return;
     }
 
+    // Cambiamos el boton a "cargando" para feedback visual
     const btnGuardar = document.getElementById('btn-save-profile');
     const textoOriginal = btnGuardar.innerHTML;
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
@@ -8223,7 +8806,8 @@ async function guardarCambiosPerfil(e) {
 
         if (errorUpdate) throw errorUpdate;
 
-        // 2. ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos. Si la vista tiene WITH CHECK OPTION, esto funcionará
+        // 2. ACTUALIZAR DIRECTAMENTE LA VISTA perfiles_publicos
+        // La vista se actualiza automaticamente, pero por si acaso lo hacemos manualmente
         const { error: errorView } = await supabase
             .from('perfiles_publicos')
             .update({
@@ -8238,11 +8822,12 @@ async function guardarCambiosPerfil(e) {
 
         if (errorView) {
             console.warn('⚠️ No se pudo actualizar perfiles_publicos directamente:', errorView);
-            // Si falla, intentamos con RPC
+            // Si falla, intentamos con RPC (funcion de Supabase)
             await supabase.rpc('refresh_perfil_publico', { user_id: session.user.id });
         }
 
         // 3. ACTUALIZAR LA SESIÓN DE SUPABASE (para que el cambio sea inmediato)
+        // Esto actualiza los metadatos del usuario en la sesion actual
         await supabase.auth.updateUser({
             data: {
                 username: username,
@@ -8258,14 +8843,14 @@ async function guardarCambiosPerfil(e) {
         localStorage.setItem('dp_user_color', colorHex);
         localStorage.removeItem('dp_user_color_temp');
 
-        // Actualizar UI
+        // Actualizar UI (nombre en el menu de usuario y en el perfil)
         const dropdownUsername = document.getElementById('dropdown-username');
         if (dropdownUsername) dropdownUsername.textContent = username;
 
         const mainProfileUsername = document.getElementById('main-profile-username');
         if (mainProfileUsername) mainProfileUsername.textContent = username;
 
-        // FORZAR RECARGA DE PERFIL PÚBLICO
+        // FORZAR RECARGA DE PERFIL PÚBLICO (para que se vean los cambios)
         await cargarPerfilPublico(username);
 
         showToast('success', '¡Guardado!', `Usuario actualizado a: ${username}`);
@@ -8273,7 +8858,7 @@ async function guardarCambiosPerfil(e) {
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
 
-        // Volver al perfil
+        // Volver al perfil despues de guardar
         setTimeout(() => {
             cambiarVista('profile', true, username);
         }, 1500);
@@ -8286,6 +8871,8 @@ async function guardarCambiosPerfil(e) {
     }
 }
 
+// === FUNCIÓN: Limpiar vista de editar perfil ===
+// Se llama al salir de la vista de edicion para limpiar estados temporales
 function limpiarVistaEditarPerfil() {
     // Ocultar correo automáticamente
     const emailContainer = document.getElementById('edit-email-container');
@@ -8293,13 +8880,13 @@ function limpiarVistaEditarPerfil() {
         emailContainer.classList.add('blurred');
     }
 
-    // Limpiar timeout
+    // Limpiar timeout de revelado de correo
     if (timeoutOcultarCorreo) {
         clearTimeout(timeoutOcultarCorreo);
         timeoutOcultarCorreo = null;
     }
 
-    // RESTAURAR EL COLOR GUARDADO DEL USUARIO
+    // RESTAURAR EL COLOR GUARDADO DEL USUARIO (descartar cambios temporales)
     const colorGuardado = localStorage.getItem('dp_user_color') || '#6366f1';
     aplicarColorDinamico(colorGuardado);
 
@@ -8308,14 +8895,16 @@ function limpiarVistaEditarPerfil() {
 }
 
 // === INICIALIZACIÓN DE LISTENERS ===
+// Esta funcion se llama al entrar a la vista de editar perfil
 function inicializarEditProfile() {
     // Cargar datos del perfil (rellena los inputs)
     cargarDatosPerfil();
 
+    // Traducir textos estaticos
     document.querySelector('.edit-profile-description').textContent = t('edit_extra.description');
     document.querySelector('.edit-personal-title').textContent = t('edit.personal_data');
 
-    // Guardar la vista anterior
+    // Guardar la vista anterior para poder volver
     if (vistaActualGlobal !== 'edit-profile') {
         vistaAnteriorAlEditar = vistaActualGlobal;
         localStorage.setItem('vista_anterior_editar', vistaAnteriorAlEditar);
@@ -8326,7 +8915,7 @@ function inicializarEditProfile() {
     const colorPicker = document.getElementById('edit-color-picker');
     if (colorPicker) {
         colorPicker.value = colorGuardado;
-        // Aplicar en pantalla pero SIN guardar
+        // Aplicar en pantalla pero SIN guardar (solo preview)
         aplicarColorDinamicoLocal(colorGuardado);
     }
 
@@ -8344,20 +8933,20 @@ function inicializarEditProfile() {
         btnGuardar.addEventListener('click', guardarCambiosPerfil);
     }
 
-    // Contador de caracteres en tiempo real
+    // Contador de caracteres en tiempo real (mientras el usuario escribe)
     const descInput = document.getElementById('edit-description');
     if (descInput) {
         descInput.removeEventListener('input', actualizarContadorCaracteres);
         descInput.addEventListener('input', actualizarContadorCaracteres);
     }
 
-    // Botones de colores predefinidos
+    // Botones de colores predefinidos (los circulos de colores rapidos)
     document.querySelectorAll('.color-preset-btn').forEach(btn => {
         btn.removeEventListener('click', handleColorPresetClick);
         btn.addEventListener('click', handleColorPresetClick);
     });
 
-    // ===== Selector de Sexo =====
+    // ===== Selector de Sexo (dropdown personalizado) =====
     const genderTrigger = document.getElementById('gender-select-trigger');
     const genderDropdown = document.getElementById('gender-select-dropdown');
     const genderLabel = document.getElementById('gender-select-label');
@@ -8399,20 +8988,22 @@ function inicializarEditProfile() {
     }
 }
 
+// === FUNCIÓN: Manejar cambio de color en el picker ===
 function handleColorChange(e) {
     const color = e.target.value;
-    // SOLO APLICAR EN PANTALLA, NUNCA GUARDAR
+    // SOLO APLICAR EN PANTALLA, NUNCA GUARDAR (hasta que se haga click en guardar)
     aplicarColorDinamicoLocal(color);
 }
 
-// Aplica el color SOLO en pantalla (sin guardar)
+// Aplica el color SOLO en pantalla (sin guardar en base de datos)
+// Esto permite al usuario ver como quedaria antes de guardar
 function aplicarColorDinamicoLocal(colorHex) {
     if (!colorHex) return;
 
     // Guardar en localStorage temporal (para que se mantenga mientras editas)
     localStorage.setItem('dp_user_color_temp', colorHex);
 
-    // Aplicar color en toda la web (igual que antes)
+    // Aplicar color en toda la web (igual que la funcion final pero sin guardar)
     document.documentElement.style.setProperty('--primary', colorHex);
 
     const colorSecundario = '#2dd4bf';
@@ -8429,7 +9020,7 @@ function aplicarColorDinamicoLocal(colorHex) {
         });
     }
 
-    // Actualizar el color picker y preview
+    // Actualizar el color picker y preview en el formulario
     const colorPicker = document.getElementById('edit-color-picker');
     const colorPreview = document.getElementById('edit-color-preview');
     const hexDisplay = document.getElementById('edit-color-hex-display');
@@ -8445,13 +9036,14 @@ function aplicarColorDinamicoLocal(colorHex) {
     if (colorDot) colorDot.style.background = colorHex;
     if (colorText) colorText.textContent = colorHex;
 
-    // Actualizar scrollbar
+    // Actualizar scrollbar con el nuevo color
     const style = document.getElementById('dynamic-scrollbar-style') || document.createElement('style');
     style.id = 'dynamic-scrollbar-style';
     style.textContent = `*::-webkit-scrollbar-thumb { background: ${colorHex} !important; }`;
     document.head.appendChild(style);
 }
 
+// === FUNCIÓN: Manejar click en colores predefinidos ===
 function handleColorPresetClick(e) {
     const color = e.target.dataset.color;
     if (!color) return;
@@ -8463,6 +9055,7 @@ function handleColorPresetClick(e) {
 //   VOLVER AL PERFIL DESDE EDITAR
 // ==========================================================================
 
+// Boton para volver al perfil desde la vista de edicion
 document.getElementById('btn-back-to-profile')?.addEventListener('click', () => {
     // Obtener el username actual del perfil
     const usernameDisplay = document.getElementById('main-profile-username');
@@ -8476,6 +9069,8 @@ document.getElementById('btn-back-to-profile')?.addEventListener('click', () => 
     }
 });
 
+// === FUNCIÓN: Aplicar color dinámico (GUARDADO) ===
+// Esta version guarda el color en localStorage y lo aplica permanentemente
 function aplicarColorDinamico(colorHex) {
     if (!colorHex) return;
 
@@ -8514,12 +9109,15 @@ function aplicarColorDinamico(colorHex) {
     if (colorDot) colorDot.style.background = colorHex;
     if (colorText) colorText.textContent = colorHex;
 
+    // Cambiar color del icono de usuario en la navbar
     const userIcon = document.querySelector('#user-profile i, #user-profile img');
     if (userIcon && userIcon.tagName === 'I') userIcon.style.color = colorHex;
 
+    // Borde superior del header de edicion
     const editHeader = document.querySelector('.edit-profile-admin-header');
     if (editHeader) editHeader.style.borderTopColor = colorHex;
 
+    // Otros elementos que usan el color
     document.querySelectorAll('.announce-panel, .add-friend-panel, .social-list-panel').forEach(el => {
         el.style.borderTopColor = colorHex;
     });
@@ -8536,12 +9134,13 @@ function aplicarColorDinamico(colorHex) {
         statusBox.style.background = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`;
     }
 
+    // Scrollbar
     const style = document.getElementById('dynamic-scrollbar-style') || document.createElement('style');
     style.id = 'dynamic-scrollbar-style';
     style.textContent = `*::-webkit-scrollbar-thumb { background: ${colorHex} !important; }`;
     document.head.appendChild(style);
 
-    // Actualizar color de la barra de progreso si está visible
+    // Actualizar color de la barra de progreso de series si está visible
     const bar = document.getElementById('series-progress-bar');
     if (bar) {
         bar.style.background = colorHex;
@@ -8549,11 +9148,12 @@ function aplicarColorDinamico(colorHex) {
 }
 
 // === Convertir HEX a RGB ===
+// Funcion auxiliar para convertir un color hex a objeto RGB
 function hexToRgb(hex) {
     // Eliminar # si existe
     hex = hex.replace('#', '');
 
-    // Si es de 3 dígitos, convertirlo a 6
+    // Si es de 3 dígitos, convertirlo a 6 (ej: #FFF -> #FFFFFF)
     if (hex.length === 3) {
         hex = hex.split('').map(c => c + c).join('');
     }
@@ -8570,7 +9170,7 @@ function hexToRgb(hex) {
 //   CARGAR COLOR GUARDADO AL INICIAR
 // ==========================================================================
 
-// Cargar color desde localStorage (rápido) o desde Supabase (cuando se autentique)
+// Funcion que carga el color del usuario al iniciar la pagina
 async function cargarColorInicial() {
     // 1. Intentar cargar desde localStorage permanente
     const localColor = localStorage.getItem('dp_user_color');
@@ -8612,6 +9212,7 @@ cargarColorInicial();
 // ==========================================================================
 
 // === FUNCIÓN: Guardar búsqueda en el historial ===
+// Guarda las busquedas del usuario en localStorage para mostrarlas despues
 function guardarEnHistorial(tipo, query) {
     if (!query || query.trim() === '') return;
 
@@ -8624,7 +9225,7 @@ function guardarEnHistorial(tipo, query) {
     // Añadir al principio (más reciente)
     historial.unshift(query.trim());
 
-    // Limitar a 20 búsquedas
+    // Limitar a 20 búsquedas (para no llenar el localStorage)
     if (historial.length > 20) {
         historial = historial.slice(0, 20);
     }
@@ -8649,6 +9250,7 @@ function eliminarDelHistorial(tipo, query) {
 }
 
 // === FUNCIÓN: Mostrar historial en el input ===
+// Crea un dropdown debajo del input con el historial de busquedas
 function mostrarHistorial(tipo) {
     const historial = cargarHistorial(tipo);
     const inputId = tipo === 'games' ? 'search-juegos' :
@@ -8656,6 +9258,7 @@ function mostrarHistorial(tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
+    // Crear o obtener el contenedor del historial
     let container = document.getElementById(`history-container-${tipo}`);
     if (!container) {
         container = document.createElement('div');
@@ -8677,11 +9280,13 @@ function mostrarHistorial(tipo) {
         }
     }
 
+    // Si no hay historial, ocultamos el dropdown
     if (historial.length === 0) {
         container.style.display = 'none';
         return;
     }
 
+    // Mostrar el historial con opcion de limpiar todo
     container.style.display = 'block';
     container.innerHTML = `
         <div class="search-history-header">
@@ -8703,13 +9308,14 @@ function mostrarHistorial(tipo) {
 }
 
 // === FUNCIÓN: Aplicar búsqueda desde el historial ===
+// Cuando el usuario hace click en un item del historial, se ejecuta la busqueda
 window.aplicarBusquedaDesdeHistorial = function (tipo, query) {
     const inputId = tipo === 'games' ? 'search-juegos' :
         tipo === 'movies' ? 'search-movies' : 'search-series';
     const input = document.getElementById(inputId);
     if (input) {
         input.value = query;
-        // Disparar la búsqueda
+        // Disparar la búsqueda segun el tipo
         if (tipo === 'games') {
             cargarJuegosIGDB(query);
         } else if (tipo === 'movies') {
@@ -8735,13 +9341,13 @@ function configurarHistorialInput(inputId, tipo) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    // Desactivar autocompletado nativo
+    // Desactivar autocompletado nativo del navegador (para usar el nuestro)
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('autocorrect', 'off');
     input.setAttribute('autocapitalize', 'off');
     input.setAttribute('spellcheck', 'false');
 
-    // Mostrar historial al hacer focus
+    // Mostrar historial al hacer focus en el input
     input.addEventListener('focus', () => {
         mostrarHistorial(tipo);
     });
@@ -8779,6 +9385,7 @@ function configurarHistorialInput(inputId, tipo) {
 }
 
 // === FUNCIÓN: Cargar búsqueda guardada al hacer F5 ===
+// Cuando el usuario recarga la pagina, restauramos la ultima busqueda
 function cargarBusquedaGuardada(tipo) {
     const key = `last_search_${tipo}`;
     const busqueda = localStorage.getItem(key);
@@ -8816,6 +9423,7 @@ setTimeout(() => {
 //   WATCHLIST TVTIME — Episodios pendientes de series en progreso (CON CACHÉ)
 // ==========================================================================
 
+// Funcion que sincroniza la watchlist global (se llama despues de marcar/desmarcar episodios)
 window.sincronizarWatchlistGlobal = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -8848,6 +9456,7 @@ window.sincronizarWatchlistGlobal = async function () {
     }
 };
 
+// Funcion principal que carga la watchlist de series en progreso
 async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const seccion = document.getElementById('watchlist-section');
     const lista = document.getElementById('watchlist-list');
@@ -8871,6 +9480,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         let offset = 0;
         const LIMIT = 1000;
 
+        // Paginamos la consulta para no sobrecargar la API
         while (keepFetching) {
             const { data, error } = await supabase
                 .from('user_media')
@@ -8891,6 +9501,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             return;
         }
 
+        // Agrupar episodios por serie
         const seriesMap = new Map();
         todosLosEp.forEach(item => {
             const partes = item.media_id.split('_');
@@ -8905,7 +9516,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             }
         });
 
-        // 3. Peticiones masivas a TMDB
+        // 3. Peticiones masivas a TMDB (en chunks para no saturar)
         const entries = [...seriesMap.entries()];
         const CHUNK = 5;
 
@@ -8913,7 +9524,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const chunk = entries.slice(i, i + CHUNK);
             await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
                 try {
-                    // Usar tmdbId en lugar de peli.media_id
+                    // Obtener datos de la serie
                     const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
                     if (!res.ok) return;
                     const data = await res.json();
@@ -8922,8 +9533,10 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
                     const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
 
+                    // Si la serie esta completada, la saltamos
                     if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) return;
 
+                    // Buscar el siguiente episodio pendiente
                     let siguienteEp = null;
                     let totalPendientes = 0;
 
@@ -8941,6 +9554,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
                     if (!siguienteEp) return;
 
+                    // Obtener nombre y poster del episodio
                     let epNombre = '';
                     let epPoster = '';
 
@@ -9001,7 +9615,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         });
     }
 
-    // 6. Pintamos el HTML
+    // 6. Pintamos el HTML de la watchlist
     seccion.style.display = 'block';
     lista.innerHTML = '';
 
@@ -9040,11 +9654,13 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             </div>
         `;
 
+        // Click en el nombre abre el modal de la serie
         item.querySelector('.watchlist-show-name').addEventListener('click', (e) => {
             e.stopPropagation();
             abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
         });
 
+        // Click en el boton de check marca el episodio como visto
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
             const btn = e.currentTarget;
@@ -9053,6 +9669,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
 
             try {
+                // Marcar episodio como visto en Supabase
                 const { error: upsertError } = await supabase.from('user_media').upsert({
                     user_id: userId, media_id: mediaId, tipo: 'tv_episode', visto: true, veces_vista: 1, fecha_vista: new Date().toISOString().split('T')[0]
                 }, { onConflict: 'user_id,media_id' });
@@ -9064,12 +9681,14 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     window.episodiosVistosActuales.add(`T${serie.temporada}_E${serie.episodio}`);
                 }
 
+                // Verificar si la serie esta completada
                 const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv&lang=${currentLang}`);
                 const dataTV = await resTV.json();
                 const temporadasReales = (dataTV.temporadas_info || []).filter(s => s.season_number > 0);
                 const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
                 const epVistosReales = [...serie.epVistos].filter(c => !c.startsWith('T0_'));
 
+                // Si la serie esta completada, la eliminamos de la watchlist
                 if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) {
                     const itemEl = btn.closest('.watchlist-item');
                     itemEl.style.opacity = '0';
@@ -9084,6 +9703,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     return;
                 }
 
+                // Buscar el siguiente episodio pendiente
                 let siguienteEp = null;
                 let totalPendientes = 0;
                 for (const temp of temporadasReales) {
@@ -9101,6 +9721,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     return;
                 }
 
+                // Obtener datos del nuevo episodio
                 let nuevoNombre = '';
                 let nuevoPoster = '';
                 try {
@@ -9113,12 +9734,14 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     }
                 } catch (_) { }
 
+                // Actualizar los datos de la serie con el nuevo episodio
                 serie.temporada = siguienteEp.temporada;
                 serie.episodio = siguienteEp.episodio;
                 serie.epNombre = nuevoNombre;
                 serie.pendientes = totalPendientes - 1;
                 serie.ultimaFecha = new Date().toISOString().split('T')[0];
 
+                // Actualizar la UI del item
                 const itemEl = btn.closest('.watchlist-item');
                 const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
                 const nuevoFondo = nuevoPoster || serie.poster || '';
@@ -9132,6 +9755,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 itemEl.querySelector('.watchlist-ep-code').innerHTML = `T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}`;
                 itemEl.querySelector('.watchlist-ep-name').textContent = nuevoNombre;
 
+                // Animacion de que se ha actualizado
                 lista.prepend(itemEl);
                 itemEl.style.transition = 'background 0.3s ease';
                 itemEl.style.background = 'rgba(16, 185, 129, 0.1)';
@@ -9151,7 +9775,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         lista.appendChild(item);
     });
 
-    // Lógica de vista Grid/List con LocalStorage
+    // Lógica de vista Grid/List con LocalStorage (preferencia del usuario)
     const btnToggle = document.getElementById('btn-watchlist-toggle-grid');
     if (btnToggle) {
         const iconToggle = btnToggle.querySelector('i');
@@ -9182,11 +9806,14 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 //   SUBIDA Y RECORTE DE AVATAR CUSTOM
 // ==========================================================================
 
+// Variables globales para los croppers de imagen (libreria Cropper.js)
 let cropperAvatar = null;
 let cropperBanner = null;
 
+// Inputs ocultos para seleccionar archivos
 const avatarInput = document.getElementById('avatar-upload-input');
 const bannerInput = document.getElementById('banner-upload-input');
+// Modal de recorte de imagen
 const cropModal = document.getElementById('crop-modal');
 const imageToCrop = document.getElementById('image-to-crop');
 const btnCloseCrop = document.getElementById('btn-close-crop');
@@ -9195,6 +9822,7 @@ btnCloseCrop.setAttribute('aria-label', 'Cerrar editor de recorte');
 // OBTENER EL BOTÓN DE FORMA SEGURA (con verificación)
 let btnSaveCrop = document.getElementById('btn-save-crop');
 
+// Funcion para cambiar el titulo del modal de recorte
 function setModalTitle(text) {
     const titleEl = document.getElementById('crop-modal-title');
     if (titleEl) {
@@ -9206,6 +9834,7 @@ function setModalTitle(text) {
 }
 
 // FUNCIÓN PARA RECREAR EL BOTÓN DE FORMA SEGURA
+// Esto evita problemas de referencias cuando se clonan elementos
 function recrearBoton(html) {
     // Buscar el botón actual
     let btn = document.getElementById('btn-save-crop');
@@ -9228,11 +9857,12 @@ function recrearBoton(html) {
 }
 
 // 1. Abrir explorador de archivos para AVATAR
+// Cuando el usuario hace click en "Subir custom" en el modal de avatares
 const btnTriggerUpload = document.querySelector('.avatar-custom-btn');
 if (btnTriggerUpload) {
     btnTriggerUpload.addEventListener('click', (e) => {
         e.preventDefault();
-        avatarInput.click();
+        avatarInput.click(); // Abre el selector de archivos
     });
 }
 
@@ -9241,7 +9871,7 @@ const btnTriggerBanner = document.querySelector('.custom-card-item.special-custo
 if (btnTriggerBanner) {
     btnTriggerBanner.addEventListener('click', (e) => {
         e.preventDefault();
-        bannerInput.click();
+        bannerInput.click(); // Abre el selector de archivos
     });
 }
 
@@ -9253,6 +9883,7 @@ avatarInput.addEventListener('change', function (e) {
         const reader = new FileReader();
 
         reader.onload = function (event) {
+            // Cargamos la imagen en el elemento del modal
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR AVATAR");
 
@@ -9261,16 +9892,17 @@ avatarInput.addEventListener('change', function (e) {
             if (!btn) return;
             btnSaveCrop = btn;
 
+            // Mostramos el modal de recorte
             cropModal.classList.add('show');
             cropModal.classList.add('crop-avatar');
 
-            // Destruir croppers anteriores
+            // Destruir croppers anteriores (por si habia uno abierto)
             if (cropperAvatar) cropperAvatar.destroy();
             if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
 
-            // Crear cropper para avatar
+            // Crear cropper para avatar (cuadrado 1:1)
             cropperAvatar = new Cropper(imageToCrop, {
-                aspectRatio: 1,
+                aspectRatio: 1, // Cuadrado perfecto
                 viewMode: 1,
                 dragMode: 'move',
                 autoCropArea: 0.9,
@@ -9283,12 +9915,12 @@ avatarInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            // Asignar evento
+            // Asignar evento al boton de guardar
             btn.onclick = guardarAvatarCustom;
         };
         reader.readAsDataURL(file);
     }
-    avatarInput.value = '';
+    avatarInput.value = ''; // Resetear input
 });
 
 // 4. BANNER: Al seleccionar archivo
@@ -9302,7 +9934,6 @@ bannerInput.addEventListener('change', function (e) {
             imageToCrop.src = event.target.result;
             setModalTitle("RECORTAR PORTADA");
 
-            // RECREAR EL BOTÓN EN LUGAR DE CLONAR
             const btn = recrearBoton('<i class="fas fa-cloud-upload-alt" style="margin-right:8px;"></i> SUBIR PORTADA');
             if (!btn) return;
             btnSaveCrop = btn;
@@ -9314,9 +9945,9 @@ bannerInput.addEventListener('change', function (e) {
             if (cropperBanner) cropperBanner.destroy();
             if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
 
-            // Crear cropper para banner
+            // Crear cropper para banner (relacion 16:9)
             cropperBanner = new Cropper(imageToCrop, {
-                aspectRatio: 16 / 9,
+                aspectRatio: 16 / 9, // Panoramico
                 viewMode: 1,
                 dragMode: 'move',
                 autoCropArea: 0.9,
@@ -9329,7 +9960,6 @@ bannerInput.addEventListener('change', function (e) {
                 toggleDragModeOnDblclick: false,
             });
 
-            // Asignar evento
             btn.onclick = guardarBannerCustom;
         };
         reader.readAsDataURL(file);
@@ -9337,17 +9967,18 @@ bannerInput.addEventListener('change', function (e) {
     bannerInput.value = '';
 });
 
-// 5. Cerrar Modal
+// 5. Cerrar Modal de recorte
 if (btnCloseCrop) {
     btnCloseCrop.addEventListener('click', () => {
         cropModal.classList.remove('show');
         cropModal.classList.remove('crop-avatar');
+        // Destruir croppers para liberar memoria
         if (cropperAvatar) { cropperAvatar.destroy(); cropperAvatar = null; }
         if (cropperBanner) { cropperBanner.destroy(); cropperBanner = null; }
     });
 }
 
-// Cerrar al hacer clic fuera
+// Cerrar al hacer clic fuera del modal
 cropModal.addEventListener('click', function (e) {
     if (e.target === cropModal) {
         cropModal.classList.remove('show');
@@ -9357,7 +9988,7 @@ cropModal.addEventListener('click', function (e) {
     }
 });
 
-// 6. Guardar AVATAR
+// 6. Guardar AVATAR CUSTOM (subir a Supabase Storage)
 async function guardarAvatarCustom() {
     if (!cropperAvatar) return;
 
@@ -9367,6 +9998,7 @@ async function guardarAvatarCustom() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO...';
 
+    // Obtener la imagen recortada del cropper
     cropperAvatar.getCroppedCanvas({
         width: 500,
         height: 500,
@@ -9374,6 +10006,7 @@ async function guardarAvatarCustom() {
         imageSmoothingQuality: 'high',
     }).toBlob(async (blob) => {
         try {
+            // Generar nombre unico para el archivo
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
             const fileName = `custom_avatar_${uniqueHash}.png`;
 
@@ -9383,6 +10016,7 @@ async function guardarAvatarCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
+            // Subir a Supabase Storage (bucket 'avatares')
             const { error } = await supabase.storage
                 .from('avatares')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -9392,10 +10026,12 @@ async function guardarAvatarCustom() {
 
             if (error) throw error;
 
+            // Obtener URL publica de la imagen
             const { data: { publicUrl } } = supabase.storage
                 .from('avatares')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
+            // Guardar la URL en la tabla 'usuarios'
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ avatar: publicUrl })
@@ -9403,7 +10039,7 @@ async function guardarAvatarCustom() {
 
             if (dbError) throw dbError;
 
-            // Actualizar UI
+            // Actualizar UI inmediatamente (avatar del perfil y navbar)
             const profileAvatarDiv = document.querySelector('.profile-avatar');
             if (profileAvatarDiv) {
                 const overlay = profileAvatarDiv.querySelector('.edit-overlay-avatar');
@@ -9435,7 +10071,7 @@ async function guardarAvatarCustom() {
     }, 'image/png', 1.0);
 }
 
-// 7. Guardar BANNER
+// 7. Guardar BANNER CUSTOM (subir a Supabase Storage)
 async function guardarBannerCustom() {
     if (!cropperBanner) return;
 
@@ -9445,6 +10081,7 @@ async function guardarBannerCustom() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> SUBIENDO BANNER...';
 
+    // Obtener la imagen recortada (16:9)
     cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -9456,6 +10093,7 @@ async function guardarBannerCustom() {
                 throw new Error("No hay usuario autenticado");
             }
 
+            // Subir a Supabase Storage (bucket 'banners')
             const { error } = await supabase.storage
                 .from('banners')
                 .upload(`${user.id}/${fileName}`, blob, {
@@ -9465,10 +10103,12 @@ async function guardarBannerCustom() {
 
             if (error) throw error;
 
+            // Obtener URL publica
             const { data: { publicUrl } } = supabase.storage
                 .from('banners')
                 .getPublicUrl(`${user.id}/${fileName}`);
 
+            // Guardar en la base de datos
             const { error: dbError } = await supabase
                 .from('usuarios')
                 .update({ banner: publicUrl })
@@ -9476,7 +10116,7 @@ async function guardarBannerCustom() {
 
             if (dbError) throw dbError;
 
-            // Actualizar UI
+            // Actualizar UI (banner del perfil)
             const bannerEl = document.querySelector('.profile-banner');
             if (bannerEl) {
                 bannerEl.style.backgroundImage = `url('${publicUrl}')`;
@@ -9505,8 +10145,9 @@ async function guardarBannerCustom() {
 //   BOTONES DEL HERO
 // ==========================================================================
 
+// Inicializamos los botones del hero cuando el DOM esta listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Botones del hero
+    // Botones del hero (navegacion rapida a juegos, peliculas y series)
     const btnGames = document.getElementById('btn-hero-games');
     if (btnGames) {
         btnGames.addEventListener('click', (e) => {
@@ -9545,9 +10186,10 @@ document.addEventListener('DOMContentLoaded', () => {
 //   SISTEMA DE FAVORITOS (VERSIÓN ASYNC)
 // ==========================================================================
 
+// Funcion para obtener el ID del usuario (con cache en memoria y localStorage)
 async function getUserId() {
     try {
-        // Primero intentamos desde el cache rápido
+        // Primero intentamos desde el cache rápido (variable global)
         if (window._nexus_user_id) return window._nexus_user_id;
 
         const cached = localStorage.getItem('nexus_user_id');
@@ -9570,6 +10212,7 @@ async function getUserId() {
     }
 }
 
+// Funcion para obtener la lista de favoritos del usuario
 async function getFavoritos() {
     try {
         const userId = await getUserId();
@@ -9584,6 +10227,7 @@ async function getFavoritos() {
     }
 }
 
+// Funcion para guardar la lista de favoritos
 async function setFavoritos(lista) {
     try {
         const userId = await getUserId();
@@ -9596,11 +10240,13 @@ async function setFavoritos(lista) {
     }
 }
 
+// Comprueba si un media esta en favoritos
 async function esFavorito(mediaId, tipo) {
     const favoritos = await getFavoritos();
     return favoritos.some(f => f.id === mediaId.toString() && f.tipo === tipo);
 }
 
+// Añade un media a favoritos
 async function añadirFavorito(mediaId, tipo, titulo, poster) {
     const favoritos = await getFavoritos();
 
@@ -9620,6 +10266,7 @@ async function añadirFavorito(mediaId, tipo, titulo, poster) {
     return true;
 }
 
+// Quita un media de favoritos
 async function quitarFavorito(mediaId, tipo) {
     let favoritos = await getFavoritos();
     favoritos = favoritos.filter(f => !(f.id === mediaId.toString() && f.tipo === tipo));
@@ -9627,6 +10274,7 @@ async function quitarFavorito(mediaId, tipo) {
     return true;
 }
 
+// Alterna el estado de favorito (si esta lo quita, si no lo añade)
 async function toggleFavorito(mediaId, tipo, titulo, poster) {
     if (await esFavorito(mediaId, tipo)) {
         await quitarFavorito(mediaId, tipo);
@@ -9637,7 +10285,7 @@ async function toggleFavorito(mediaId, tipo, titulo, poster) {
     }
 }
 
-// Actualizar el botón de favoritos
+// Actualizar el botón de favoritos en el modal
 async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
     const btn = document.getElementById('btn-add-to-favorites');
     const container = document.getElementById('favorite-button-container');
@@ -9650,7 +10298,7 @@ async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
     btn.classList.remove('is-favorite');
 
     if (isFav) {
-        // Forzar reflow para reiniciar animación
+        // Forzar reflow para reiniciar animacion
         void btn.offsetWidth;
         btn.classList.add('is-favorite');
         btn.title = 'Quitar de favoritos';
@@ -9660,7 +10308,7 @@ async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
         btn.setAttribute('aria-label', 'Añadir a favoritos');
     }
 
-    // Guardar estado actual
+    // Guardar estado actual en variable global
     mediaFavoritoActual = {
         id: mediaId,
         tipo: tipo,
@@ -9670,13 +10318,13 @@ async function actualizarBotonFavorito(mediaId, tipo, titulo, poster) {
     };
 }
 
-// Mostrar/ocultar el botón de favoritos
+// Mostrar/ocultar el botón de favoritos (con animación)
 function mostrarBotonFavorito(mostrar) {
     const container = document.getElementById('favorite-button-container');
     if (container) {
         if (mostrar) {
             container.style.display = 'block';
-            // Pequeña animación de entrada
+            // Pequeña animación de entrada (scale + fade)
             container.style.opacity = '0';
             container.style.transform = 'scale(0.8)';
             requestAnimationFrame(() => {
@@ -9694,7 +10342,7 @@ function mostrarBotonFavorito(mostrar) {
     }
 }
 
-// Evento para el botón de favoritos
+// Evento para el botón de favoritos (toggle al hacer click)
 document.getElementById('btn-add-to-favorites')?.addEventListener('click', async function (e) {
     e.stopPropagation(); // Evita que se abra el modal
     if (!mediaFavoritoActual) return;
@@ -9713,6 +10361,7 @@ document.getElementById('btn-add-to-favorites')?.addEventListener('click', async
         showToast('success', '¡Añadido a favoritos!', `"${titulo}" ahora es uno de tus favoritos. ❤️`);
     }
 
+    // Actualizar el boton para reflejar el nuevo estado
     await actualizarBotonFavorito(id, tipo, titulo, poster);
 
     // Re-habilitar botón
@@ -9724,6 +10373,7 @@ document.getElementById('btn-add-to-favorites')?.addEventListener('click', async
 // FORZAR RECARGA DE RECOMENDACIONES (para usar desde consola)
 // ==========================================================================
 
+// Funcion global para recargar recomendaciones manualmente (util para depuracion)
 window.recargarRecomendaciones = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -9739,11 +10389,12 @@ window.recargarRecomendaciones = async function () {
 //   TENDENCIAS EN PELÍCULAS (USANDO trend-card)
 // ==========================================================================
 
+// Variables de estado para las tendencias de peliculas
 let trendMoviesPeriod = 'day'; // 'day', 'week'
 let trendMoviesCargando = false;
 let trendMoviesOffset = 0;
 
-// Función para cargar tendencias de películas
+// Función para cargar tendencias de películas (con cache en memoria)
 async function cargarTendenciasPeliculas(period = 'day', resetear = true) {
     await translationsReadyPromise;
     if (trendMoviesCargando) return;
@@ -9879,7 +10530,7 @@ function crearTarjetaTrendPelicula(pelicula, posicion) {
     return card;
 }
 
-// Función para inicializar los tabs de tendencias de películas
+// Función para inicializar los tabs de tendencias de películas (dia/semana)
 function initTrendMoviesTabs() {
     const container = document.getElementById('trend-movies');
     const tabs = document.querySelectorAll('#movies .trend-tab');
@@ -9950,7 +10601,7 @@ function cargarTendenciasPeliculasInicial() {
 // Guardar la función original
 const originalCambiarVista2 = cambiarVista;
 
-// Sobrescribir para incluir tendencias de películas
+// Sobrescribir para incluir tendencias de películas y series
 cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
     // Llamar a la función original
     await originalCambiarVista2(target, guardarEnHistorial, usernameUrl);
@@ -9997,7 +10648,6 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         const seriesGuardadas = cacheTendenciasSeries[period].slice(0, 20);
 
         seriesGuardadas.forEach((serie, index) => {
-            // Usamos la función de creación de tarjetas (debes tener una o usar la misma adaptada)
             const card = crearTarjetaTrendSerie(serie, index + 1);
             container.appendChild(card);
         });
@@ -10044,7 +10694,6 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
         container.innerHTML = '';
         const series = data.slice(0, 20);
         series.forEach((serie, index) => {
-            // Pintamos
             const card = crearTarjetaTrendSerie(serie, index + 1);
             container.appendChild(card);
         });
@@ -10069,7 +10718,7 @@ async function cargarTendenciasSeries(period = 'day', resetear = true) {
     trendSeriesCargando = false;
 }
 
-// Función para crear tarjeta de tendencia de película (usa trend-card)
+// Función para crear tarjeta de tendencia de serie (usa trend-card)
 function crearTarjetaTrendSerie(serie, posicion) {
     const card = document.createElement('div');
     card.className = 'trend-card';
@@ -10136,6 +10785,7 @@ function cargarTendenciasSeriesInicial() {
 //   ÚLTIMOS TRÁILERS (CARRUSEL MIXTO: 5 JUEGOS + 5 PELIS + 5 SERIES = 15 TOTAL)
 // ==========================================================================
 
+// Funcion que carga un carrusel mixto con los ultimos trailers de juegos, peliculas y series
 async function cargarUltimosTrailers() {
     await translationsReadyPromise;
     const container = document.getElementById('latest-trailers');
@@ -10150,6 +10800,7 @@ async function cargarUltimosTrailers() {
     `;
 
     try {
+        // Hacemos 3 peticiones en paralelo: juegos (IGDB), pelis (TMDB), series (TMDB)
         const urlJuegos = `/api/igdb?offset=0&limit=5&sort=rating.desc&lang=${currentLang}`;
         const urlPelis = `/api/tmdb?tipo=movie&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
         const urlSeries = `/api/tmdb?tipo=tv&trending=true&period=week&limit=5&lang=${currentLang}&_=${Date.now()}`;
@@ -10171,7 +10822,7 @@ async function cargarUltimosTrailers() {
         const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 5) : [];
         const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 5) : [];
 
-        // Rellenar con placeholders si faltan items
+        // Rellenar con placeholders si faltan items (para que el carrusel no se vea vacio)
         while (juegos.length < 5) {
             juegos.push({ id: `placeholder_game_${juegos.length}`, name: 'Próximo juego', cover: { url: '' }, first_release_date: null, placeholder: true });
         }
@@ -10183,6 +10834,7 @@ async function cargarUltimosTrailers() {
         }
 
         // 5. Intercalar: juego1, peli1, serie1, juego2, peli2, serie2...
+        // Esto crea un carrusel mixto con variedad de contenido
         const mezclados = [];
         for (let i = 0; i < 5; i++) {
             if (juegos[i]) mezclados.push({ tipo: 'game', data: juegos[i] });
@@ -10192,7 +10844,7 @@ async function cargarUltimosTrailers() {
 
         container.innerHTML = '';
 
-        // 6. Pintar cada item usando la NUEVA función de tráiler
+        // 6. Pintar cada item usando la función de tráiler
         mezclados.forEach((item, index) => {
             let card;
 
@@ -10259,14 +10911,16 @@ function crearTarjetaPlaceholderTrailer(tipo) {
 //   TARJETA PARA ÚLTIMOS TRÁILERS (SIN PRECIO, SIN RATING, CON BOTÓN YT)
 // ==========================================================================
 
+// Funcion que crea una tarjeta de trailer para el carrusel mixto
+// A diferencia de las tarjetas normales, estas no tienen precio ni rating
 function crearTarjetaTrendTrailer(item, tipo, posicion) {
     const card = document.createElement('div');
     card.className = 'trend-card trailer-card';
     card.dataset.id = item.id;
     card.dataset.tipo = tipo;
-    card.style.cursor = 'default'; // No es clickeable como modal
+    card.style.cursor = 'default'; // No es clickeable como modal (solo el boton abre el trailer)
 
-    // Obtener datos según el tipo
+    // Obtener datos según el tipo (game, movie o tv)
     let titulo = '';
     let posterUrl = '';
     let fecha = t('trends_extra.coming_soon');
@@ -10275,6 +10929,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
     let urlYoutube = '';
 
     if (tipo === 'game') {
+        // Para juegos, usamos los datos de IGDB
         titulo = item.name || t('common.untitled');
         posterUrl = item.cover && item.cover.url
             ? item.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
@@ -10282,7 +10937,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
         fecha = item.first_release_date
             ? new Date(item.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
             : t('trends_extra.coming_soon');
-        // Para juegos, buscamos un trailer en websites o usamos búsqueda genérica
+        // Para juegos, buscamos un trailer en YouTube con el nombre del juego
         urlYoutube = `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
     } else {
         // Película o Serie (TMDB)
@@ -10291,14 +10946,14 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
         fecha = item.fecha
             ? new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
             : t('trends_extra.coming_soon');
-        // Para TMDB, usar trailer_id si existe
+        // Para TMDB, usar trailer_id si existe (viene del backend)
         trailerId = item.trailer_id || null;
         urlYoutube = trailerId
             ? `https://www.youtube.com/watch?v=${trailerId}`
             : `https://www.youtube.com/results?search_query=${encodeURIComponent(titulo + ' trailer oficial')}`;
     }
 
-    // Construir HTML de la tarjeta (sin precio, sin rating)
+    // Construir HTML de la tarjeta (sin precio, sin rating, con boton rojo de YouTube)
     card.innerHTML = `
         <div class="game-cover-container" style="position: relative;">
             <div class="trend-position" style="background: var(--primary); color: #fff; border-color: var(--primary);">
@@ -10315,7 +10970,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
             <div class="game-release-info" style="display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px;">
                 <span class="date">${fecha}</span>
             </div>
-            <!-- BOTÓN VER TRÁILER -->
+            <!-- BOTÓN VER TRÁILER (rojo estilo YouTube) -->
             <button class="auth-btn primary btn-trailer-card" 
                     data-url="${urlYoutube}"
                     style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: auto; background: #FF0000; box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);">
@@ -10336,7 +10991,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
         });
     }
 
-    // Evento: Click en la imagen también abre YouTube
+    // Evento: Click en la imagen también abre YouTube (para que sea mas intuitivo)
     const coverContainer = card.querySelector('.game-cover-container');
     if (coverContainer) {
         coverContainer.style.cursor = 'pointer';
@@ -10352,22 +11007,23 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
 //   SISTEMA DE LISTAS SOCIALES (MIS LISTAS) - FUNCIONES
 // ==========================================================================
 
-// punto de entrada: se llama cada vez que se entra en la vista
+// punto de entrada: se llama cada vez que se entra en la vista "Mis Listas"
 async function inicializarMisListas() {
 
-    // Asegurar que listasCache existe
+    // Asegurar que listasCache existe (por si acaso la variable global se ha perdido)
     if (typeof listasCache === 'undefined') {
         console.error('❌ listasCache no está definido, creándolo...');
         window.listasCache = { mias: null, compartidas: null, siguiendo: null };
         listasCache = window.listasCache;
     }
 
+    // Vinculamos los eventos de la UI solo la primera vez (para no duplicar listeners)
     if (!listasEventosListos) {
         bindEventosListasUI();
         listasEventosListos = true;
     }
 
-    // FORZAR LIMPIEZA DE CACHÉ
+    // FORZAR LIMPIEZA DE CACHÉ para que cargue datos frescos
     listasCache.mias = null;
     listasCache.compartidas = null;
     listasCache.siguiendo = null;
@@ -10377,6 +11033,7 @@ async function inicializarMisListas() {
 
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
+    // Pestañas principales: Mis listas | Compartidas conmigo | Siguiendo
     document.querySelectorAll('.lists-main-tabs .watchlist-tab').forEach(tab => {
         tab.addEventListener('click', async () => {
             const nuevaTab = tab.getAttribute('data-lists-tab');
@@ -10390,6 +11047,7 @@ function bindEventosListasUI() {
         });
     });
 
+    // Filtros de tipo (All | Games | Movies | Series)
     document.querySelectorAll('.lists-type-filters .trend-tab').forEach(btn => {
         btn.addEventListener('click', () => {
             const nuevoFiltro = btn.getAttribute('data-lists-filter');
@@ -10403,9 +11061,9 @@ function bindEventosListasUI() {
         });
     });
 
-    // boton de crear lista
+    // boton de crear lista (abre el modal de creacion)
     document.getElementById('btn-crear-lista')?.addEventListener('click', () => {
-        mediaActualParaLista = null;
+        mediaActualParaLista = null; // Si venimos del boton "+" de una tarjeta, se resetea
         openCreateListModal();
     });
 }
@@ -10419,15 +11077,17 @@ async function cargarListas(tab) {
         return;
     }
 
+    // Mostramos estado de carga
     grid.style.display = 'grid';
     if (empty) empty.style.display = 'none';
     grid.innerHTML = `<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>`;
 
-    // FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias"
+    // FORZAR RECARGA SIEMPRE EN LA PESTAÑA "mias" (para que siempre este actualizada)
     if (tab === 'mias') {
         listasCache.mias = null;
     }
 
+    // Si tenemos datos en cache, los pintamos directamente (sin llamar a la API)
     if (listasCache[tab] !== null) {
         pintarListasFiltradas();
         return;
@@ -10445,7 +11105,7 @@ async function cargarListas(tab) {
 
     try {
         if (tab === 'mias') {
-
+            // Cargar listas propias (donde el usuario es el owner)
             const { data, error } = await supabase
                 .from('listas_maestra')
                 .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count)')
@@ -10460,6 +11120,7 @@ async function cargarListas(tab) {
             listasCache.mias = (data || []).map(l => ({ ...l, rolUsuario: 'owner' }));
 
         } else {
+            // Cargar listas compartidas (donde el usuario es miembro)
             const { data, error } = await supabase
                 .from('listas_miembros')
                 .select('rol, lista:listas_maestra!inner(id, titulo, descripcion, is_public, tag_tipo, owner_id, miembros:listas_miembros(count), items:listas_items(count))')
@@ -10471,12 +11132,13 @@ async function cargarListas(tab) {
                 throw error;
             }
 
+            // Filtramos para no incluir las propias (por si acaso)
             const propias = (data || [])
                 .filter(m => m.lista.owner_id !== userId)
                 .map(m => ({ ...m.lista, rolUsuario: m.rol }));
 
             listasCache.compartidas = propias;
-            listasCache.siguiendo = [];
+            listasCache.siguiendo = []; // De momento vacio, para futura funcionalidad
         }
     } catch (err) {
         console.error('❌ Error cargando listas:', err);
@@ -10500,12 +11162,13 @@ function pintarListasFiltradas() {
 
     const listas = listasCache[listasTabActual] || [];
 
+    // Aplicar filtro de tipo (all, game, movie, tv)
     const filtradas = listas.filter(l => {
         if (listasFiltroActual === 'all') return true;
         return l.tag_tipo === listasFiltroActual || l.tag_tipo === 'mixta';
     });
 
-    // CONSERVAR LA CLASE DE VISTA
+    // CONSERVAR LA CLASE DE VISTA (grid o lista)
     const esModoLista = grid.classList.contains('list-view-active');
     grid.innerHTML = '';
     if (esModoLista) grid.classList.add('list-view-active');
@@ -10516,6 +11179,7 @@ function pintarListasFiltradas() {
             empty.style.display = 'block';
             const emptyMsg = empty.querySelector('p');
             if (emptyMsg) {
+                // Mensaje personalizado segun la pestaña activa
                 const mensajes = {
                     'mias': 'Aún no tienes listas en esta sección. Crea tu primera lista para empezar a organizar tu contenido.',
                     'compartidas': 'No tienes listas compartidas contigo. Espera a que alguien te invite o comparte tus listas con otros.',
@@ -10530,6 +11194,7 @@ function pintarListasFiltradas() {
     grid.style.display = 'grid';
     if (empty) empty.style.display = 'none';
 
+    // Pintar cada lista usando el template
     filtradas.forEach(lista => {
         const card = crearListCard(lista);
         grid.appendChild(card);
@@ -10544,12 +11209,15 @@ function crearListCard(lista) {
     const cardEl = clone.querySelector('.list-card');
     cardEl.dataset.listId = lista.id;
 
+    // Rellenar datos basicos
     clone.querySelector('.list-card-title').textContent = lista.titulo;
     clone.querySelector('.list-card-desc').textContent = lista.descripcion || 'Sin descripción.';
 
+    // Icono segun el tipo de lista
     const icono = ICONO_TIPO[lista.tag_tipo] || 'fa-layer-group';
     clone.querySelector('.list-card-tag-tipo i').className = `fas ${icono}`;
 
+    // Contadores de miembros y items
     clone.querySelector('.list-card-members-count').textContent = lista.miembros?.[0]?.count ?? 0;
     clone.querySelector('.list-card-items-count').textContent = lista.items?.[0]?.count ?? 0;
 
@@ -10560,6 +11228,7 @@ function crearListCard(lista) {
     const btnDelete = clone.querySelector('.list-action-delete');
     const btnLeave = clone.querySelector('.list-action-leave');
 
+    // Mostrar/ocultar botones segun el rol
     if (esOwner) {
         btnEdit.style.display = 'flex';
         btnMembers.style.display = 'flex';
@@ -10573,6 +11242,7 @@ function crearListCard(lista) {
     }
 
     // por ahora solo evitamos que el click en los botones abra la lista (placeholder)
+    // En el futuro estos botones tendran funcionalidad real
     clone.querySelectorAll('.list-card-actions button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -10587,6 +11257,7 @@ function crearListCard(lista) {
 //   MODAL: CREAR NUEVA LISTA
 // ==========================================================================
 
+// Referencias al modal de creacion de listas
 const modalCreateList = document.getElementById('create-list-modal');
 const btnCloseCreateList = document.getElementById('close-create-list-modal');
 const formCreateList = document.getElementById('form-create-list');
@@ -10606,10 +11277,12 @@ let miembrosInvitadosLista = []; // [{ auth_id, username, avatar }]
 
 // 1. Abrir / cerrar el modal
 function openCreateListModal() {
-    formCreateList?.reset();
+    formCreateList?.reset(); // Reseteamos el formulario
     miembrosInvitadosLista = [];
 
     // --- NUEVA LÓGICA DE DETECCIÓN ---
+    // Si venimos de una tarjeta (mediaActualParaLista tiene valor), mostramos el modo "exclusividad"
+    // Si venimos de "Mis Listas" (sin media), mostramos el selector de tipo
     const exclusivityRow = document.getElementById('exclusivity-check-wrapper');
     const selectorRow = document.getElementById('list-type-selector-wrapper');
     const typeRow = document.getElementById('list-mode-container');
@@ -10623,23 +11296,25 @@ function openCreateListModal() {
         const typeName = document.getElementById('exclusivity-type-name');
         if (typeName) typeName.textContent = mediaActualParaLista.tipo === 'tv' ? 'Series' : mediaActualParaLista.tipo.toUpperCase();
 
-        // Toggle activado por defecto
+        // Toggle activado por defecto (para que la lista sea del tipo del contenido)
         document.getElementById('create-list-exclusive-toggle').checked = true;
     } else {
-        // Venimos de "Mis Listas": Modo Selector Mixto
+        // Venimos de "Mis Listas": Modo Selector Mixto (puedes elegir el tipo)
         if (exclusivityRow) exclusivityRow.style.display = 'none';
         if (selectorRow) selectorRow.style.display = 'block';
 
-        // Reset del select a "mixta"
+        // Reset del select a "mixta" (por defecto)
         const select = document.getElementById('create-list-type-select');
         if (select) select.value = 'mixta';
     }
 
+    // Configurar privacidad por defecto (publica)
     if (togglePrivacidadLista) togglePrivacidadLista.checked = true;
     actualizarHintPrivacidad();
     actualizarContadorDescripcion();
     pintarMiembrosInvitados();
 
+    // Limpiar resultados de busqueda
     if (gridResultadosMiembro) {
         gridResultadosMiembro.style.display = 'none';
         gridResultadosMiembro.innerHTML = '';
@@ -10699,6 +11374,7 @@ inputBuscarMiembro?.addEventListener('input', () => {
     tempBuscarMiembro = setTimeout(() => buscarUsuariosParaLista(query), 400);
 });
 
+// Busca usuarios en Supabase para invitar a la lista
 async function buscarUsuariosParaLista(query) {
     if (!gridResultadosMiembro) return;
 
@@ -10707,6 +11383,7 @@ async function buscarUsuariosParaLista(query) {
         if (!session) return;
         const miId = session.user.id;
 
+        // Buscar usuarios que coincidan con el nombre
         const { data: coincidencias, error } = await supabase
             .from('perfiles_publicos')
             .select('auth_id, username, avatar')
@@ -10716,7 +11393,7 @@ async function buscarUsuariosParaLista(query) {
 
         if (error) throw error;
 
-        // quitamos a los que ya están invitados
+        // quitamos a los que ya están invitados (para no mostrarlos duplicados)
         const idsInvitados = miembrosInvitadosLista.map(m => m.auth_id);
         const resultados = (coincidencias || []).filter(u => !idsInvitados.includes(u.auth_id));
 
@@ -10729,6 +11406,7 @@ async function buscarUsuariosParaLista(query) {
 
         gridResultadosMiembro.style.display = 'flex';
 
+        // Pintar cada resultado como una tarjeta de usuario
         resultados.forEach(user => {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             const avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
@@ -10805,6 +11483,7 @@ function pintarMiembrosInvitados() {
         listaMiembrosInvitados.appendChild(clone);
     });
 
+    // Actualizar contador de slots
     if (contadorSlots) {
         contadorSlots.textContent = `${miembrosInvitadosLista.length + 1}/${MAX_SLOTS_LISTA} Slots`;
     }
@@ -10817,6 +11496,7 @@ formCreateList?.addEventListener('submit', async (e) => {
     const titulo = inputCreateListTitle.value.trim();
     const descripcion = inputCreateListDesc.value.trim();
 
+    // Validaciones basicas
     if (!titulo) {
         showToast('error', 'Falta el título', 'Tienes que ponerle un nombre a la lista.');
         return;
@@ -10836,6 +11516,7 @@ formCreateList?.addEventListener('submit', async (e) => {
         const miId = session.user.id;
 
         // LÓGICA INTELIGENTE DE TIPO DE LISTA
+        // Determinamos el tipo segun de donde venimos (tarjeta o mis listas)
         const toggleExclusive = document.getElementById('create-list-exclusive-toggle');
         const selectType = document.getElementById('create-list-type-select');
 
@@ -10848,6 +11529,7 @@ formCreateList?.addEventListener('submit', async (e) => {
             tagTipo = selectType.value;
         }
 
+        // Insertar la lista en la base de datos
         const { data: nuevaLista, error: errorLista } = await supabase
             .from('listas_maestra')
             .insert({
@@ -10855,7 +11537,7 @@ formCreateList?.addEventListener('submit', async (e) => {
                 descripcion: descripcion || null,
                 owner_id: miId,
                 is_public: togglePrivacidadLista.checked,
-                tag_tipo: tagTipo // Aquí ya guardas 'game', 'movie', 'tv' o 'mixta'
+                tag_tipo: tagTipo // 'game', 'movie', 'tv' o 'mixta'
             })
             .select()
             .single();
@@ -10874,8 +11556,7 @@ formCreateList?.addEventListener('submit', async (e) => {
             const { error: errorMiembros } = await supabase.from('listas_miembros').insert(filasMiembros);
             if (errorMiembros) throw errorMiembros;
 
-            // TODO: cuando montemos el chatbox de alertas (#chatbox-notifs-scroll) de verdad,
-            // aquí lanzamos una notificación a cada invitado para que acepte/rechace.
+            // TODO: cuando montemos el chatbox de alertas de verdad, aqui lanzamos notificaciones
         }
 
         showToast('success', 'Lista creada', `"${titulo}" se ha creado correctamente.`);
@@ -10900,6 +11581,7 @@ formCreateList?.addEventListener('submit', async (e) => {
 });
 
 // Función genérica de Toggle Grid/List
+// Permite cambiar entre vista de grid y vista de lista para watchlist y listas
 function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'watchlist-list-mode') {
     const btn = document.getElementById(btnId);
     const grid = document.getElementById(targetGridId);
@@ -10907,7 +11589,7 @@ function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'wa
 
     const icon = btn.querySelector('i');
 
-    // Estado inicial desde localStorage
+    // Estado inicial desde localStorage (recordamos la preferencia del usuario)
     const modo = localStorage.getItem(storageKey) || 'grid';
     if (modo === 'list') {
         grid.classList.add(claseToggle);
@@ -10927,7 +11609,7 @@ function configurarToggleGrid(btnId, targetGridId, storageKey, claseToggle = 'wa
     });
 }
 
-// Inicializa ambos:
+// Inicializa ambos toggles: watchlist y listas
 configurarToggleGrid('btn-watchlist-toggle-grid', 'watchlist-list', 'pref_view_watchlist');
 configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', 'list-view-active');
 
@@ -10935,10 +11617,12 @@ configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', '
 //   MODAL DE PROGRESO PARA IMPORTACIÓN/EXPORTACIÓN
 // ==========================================================================
 
+// Variable global para el modal de progreso (se crea una sola vez)
 let modalProgreso = null;
 
+// Funcion que muestra el modal de progreso con barra y detalles
 function mostrarModalProgreso(titulo, mensaje) {
-    // Si ya existe, lo actualizamos
+    // Si ya existe, lo actualizamos (no creamos uno nuevo)
     if (!modalProgreso) {
         modalProgreso = document.createElement('div');
         modalProgreso.id = 'progress-modal';
@@ -11004,6 +11688,7 @@ function mostrarModalProgreso(titulo, mensaje) {
         document.body.appendChild(modalProgreso);
     }
 
+    // Mostramos el modal y actualizamos los textos
     modalProgreso.style.display = 'flex';
     document.getElementById('progress-title').textContent = titulo;
     document.getElementById('progress-message').textContent = mensaje;
@@ -11012,6 +11697,7 @@ function mostrarModalProgreso(titulo, mensaje) {
     document.getElementById('progress-details').innerHTML = '';
 }
 
+// Funcion para actualizar el progreso (porcentaje y detalle)
 function actualizarProgreso(porcentaje, detalle = '') {
     if (!modalProgreso) return;
     const bar = document.getElementById('progress-bar-fill');
@@ -11021,16 +11707,18 @@ function actualizarProgreso(porcentaje, detalle = '') {
     if (bar) bar.style.width = `${Math.min(100, porcentaje)}%`;
     if (percent) percent.textContent = `${Math.round(porcentaje)}%`;
 
+    // Añadir linea de detalle si se proporciona
     if (detalle && details) {
         const line = document.createElement('div');
         line.textContent = `▸ ${detalle}`;
         line.style.padding = '2px 0';
         line.style.borderBottom = '1px solid var(--border-color)';
         details.appendChild(line);
-        details.scrollTop = details.scrollHeight;
+        details.scrollTop = details.scrollHeight; // Auto-scroll al final
     }
 }
 
+// Cierra el modal de progreso
 function cerrarModalProgreso() {
     if (modalProgreso) {
         modalProgreso.style.display = 'none';
@@ -11041,6 +11729,7 @@ function cerrarModalProgreso() {
 //   IMPORTAR TV TIME (CON DEPURACIÓN)
 // ==========================================================================
 
+// Funcion principal que procesa la importacion de datos desde TV Time
 async function procesarImportTVTime(file) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -11051,10 +11740,10 @@ async function procesarImportTVTime(file) {
 
     actualizarProgreso(5, 'Leyendo archivo ZIP...');
 
-    // Leer el archivo ZIP
+    // Leer el archivo ZIP y extraer los CSVs
     const zipData = await readZipFile(file);
 
-    // LOG: Mostrar qué archivos se encontraron en el ZIP
+    // LOG: Mostrar qué archivos se encontraron en el ZIP (para depuracion)
     console.log('📦 Archivos encontrados en el ZIP:', Object.keys(zipData));
     actualizarProgreso(10, `Encontrados ${Object.keys(zipData).length} archivos en el ZIP...`);
 
@@ -11070,7 +11759,6 @@ async function procesarImportTVTime(file) {
     for (const [nombre, contenido] of Object.entries(zipData)) {
         const nombreLimpio = nombre.split('/').pop().trim();
 
-        // LOG: Mostrar cada archivo encontrado
         console.log('📄 Archivo encontrado:', nombreLimpio, 'Tamaño:', contenido.length);
 
         if (archivosImportantes[nombreLimpio] !== undefined) {
@@ -11081,7 +11769,6 @@ async function procesarImportTVTime(file) {
 
     // Verificar que tenemos los archivos necesarios
     if (!archivosImportantes['user_tv_show_data.csv']) {
-        // LOG: Mostrar todos los archivos disponibles
         console.error('❌ Archivos disponibles en el ZIP:', Object.keys(zipData));
         throw new Error('No se encontró el archivo user_tv_show_data.csv en el ZIP.');
     }
@@ -11097,7 +11784,6 @@ async function procesarImportTVTime(file) {
 
     const seriesTVTime = parseCSV(csvContent);
 
-    // LOG: Mostrar cuántas series se encontraron
     console.log(`📊 Series encontradas en CSV: ${seriesTVTime.length}`);
     actualizarProgreso(25, `Encontradas ${seriesTVTime.length} series en el archivo...`);
 
@@ -11113,7 +11799,6 @@ async function procesarImportTVTime(file) {
     // Si no hay series, mostrar advertencia
     if (totalSeries === 0) {
         console.warn('⚠️ No se encontraron series en el CSV. Verifica el formato del archivo.');
-        // Mostrar las primeras líneas para depuración
         const primerasLineasCompletas = csvContent.split('\n').slice(0, 10).join('\n');
         console.log('📄 Contenido del CSV (primeras 10 líneas):', primerasLineasCompletas);
         throw new Error('El archivo user_tv_show_data.csv está vacío o tiene un formato incorrecto.');
@@ -11132,7 +11817,7 @@ async function procesarImportTVTime(file) {
 
             if (!titulo) continue;
 
-            // LOG: Mostrar progreso cada 100 series
+            // LOG: Mostrar progreso cada 200 series (para no saturar la consola)
             if (procesadas % 200 === 0) {
                 console.log(`🔄 Procesando serie ${procesadas}/${totalSeries}: ${titulo}`);
             }
@@ -11141,6 +11826,7 @@ async function procesarImportTVTime(file) {
             let tmdbData = await buscarEnTMDB(titulo, 'tv');
 
             // Si no se encontró, reintentar quitando sufijos tipo (2011), (KR), (TH), etc.
+            // Esto mejora la tasa de coincidencia con TMDB
             if (!tmdbData) {
                 const tituloLimpio = titulo.replace(/\s*\([^)]*\)\s*$/, '').trim();
                 if (tituloLimpio !== titulo && tituloLimpio.length > 0) {
@@ -11216,7 +11902,7 @@ async function procesarImportTVTime(file) {
                     });
                 }
 
-                // 2. Procesar episodios individuales
+                // 2. Procesar episodios individuales (marcar como vistos)
                 if (episodiosSerie.length > 0) {
                     const episodiosMap = new Map();
 
@@ -11238,7 +11924,7 @@ async function procesarImportTVTime(file) {
                         }
                     }
 
-                    // Insertar episodios en batches
+                    // Insertar episodios en batches de 50 (para no saturar la API)
                     const epArray = Array.from(episodiosMap.values());
                     for (let i = 0; i < epArray.length; i += 50) {
                         const batch = epArray.slice(i, i + 50);
@@ -11267,6 +11953,7 @@ async function procesarImportTVTime(file) {
     // ============================================================
     // 🔥 GUARDAR EN LISTA "SERIES" (DEFAULT)
     // ============================================================
+    // Creamos o actualizamos una lista llamada "SERIES" con todas las series importadas
 
     if (seriesProcesadas.length > 0) {
         actualizarProgreso(88, `Guardando ${seriesProcesadas.length} series en la lista "SERIES"...`);
@@ -11345,10 +12032,10 @@ async function procesarImportTVTime(file) {
 
     actualizarProgreso(98, 'Finalizando importación...');
 
-    // Esperar un momento para que se sincronice
+    // Esperar un momento para que se sincronice con la base de datos
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Sincronizar watchlist
+    // Sincronizar watchlist (para que se actualice la UI)
     if (window.sincronizarWatchlistGlobal) {
         await window.sincronizarWatchlistGlobal();
     }
@@ -11373,6 +12060,7 @@ async function procesarImportTVTime(file) {
 //   EXPORTAR DATOS DEL USUARIO
 // ==========================================================================
 
+// Funcion que exporta todos los datos del usuario a un archivo JSON
 async function exportarDatosUsuario() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -11422,7 +12110,7 @@ async function exportarDatosUsuario() {
 
     actualizarProgreso(60, 'Recopilando listas...');
 
-    // 5. Listas creadas
+    // 5. Listas creadas por el usuario
     const { data: listas } = await supabase
         .from('listas_maestra')
         .select('*')
@@ -11439,7 +12127,7 @@ async function exportarDatosUsuario() {
 
     actualizarProgreso(75, 'Recopilando amistades...');
 
-    // 7. Amistades (seguidores)
+    // 7. Amistades (seguidores y seguidos)
     const { data: siguiendo } = await supabase
         .from('amistades')
         .select('*')
@@ -11452,11 +12140,11 @@ async function exportarDatosUsuario() {
 
     actualizarProgreso(85, 'Consultando detalles de TMDB...');
 
-    // 8. Enriquecer con datos de TMDB
+    // 8. Enriquecer con datos de TMDB (para que el export tenga mas informacion)
     const peliculasDetalle = [];
     const seriesDetalle = [];
 
-    // Películas
+    // Películas - obtenemos detalles de TMDB para cada una
     for (const peli of (peliculas || [])) {
         try {
             const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
@@ -11482,7 +12170,7 @@ async function exportarDatosUsuario() {
         actualizarProgreso(85 + ((peliculasDetalle.length / (peliculas?.length || 1)) * 10), `Detalle película: ${peli.media_id}`);
     }
 
-    // Series
+    // Series - obtenemos detalles de TMDB para cada una
     for (const serie of (series || [])) {
         try {
             const res = await fetch(`/api/tmdb?id=${serie.media_id}&tipo=tv&lang=${currentLang}`);
@@ -11512,7 +12200,7 @@ async function exportarDatosUsuario() {
 
     actualizarProgreso(95, 'Generando archivo de exportación...');
 
-    // Construir objeto de exportación
+    // Construir objeto de exportación con todos los datos
     const exportData = {
         version: '1.0',
         fecha_exportacion: new Date().toISOString(),
@@ -11573,10 +12261,10 @@ async function exportarDatosUsuario() {
 //   FUNCIONES AUXILIARES
 // ==========================================================================
 
-// Leer archivo ZIP y extraer CSVs
+// Leer archivo ZIP y extraer CSVs usando JSZip
 async function readZipFile(file) {
     return new Promise((resolve, reject) => {
-        // Verificar si JSZip está disponible
+        // Verificar si JSZip está disponible en la pagina
         if (typeof JSZip === 'undefined') {
             reject(new Error('JSZip no está cargado. Asegúrate de incluir la librería en el HTML.'));
             return;
@@ -11596,15 +12284,14 @@ async function readZipFile(file) {
                     return;
                 }
 
+                // Extraer solo los archivos .csv
                 for (const entryName of entries) {
                     const entry = zip.files[entryName];
                     if (!entry.dir) {
                         try {
-                            // Solo extraemos archivos .csv (los que nos interesan)
                             if (entryName.toLowerCase().endsWith('.csv')) {
                                 const content = await entry.async('string');
-                                // Guardamos solo el nombre del archivo sin la ruta
-                                const fileName = entryName.split('/').pop();
+                                const fileName = entryName.split('/').pop(); // Solo el nombre del archivo
                                 files[fileName] = content;
                             }
                         } catch (err) {
@@ -11628,14 +12315,14 @@ async function readZipFile(file) {
     });
 }
 
-// Parsear CSV a array de objetos
+// Parsear CSV a array de objetos (detecta separador automaticamente)
 function parseCSV(csvText) {
     if (!csvText || csvText.trim() === '') return [];
 
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     if (lines.length === 0) return [];
 
-    // Detectar separador
+    // Detectar separador (coma, tabulador o punto y coma)
     const firstLine = lines[0];
     let separator = ',';
     if (firstLine.includes('\t')) separator = '\t';
@@ -11658,7 +12345,7 @@ function parseCSV(csvText) {
     return result;
 }
 
-// Buscar en TMDB por título
+// Buscar en TMDB por título (con soporte para filtro +18)
 async function buscarEnTMDB(titulo, tipo, incluirAdultos = false) {
     try {
         const url = `/api/tmdb?tipo=${tipo}&query=${encodeURIComponent(titulo)}&lang=${currentLang}${incluirAdultos ? '&adult=true' : ''}`;
@@ -11682,7 +12369,7 @@ async function buscarEnTMDB(titulo, tipo, incluirAdultos = false) {
     }
 }
 
-// Formatear fecha para Supabase
+// Formatear fecha para Supabase (YYYY-MM-DD)
 function formatearFecha(fechaStr) {
     if (!fechaStr) return new Date().toISOString().split('T')[0];
     try {
@@ -11699,10 +12386,12 @@ function formatearFecha(fechaStr) {
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
 // ==========================================
+// Funcion que inicializa toda la aplicacion cuando el DOM esta listo
 async function inicializarApp() {
     // 1. INICIALIZAR IDIOMAS Y EVENTOS DEL MENÚ
     initLanguage(); // Primero cargamos el idioma base
 
+    // Configurar los eventos de los botones de idioma
     document.querySelectorAll('.lang-option').forEach(opt => {
         opt.addEventListener('click', async function (e) {
             e.preventDefault();
@@ -11744,4 +12433,5 @@ async function inicializarApp() {
 }
 
 // 4. EL ÚNICO LISTENER DE ARRANQUE EN TODO EL ARCHIVO
+// Cuando el DOM esta listo, arrancamos la aplicacion
 document.addEventListener('DOMContentLoaded', inicializarApp);

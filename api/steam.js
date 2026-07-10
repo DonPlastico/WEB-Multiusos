@@ -1,3 +1,10 @@
+// ============================================================
+//   API STEAM - FALLBACK PARA JUEGOS
+// ============================================================
+// Endpoint de respaldo cuando IGDB no encuentra un juego.
+// Busca en la tienda de Steam y devuelve los resultados
+// en el mismo formato que IGDB.
+
 export default async function handler(req, res) {
     const { query } = req;
     const busqueda = query.query || '';
@@ -24,7 +31,7 @@ export default async function handler(req, res) {
 
         const steamData = await steamRes.json();
 
-        // 2. Transformar resultados al formato que usa tu web
+        // 2. Transformar resultados al formato que usa tu web (igual que IGDB)
         const juegosSteam = steamData.items.map(item => ({
             id: `steam_${item.id}`,
             name: item.name,
@@ -39,10 +46,11 @@ export default async function handler(req, res) {
                 stores: 'steam',
                 url: `https://store.steampowered.com/app/${item.id}/`
             },
-            _source: 'steam'
+            _source: 'steam' // Marcamos que viene de Steam (por si acaso)
         }));
 
-        // ✅ DEVOLVER EN EL MISMO FORMATO QUE IGDB
+        // DEVOLVER EN EL MISMO FORMATO QUE IGDB
+        // Asi el frontend no tiene que hacer nada especial
         res.status(200).json({
             juegos: juegosSteam,
             total: juegosSteam.length,

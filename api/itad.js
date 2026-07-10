@@ -1,3 +1,9 @@
+// ============================================================
+//   API ITAD - PRECIOS DE JUEGOS
+// ============================================================
+// Endpoint simple para obtener el precio de un juego especifico
+// desde IsThereAnyDeal. Se usa para el modal de detalles.
+
 export default async function handler(req, res) {
     const { title } = req.query;
     if (!title) {
@@ -10,9 +16,11 @@ export default async function handler(req, res) {
     }
 
     // Configurar caché - los precios cambian, pero podemos cachear 5 minutos
+    // para no saturar la API de ITAD
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
 
     try {
+        // 1. Buscar el juego por titulo
         const searchRes = await fetch(
             `https://api.isthereanydeal.com/games/search/v1?title=${encodeURIComponent(title)}&limit=1&key=${API_KEY}`
         );
@@ -24,6 +32,7 @@ export default async function handler(req, res) {
 
         const gameId = searchData[0].id;
 
+        // 2. Obtener precios del juego
         const preciosRes = await fetch(
             `https://api.isthereanydeal.com/games/prices/v3?country=ES&key=${API_KEY}`,
             {
@@ -38,6 +47,7 @@ export default async function handler(req, res) {
             return res.status(200).json({ precio: null });
         }
 
+        // 3. Ordenar de mas barato a mas caro y devolver el mejor
         const deals = preciosData[0].deals.sort((a, b) => a.price.amount - b.price.amount);
         const mejor = deals[0];
 
@@ -47,7 +57,7 @@ export default async function handler(req, res) {
             tienda: mejor.shop.name,
             voucher: mejor.voucher || null,
             url: mejor.url,
-            todos: deals.slice(0, 5)
+            todos: deals.slice(0, 5) // Los 5 mejores por si queremos mostrarlos
         });
 
     } catch (err) {

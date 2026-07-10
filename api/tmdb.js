@@ -1,15 +1,23 @@
+// ============================================================
+//   API TMDB - PELÍCULAS Y SERIES
+// ============================================================
+// Endpoint que maneja todas las peticiones a The Movie Database.
+// Soporta busqueda, detalles, tendencias, generos, temporadas,
+// proveedores de streaming, reparto, trailers y mas.
+
 export default async function handler(req, res) {
     const TMDB_TOKEN = process.env.TMDB_TOKEN;
     const query = req.query;
 
-    const tipo = query.tipo || 'movie';
-    const id = query.id;
+    // Parametros basicos
+    const tipo = query.tipo || 'movie'; // 'movie' o 'tv'
+    const id = query.id; // ID de TMDB
     const busqueda = query.query || '';
     const page = parseInt(query.page) || 1;
     const includeAdult = query.adult === 'true' ? 'true' : 'false';
     const lang = query.lang || 'es';
 
-    // Mapeo de idiomas a códigos TMDB
+    // Mapeo de idiomas a codigos de TMDB (es-ES, en-US, etc)
     const langMap = {
         'es': 'es-ES',
         'en': 'en-US',
@@ -29,11 +37,14 @@ export default async function handler(req, res) {
     };
 
     try {
+        // Determinar tiempo de cache segun si es busqueda o no
         const esBusqueda = busqueda || query.genero || query.generos;
-        const cacheTime = esBusqueda ? 1800 : 3600;
+        const cacheTime = esBusqueda ? 1800 : 3600; // 30min o 1h
         res.setHeader('Cache-Control', `public, s-maxage=${cacheTime}, stale-while-revalidate=86400`);
 
-        // Temporadas
+        // =============================================
+        // 1. TEMPORADAS (para series)
+        // =============================================
         if (tipo === 'tv_season' && id && query.season) {
             const seasonNum = query.season;
             const resSeason = await fetch(`${baseUrl}/tv/${id}/season/${seasonNum}?language=${tmdbLang}`, { headers });
@@ -41,14 +52,20 @@ export default async function handler(req, res) {
             return res.status(200).json(seasonData);
         }
 
-        // Detalles
+        // =============================================
+        // 2. DETALLES (por ID)
+        // =============================================
         if (id) {
-            const resDetalle = await fetch(`${baseUrl}/${tipo}/${id}?language=${tmdbLang}&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`, { headers });
+            const resDetalle = await fetch(
+                `${baseUrl}/${tipo}/${id}?language=${tmdbLang}&include_video_language=es,en,null&append_to_response=watch/providers,videos,credits,keywords,translations`,
+                { headers }
+            );
             const data = await resDetalle.json();
 
+            // ========== CONSTRUIR SINOPSIS EXTENDIDA ==========
             let sinopsisExtendida = data.overview || '';
 
-            // Si el idioma no es español y hay traducción al español, intentamos usarla
+            // Si el idioma no es español y hay traducción al idioma solicitado, intentamos usarla
             if (lang !== 'es' && data.translations && data.translations.translations) {
                 const targetTranslation = data.translations.translations.find(t => t.iso_639_1 === lang);
                 if (targetTranslation && targetTranslation.data && targetTranslation.data.overview) {
@@ -59,11 +76,13 @@ export default async function handler(req, res) {
                 }
             }
 
+            // Añadir keywords (temas) a la sinopsis si existen
             if (data.keywords && data.keywords.keywords && data.keywords.keywords.length > 0) {
                 const keywordsList = data.keywords.keywords.map(k => k.name).join(', ');
                 sinopsisExtendida += `\n\nTemas: ${keywordsList}.`;
             }
 
+            // Si la sinopsis sigue siendo corta, intentar con ingles
             if (sinopsisExtendida.length < 150 && data.translations) {
                 const englishTranslation = data.translations.translations.find(t => t.iso_639_1 === 'en');
                 if (englishTranslation && englishTranslation.data && englishTranslation.data.overview) {
@@ -74,6 +93,7 @@ export default async function handler(req, res) {
                 }
             }
 
+            // Si sigue corta, combinar tagline + overview + keywords
             if (sinopsisExtendida.length < 100) {
                 let combined = '';
                 if (data.tagline) combined += `"${data.tagline}" `;
@@ -89,6 +109,7 @@ export default async function handler(req, res) {
                 sinopsisExtendida = 'No hay sinopsis disponible para este título en el Nexus.';
             }
 
+            // ========== PLATAFORMAS DE STREAMING ==========
             const providersES = data['watch/providers']?.results?.ES;
 
             const formatProvider = (p) => ({
@@ -100,11 +121,13 @@ export default async function handler(req, res) {
             const alquiler = providersES?.rent ? providersES.rent.map(formatProvider) : [];
             const compra = providersES?.buy ? providersES.buy.map(formatProvider) : [];
 
+            // ========== TRAILER ==========
             const videos = data.videos?.results || [];
             let trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer');
             if (!trailer) trailer = videos.find(v => v.site === 'YouTube');
             const trailerId = trailer ? trailer.key : null;
 
+            // ========== REPARTO ==========
             const actoresBruto = data.credits?.cast || [];
             const repartoFormateado = actoresBruto.slice(0, 15).map(actor => {
                 return {
@@ -114,6 +137,7 @@ export default async function handler(req, res) {
                 };
             });
 
+            // ========== TEMPORADAS (solo para series) ==========
             let temporadasInfo = [];
             if (tipo === 'tv' && data.seasons) {
                 temporadasInfo = data.seasons
@@ -127,7 +151,7 @@ export default async function handler(req, res) {
                     });
             }
 
-            // SIEMPRE devolver temporadas_info, aunque esté vacío
+            // Devolver todos los datos en el formato que espera el frontend
             return res.status(200).json({
                 id: data.id,
                 adult: data.adult,
@@ -157,11 +181,14 @@ export default async function handler(req, res) {
             });
         }
 
-        // Géneros
+        // =============================================
+        // 3. GÉNEROS (por nombre)
+        // =============================================
         if (query.genero) {
             const genero = query.genero;
             const limit = parseInt(query.limit) || 6;
 
+            // Primero obtenemos la lista de generos para encontrar el ID
             const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
             const genreRes = await fetch(genreUrl, { headers });
             const genreData = await genreRes.json();
@@ -169,6 +196,7 @@ export default async function handler(req, res) {
             let genreId = null;
             const generoLower = genero.toLowerCase().trim();
 
+            // Buscamos el genero por nombre (coincidencia aproximada)
             for (const g of genreData.genres || []) {
                 const nombreLower = g.name.toLowerCase().trim();
                 if (nombreLower === generoLower ||
@@ -183,6 +211,7 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
+            // Buscamos contenido de ese genero
             const searchUrl = `${baseUrl}/discover/${tipo}?with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&language=${tmdbLang}&page=1&include_adult=false`;
 
             const searchRes = await fetch(searchUrl, { headers });
@@ -192,6 +221,7 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
+            // Formateamos los resultados
             const results = searchData.results.slice(0, limit).map(item => {
                 const isMovie = tipo === 'movie';
                 const titulo = isMovie ? item.title : item.name;
@@ -216,7 +246,9 @@ export default async function handler(req, res) {
             return res.status(200).json(results);
         }
 
-        // Lista de géneros
+        // =============================================
+        // 4. LISTA DE GÉNEROS
+        // =============================================
         if (query.generos) {
             const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
             const genreRes = await fetch(genreUrl, { headers });
@@ -225,7 +257,9 @@ export default async function handler(req, res) {
             return res.status(200).json(genreData);
         }
 
-        // TENDENCIAS
+        // =============================================
+        // 5. TENDENCIAS
+        // =============================================
         if (query.trending === 'true') {
             const period = query.period || 'day';
             const limit = parseInt(query.limit) || 20;
@@ -239,6 +273,7 @@ export default async function handler(req, res) {
                 return res.status(200).json([]);
             }
 
+            // Para cada item de trending, obtenemos detalles extra (proveedores, etc)
             const trendingPromesas = trendingData.results.slice(0, limit).map(async (item) => {
                 try {
                     const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
@@ -275,7 +310,9 @@ export default async function handler(req, res) {
             return res.status(200).json(trendingFinal);
         }
 
-        // Listados
+        // =============================================
+        // 6. LISTADOS (busqueda o discover)
+        // =============================================
         const minVotes = parseInt(query.minVotes) || 0;
         const country = query.country || '';
         const genres = query.genres || '';
@@ -283,12 +320,13 @@ export default async function handler(req, res) {
         const dateMax = query.dateMax || '';
 
         let urlLista;
+
+        // Si hay busqueda, usamos search
         if (busqueda) {
             const queryTrimmed = busqueda.trim();
 
-            // Búsqueda exacta por ID numérico
+            // Búsqueda exacta por ID numérico (para abrir detalles directamente)
             if (/^\d+$/.test(queryTrimmed)) {
-
                 // Si el frontend pide página 2 o más, le decimos que ya no hay más resultados.
                 if (page > 1) {
                     return res.status(200).json([]);
@@ -316,7 +354,7 @@ export default async function handler(req, res) {
                             data.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating || '';
                     }
 
-                    // Detenemos la ejecución aquí y devolvemos 1 solo elemento en el array
+                    // Devolvemos 1 solo elemento en el array
                     return res.status(200).json([{
                         id: data.id,
                         adult: data.adult,
@@ -337,9 +375,10 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Búsqueda normal de texto si no son solo números
+            // Búsqueda normal de texto
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(queryTrimmed)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
         } else {
+            // Si no hay busqueda, usamos discover (para filtros)
             let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
 
             if (minVotes > 0) {
@@ -373,6 +412,7 @@ export default async function handler(req, res) {
             urlLista = `${baseUrl}/discover/${tipo}?${discoverParams}`;
         }
 
+        // Ejecutar la consulta
         const listRes = await fetch(urlLista, { headers });
         const listData = await listRes.json();
 
@@ -380,6 +420,7 @@ export default async function handler(req, res) {
             return res.status(200).json([]);
         }
 
+        // Para cada resultado, obtenemos detalles extra (proveedores, etc)
         const promesasDetalles = listData.results.map(async (item) => {
             try {
                 const detailRes = await fetch(`${baseUrl}/${tipo}/${item.id}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
@@ -396,6 +437,7 @@ export default async function handler(req, res) {
             return res.status(200).json([]);
         }
 
+        // Formatear resultados finales
         let jsonFinal = detallesRAW.map(data => {
             const providersES = data['watch/providers']?.results?.ES;
             const plataformas = [];
