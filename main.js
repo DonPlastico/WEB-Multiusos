@@ -9780,9 +9780,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         }));
     }
 
-    // 4. Obtener orden guardado y ordenar
-    const ordenGuardado = await obtenerOrdenWatchlist(userId);
-
     seriesEnProgreso.forEach(serie => {
         serie.posicion = ordenGuardado[serie.tmdbId] || Infinity;
     });
