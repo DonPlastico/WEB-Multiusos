@@ -9840,18 +9840,32 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         // Click en el boton de check marca el episodio como visto
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
+            console.log('🎯 Click en botón de watchlist');
+
             const btn = e.currentTarget;
             btn.disabled = true;
             btn.style.opacity = '0.5';
             const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
+            console.log(`📝 Marcando episodio: ${mediaId}`);
 
             try {
                 // Marcar episodio como visto en Supabase
+                console.log('💾 Guardando en user_media...');
                 const { error: upsertError } = await supabase.from('user_media').upsert({
-                    user_id: userId, media_id: mediaId, tipo: 'tv_episode', visto: true, veces_vista: 1, fecha_vista: new Date().toISOString().split('T')[0]
+                    user_id: userId,
+                    media_id: mediaId,
+                    tipo: 'tv_episode',
+                    visto: true,
+                    veces_vista: 1,
+                    fecha_vista: new Date().toISOString().split('T')[0]
                 }, { onConflict: 'user_id,media_id' });
 
-                if (upsertError) throw new Error(upsertError.message);
+                if (upsertError) {
+                    console.error('❌ Error en upsert:', upsertError);
+                    throw new Error(upsertError.message);
+                }
+                console.log('✅ Episodio guardado en user_media');
+
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
 
                 if (esMiPerfil && window.episodiosVistosActuales) {
@@ -9859,9 +9873,12 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 }
 
                 // Esta serie pasa al PRIMER PUESTO
+                console.log(`🔄 Reordenando watchlist para serie: ${serie.tmdbId}`);
                 await reordenarWatchlist(userId, serie.tmdbId);
+                console.log('✅ Reorden completado');
 
                 // Verificar si la serie esta completada
+                console.log('🔍 Verificando si la serie está completada...');
                 const resTV = await fetch(`/api/tmdb?id=${serie.tmdbId}&tipo=tv&lang=${currentLang}`);
                 const dataTV = await resTV.json();
                 const temporadasReales = (dataTV.temporadas_info || []).filter(s => s.season_number > 0);
@@ -9870,6 +9887,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
                 // Si la serie esta completada, la eliminamos de la watchlist
                 if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) {
+                    console.log(`✅ Serie completada! Eliminando de la watchlist`);
                     const itemEl = btn.closest('.watchlist-item');
                     itemEl.style.opacity = '0';
                     itemEl.style.transition = 'opacity 0.3s ease';
@@ -9880,10 +9898,13 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     const idx = seriesEnProgreso.findIndex(s => s.tmdbId === serie.tmdbId);
                     if (idx > -1) seriesEnProgreso.splice(idx, 1);
                     sessionStorage.setItem(cacheKey, JSON.stringify(seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] }))));
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
                     return;
                 }
 
                 // Buscar el siguiente episodio pendiente
+                console.log('🔍 Buscando siguiente episodio pendiente...');
                 let siguienteEp = null;
                 let totalPendientes = 0;
                 for (const temp of temporadasReales) {
@@ -9897,11 +9918,15 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 }
 
                 if (!siguienteEp) {
+                    console.log('⚠️ No hay siguiente episodio, eliminando item');
                     btn.closest('.watchlist-item').remove();
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
                     return;
                 }
 
                 // Obtener datos del nuevo episodio
+                console.log(`📺 Siguiente episodio: T${siguienteEp.temporada} E${siguienteEp.episodio}`);
                 let nuevoNombre = '';
                 let nuevoPoster = '';
                 try {
@@ -9922,6 +9947,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 serie.ultimaFecha = new Date().toISOString().split('T')[0];
 
                 // Actualizar la UI del item
+                console.log('🖼️ Actualizando UI...');
                 const itemEl = btn.closest('.watchlist-item');
                 const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
                 const nuevoFondo = nuevoPoster || serie.poster || '';
@@ -9936,19 +9962,23 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 itemEl.querySelector('.watchlist-ep-name').textContent = nuevoNombre;
 
                 // Animacion de que se ha actualizado
+                console.log('⬆️ Moviendo item a posición #1');
                 lista.prepend(itemEl);
                 itemEl.style.transition = 'background 0.3s ease';
-                itemEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                itemEl.style.background = 'rgba(16, 185, 129, 0.2)';
                 setTimeout(() => { itemEl.style.background = 'var(--bg-card)'; }, 800);
 
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 sessionStorage.setItem(cacheKey, JSON.stringify(seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] }))));
+                console.log('✅ Proceso completado exitosamente');
 
             } catch (err) {
-                console.error('Error marcando episodio:', err);
+                console.error('❌ Error marcando episodio:', err);
                 btn.disabled = false;
                 btn.style.opacity = '1';
+                // Mostrar toast de error
+                showToast('error', 'Error', 'No se pudo marcar el episodio como visto.');
             }
         });
 
