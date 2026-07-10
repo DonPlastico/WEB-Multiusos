@@ -5470,7 +5470,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
     document.getElementById('providers-buy').innerHTML = '';
     document.getElementById('media-detail-trailer-img').src = '';
     document.getElementById('media-detail-rating-value').textContent = "0.0";
-    document.getElementById('media-detail-rating-stars').innerHTML = '';
     document.getElementById('media-detail-rating-count').textContent = "-- valoraciones";
 
     // Reseteamos el panel de actores con un loader
@@ -5765,20 +5764,6 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
         const votosFormateados = data.votos ? data.votos.toLocaleString('es-ES') : '--';
         document.getElementById('media-detail-rating-count').textContent = `${votosFormateados} ${t('details_extra.ratings')}`;
-
-        // Convertimos la nota de 0-10 a 0-5 para las estrellas
-        const notaSobre5 = notaNum / 2;
-        let estrellasHtml = '';
-        for (let i = 1; i <= 5; i++) {
-            if (notaSobre5 >= i) {
-                estrellasHtml += '<i class="fas fa-star"></i>';
-            } else if (notaSobre5 >= i - 0.5) {
-                estrellasHtml += '<i class="fas fa-star-half-alt"></i>';
-            } else {
-                estrellasHtml += '<i class="far fa-star"></i>';
-            }
-        }
-        document.getElementById('media-detail-rating-stars').innerHTML = estrellasHtml;
 
         // 10. REPARTO (CARRUSEL DE ACTORES)
         const castContainer = document.getElementById('media-detail-cast');
