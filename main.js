@@ -9550,26 +9550,31 @@ async function guardarOrdenWatchlist(userId, tmdbIds) {
 
 // Reordenar al marcar un episodio (la serie marcada pasa a #1)
 async function reordenarWatchlist(userId, tmdbIdMarcado) {
-    // 1. Obtener el orden actual (solo los IDs, sin peticiones a TMDB)
+    console.log('🔄 Reordenando watchlist para serie:', tmdbIdMarcado);
+
+    // 1. Obtener el orden actual (con posiciones)
     const { data, error } = await supabase
         .from('watchlist_orden')
-        .select('tmdb_id')
+        .select('tmdb_id, posicion')
         .eq('user_id', userId)
         .order('posicion', { ascending: true });
 
     if (error) {
-        console.warn('⚠️ Error obteniendo orden:', error);
+        console.error('❌ Error obteniendo orden:', error);
         return;
     }
 
-    // 2. Extraer los IDs actuales
+    // 2. Extraer los IDs en orden actual
     const idsActuales = data.map(item => item.tmdb_id);
+    console.log('📋 Orden actual:', idsActuales);
 
     // 3. Filtrar la serie marcada (por si ya estaba en la lista)
     const otrosIds = idsActuales.filter(id => id !== String(tmdbIdMarcado));
+    console.log('📋 Otros IDs:', otrosIds);
 
     // 4. Nuevo orden: [marcado, ...resto]
     const nuevoOrden = [String(tmdbIdMarcado), ...otrosIds];
+    console.log('📋 Nuevo orden:', nuevoOrden);
 
     // 5. Guardar el nuevo orden en la base de datos
     await guardarOrdenWatchlist(userId, nuevoOrden);
@@ -9577,6 +9582,7 @@ async function reordenarWatchlist(userId, tmdbIdMarcado) {
     // 6. Invalidar caché SOLO cuando se reordena
     const cacheKey = `watchlist_tv_${userId}`;
     localStorage.removeItem(cacheKey);
+    console.log('✅ Reorden completado, caché invalidada');
 }
 
 // Obtener solo IDs de series en progreso
@@ -9917,6 +9923,14 @@ function pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista) {
                 }
 
                 await reordenarWatchlist(userId, serie.tmdbId);
+                console.log('✅ Reorden ejecutado para serie:', serie.tmdbId);
+                console.log('🔍 Verificando orden en Supabase...');
+                const verificar = await supabase
+                    .from('watchlist_orden')
+                    .select('tmdb_id, posicion')
+                    .eq('user_id', userId)
+                    .order('posicion', { ascending: true });
+                console.log('📋 Orden después de reordenar:', verificar.data);
 
                 // Usar datos en memoria para verificar completado
                 const temporadasReales = (serie._temporadasInfo || []).filter(s => s.season_number > 0);
