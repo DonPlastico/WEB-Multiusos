@@ -304,7 +304,7 @@ export default async function handler(req, res) {
             urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(searchQuery)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}${yearParam}`;
         } else {
             // Bajamos el filtro base a 5 votos para descartar solo el spam absoluto, no las películas reales
-            let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=5`;
+            let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc`;
 
             if (minVotes > 0) {
                 discoverParams += `&vote_count.gte=${minVotes}`;
