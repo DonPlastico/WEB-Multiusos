@@ -3295,7 +3295,6 @@ span.flatpickr-weekday {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    width: 55px;
     cursor: pointer;
 }
 
@@ -3564,7 +3563,7 @@ cast-carousel::-webkit-scrollbar {
 .personal-stars {
     display: flex;
     gap: 2px;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -3577,7 +3576,7 @@ cast-carousel::-webkit-scrollbar {
     transition: all 0.15s ease;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 1.6rem;
+    font-size: 2.2rem;
     position: relative;
 }
 
