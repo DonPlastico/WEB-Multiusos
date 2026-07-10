@@ -964,6 +964,11 @@ async function loadTranslations(lang) {
 
 // 3. Función de traducción t(key, params)
 function t(key, params = {}) {
+    // RED DE SEGURIDAD: Si las traducciones aún no han cargado, devolvemos la key sin saturar la consola
+    if (!translations || Object.keys(translations).length === 0) {
+        return key;
+    }
+
     // Navegación por puntos: "nav.home" -> translations.nav.home
     const keys = key.split('.');
     let value = translations;
@@ -3563,12 +3568,12 @@ userMenu.innerHTML = `
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option" id="btn-mis-listas"><i class="fas fa-list"></i><span>${t('user.lists')}</span></button>
+    <button class="theme-option" id="btn-mis-listas"><i class="fas fa-list"></i><span>Mis Listas</span></button>
     
     <div class="dropdown-divider"></div>
     
-    <button class="theme-option" id="btn-editar-perfil"><i class="fas fa-user-edit"></i><span>${t('user.edit_profile')}</span></button>
-    <button class="theme-option" id="btn-ajustes"><i class="fas fa-cog"></i><span>${t('user.settings')}</span></button>
+    <button class="theme-option" id="btn-editar-perfil"><i class="fas fa-user-edit"></i><span>Editar perfil</span></button>
+    <button class="theme-option" id="btn-ajustes"><i class="fas fa-cog"></i><span>Ajustes</span></button>
     
     <div class="dropdown-divider"></div>
     
@@ -3586,7 +3591,7 @@ userMenu.innerHTML = `
     
     <button class="theme-option" id="btn-logout">
         <i class="fas fa-sign-out-alt" style="color: var(--error);"></i>
-        <span style="color: var(--error);">${t('user.logout')}</span>
+        <span style="color: var(--error);">Cerrar sesión</span>
     </button>
 `;
 
