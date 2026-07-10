@@ -9729,12 +9729,19 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const ordenGuardado = await obtenerOrdenWatchlist(userId);
     const idsEnWatchlist = Object.keys(ordenGuardado);
 
-    // 4. Filtrar SOLO las series que están en la watchlist (tienen orden guardado)
+    console.log(`📊 IDs en watchlist:`, idsEnWatchlist);
+
+    // 4. Construir seriesEnProgreso SOLO para las que están en la watchlist
     const entriesFiltradas = [...seriesMap.entries()]
-        .filter(([tmdbId]) => idsEnWatchlist.includes(tmdbId))
-        .slice(0, 20);
+        .filter(([tmdbId]) => idsEnWatchlist.includes(tmdbId));
 
     console.log(`📊 Series con episodios vistos: ${seriesMap.size}, en watchlist: ${entriesFiltradas.length}`);
+
+    // 5. Si no hay series en la watchlist, ocultar sección
+    if (entriesFiltradas.length === 0) {
+        seccion.style.display = 'none';
+        return;
+    }
 
     const CHUNK = 5;
 
@@ -9784,6 +9791,9 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     }
                 } catch (_) { }
 
+                // Obtener la posición del orden guardado
+                const posicion = ordenGuardado[tmdbId] || Infinity;
+
                 seriesEnProgreso.push({
                     tmdbId,
                     nombre: data.titulo || data.title || '',
@@ -9795,30 +9805,33 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     pendientes: totalPendientes - 1,
                     ultimaFecha,
                     epVistos,
-                    _temporadasInfo: data.temporadas_info || []
+                    _temporadasInfo: data.temporadas_info || [],
+                    posicion: posicion  // <--- ASIGNAR POSICIÓN DIRECTAMENTE
                 });
 
             } catch (_) { }
         }));
     }
 
-    seriesEnProgreso.forEach(serie => {
-        serie.posicion = ordenGuardado[serie.tmdbId] || Infinity;
-    });
-
+    // 6. Ordenar POR POSICIÓN (sin fallback a fecha)
     seriesEnProgreso.sort((a, b) => {
+        // Si ambos tienen posición, ordenar por posición
         if (a.posicion !== Infinity && b.posicion !== Infinity) {
             return a.posicion - b.posicion;
         }
+        // Si uno tiene posición, va primero
         if (a.posicion !== Infinity) return -1;
         if (b.posicion !== Infinity) return 1;
+        // Si ninguno tiene posición (no debería pasar), ordenar por fecha
         if (b.ultimaFecha && a.ultimaFecha) return b.ultimaFecha.localeCompare(a.ultimaFecha);
         if (b.ultimaFecha) return 1;
         if (a.ultimaFecha) return -1;
         return 0;
     });
 
-    // 5. Guardar en caché con timestamp
+    console.log(`📋 Orden final:`, seriesEnProgreso.map(s => ({ nombre: s.nombre, posicion: s.posicion })));
+
+    // 7. Guardar en caché con timestamp
     const cachePayload = {
         data: seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] })),
         timestamp: Date.now()
@@ -9826,7 +9839,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
     console.log(`💾 Watchlist guardada en caché (${seriesEnProgreso.length} series)`);
 
-    // 6. Pintar
+    // 8. Pintar
     if (seriesEnProgreso.length > 0) {
         pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista);
     } else {
