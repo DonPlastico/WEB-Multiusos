@@ -2,20 +2,31 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
+    <!-- ============================================================ -->
+    <!--   METADATOS BASICOS Y CONFIGURACION DEL DOCUMENTO             -->
+    <!-- ============================================================ -->
+    <meta charset="UTF-8"> <!-- Codificacion de caracteres (UTF-8 pa que no haya problemas con tildes y ñ) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light dark">
-    <meta name="darkreader-lock">
-    <meta name="theme-color" content="#6366f1">
+    <!-- Hace que la web sea responsive en moviles -->
+    <meta name="color-scheme" content="light dark"> <!-- Le dice al navegador que soportamos temas claro y oscuro -->
+    <meta name="darkreader-lock"> <!-- Evita que DarkReader (extension) se ponga tonta y rompa el diseño -->
+    <meta name="theme-color" content="#6366f1"> <!-- Color de la barra superior en moviles (indigo) -->
 
     <!-- ======== META DESCRIPTION (se actualizará con JS) ======== -->
+    <!-- Esta descripcion la usa Google para mostrar en los resultados de busqueda -->
+    <!-- La actualizamos dinamicamente con JS segun la vista en la que estes -->
     <meta name="description"
         content="DP-SYS - Tu nexus personal de juegos, películas y series. Descubre tendencias, guarda tu progreso y conecta con otros usuarios.">
 
     <!-- ======== TITLE (se actualizará con JS) ======== -->
+    <!-- El titulo de la pestaña del navegador, tambien se actualiza con JS -->
     <title>DP-SYS | Nexus</title>
 
-    <!-- ======== OPEN GRAPH (se actualizarán con JS) ======== -->
+    <!-- ============================================================ -->
+    <!--   OPEN GRAPH - PARA COMPARTIR EN REDES SOCIALES              -->
+    <!-- ============================================================ -->
+    <!-- Estos meta tags son los que usan WhatsApp, Discord, Twitter, etc -->
+    <!-- Cuando compartes un enlace, usan estos datos para mostrar la vista previa -->
     <meta property="og:title" content="DP-SYS | Nexus - Tu centro multimedia personal" />
     <meta property="og:description"
         content="DP-SYS - Tu nexus personal de juegos, películas y series. Descubre las últimas tendencias, guarda tu progreso en cada título, personaliza tu perfil y conecta con otros usuarios que comparten tus mismos gustos. Todo en un solo lugar, diseñado para los amantes del entretenimiento digital." />
@@ -26,33 +37,58 @@
     <meta property="og:locale" content="es_ES" />
 
     <!-- ======== TWITTER CARDS ======== -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Twitter tiene sus propios meta tags, basicamente lo mismo pero con nombre "twitter:" -->
+    <meta name="twitter:card" content="summary_large_image" /> <!-- Tarjeta grande con imagen -->
     <meta name="twitter:title" content="DP-SYS | Nexus - Tu centro multimedia personal" />
     <meta name="twitter:description"
         content="DP-SYS - Tu nexus personal de juegos, películas y series. Descubre las últimas tendencias, guarda tu progreso en cada título, personaliza tu perfil y conecta con otros usuarios que comparten tus mismos gustos. Todo en un solo lugar, diseñado para los amantes del entretenimiento digital." />
     <meta name="twitter:image" content="https://dpsys-nexus.vercel.app/img/Pruebas/HOME.png" />
 
-    <!-- ======== RESTO DE TU HEAD (LO QUE YA TENÍAS) ======== -->
+    <!-- ============================================================ -->
+    <!--   ICONOS Y FAVICONS                                         -->
+    <!-- ============================================================ -->
     <link rel="icon" href="img/Logo.webp" type="image/webp" alt="DP-SYS Logo - Nexus de entretenimiento">
-    <link rel="apple-touch-icon" href="/img/Logo.webp">
-    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" href="/img/Logo.webp"> <!-- Icono para iOS cuando añades a pantalla de inicio -->
+
+    <!-- ============================================================ -->
+    <!--   HOJAS DE ESTILO (CSS)                                     -->
+    <!-- ============================================================ -->
+    <link rel="stylesheet" href="style.css"> <!-- Nuestro CSS principal, donde esta todo el diseño cyberpunk -->
+
+    <!-- Font Awesome - Los iconos (se cargan con media="print" para no bloquear el renderizado) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         media="print" onload="this.media='all'">
+
+    <!-- Flatpickr - Calendario para seleccionar fechas (se carga asincrono) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" media="print"
         onload="this.media='all'">
+
+    <!-- Cropper.js - Para recortar imagenes (avatares y banners) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" media="print"
         onload="this.media='all'">
+
+    <!-- Google Fonts - Rajdhani (fuente cyberpunk/tecnologica) -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Manifest para PWA (Progressive Web App) -->
     <link rel="manifest" href="/manifest.json">
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- ============================================================ -->
+    <!--   SCRIPTS (LIBRERÍAS EXTERNAS)                              -->
+    <!-- ============================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> <!-- Calendario -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <!-- Traduccion al español del calendario -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- Editor de recorte de imagenes -->
 
-    <!-- JSZip para leer archivos ZIP -->
+    <!-- JSZip para leer archivos ZIP (importacion de TV Time) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <!-- Google tag (gtag.js) -->
+    <!-- ============================================================ -->
+    <!--   GOOGLE ANALYTICS (gtag.js)                                -->
+    <!-- ============================================================ -->
+    <!-- Esto es para las estadisticas de visitas de Google -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-BQ9SP8WMME"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -64,49 +100,59 @@
 
 <body>
     <!-- este div q deja las rayitas retro en la web -->
+    <!-- Efecto de scanlines para darle ese toque retro/cyberpunk a toda la pagina -->
     <div class="scanlines"></div>
 
-    <!-- barra de navegacion en 3 partes -->
+    <!-- ============================================================ -->
+    <!--   BARRA DE NAVEGACION (NAVBAR)                                -->
+    <!-- ============================================================ -->
     <nav class="cyber-nav">
         <!-- el logo a la izquierda -->
+        <!-- Al hacer click en el logo, volvemos al inicio (home) -->
         <div class="logo" id="logo-home" title="Ir al Inicio">DP<span>-SYS</span></div>
 
         <!-- los enlaces del menu en el centro -->
+        <!-- Estos son los botones principales de navegacion: Juegos, Peliculas, Series -->
         <ul class="nav-links">
             <li><a href="#" data-target="games" id="nav-games">JUEGOS</a></li>
             <li><a href="#" data-target="movies" id="nav-movies">PELICULAS</a></li>
             <li><a href="#" data-target="series" id="nav-series">SERIES</a></li>
         </ul>
 
-        <!-- botones a la derecha -->
+        <!-- botones a la derecha de la navbar -->
         <div class="nav-right">
-            <!-- boton pa cambiar el tema -->
+            <!-- boton pa cambiar el tema (claro/oscuro/sistema) -->
             <button class="icon-btn" id="theme-toggle" title="Tema del sistema">
                 <i class="fas fa-desktop"></i>
             </button>
 
-            <!-- la bandera pa cambiar idioma -->
+            <!-- la bandera pa cambiar idioma (despliega un menu con todos los idiomas) -->
             <button class="icon-btn" id="lang-toggle" title="Idioma">
                 <img src="https://flagcdn.com/32x24/es.webp" alt="ES">
             </button>
 
-            <!-- boton del admin q esta oculto -->
+            <!-- boton del admin q esta oculto por defecto (solo aparece si eres admin) -->
             <button class="icon-btn" id="btn-admin" title="Panel de Control" style="display: none;">
                 <i class="fas fa-user-shield"></i>
             </button>
 
-            <!-- el perfil del usuario -->
+            <!-- el perfil del usuario (icono de astronauta cuando esta logueado) -->
             <button class="icon-btn user-btn" id="user-profile" title="Mi Cuenta">
                 <i class="fas fa-user-circle"></i>
             </button>
         </div>
     </nav>
 
-    <!-- el contenedor principal pa todas las vistas -->
+    <!-- ============================================================ -->
+    <!--   CONTENEDOR PRINCIPAL (TODAS LAS VISTAS)                    -->
+    <!-- ============================================================ -->
     <main class="cyber-container">
 
-        <!-- vista de inicio -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE INICIO (HOME)                                     -->
+        <!-- ============================================================ -->
         <section id="home" class="view active">
+            <!-- Hero Section - El banner grande de bienvenida -->
             <div class="hero-section glass-panel"
                 style="padding: 60px 50px; display: flex; gap: 40px; text-align: left; justify-content: space-between; align-items: center; position: relative; overflow: hidden; min-height: 350px;">
 
@@ -115,12 +161,12 @@
                     style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-primary); z-index: 2;">
                 </div>
 
-                <!-- Degradado de fondo sutil -->
+                <!-- Degradado de fondo sutil (da profundidad al hero) -->
                 <div
                     style="position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 70% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 20% 40%, rgba(45, 212, 191, 0.05) 0%, transparent 60%); z-index: 1;">
                 </div>
 
-                <!-- Partículas decorativas (círculos flotantes) -->
+                <!-- Partículas decorativas (círculos flotantes que dan sensación de espacio) -->
                 <div
                     style="position: absolute; top: 20%; right: 15%; width: 80px; height: 80px; border-radius: 50%; background: rgba(99, 102, 241, 0.05); z-index: 1; animation: floatHero 8s ease-in-out infinite;">
                 </div>
@@ -131,9 +177,9 @@
                     style="position: absolute; top: 50%; left: 10%; width: 40px; height: 40px; border-radius: 50%; background: rgba(99, 102, 241, 0.04); z-index: 1; animation: floatHero 10s ease-in-out infinite 4s;">
                 </div>
 
-                <!-- Contenido izquierdo -->
+                <!-- Contenido izquierdo del hero -->
                 <div style="position: relative; z-index: 2; flex: 1;">
-                    <!-- Badge de estado (como el de admin) -->
+                    <!-- Badge de estado (como el de admin) - indica que el Nexus esta online -->
                     <div
                         style="display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.08); padding: 8px 18px; border-radius: 30px; border: 1px solid rgba(16, 185, 129, 0.15); margin-bottom: 20px;">
                         <div
@@ -155,13 +201,13 @@
                         </span>
                     </h1>
 
-                    <!-- Subtítulo -->
+                    <!-- Subtítulo - se traduce con JS -->
                     <p id="hero-subtitle"
                         style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; line-height: 1.8; margin-bottom: 25px;">
                         Millones de películas, series y gente por descubrir. <br>Explora ya.
                     </p>
 
-                    <!-- Botones de acción -->
+                    <!-- Botones de acción del hero (navegacion rapida) -->
                     <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                         <a href="#" id="btn-hero-games" class="auth-btn secondary"
                             style="padding: 12px 32px; font-size: 0.9rem;">
@@ -177,7 +223,7 @@
                         </a>
                     </div>
 
-                    <!-- Estadísticas rápidas -->
+                    <!-- Estadísticas rápidas (numeros decorativos) -->
                     <div
                         style="display: flex; gap: 40px; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-color);">
                         <div>
@@ -201,7 +247,8 @@
                     </div>
                 </div>
 
-                <!-- Contenido derecho: Icono decorativo / Gráfico -->
+                <!-- Contenido derecho: Icono decorativo / Gráfico animado -->
+                <!-- Es una brujula giratoria con anillos que dan efecto de radar/nexus -->
                 <div
                     style="position: relative; z-index: 2; flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.08) 0%, transparent 70%);">
                     <div
@@ -217,18 +264,22 @@
                 </div>
             </div>
 
-            <!--  SECCIÓN TENDENCIAS JUEGOS -->
+            <!-- ============================================================ -->
+            <!--   SECCIÓN TENDENCIAS JUEGOS                                   -->
+            <!-- ============================================================ -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-games-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Juegos
                     </h2>
                     <div class="trends-tabs">
+                        <!-- Pestañas para filtrar por periodo (semana/mes/año) -->
                         <button class="trend-tab active" data-period="week">Esta semana</button>
                         <button class="trend-tab" data-period="month">Este mes</button>
                         <button class="trend-tab" data-period="year">Este año</button>
                     </div>
                 </div>
+                <!-- Carrusel horizontal donde se pintan las tarjetas de juegos -->
                 <div class="horizontal-scroll glass-panel" id="trend-games">
                     <div class="trends-loading">
                         <i class="fas fa-circle-notch fa-spin"></i>
@@ -237,13 +288,16 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS PELÍCULAS -->
+            <!-- ============================================================ -->
+            <!--   SECCIÓN TENDENCIAS PELÍCULAS                               -->
+            <!-- ============================================================ -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-movies-title">
                         <i class="fas fa-fire" style="color: var(--warning);"></i> Tendencias en Películas
                     </h2>
                     <div class="trends-tabs">
+                        <!-- Pestañas para peliculas (dia/semana) -->
                         <button class="trend-tab active" data-period="day">Hoy</button>
                         <button class="trend-tab" data-period="week">Esta semana</button>
                     </div>
@@ -256,7 +310,9 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN TENDENCIAS SERIES -->
+            <!-- ============================================================ -->
+            <!--   SECCIÓN TENDENCIAS SERIES                                  -->
+            <!-- ============================================================ -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trends-series-title">
@@ -275,13 +331,16 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN ÚLTIMOS TRÁILERS -->
+            <!-- ============================================================ -->
+            <!--   SECCIÓN ÚLTIMOS TRÁILERS                                   -->
+            <!-- ============================================================ -->
             <div class="trends-container">
                 <div class="trends-header">
                     <h2 class="section-title" id="trailers-title">
                         <i class="fas fa-play-circle" style="color: var(--primary);"></i> Últimos Tráilers
                     </h2>
                 </div>
+                <!-- Carrusel mixto: juegos + peliculas + series intercalados -->
                 <div class="horizontal-scroll glass-panel" id="latest-trailers">
                     <div class="trends-loading" id="latest-trailers-loading">
                         <i class="fas fa-circle-notch fa-spin"></i>
@@ -290,6 +349,7 @@
                 </div>
             </div>
 
+            <!-- SECCION LO MAS POPULAR (placeholder, proximamente) -->
             <div class="trends-container">
                 <h2 class="section-title" id="popular-title">Lo Más Popular</h2>
                 <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.webp" alt="proximamente">
@@ -297,27 +357,34 @@
             </div>
         </section>
 
-        <!-- vista de juegos -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE JUEGOS                                             -->
+        <!-- ============================================================ -->
         <section id="games" class="view">
             <div class="games-layout">
 
                 <!-- zona izquierda con los juegos -->
                 <div class="games-content">
+                    <!-- Buscador de juegos -->
                     <div class="search-box glass-panel">
                         <input type="text" id="search-juegos" placeholder="Buscar juegos..." autocomplete="off">
                         <button id="btn-buscar-juegos"><i class="fas fa-search"></i></button>
+                        <!-- Boton para abrir filtros en movil -->
                         <button id="btn-mobile-filters" class="btn-mobile-filters" aria-label="Abrir filtros">
                             <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
 
+                    <!-- Grid donde se pintan las tarjetas de juegos -->
                     <div id="games-grid" class="cyber-grid" data-needs-init="true"></div>
                 </div>
 
-                <!-- overlay oscuro para cerrar el drawer -->
+                <!-- overlay oscuro para cerrar el drawer en movil -->
                 <div id="filters-overlay" class="filters-overlay"></div>
 
-                <!-- zona derecha con los filtros -->
+                <!-- ============================================================ -->
+                <!--   BARRA LATERAL DE FILTROS (JUEGOS)                         -->
+                <!-- ============================================================ -->
                 <aside class="filter-sidebar glass-panel">
                     <!-- botón cerrar — solo visible en móvil dentro del drawer -->
                     <div class="filter-drawer-close-row">
@@ -332,7 +399,7 @@
                     </div>
 
                     <div class="filters-scroll-area">
-                        <!-- filtro de tiendas -->
+                        <!-- filtro de tiendas / launchers -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TIENDAS / LAUNCHERS</span>
@@ -361,7 +428,7 @@
                             </div>
                         </div>
 
-                        <!-- filtro de plataformas -->
+                        <!-- filtro de plataformas (PC, PlayStation, Xbox, etc) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PLATAFORMA</span>
@@ -402,7 +469,7 @@
                             </div>
                         </div>
 
-                        <!-- filtro de precios -->
+                        <!-- filtro de precios (minimo y maximo) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PRECIO</span>
@@ -427,7 +494,7 @@
                             </div>
                         </div>
 
-                        <!-- filtro de generos -->
+                        <!-- filtro de generos (con buscador interno) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> TOP GÉNEROS</span>
@@ -437,6 +504,7 @@
                                     placeholder="Buscar género...">
 
                                 <div id="genre-list">
+                                    <!-- Generos visibles por defecto -->
                                     <label class="custom-check genre-item">
                                         <input type="checkbox" value="12">
                                         <span class="box"></span>
@@ -483,6 +551,7 @@
                                         <span>Indie</span>
                                     </label>
 
+                                    <!-- Generos ocultos que aparecen al buscar o con "ver mas" -->
                                     <label class="custom-check genre-item hidden-genre" style="display:none;">
                                         <input type="checkbox" value="8">
                                         <span class="box"></span>
@@ -532,7 +601,7 @@
                             </div>
                         </div>
 
-                        <!-- filtro de fechas de salida -->
+                        <!-- filtro de fechas de salida (desde/hasta) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE SALIDA</span>
@@ -548,7 +617,7 @@
                             </div>
                         </div>
 
-                        <!-- filtro de jugadores -->
+                        <!-- filtro de jugadores (singleplayer, multiplayer, coop, etc) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> JUGADORES</span>
@@ -585,10 +654,13 @@
             </div>
         </section>
 
-        <!-- vista de peliculas -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE PELICULAS                                          -->
+        <!-- ============================================================ -->
         <section id="movies" class="view">
             <div class="games-layout">
                 <div class="games-content">
+                    <!-- Buscador de peliculas -->
                     <div class="search-box glass-panel">
                         <input type="text" id="search-movies" placeholder="Buscar películas..." autocomplete="off">
                         <button id="btn-buscar-movies"><i class="fas fa-search"></i></button>
@@ -596,11 +668,16 @@
                             <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
+                    <!-- Grid de peliculas -->
                     <div id="movies-grid" class="cyber-grid"></div>
                 </div>
 
+                <!-- Overlay para cerrar filtros en movil -->
                 <div id="overlay-filters-movies" class="filters-overlay"></div>
 
+                <!-- ============================================================ -->
+                <!--   BARRA LATERAL DE FILTROS (PELICULAS)                       -->
+                <!-- ============================================================ -->
                 <aside id="sidebar-filters-movies" class="filter-sidebar glass-panel">
                     <div class="filter-drawer-close-row">
                         <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
@@ -615,6 +692,7 @@
                             data-target="movie">Limpiar</button>
                     </div>
 
+                    <!-- FILTRO NSFW (+18) - Solo visible para usuarios mayores de edad -->
                     <div class="accordion-item nsfw-filter-container"
                         style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
                         <div class="accordion-header"
@@ -638,6 +716,7 @@
                     </div>
 
                     <div class="filters-scroll-area">
+                        <!-- filtro de estado (visto/no visto) - PROXIMAMENTE -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> ESTADO</span>
@@ -654,6 +733,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de fecha de estreno (desde/hasta) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
@@ -669,6 +749,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de generos (cargados desde TMDB) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
@@ -685,6 +766,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de pais/idioma (con buscador) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
@@ -731,6 +813,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de votos minimos (slider) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
@@ -754,22 +837,31 @@
             </div>
         </section>
 
-        <!-- vista de series -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE SERIES                                             -->
+        <!-- ============================================================ -->
         <section id="series" class="view">
             <div class="games-layout">
                 <div class="games-content">
+                    <!-- Buscador de series -->
                     <div class="search-box glass-panel">
                         <input type="text" id="search-series" placeholder="Buscar series..." autocomplete="off">
                         <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
+                        <!-- Boton para abrir filtros en movil -->
                         <button class="btn-mobile-filters" id="btn-filters-series-mobile" aria-label="Abrir filtros">
                             <i class="fas fa-sliders-h"></i>
                         </button>
                     </div>
+                    <!-- Grid donde se pintan las tarjetas de series -->
                     <div id="series-grid" class="cyber-grid"></div>
                 </div>
 
+                <!-- Overlay para cerrar filtros en movil -->
                 <div id="overlay-filters-series" class="filters-overlay"></div>
 
+                <!-- ============================================================ -->
+                <!--   BARRA LATERAL DE FILTROS (SERIES)                          -->
+                <!-- ============================================================ -->
                 <aside id="sidebar-filters-series" class="filter-sidebar glass-panel">
                     <div class="filter-drawer-close-row">
                         <span class="filter-drawer-title"><i class="fas fa-sliders-h"></i> FILTROS</span>
@@ -783,6 +875,7 @@
                         <button id="btn-reset-filters-tv" class="btn-reset-tmdb" data-target="tv">Limpiar</button>
                     </div>
 
+                    <!-- FILTRO NSFW (+18) - Solo visible para usuarios mayores de edad -->
                     <div class="accordion-item nsfw-filter-container"
                         style="display: none; border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
                         <div class="accordion-header"
@@ -806,6 +899,7 @@
                     </div>
 
                     <div class="filters-scroll-area">
+                        <!-- filtro de estado (visto/no visto) - PROXIMAMENTE -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> ESTADO</span>
@@ -822,6 +916,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de fecha de estreno (desde/hasta) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> FECHA DE ESTRENO</span>
@@ -837,6 +932,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de generos (cargados desde TMDB) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> GÉNEROS</span>
@@ -853,6 +949,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de pais/idioma (con buscador) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> PAÍS / IDIOMA</span>
@@ -899,6 +996,7 @@
                             </div>
                         </div>
 
+                        <!-- filtro de votos minimos (slider) -->
                         <div class="accordion-item">
                             <div class="accordion-header">
                                 <span><i class="fas fa-chevron-down chevron-icon"></i> VOTOS MÍNIMOS</span>
@@ -922,9 +1020,12 @@
             </div>
         </section>
 
-        <!-- panel de control pa los admin -->
+        <!-- ============================================================ -->
+        <!--   PANEL DE ADMINISTRACION (SOLO PARA ADMINS)                  -->
+        <!-- ============================================================ -->
         <section id="admin-panel" class="view">
             <div class="cyber-container" style="max-width: 96%; width: 100%; margin: 0 auto; padding: 20px 0;">
+                <!-- Hero del panel admin -->
                 <div class="hero-section glass-panel"
                     style="padding: 25px;margin-bottom: 7.5px;display: flex;gap: 7.5px;text-align: left;justify-content: space-between;align-items: center;">
                     <div>
@@ -940,6 +1041,7 @@
                             de red en tiempo real, y administrar acciones críticas del servidor.
                         </p>
                     </div>
+                    <!-- Indicador de estado del sistema -->
                     <div
                         style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 12px 20px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
                         <div class="pulse-dot"
@@ -951,9 +1053,13 @@
                     </div>
                 </div>
 
+                <!-- ============================================================ -->
+                <!--   METRICAS DEL PANEL ADMIN                                   -->
+                <!-- ============================================================ -->
                 <div class="admin-metrics-grid"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 7.5px; margin-bottom: 7.5px;">
 
+                    <!-- METRICA 1: Total de usuarios -->
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
@@ -963,18 +1069,18 @@
                         <div id="metric-total-users"
                             style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
                             --</div>
-
+                        <!-- Grafico decorativo (sparkline) -->
                         <svg viewBox="0 0 100 20"
                             style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
                             <path d="M0,15 Q25,15 50,10 T100,5" fill="none" stroke="var(--text-muted)" stroke-width="2"
                                 opacity="0.5"></path>
                             <circle cx="100" cy="5" r="3" fill="var(--primary)"></circle>
                         </svg>
-
                         <div style="color: var(--text-secondary); font-size: 0.85rem;">Cuentas registradas en Supabase
                         </div>
                     </div>
 
+                    <!-- METRICA 2: Peticiones a la API -->
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
@@ -984,17 +1090,16 @@
                         <div id="metric-edge-requests"
                             style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
                             304</div>
-
                         <svg viewBox="0 0 100 20"
                             style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
                             <path d="M0,15 L20,12 L40,16 L60,8 L80,14 L100,5" fill="none" stroke="var(--text-muted)"
                                 stroke-width="2" opacity="0.5" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
-
                         <div style="color: var(--text-secondary); font-size: 0.85rem;">Peticiones de red procesadas hoy
                         </div>
                     </div>
 
+                    <!-- METRICA 3: Llamadas a funciones -->
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
@@ -1004,17 +1109,16 @@
                         <div id="metric-func-invocations"
                             style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
                             16</div>
-
                         <svg viewBox="0 0 100 20"
                             style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
                             <path d="M0,15 L10,15 L15,5 L20,15 L100,15" fill="none" stroke="var(--text-muted)"
                                 stroke-width="2" opacity="0.5"></path>
                         </svg>
-
                         <div style="color: var(--text-secondary); font-size: 0.85rem;">Llamadas internas a las APIs
                             externas</div>
                     </div>
 
+                    <!-- METRICA 4: Tasa de error -->
                     <div class="glass-panel" style="padding: 25px; display: flex; flex-direction: column;">
                         <div
                             style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;">
@@ -1024,19 +1128,21 @@
                         <div id="metric-error-rate"
                             style="font-size: 2.8rem; font-weight: bold; color: var(--text-main); font-family: var(--font-cyber); margin-bottom: 5px;">
                             0%</div>
-
                         <svg viewBox="0 0 100 20"
                             style="width: 100%; height: 25px; margin-bottom: 10px; overflow: visible;">
                             <path d="M0,15 L100,15" fill="none" stroke="var(--success)" stroke-width="2"></path>
                         </svg>
-
                         <div style="color: var(--success); font-size: 0.85rem;">Infraestructura estable y sin bloqueos
                         </div>
                     </div>
                 </div>
 
+                <!-- ============================================================ -->
+                <!--   TABLA DE USUARIOS Y TERMINAL                               -->
+                <!-- ============================================================ -->
                 <div class="admin-dashboard-layout"
                     style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 7.5px; align-items: start;">
+                    <!-- Panel izquierdo: Tabla de usuarios -->
                     <div class="glass-panel" style="padding: 15px;overflow-y: auto;height: 100%;">
                         <div class="admin-section-header"
                             style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
@@ -1046,10 +1152,12 @@
                                 USUARIOS Y ROLES
                             </h2>
                             <div style="display: flex; gap: 12px; align-items: center;">
+                                <!-- Boton para crear usuario de prueba -->
                                 <button id="btn-admin-create-test-user" class="auth-btn primary"
                                     style="padding: 10px 18px; font-size: 0.85rem; margin: 0;">
                                     <i class="fas fa-vial"></i> CREAR USER TEST
                                 </button>
+                                <!-- Buscador de la tabla de usuarios -->
                                 <div class="search-box admin-search"
                                     style="display: flex; gap: 10px; margin-bottom: 0;">
                                     <input type="text" id="admin-search-input"
@@ -1061,6 +1169,7 @@
                             </div>
                         </div>
 
+                        <!-- Tabla de usuarios (se llena con JS) -->
                         <div class="table-responsive" style="overflow-x: auto;">
                             <table class="cyber-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
@@ -1086,6 +1195,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="admin-users-tbody">
+                                    <!-- Estado de carga inicial -->
                                     <tr>
                                         <td colspan="6"
                                             style="text-align: center; padding: 50px; color: var(--text-muted);">
@@ -1099,7 +1209,9 @@
                         </div>
                     </div>
 
+                    <!-- Panel derecho: Terminal y herramientas -->
                     <div class="admin-side-panel" style="display: flex; flex-direction: column; gap: 7.5px;">
+                        <!-- Terminal de eventos -->
                         <div class="glass-panel" style="padding: 15px;">
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
@@ -1110,6 +1222,7 @@
                                 </h2>
                             </div>
 
+                            <!-- Zona de logs (se llena con JS) -->
                             <div class="terminal-box" id="admin-terminal-logs"
                                 style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; font-family: 'Courier New', monospace; font-size: 0.85rem; height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
                                 <div class="log-line" style="color: var(--text-secondary);"><span class="log-time"
@@ -1117,6 +1230,7 @@
                             </div>
                         </div>
 
+                        <!-- Herramientas globales del admin -->
                         <div class="glass-panel" style="padding: 15px;">
                             <div
                                 style="border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
@@ -1127,14 +1241,17 @@
                                 </h2>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Boton: Transmision global (anuncios) -->
                                 <button class="auth-btn secondary" id="btn-admin-announce"
                                     style="width: 100%; justify-content: flex-start;">
                                     <i class="fas fa-bullhorn" style="width: 25px;"></i> Transmisión Global
                                 </button>
+                                <!-- Boton: Purgar cache -->
                                 <button class="auth-btn secondary" id="btn-admin-clear-cache"
                                     style="width: 100%; justify-content: flex-start;">
                                     <i class="fas fa-broom" style="width: 25px;"></i> Purgar Caché
                                 </button>
+                                <!-- Boton: Bloqueo de emergencia (proximamente) -->
                                 <button class="auth-btn secondary" id="btn-admin-lockdown"
                                     style="width: 100%; justify-content: flex-start; color: var(--error);">
                                     <i class="fas fa-shield-alt" style="width: 25px;"></i> Bloqueo de Emergencia
@@ -1146,17 +1263,22 @@
             </div>
         </section>
 
-        <!-- vista pa loguearse -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE LOGIN                                              -->
+        <!-- ============================================================ -->
         <section id="login" class="view auth-page">
             <div class="auth-page-inner">
+                <!-- Logo y tagline -->
                 <div class="auth-brand">
                     <div class="auth-logo">DP<span>-SYS</span></div>
                     <p class="auth-tagline">Tu nexus personal de entretenimiento.</p>
                 </div>
+                <!-- Tarjeta de login -->
                 <div class="auth-card glass-panel">
                     <h2 class="auth-title">Bienvenido de nuevo</h2>
                     <p class="auth-subtitle">Introduce tu usuario o correo y contraseña para acceder.</p>
                     <form id="form-login" class="auth-form" method="post">
+                        <!-- Campo: Usuario o correo -->
                         <div class="field-group">
                             <label class="field-label">Usuario o Correo electrónico</label>
                             <div class="field-wrapper">
@@ -1165,6 +1287,7 @@
                                     placeholder="tu_usuario o correo@mail.com" autocomplete="username" required>
                             </div>
                         </div>
+                        <!-- Campo: Contraseña (con boton mostrar/ocultar) -->
                         <div class="field-group">
                             <label class="field-label">Contraseña</label>
                             <div class="field-wrapper password-wrapper">
@@ -1179,6 +1302,7 @@
                         <button type="submit" id="btn-login-submit" class="auth-btn primary full-width">
                             <i class="fas fa-sign-in-alt"></i> ENTRAR AL NEXUS
                         </button>
+                        <!-- Zona de mensajes de error/exito -->
                         <div id="login-message" class="auth-message"></div>
                     </form>
                     <div class="auth-divider"><span>¿Primera vez aquí?</span></div>
@@ -1189,7 +1313,9 @@
             </div>
         </section>
 
-        <!-- vista pa registrarse -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE REGISTRO                                           -->
+        <!-- ============================================================ -->
         <section id="register" class="view auth-page">
             <div class="auth-page-inner">
                 <div class="auth-brand">
@@ -1200,6 +1326,7 @@
                     <h2 class="auth-title">Crear una cuenta</h2>
                     <p class="auth-subtitle">Crear una cuenta es fácil y gratis. Rellena el formulario para empezar.</p>
                     <form id="form-register" class="auth-form" method="post">
+                        <!-- Fila 1: Usuario + Fecha nacimiento -->
                         <div class="fields-row">
                             <div class="field-group">
                                 <label class="field-label">Nombre de usuario <span class="required">*</span></label>
@@ -1218,6 +1345,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Campo: Email -->
                         <div class="field-group">
                             <label class="field-label">Correo electrónico <span class="required">*</span></label>
                             <div class="field-wrapper">
@@ -1226,6 +1354,7 @@
                                     placeholder="correo@ejemplo.com" autocomplete="email" required>
                             </div>
                         </div>
+                        <!-- Campo: Confirmar email -->
                         <div class="field-group">
                             <label class="field-label">Confirmar correo <span class="required">*</span></label>
                             <div class="field-wrapper">
@@ -1234,6 +1363,7 @@
                                     placeholder="repite tu correo" autocomplete="email" required>
                             </div>
                         </div>
+                        <!-- Fila 2: Contraseña + Confirmar contraseña -->
                         <div class="fields-row">
                             <div class="field-group">
                                 <label class="field-label">Contraseña <span class="required">*</span></label>
@@ -1258,6 +1388,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Terminos y condiciones -->
                         <p class="terms-text">
                             Al hacer clic en el botón "Regístrate", certifico que he leído y acepto los
                             <a href="#" class="terms-link">términos de uso</a> y la
@@ -1276,7 +1407,9 @@
             </div>
         </section>
 
-        <!-- esperando a que confirme el correo -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE ESPERA DE CONFIRMACION DE CORREO                   -->
+        <!-- ============================================================ -->
         <section id="waiting-confirmation" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -1295,7 +1428,9 @@
             </div>
         </section>
 
-        <!-- la cuenta ya esta verificada -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE CUENTA VERIFICADA (EXITO)                         -->
+        <!-- ============================================================ -->
         <section id="verified-account" class="view auth-page">
             <div class="auth-page-inner" style="text-align: center;">
                 <div class="auth-brand" style="margin-bottom: 10px;">
@@ -1307,7 +1442,6 @@
                     <h2 class="auth-title">¡Identidad Confirmada!</h2>
                     <p class="auth-subtitle">Tu correo ha sido verificado en el sistema. Ya tienes acceso total al
                         Nexus.</p>
-
                     <button class="auth-btn primary" id="btn-go-home-verified" style="margin-top: 10px;">
                         <i class="fas fa-rocket"></i> ENTRAR AL NEXUS
                     </button>
@@ -1315,15 +1449,19 @@
             </div>
         </section>
 
-        <!-- el perfil del usuario -->
+        <!-- ============================================================ -->
+        <!--   VISTA DE PERFIL DE USUARIO                                  -->
+        <!-- ============================================================ -->
         <section id="profile" class="view">
             <div class="profile-layout">
+                <!-- Banner de perfil (click para editar) -->
                 <div class="profile-banner glass-panel" id="banner-edit-trigger">
                     <div class="edit-overlay">
                         <i class="fas fa-camera"></i>
                         <span> Cambiar Portada</span>
                     </div>
 
+                    <!-- Info del perfil: avatar + nombre -->
                     <div class="profile-header-info">
                         <div class="profile-avatar" id="avatar-edit-trigger">
                             <div class="edit-overlay-avatar"><i class="fas fa-pen"></i></div>
@@ -1334,13 +1472,14 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Estadisticas sociales (siguiendo/seguidores) -->
                 <div class="profile-stats-wrapper">
                     <!-- boton pa agregar amigos -->
                     <button class="icon-btn add-friend-btn" id="btn-add-friend" title="Añadir nuevo amigo">
                         <i class="fas fa-user-plus"></i>
                     </button>
 
-                    <!-- estadisticas sociales -->
                     <div class="profile-stats">
                         <div class="stat-box" id="btn-ver-siguiendo">
                             <span class="stat-num">0</span>
@@ -1354,7 +1493,9 @@
                     </div>
                 </div>
 
-                <!-- estadisticas principales -->
+                <!-- ============================================================ -->
+                <!--   ESTADISTICAS DETALLADAS (tiempo invertido en series/pelis) -->
+                <!-- ============================================================ -->
                 <div class="profile-detailed-stats">
                     <div class="stats-header">
                         <h2 id="profile-stats">Estadísticas</h2>
@@ -1364,6 +1505,7 @@
                     </div>
 
                     <div class="stats-cards-wrapper">
+                        <!-- Card: Tiempo en series -->
                         <div class="stats-card">
                             <div class="stats-card-header" id="profile-series"><i class="fas fa-tv"></i> Tiempo de
                                 series</div>
@@ -1375,6 +1517,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Card: Episodios vistos -->
                         <div class="stats-card">
                             <div class="stats-card-header"><i class="fas fa-tv"></i> Episodios vistos</div>
                             <div class="stats-card-body single-number">
@@ -1384,6 +1527,7 @@
 
                         <div class="stats-main-divider"></div>
 
+                        <!-- Card: Tiempo en peliculas -->
                         <div class="stats-card">
                             <div class="stats-card-header" id="profile-movies"><i class="fas fa-film"></i> Tiempo de
                                 cine</div>
@@ -1395,6 +1539,7 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Card: Peliculas vistas -->
                         <div class="stats-card">
                             <div class="stats-card-header"><i class="fas fa-film"></i> Películas vistas</div>
                             <div class="stats-card-body single-number">
@@ -1404,8 +1549,12 @@
                     </div>
                 </div>
 
+                <!-- ============================================================ -->
+                <!--   MODULOS INFERIORES: WATCHLIST + RECOMENDACIONES            -->
+                <!-- ============================================================ -->
                 <div class="profile-modules-grid">
 
+                    <!-- WATCHLIST - Series pendientes -->
                     <div id="watchlist-section" class="watchlist-section">
                         <div class="watchlist-tabs">
                             <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
@@ -1413,7 +1562,6 @@
                                 <i class="fas fa-th-large"></i>
                             </button>
                         </div>
-
                         <div id="watchlist-list" class="watchlist-list">
                             <div class="watchlist-loading">
                                 <i class="fas fa-circle-notch fa-spin"></i>
@@ -1421,6 +1569,7 @@
                         </div>
                     </div>
 
+                    <!-- RECOMENDACIONES - Basadas en lo que has visto -->
                     <div id="recommendations-section" class="recommendations-section">
                         <div class="watchlist-tabs">
                             <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
@@ -1438,7 +1587,7 @@
                                     style="font-size: 1.8rem; color: var(--text-muted);"></i>
                             </div>
 
-                            <!-- ESTADO VACÍO -->
+                            <!-- ESTADO VACÍO (cuando no hay suficientes datos) -->
                             <div id="rec-empty" class="watchlist-empty"
                                 style="display: none; text-align: center; padding: 40px 20px;">
                                 <i class="fas fa-compass"
@@ -1458,11 +1607,11 @@
         </section>
 
         <!-- ============================================================ -->
-        <!-- VISTA: EDITAR PERFIL (ESTILO ADMIN)                          -->
+        <!--   VISTA: EDITAR PERFIL (ESTILO ADMIN)                        -->
         <!-- ============================================================ -->
         <section id="edit-profile" class="view">
             <div class="edit-profile-admin-container">
-                <!-- HEADER como el de admin -->
+                <!-- HEADER como el de admin (con titulo y estado) -->
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
                         <h1>
@@ -1483,7 +1632,7 @@
                 <!-- GRID PRINCIPAL como el admin-dashboard-layout -->
                 <div class="edit-profile-admin-grid">
 
-                    <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+                    <!-- COLUMNA IZQUIERDA: FORMULARIO DE EDICION -->
                     <div class="edit-profile-admin-form glass-panel">
                         <div class="edit-profile-admin-section-header">
                             <h2>
@@ -1494,7 +1643,7 @@
 
                         <form id="form-edit-profile" class="auth-form">
 
-                            <!-- Correo electrónico (BORROSO) -->
+                            <!-- Correo electrónico (BORROSO por seguridad) -->
                             <div class="field-group">
                                 <label class="field-label">
                                     <i class="fas fa-envelope"></i> Correo electrónico
@@ -1509,7 +1658,7 @@
                                 </p>
                             </div>
 
-                            <!-- Nombre de usuario -->
+                            <!-- Nombre de usuario (obligatorio) -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-at"></i> Nombre de usuario <span
                                         class="required">*</span></label>
@@ -1540,7 +1689,7 @@
                                 </div>
                             </div>
 
-                            <!-- Selector de Sexo (CUSTOM) -->
+                            <!-- Selector de Sexo (CUSTOM - estilo cyberpunk) -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-venus-mars"></i> Sexo</label>
                                 <div class="cyber-select-wrapper" id="gender-select-wrapper">
@@ -1580,15 +1729,12 @@
                                         <div class="color-picker-custom-inner">
                                             <input type="color" id="edit-color-picker" value="#6366f1">
                                             <span class="color-picker-hex" id="edit-color-hex-display">#6366f1</span>
-                                            <!-- <div id="edit-color-preview" class="color-preview"
-                                                style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--border-color); background-color: #6366f1;">
-                                            </div> -->
                                         </div>
                                     </div>
 
                                     <div class="color-picker-divider"></div>
 
-                                    <!-- FILA 2: Colores Preseleccionados -->
+                                    <!-- FILA 2: Colores Preseleccionados (para seleccion rapida) -->
                                     <div class="color-picker-presets">
                                         <label class="color-picker-sub-label">⚡ Preseleccionados</label>
                                         <div class="color-presets">
@@ -1630,7 +1776,7 @@
                                 </div>
                             </div>
 
-                            <!-- Descripción -->
+                            <!-- Descripción (con contador de caracteres) -->
                             <div class="field-group">
                                 <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
                                 <div class="textarea-wrapper">
@@ -1641,7 +1787,7 @@
                                 </div>
                             </div>
 
-                            <!-- BOTÓN GUARDAR -->
+                            <!-- BOTÓN GUARDAR CAMBIOS -->
                             <button type="submit" id="btn-save-profile" class="auth-btn primary full-width">
                                 <i class="fas fa-save"></i> GUARDAR CAMBIOS
                             </button>
@@ -1650,17 +1796,20 @@
 
                     <!-- COLUMNA DERECHA: ACCIONES (como el side panel del admin) -->
                     <div class="edit-profile-admin-side">
+                        <!-- Panel de seguridad -->
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
                                 <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
                             </div>
 
                             <div class="edit-profile-admin-side-actions">
+                                <!-- Cambiar contraseña (proximamente) -->
                                 <button class="auth-btn secondary" id="btn-change-password">
                                     <i class="fas fa-key"></i> Cambiar Contraseña
                                     <span class="edit-profile-badge-coming">Próximamente</span>
                                 </button>
 
+                                <!-- Cambiar correo (proximamente) -->
                                 <button class="auth-btn secondary" id="btn-change-email">
                                     <i class="fas fa-envelope"></i> Cambiar Correo
                                     <span class="edit-profile-badge-coming">Próximamente</span>
@@ -1668,6 +1817,7 @@
 
                                 <div class="edit-profile-admin-divider"></div>
 
+                                <!-- Volver al perfil -->
                                 <button class="auth-btn secondary" id="btn-back-to-profile">
                                     <i class="fas fa-arrow-left"></i> Volver al Perfil
                                 </button>
@@ -1709,7 +1859,7 @@
         </section>
 
         <!-- ============================================================ -->
-        <!-- VISTA: MIS LISTAS (Sistema de Listas Sociales)               -->
+        <!--   VISTA: MIS LISTAS (Sistema de Listas Sociales)             -->
         <!-- ============================================================ -->
         <section id="mis-listas" class="view">
             <div class="lists-layout">
@@ -1746,14 +1896,14 @@
                     </button>
                 </div>
 
-                <!-- grid de listas -->
+                <!-- grid de listas (se llena con JS) -->
                 <div id="lists-grid" class="cyber-grid lists-grid list-view-active" data-needs-init="true">
                     <div class="watchlist-loading">
                         <i class="fas fa-circle-notch fa-spin"></i>
                     </div>
                 </div>
 
-                <!-- estado vacio -->
+                <!-- estado vacio (cuando no hay listas) -->
                 <div id="lists-empty" class="watchlist-empty"
                     style="display: none; text-align: center; padding: 60px 20px;">
                     <i class="fas fa-folder-open"
@@ -1768,7 +1918,7 @@
                 </div>
             </div>
 
-            <!-- template de tarjeta de lista (clonado por JS) -->
+            <!-- template de tarjeta de lista (clonado por JS para cada lista) -->
             <template id="list-card-template">
                 <div class="list-card glass-panel" data-list-id="">
                     <div class="list-card-header">
@@ -1805,7 +1955,9 @@
             </template>
         </section>
 
-        <!-- modal pa editar avatar o banner -->
+        <!-- ============================================================ -->
+        <!--   MODAL DE EDICION DE AVATAR/BANNER                          -->
+        <!-- ============================================================ -->
         <div id="edit-modal" class="cyber-modal">
             <div class="modal-content glass-panel">
                 <div class="modal-header">
@@ -1818,13 +1970,17 @@
             </div>
         </div>
 
-        <!-- modal de detalles del juego -->
+        <!-- ============================================================ -->
+        <!--   MODAL DE DETALLES DEL JUEGO (Estilo Playnite)              -->
+        <!-- ============================================================ -->
         <div id="game-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
+                <!-- Boton de cerrar flotante -->
                 <button id="close-game-modal" class="icon-btn close-floating-btn" title="Cerrar conexión">
                     <i class="fas fa-times"></i>
                 </button>
 
+                <!-- Hero section con imagen de fondo -->
                 <div class="game-hero-section" id="detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
@@ -1835,6 +1991,7 @@
                 </div>
 
                 <div class="game-detail-body">
+                    <!-- Grid superior: portada + descripcion -->
                     <div class="game-detail-grid">
                         <div class="detail-cover-col">
                             <img id="detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
@@ -1849,6 +2006,7 @@
                         </div>
                     </div>
 
+                    <!-- Información avanzada (desarrollador, generos, precios, etc) -->
                     <div class="detail-advanced-info glass-panel">
                         <h3 class="detail-section-title">Detalles</h3>
                         <div class="advanced-grid">
@@ -1893,7 +2051,9 @@
             </div>
         </div>
 
-        <!-- modal de detalles de peliculas/series -->
+        <!-- ============================================================ -->
+        <!--   MODAL DE DETALLES DE PELICULAS/SERIES                      -->
+        <!-- ============================================================ -->
         <div id="media-details-modal" class="cyber-modal">
             <div class="modal-content glass-panel game-details-panel">
                 <!-- Botón de Cerrar -->
@@ -1904,7 +2064,7 @@
                 <!-- Contenedor del ojo y menú contextual + FAVORITOS -->
                 <div
                     style="position: absolute;top: 90px;right: 20px;z-index: 100;display: flex;gap: 10px;align-items: flex-end;">
-                    <!-- BOTÓN DE FAVORITOS (SOLO ICONO) -->
+                    <!-- BOTÓN DE FAVORITOS (SOLO ICONO) - aparece si el usuario ha visto el contenido -->
                     <div id="favorite-button-container" style="display: none; transform: translateY(4px);">
                         <button id="btn-add-to-favorites" class="favorite-btn-icon-only" title="Añadir a favoritos"
                             aria-label="Favoritos">
@@ -1912,7 +2072,7 @@
                         </button>
                     </div>
 
-                    <!-- Botón de OJO (estado de vista) -->
+                    <!-- Botón de OJO (estado de vista) - para marcar como visto/no visto -->
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
                         style="position: relative; top: 0; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
@@ -1920,7 +2080,7 @@
                         <span id="watch-count-badge" class="watch-count-badge"></span>
                     </button>
 
-                    <!-- Menú contextual para el ojo (flotante) -->
+                    <!-- Menú contextual para el ojo (flotante) - aparece al hacer click derecho -->
                     <div id="watch-context-menu" class="theme-menu user-menu-panel"
                         style="position: absolute; top: 50px; right: 0; min-width: 180px; z-index: 100;">
                         <button class="theme-option" id="btn-context-rewatch">
@@ -1934,7 +2094,7 @@
                     </div>
                 </div>
 
-                <!-- Hero section -->
+                <!-- Hero section con imagen de fondo -->
                 <div class="game-hero-section" id="media-detail-hero-bg">
                     <div class="hero-overlay-gradient"></div>
                     <div class="hero-content-centered">
@@ -1966,7 +2126,7 @@
                     </div>
                 </div>
 
-                <!-- BOTÓN AÑADIR A FAVORITOS -->
+                <!-- BOTÓN AÑADIR A FAVORITOS (version full-width) -->
                 <div id="favorite-button-container"
                     style="display: none; padding: 4px 40px 8px 40px; background: var(--bg-main); border-bottom: 1px solid var(--border-color);">
                     <button id="btn-add-to-favorites" class="auth-btn primary full-width"
@@ -1977,11 +2137,14 @@
                 </div>
 
                 <div class="game-detail-body">
+                    <!-- FILA 1: Portada + Sinopsis + Detalles Técnicos (3 columnas) -->
                     <div class="media-top-grid">
+                        <!-- Columna izquierda: Portada -->
                         <div class="detail-cover-col">
                             <img id="media-detail-cover-img" src="" alt="Portada" class="game-cover-large glass-panel">
                         </div>
 
+                        <!-- Columna central: Sinopsis -->
                         <div class="detail-desc-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Sinopsis</h3>
                             <div class="desc-scroll-area">
@@ -1990,6 +2153,7 @@
                             </div>
                         </div>
 
+                        <!-- Columna derecha: Detalles Técnicos -->
                         <div class="detail-tech-col glass-panel padded-panel">
                             <h3 class="detail-section-title">Detalles Técnicos</h3>
                             <div class="tech-info-content">
@@ -2008,6 +2172,7 @@
 
                                 <div class="tech-divider" id="divider-tech-1"></div>
 
+                                <!-- Temporadas y episodios (solo series) -->
                                 <div class="tech-item" id="row-seasons" style="display: none;">
                                     <i class="fas fa-layer-group"></i> <span id="media-detail-seasons-count">--</span>
                                 </div>
@@ -2023,6 +2188,7 @@
 
                                 <div class="tech-divider" id="divider-tech-2"></div>
 
+                                <!-- Tiempo restante (solo series) -->
                                 <div class="tech-item" id="row-remaining-time">
                                     <i class="fas fa-hourglass-half"></i> <span
                                         id="media-detail-remaining-time">--</span>
@@ -2040,6 +2206,7 @@
                         </div>
                     </div>
 
+                    <!-- FILA 2: Dónde verlo (Plataformas de streaming) -->
                     <div class="media-where-to-watch glass-panel padded-panel">
                         <h3 class="detail-section-title">Dónde verlo</h3>
                         <div class="providers-3col-grid">
@@ -2060,6 +2227,7 @@
                         </div>
                     </div>
 
+                    <!-- FILA 2.5: Temporadas de la serie (solo series, se carga con JS) -->
                     <div id="media-detail-seasons" class="glass-panel padded-panel"
                         style="display: none; margin-top: 15px;">
                     </div>
@@ -2091,10 +2259,10 @@
                             </div>
                         </div>
 
-                        <!-- Columna 3: Valoración y Estado -->
+                        <!-- Columna 3: Valoración Personal y Global -->
                         <div class="media-rating-col glass-panel padded-panel"
                             style="display: flex; flex-direction: column; gap: 15px;">
-                            <!-- Mi Valoración Personal (DIV 1) -->
+                            <!-- Mi Valoración Personal (DIV 1) - estrellas interactivas -->
                             <div class="personal-rating-section"
                                 style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Mi Valoración</h3>
@@ -2112,7 +2280,7 @@
                                 </div>
                             </div>
 
-                            <!-- Valoración Global (DIV 2) -->
+                            <!-- Valoración Global (DIV 2) - de TMDB -->
                             <div class="global-rating-section" style="flex: 1; display: flex; flex-direction: column;">
                                 <h3 class="detail-section-title">Valoración Global</h3>
                                 <div class="rating-content global-rating-mini"
@@ -2134,7 +2302,9 @@
             </div>
         </div>
 
-        <!-- modal pa buscar y agregar amigos -->
+        <!-- ============================================================ -->
+        <!--   MODAL PARA BUSCAR Y AGREGAR AMIGOS                         -->
+        <!-- ============================================================ -->
         <div id="add-friend-modal" class="cyber-modal">
             <div class="modal-content glass-panel add-friend-panel">
                 <button id="close-add-friend-modal" class="icon-btn close-floating-btn" title="Cerrar búsqueda">
@@ -2157,18 +2327,22 @@
                 </div>
 
                 <div id="friend-results-area" class="friend-results-scroll-area">
+                    <!-- Estado vacio/inicial -->
                     <div id="friend-search-empty" class="empty-state-centered">
                         <i class="fas fa-satellite-dish fa-fade empty-icon"></i>
                         <p id="friend-empty-text">Esperando parámetros de búsqueda...</p>
                     </div>
 
+                    <!-- Grid de resultados de busqueda -->
                     <div id="friend-results-grid" class="friend-results-grid" style="display: none;">
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- modal para seguidores y siguiendo -->
+        <!-- ============================================================ -->
+        <!--   MODAL PARA VER SEGUIDORES Y SIGUIENDO (LISTA SOCIAL)       -->
+        <!-- ============================================================ -->
         <div id="social-list-modal" class="cyber-modal">
             <div class="modal-content glass-panel social-list-panel" style="display: flex; flex-direction: column;">
                 <button id="close-social-list-modal" class="icon-btn close-floating-btn" title="Cerrar lista">
@@ -2186,6 +2360,7 @@
                     </div>
                 </div>
 
+                <!-- Area de resultados con scroll -->
                 <div id="social-list-area" class="friend-results-scroll-area" style="height: 50vh; padding: 10px;">
                     <div id="social-list-empty" class="empty-state-centered" style="display: none;">
                         <i class="fas fa-user-astronaut fa-fade empty-icon"></i>
@@ -2196,6 +2371,7 @@
                     </div>
                 </div>
 
+                <!-- Controles de paginacion -->
                 <div class="pagination-controls"
                     style="display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 30px; border-top: 1px solid var(--border-color); background: var(--bg-secondary); border-radius: 0 0 12px 12px;">
                     <button id="btn-social-prev" class="icon-btn" style="width: 38px; height: 38px;"><i
@@ -2209,7 +2385,9 @@
             </div>
         </div>
 
-        <!-- modal para crear una nueva lista -->
+        <!-- ============================================================ -->
+        <!--   MODAL PARA CREAR UNA NUEVA LISTA                           -->
+        <!-- ============================================================ -->
         <div id="create-list-modal" class="cyber-modal">
             <div class="modal-content glass-panel create-list-panel">
                 <button id="close-create-list-modal" class="icon-btn close-floating-btn" title="Cerrar">
@@ -2228,7 +2406,7 @@
 
                 <form id="form-create-list" class="auth-form create-list-form">
 
-                    <!-- Título -->
+                    <!-- Título de la lista (obligatorio) -->
                     <div class="field-group">
                         <label class="field-label"><i class="fas fa-heading"></i> Título <span
                                 class="required">*</span></label>
@@ -2239,7 +2417,7 @@
                         </div>
                     </div>
 
-                    <!-- Descripción -->
+                    <!-- Descripción de la lista (opcional) -->
                     <div class="field-group">
                         <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
                         <div class="textarea-wrapper">
@@ -2251,14 +2429,14 @@
                         </div>
                     </div>
 
-                    <!-- Exclusividad -->
-                    <!-- Privacidad -->
+                    <!-- Configuracion: Exclusividad + Privacidad -->
                     <div class="create-list-two-columns">
                         <div class="field-group" id="list-type-configuration">
                             <label class="field-label"><i class="fas fa-layer-group"></i> Configuración de
                                 Contenido</label>
 
                             <div id="list-mode-container">
+                                <!-- Lista Exclusiva (modo rapido desde tarjeta) -->
                                 <div class="create-list-privacy-row" id="exclusivity-check-wrapper">
                                     <div>
                                         <label class="field-label" style="margin-bottom: 2px;">Lista Exclusiva</label>
@@ -2271,6 +2449,7 @@
                                     </label>
                                 </div>
 
+                                <!-- Selector de tipo (modo desde Mis Listas) -->
                                 <div id="list-type-selector-wrapper" style="display: none;">
                                     <select id="create-list-type-select" class="cyber-input">
                                         <option value="mixta" selected>Lista Mixta (Juegos, Pelis y Series)</option>
@@ -2282,6 +2461,7 @@
                             </div>
                         </div>
 
+                        <!-- Privacidad (Publica/Privada) -->
                         <div class="field-group create-list-privacy-row">
                             <div>
                                 <label class="field-label" style="margin-bottom: 2px;"><i class="fas fa-globe"></i>
@@ -2299,7 +2479,7 @@
 
                     <div class="create-list-divider"></div>
 
-                    <!-- Sistema de amigos / lista compartida -->
+                    <!-- Sistema de invitacion de usuarios a la lista -->
                     <div class="field-group">
                         <label class="field-label"><i class="fas fa-user-friends"></i> Invitar usuarios
                             <span class="create-list-slots-counter" id="create-list-slots-counter">1/10 Slots</span>
@@ -2315,10 +2495,10 @@
                     <div id="create-list-search-results" class="friend-results-grid create-list-search-results"
                         style="display: none;"></div>
 
-                    <!-- usuarios ya invitados a la lista -->
+                    <!-- usuarios ya invitados a la lista (chips) -->
                     <div id="create-list-members-list" class="create-list-members-list"></div>
 
-                    <!-- BOTÓN CREAR -->
+                    <!-- BOTÓN CREAR LISTA -->
                     <button type="submit" id="btn-confirm-create-list" class="auth-btn primary full-width">
                         <i class="fas fa-check"></i> CREAR LISTA
                     </button>
@@ -2338,7 +2518,10 @@
             </template>
         </div>
 
-        <!-- Menú contextual para AÑADIR A LISTA (flotante) -->
+        <!-- ============================================================ -->
+        <!--   MENÚ CONTEXTUAL PARA AÑADIR A LISTA (flotante)             -->
+        <!-- ============================================================ -->
+        <!-- Este menu aparece al hacer click en el boton "+" de una tarjeta -->
         <div id="add-to-list-menu" class="theme-menu user-menu-panel"
             style="position: fixed; display: none; min-width: 260px; max-width: 320px; z-index: 1000;">
             <div style="padding: 10px 14px 6px 14px; border-bottom: 1px solid var(--border-color);">
@@ -2347,6 +2530,7 @@
                 </span>
             </div>
 
+            <!-- Lista de checkboxes (se llena con JS) -->
             <div id="quick-list-checklist" style="padding: 4px 0; max-height: 220px; overflow-y: auto;">
                 <div id="quick-list-loading" style="padding: 20px; text-align: center; color: var(--text-muted);">
                     <i class="fas fa-circle-notch fa-spin"></i>
@@ -2361,6 +2545,7 @@
 
             <div class="dropdown-divider" style="margin: 0;"></div>
 
+            <!-- Boton para crear nueva lista desde el menu -->
             <button class="theme-option" id="btn-quick-create-list" style="color: var(--primary);">
                 <i class="fas fa-plus-circle" style="color: var(--primary);"></i>
                 <span>Crear Nueva Lista</span>
@@ -2381,7 +2566,9 @@
             </label>
         </template>
 
-        <!-- modal pa enviar anuncios globales -->
+        <!-- ============================================================ -->
+        <!--   MODAL PARA ENVIAR ANUNCIOS GLOBALES (SOLO ADMIN)           -->
+        <!-- ============================================================ -->
         <div id="announce-modal" class="cyber-modal">
             <div class="modal-content glass-panel announce-panel">
                 <button id="btn-close-announce" class="icon-btn close-floating-btn" title="Cerrar">
@@ -2399,7 +2586,7 @@
                     </div>
                 </div>
 
-                <!-- cuerpo -->
+                <!-- cuerpo del modal -->
                 <div class="announce-body">
 
                     <!-- SELECT CUSTOM: Destinatarios -->
@@ -2450,7 +2637,9 @@
             </div>
         </div>
 
-        <!-- MODAL DE RECORTE DE AVATAR / BANNER -->
+        <!-- ============================================================ -->
+        <!--   MODAL DE RECORTE DE AVATAR / BANNER (Cropper.js)           -->
+        <!-- ============================================================ -->
         <div id="crop-modal" class="cyber-modal">
             <div class="modal-content glass-panel"
                 style="max-width: 550px; max-height: 85vh; width: 92%; padding: 0; border-radius: 16px; overflow: hidden;">
@@ -2471,14 +2660,14 @@
                 <!-- Cuerpo -->
                 <div style="padding: 20px 24px 24px 24px;">
 
-                    <!-- Contenedor de imagen -->
+                    <!-- Contenedor de imagen (donde se muestra el cropper) -->
                     <div
                         style="width: 100%; aspect-ratio: 1 / 1; max-height: 320px; background: var(--bg-secondary); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
                         <img id="image-to-crop" src="" alt="Imagen a recortar"
                             style="width: 100%; height: 100%; object-fit: contain; display: block;">
                     </div>
 
-                    <!-- Botón -->
+                    <!-- Boton de subir/guardar -->
                     <button id="btn-save-crop" class="auth-btn primary full-width"
                         style="padding: 10px 20px; font-size: 0.85rem; letter-spacing: 1.5px; border-radius: 8px;">
                         <i class="fas fa-cloud-upload-alt" style="margin-right: 8px;"></i> SUBIR AVATAR
@@ -2492,22 +2681,30 @@
             </div>
         </div>
 
-        <!-- Inputs ocultos fuera del modal -->
+        <!-- ============================================================ -->
+        <!--   INPUTS OCULTOS PARA SUBIR AVATAR Y BANNER                  -->
+        <!-- ============================================================ -->
         <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
         <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
 
-        <!-- boton pa volver al tope -->
+        <!-- ============================================================ -->
+        <!--   BOTON PARA VOLVER ARRIBA (SCROLL TOP)                      -->
+        <!-- ============================================================ -->
         <button id="btn-scroll-top" class="scroll-top-btn" title="Volver arriba">
             <i class="fas fa-chevron-up"></i>
         </button>
 
-        <!-- contenedor de notificaciones -->
+        <!-- ============================================================ -->
+        <!--   SISTEMA DE NOTIFICACIONES (TOASTS)                         -->
+        <!-- ============================================================ -->
+
+        <!-- contenedor de notificaciones para PC -->
         <div id="toast-container" class="toast-container toast-desktop"></div>
 
         <!-- contenedor de notificaciones para móvil -->
         <div id="toast-container-mobile" class="toast-container toast-mobile" style="display: none;"></div>
 
-        <!-- templates de notificaciones -->
+        <!-- templates de notificaciones (se clonan con JS) -->
         <template id="toast-success-template">
             <div class="toast-wrapper">
                 <div class="toast-alert toast-success">
@@ -2562,14 +2759,18 @@
         </template>
     </main>
 
-    <!-- chat box para mensajes y notificaciones -->
+    <!-- ============================================================ -->
+    <!--   CHATBOX FLOTANTE (Mensajes y Alertas)                      -->
+    <!-- ============================================================ -->
     <div id="nexus-chatbox" class="chatbox-container collapsed">
+        <!-- Barra de navegacion del chatbox -->
         <div class="chatbox-nav-bar">
             <div class="chatbox-tabs" style="flex-grow: 1; width: auto;">
                 <span class="chatbox-tab active" id="tab-btn-chat">Mensajes</span>
                 <span class="chatbox-tab" id="tab-btn-notifs">Alertas</span>
             </div>
 
+            <!-- Boton para minimizar/colapsar -->
             <button id="btn-collapse-chat" title="Minimizar"
                 style="background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; padding: 0 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"
                 onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
@@ -2577,6 +2778,7 @@
             </button>
         </div>
 
+        <!-- Vista de Mensajes (pestaña activa por defecto) -->
         <div id="chat-view-messages" class="chatbox-view active">
             <div class="chatbox-messages-area" id="chatbox-messages-scroll">
                 <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
@@ -2585,6 +2787,7 @@
                 </div>
             </div>
 
+            <!-- Zona de envio de mensajes -->
             <div class="chatbox-sender-area">
                 <div class="chatbox-input-place">
                     <input placeholder="Escribe un mensaje..." class="chatbox-send-input" id="chatbox-input"
@@ -2606,6 +2809,7 @@
             </div>
         </div>
 
+        <!-- Vista de Alertas/Notificaciones (oculta por defecto) -->
         <div id="chat-view-notifs" class="chatbox-view" style="display: none;">
             <div class="chatbox-messages-area notifs-area" id="chatbox-notifs-scroll" style="height: 280px;">
                 <div style="text-align: center; color: #828E9E; padding-top: 40px; font-size: 0.85rem;">
@@ -2615,7 +2819,6 @@
             </div>
         </div>
     </div>
-
     <script type="module" src="main.js"></script>
 </body>
 
