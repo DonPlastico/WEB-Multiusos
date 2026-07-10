@@ -1,26 +1,31 @@
 // traigo el cliente de supabase pa usar login y eso
 import { supabase } from './supabase.js';
 
-// Hacer supabase global para depuración
+// lo pongo en window para poder cotillear desde la consola del navegador cuando algo peta
 window.supabase = supabase;
 
-// Vercel Analytics
+// Vercel Analytics - esto es pa las estadisticas de visitas, nada mas
 import { inject } from '@vercel/analytics';
 inject();
 
-// Vercel Speed Insights
+// Vercel Speed Insights - mide lo rapido (o lo lento xD) que carga la pagina
 import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
 // =============================================
 //   OPEN GRAPH - META TAGS DINÁMICOS
 // =============================================
+// esto es lo que hace que cuando compartes el link en whatsapp/discord
+// salga la imagen chula con el titulo y la descripcion, en vez de un link pelao
 
 /**
  * CONFIGURACIÓN DE META TAGS POR PÁGINA
+ * aqui defino lo q sale en cada vista (home, juegos, pelis...)
  */
 const baseUrl = 'https://dpsys-nexus.vercel.app';
 
+// objeto con toda la info de cada seccion, titulo/descripcion/imagen/url
+// si se añade una vista nueva habria q meterla aqui tambien sino no tira bien el OG
 const OG_CONFIG = {
     home: {
         title: 'DP-SYS | Nexus - Tu centro multimedia personal',
@@ -55,6 +60,8 @@ const OG_CONFIG = {
 };
 
 // Mapeo de vistas a claves de configuración
+// como hay vistas que no tienen imagen propia (login, register, etc) las mando
+// todas a la config de "home" pa que al menos salga algo decente al compartir
 const VIEW_TO_CONFIG = {
     'home': 'home',
     'games': 'games',
@@ -72,8 +79,10 @@ const VIEW_TO_CONFIG = {
 
 /**
  * Actualiza las meta tags de Open Graph
+ * le pasas la clave de la pagina y te cambia el title + todas las meta de golpe
  */
 function updateMetaTags(pageKey) {
+    // si la key no existe en el config, tiramos de home por defecto pa no dejarlo vacio
     const config = OG_CONFIG[pageKey] || OG_CONFIG.home;
 
     // Actualizar title
@@ -100,12 +109,13 @@ function updateMetaTags(pageKey) {
 
 /**
  * Función auxiliar para actualizar o crear meta tags
+ * si la etiqueta meta no existe en el head la crea, si ya esta solo cambia el content
  */
 function updateMetaTag(attrName, content) {
     let meta;
 
     if (attrName.startsWith('og:')) {
-        // Open Graph usa property
+        // Open Graph usa el atributo "property" en vez de "name", ojo con eso
         meta = document.querySelector(`meta[property="${attrName}"]`);
         if (!meta) {
             meta = document.createElement('meta');
@@ -121,7 +131,7 @@ function updateMetaTag(attrName, content) {
             document.head.appendChild(meta);
         }
     } else {
-        // Meta description estándar
+        // Meta description estándar (la de toda la vida)
         meta = document.querySelector(`meta[name="${attrName}"]`);
         if (!meta) {
             meta = document.createElement('meta');
@@ -137,6 +147,7 @@ function updateMetaTag(attrName, content) {
 
 /**
  * Detecta la vista actual y actualiza las meta tags
+ * se llama cada vez q cambiamos de vista pa que el OG vaya siempre acorde
  */
 function detectPageAndUpdate() {
     const vista = vistaActualGlobal || 'home';
@@ -144,6 +155,8 @@ function detectPageAndUpdate() {
     updateMetaTags(configKey);
 }
 
+// flags pa saber si ya cargamos las tendencias de cada categoria y no pegarnos
+// el peñazo de pedirlas otra vez a la api cada vez q se entra en la pestaña
 let tendenciasJuegosCargadas = false;
 let tendenciasPeliculasCargadas = false;
 let tendenciasSeriesCargadas = false;
@@ -151,24 +164,28 @@ let tendenciasSeriesCargadas = false;
 // =============================================
 //   INYECTAR EN EL FLUJO EXISTENTE
 // =============================================
+// aqui lo q hacemos es un "hook": pillamos la funcion cambiarVista que ya
+// existia y le metemos código extra por encima sin tener q tocarla entera
 
 // 1. Guardar referencia a la función original
 const _originalCambiarVista = window.cambiarVista || cambiarVista;
 
 // 2. Sobrescribir cambiarVista para incluir la actualización de meta tags
 window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
-    // Llamar a la función original
+    // Llamar a la función original primero, dejamos q haga lo suyo de siempre
     if (typeof _originalCambiarVista === 'function') {
         await _originalCambiarVista(target, guardarEnHistorial, usernameUrl);
     }
 
     // Actualizar meta tags DESPUÉS de cambiar la vista
+    // el setTimeout es pa dar tiempo a q el DOM se actualice del todo antes
     setTimeout(() => {
         detectPageAndUpdate();
     }, 50);
 };
 
 // 3. También actualizar cuando cambia el historial (popstate)
+// esto cubre el caso de q el usuario le de al boton de atras/adelante del navegador
 window.addEventListener('popstate', function () {
     setTimeout(detectPageAndUpdate, 50);
 });
@@ -176,15 +193,17 @@ window.addEventListener('popstate', function () {
 // ==========================================================================
 //   MENÚ CONTEXTUAL FLOTANTE: GUARDAR EN LISTA (estilo YouTube)
 // ==========================================================================
+// el menu ese pequeño q sale al hacer click derecho/click en los 3 puntos
+// de una tarjeta de juego/peli/serie pa poder guardarlo en una lista rapido
 
 // Variables globales para el menú contextual
 let menuAddToListVisible = false;
-let mediaActualParaLista = null;
-let listasEditablesCache = null;
+let mediaActualParaLista = null;  // guarda el id y tipo del media que se esta gestionando ahora
+let listasEditablesCache = null;  // cache pa no pedir las listas cada vez q se abre el menu
 let menuAddToListX = 0;
 let menuAddToListY = 0;
 
-// Mapeo de tipos de contenido a iconos
+// Mapeo de tipos de contenido a iconos (font awesome)
 const ICONO_TIPO = {
     game: 'fa-gamepad',
     movie: 'fa-film',
@@ -201,9 +220,10 @@ let listasFiltroActual = 'all';     // all | game | movie | tv
 let listasEventosListos = false;    // pa no duplicar listeners
 
 // Usar var para que esté disponible en todo el ámbito
+// (con let/const en algunos casos daba problemas de scope, con var vamos sobre seguro)
 var listasCache = { mias: null, compartidas: null, siguiendo: null };
 
-// Exponer globalmente para depuración
+// Exponer globalmente para depuración, asin lo pillamos desde consola si hace falta
 window.listasCache = listasCache;
 
 // Elemento del menú contextual flotante
@@ -215,13 +235,14 @@ const quickListLoading = document.getElementById('quick-list-loading');
 const quickListEmpty = document.getElementById('quick-list-empty');
 const btnQuickCreateList = document.getElementById('btn-quick-create-list');
 
-// Template para cada item del menú
+// Template para cada item del menú (se clona por cada lista q tenga el usuario)
 const quickListItemTemplate = document.getElementById('quick-list-item-template');
 
 // ==========================================================================
 //   ABRIR / CERRAR MENÚ CONTEXTUAL
 // ==========================================================================
 
+// abre el menu de "añadir a lista" en la posicion donde se hizo click
 function abrirMenuAddToList(event, mediaId, mediaType) {
     event.stopPropagation();
 
@@ -231,18 +252,22 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
         return;
     }
 
+    // guardamos que media es el que estamos gestionando ahora mismo (id + tipo)
     mediaActualParaLista = { id: String(mediaId), tipo: mediaType };
 
     // Posicionar y mostrar
     const x = event.clientX || event.pageX || 0;
     const y = event.clientY || event.pageY || 0;
 
+    // calculamos el tamaño del menu pa que no se salga de la pantalla por el borde
     const menuWidth = 280;
     const menuHeight = 300;
     const posX = Math.min(x, window.innerWidth - menuWidth - 20);
     const posY = Math.min(y, window.innerHeight - menuHeight - 20);
 
     // FORZAR VISIBILIDAD
+    // esto parece una brutalidad poner tantas propiedades pero es pq a veces
+    // el css de otras cosas se lo pisaba y no se veia, asi vamos a lo seguro
     addToListMenu.style.display = 'block';
     addToListMenu.style.position = 'fixed';
     addToListMenu.style.left = `${Math.max(10, posX)}px`;
@@ -255,6 +280,7 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
 
     menuAddToListVisible = true;
 
+    // pedimos las listas del usuario pa pintar los checkbox
     cargarListasEditables();
 }
 
@@ -262,6 +288,7 @@ function abrirMenuAddToList(event, mediaId, mediaType) {
 window.abrirMenuAddToList = abrirMenuAddToList;
 window.cerrarMenuAddToList = cerrarMenuAddToList;
 
+// cierra el menu contextual y limpia el estado
 function cerrarMenuAddToList() {
     const addToListMenu = document.getElementById('add-to-list-menu');
     if (!addToListMenu) return;
@@ -276,7 +303,7 @@ function cerrarMenuAddToList() {
     }
 }
 
-// Cerrar al hacer clic fuera
+// Cerrar al hacer clic fuera del menu
 document.addEventListener('click', (e) => {
     if (menuAddToListVisible && addToListMenu && !addToListMenu.contains(e.target)) {
         cerrarMenuAddToList();
@@ -290,7 +317,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Ocultar al hacer scroll
+// Ocultar al hacer scroll (si no, el menu se queda flotando en un sitio random)
 window.addEventListener('scroll', () => {
     if (menuAddToListVisible) {
         cerrarMenuAddToList();
@@ -301,13 +328,15 @@ window.addEventListener('scroll', () => {
 //   CARGAR LISTAS EDITABLES (cacheado)
 // ==========================================================================
 
+// pide a supabase las listas donde el usuario puede añadir cosas (propias +
+// las compartidas donde es editor/moderator) y pinta los checkbox del menu
 async function cargarListasEditables() {
     if (!quickListChecklist || !quickListLoading || !quickListEmpty) {
         console.error('❌ Elementos del menú no encontrados');
         return;
     }
 
-    // Limpiar items anteriores
+    // Limpiar items anteriores antes de volver a pintar
     quickListChecklist.querySelectorAll('.quick-list-item').forEach(el => el.remove());
 
     quickListLoading.style.display = 'flex';
@@ -315,6 +344,7 @@ async function cargarListasEditables() {
 
     const { data: { session } } = await supabase.auth.getSession();
 
+    // si no hay sesion iniciada no dejamos guardar nada, pa eso hay q logearse
     if (!session) {
         cerrarMenuAddToList();
         showToast('error', 'Inicia sesión', 'Debes iniciar sesión para guardar en listas.');
@@ -323,6 +353,7 @@ async function cargarListasEditables() {
 
     const userId = session.user.id;
 
+    // solo pedimos las listas si no las tenemos ya en cache (asin no petamos la bd)
     if (listasEditablesCache === null) {
         try {
             // 1. Listas propias (owner)
@@ -343,6 +374,7 @@ async function cargarListasEditables() {
 
             if (errCompartidas) throw errCompartidas;
 
+            // aplanamos la respuesta de las compartidas pa q tenga la misma pinta q las propias
             const deCompartidas = (compartidas || []).map(m => ({
                 id: m.lista.id,
                 titulo: m.lista.titulo,
@@ -367,6 +399,7 @@ async function cargarListasEditables() {
     }
 
     // Filtrar listas compatibles con el tipo de media actual
+    // (una lista "mixta" vale pa todo, el resto solo vale pa su tipo)
     const listasCompatibles = listasEditablesCache.filter(lista => {
         return lista.tag_tipo === 'mixta' || lista.tag_tipo === mediaActualParaLista.tipo;
     });
@@ -376,7 +409,7 @@ async function cargarListasEditables() {
         return;
     }
 
-    // Verificar en qué listas ya está guardado este item
+    // Verificar en qué listas ya está guardado este item, pa marcar los checkbox bien
     let idsConItem = [];
     try {
         const { data: itemsExistentes } = await supabase
@@ -391,7 +424,7 @@ async function cargarListasEditables() {
         console.error('Error comprobando items existentes:', err);
     }
 
-    // Renderizar cada lista
+    // Renderizar cada lista clonando el template
     listasCompatibles.forEach(lista => {
         const clone = quickListItemTemplate.content.cloneNode(true);
         const label = clone.querySelector('.quick-list-item');
@@ -413,9 +446,10 @@ async function cargarListasEditables() {
 //   MARCAR / DESMARCAR ITEM EN UNA LISTA
 // ==========================================================================
 
+// se llama al marcar/desmarcar un checkbox del menu, inserta o borra el item en supabase
 async function toggleItemEnLista(listaId, marcado, checkboxEl) {
     if (!mediaActualParaLista) return;
-    checkboxEl.disabled = true;
+    checkboxEl.disabled = true; // bloqueamos pa que no le den 2 veces mientras carga
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -423,6 +457,7 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
         const userId = session.user.id;
 
         if (marcado) {
+            // se ha marcado -> insertamos el item en la lista
             const { error } = await supabase.from('listas_items').insert({
                 lista_id: listaId,
                 media_id: mediaActualParaLista.id,
@@ -432,6 +467,7 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
             if (error) throw error;
             showToast('success', 'Añadido', 'Se ha guardado en la lista.');
         } else {
+            // se ha desmarcado -> lo borramos de la lista
             const { error } = await supabase
                 .from('listas_items')
                 .delete()
@@ -442,14 +478,14 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
             showToast('success', 'Quitado', 'Se ha quitado de la lista.');
         }
 
-        // Invalidar caché de listas
+        // Invalidar caché de listas pa que se vuelva a pedir la próxima vez
         listasCache.mias = null;
         listasCache.compartidas = null;
 
     } catch (err) {
         console.error('Error guardando en la lista:', err);
         showToast('error', 'Error', 'No se pudo actualizar la lista.');
-        checkboxEl.checked = !marcado;
+        checkboxEl.checked = !marcado; // revertimos el check visualmente si algo peto
     } finally {
         checkboxEl.disabled = false;
     }
@@ -465,7 +501,7 @@ btnQuickCreateList?.addEventListener('click', () => {
     if (typeof openCreateListModal === 'function') {
         openCreateListModal();
     } else {
-        // Fallback: mostrar toast
+        // Fallback: mostrar toast si por lo que sea el modal no esta cargado todavia
         showToast('info', 'Próximamente', 'El modal de creación de listas está en desarrollo.');
     }
 });
@@ -481,7 +517,7 @@ const FAVORITOS_KEY = 'nexus_favoritos'; // Clave para localStorage
 //   COLOR DINÁMICO DEL USUARIO
 // ==========================================================================
 
-let colorUsuarioActual = '#6366f1'; // Color por defecto
+let colorUsuarioActual = '#6366f1'; // Color por defecto (indigo, x si el usuario no tiene uno propio)
 
 // ==========================================================================
 //   RUTAS Y NAVEGACION (URLs LIMPIAS Y BOTONES ATRAS/ADELANTE)
@@ -490,7 +526,7 @@ let colorUsuarioActual = '#6366f1'; // Color por defecto
 const linksMenu = document.querySelectorAll('.nav-links a');
 const vistas = document.querySelectorAll('.view');
 
-// mapeo de rutas, cada id apunta a su url
+// mapeo de rutas, cada id apunta a su url "limpia" (sin hash ni querys raras)
 const mapaRutas = {
     'home': '/',
     'games': '/juegos',
@@ -512,16 +548,19 @@ let juegosCargados = false;
 let peliculasCargadas = false;
 let seriesCargadas = false;
 
-// guardo donde estaba scrolleado en cada pagina
+// guardo donde estaba scrolleado en cada pagina, pa restaurarlo al volver atras
 const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
+// funcion central de navegacion: cambia de vista, actualiza la url y el historial
 async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
+    // Si ya estamos en esa vista, no hacer nada (excepto si es profile con otro usuario)
     // Si ya estamos en esa vista, no hacer nada (excepto si es profile con otro usuario)
     if (vistaActualGlobal === target && target !== 'profile') {
         return;
     }
 
+    // guardamos el scroll de la vista q dejamos pa poder volver a ese punto luego
     memoriaScroll[vistaActualGlobal] = window.scrollY;
 
     // cambio el color del menu
@@ -542,7 +581,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     });
 
-    // vuelvo a la posicion de scroll que tenia
+    // vuelvo a la posicion de scroll que tenia (el timeout es pa dar tiempo a q se pinte la vista)
     setTimeout(() => {
         window.scrollTo({
             top: memoriaScroll[target] || 0,
@@ -554,6 +593,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     vistaActualGlobal = target;
 
     // RESOLVER USERNAME Y CAMBIAR LA URL AL INSTANTE
+    // si vamos a "profile" y no nos pasaron el username, cogemos el del usuario logeado
     if (target === 'profile' && !usernameUrl) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.user_metadata?.username) {
@@ -561,6 +601,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     }
 
+    // si toca, metemos la entrada nueva en el historial del navegador (pa el boton atras)
     if (guardarEnHistorial) {
         if (target === 'profile' && usernameUrl) {
             window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
@@ -569,7 +610,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     }
 
-    // lazy loading, cargo la api solo la primera vez que entro
+    // lazy loading, cargo la api solo la primera vez que entro (asin no reventamos las apis a peticiones)
     if (target === 'home') {
         // Estas funciones ya tienen sus propios "if (yaCargado) return;", así que es seguro llamarlas
         cargarTendenciasInicial();
@@ -649,7 +690,7 @@ window.addEventListener('popstate', async (evento) => {
     }
 
     if (evento.state && evento.state.vista) {
-        // vuelvo a la vista anterior sin guardar
+        // vuelvo a la vista anterior sin guardar (pa no meter otra entrada en el historial)
         await cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
         arrancarEnrutador();
@@ -657,6 +698,7 @@ window.addEventListener('popstate', async (evento) => {
 });
 
 // cuando entran directamente a una url tipo /juegos o /perfil/usuario/...
+// esto es lo que hace q al refrescar la pagina en cualquier ruta, cargue la vista correcta
 function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
     let vistaInicial = 'home';
@@ -683,6 +725,8 @@ function arrancarEnrutador() {
     } else if (rutaActual.startsWith('/registro')) {
         vistaInicial = 'register';
     } else {
+        // si no coincide con ninguna de las rutas "especiales" de arriba, buscamos
+        // en el mapaRutas normal a ver si encaja con alguna
         for (const [idVista, url] of Object.entries(mapaRutas)) {
             if (url === rutaActual) {
                 vistaInicial = idVista;
@@ -703,11 +747,12 @@ function arrancarEnrutador() {
         }
     });
 
-    // Mantenemos la url actual
+    // Mantenemos la url actual (o la de perfil si veniamos de ahi)
     const urlFinal = userInitial ? `/perfil/usuario/${userInitial}` : rutaActual;
     window.history.replaceState({ vista: vistaInicial, user: userInitial }, '', urlFinal);
 
     // CARGAR TENDENCIAS SEGÚN LA VISTA DETECTADA
+    // el timeout es pa dar tiempo a q el dom este listo antes de pedir nada a las apis
     setTimeout(() => {
         if (vistaInicial === 'home') {
             cargarTendenciasInicial();
@@ -724,6 +769,8 @@ function arrancarEnrutador() {
     }, 300);
 
     // RESTAURAR MODALES SI EXISTEN
+    // si el usuario tenia un modal de peli/serie/juego abierto y refresco la pagina,
+    // aqui lo volvemos a abrir automaticamente comparando la url guardada
     setTimeout(() => {
         if (vistaInicial === 'movies' || vistaInicial === 'series') {
             const mediaAbierta = localStorage.getItem('modalMediaAbierto');
