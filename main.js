@@ -553,6 +553,22 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     // actualizo cual es la vista actual
     vistaActualGlobal = target;
 
+    // RESOLVER USERNAME Y CAMBIAR LA URL AL INSTANTE
+    if (target === 'profile' && !usernameUrl) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.user_metadata?.username) {
+            usernameUrl = session.user.user_metadata.username;
+        }
+    }
+
+    if (guardarEnHistorial) {
+        if (target === 'profile' && usernameUrl) {
+            window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
+        } else if (mapaRutas[target]) {
+            window.history.pushState({ vista: target }, '', mapaRutas[target]);
+        }
+    }
+
     // lazy loading, cargo la api solo la primera vez que entro
     if (target === 'home') {
         // Estas funciones ya tienen sus propios "if (yaCargado) return;", así que es seguro llamarlas
@@ -563,50 +579,29 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     } else if (target === 'games' && !juegosCargados) {
         aplicarFiltros();
         juegosCargados = true;
-        // ✅ ELIMINADO: ya no cargamos tendencias aquí
     } else if (target === 'movies' && !peliculasCargadas) {
         cargarTMDB('movie');
         peliculasCargadas = true;
         cargarGeneros('movie');
-        // ✅ ELIMINADO: ya no cargamos tendencias aquí
     } else if (target === 'series' && !seriesCargadas) {
         cargarTMDB('tv');
         seriesCargadas = true;
         cargarGeneros('tv');
-        // ✅ ELIMINADO: ya no cargamos tendencias aquí
     } else if (target === 'profile') {
-        // Si no hay usernameUrl, usamos el de la sesión
-        if (!usernameUrl) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.user_metadata?.username) {
-                usernameUrl = session.user.user_metadata.username;
-            }
-        }
-        await cargarPerfilPublico(usernameUrl);
-
-        // FORZAR SINCRONIZACIÓN DE WATCHLIST DESPUÉS DE CARGAR EL PERFIL
-        setTimeout(() => {
-            if (window.sincronizarWatchlistGlobal) {
-                window.sincronizarWatchlistGlobal();
-            }
-        }, 500);
+        cargarPerfilPublico(usernameUrl).then(() => {
+            // FORZAR SINCRONIZACIÓN DE WATCHLIST DESPUÉS DE CARGAR EL PERFIL
+            setTimeout(() => {
+                if (window.sincronizarWatchlistGlobal) {
+                    window.sincronizarWatchlistGlobal();
+                }
+            }, 500);
+        }).catch(err => console.error(err));
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
     } else if (target === 'edit-profile') {
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
         inicializarMisListas();
-    }
-
-    // cambio la url sin recargar
-    if (guardarEnHistorial) {
-        if (target === 'profile' && usernameUrl) {
-            // URL dinámica para perfiles
-            window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
-        } else if (mapaRutas[target]) {
-            // URLs normales
-            window.history.pushState({ vista: target }, '', mapaRutas[target]);
-        }
     }
 }
 
