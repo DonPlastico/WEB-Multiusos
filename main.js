@@ -9528,13 +9528,14 @@ async function guardarOrdenWatchlist(userId, tmdbIds) {
 
     const datos = tmdbIds.map((tmdb_id, index) => ({
         user_id: userId,
-        tmdb_id: tmdb_id,
+        tmdb_id: String(tmdb_id),
         posicion: index + 1
     }));
 
+    // EL ARREGLO ESTÁ AQUÍ: 'user_id,tmdb_id' SIN ESPACIOS
     const { error } = await supabase
         .from('watchlist_orden')
-        .upsert(datos, { onConflict: 'user_id, tmdb_id' });
+        .upsert(datos, { onConflict: 'user_id,tmdb_id' });
 
     if (error) {
         console.error('❌ Error guardando orden watchlist:', error);
