@@ -3045,6 +3045,11 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
     }
 
     // Retornamos el HTML de la tarjeta
+    // Si no hay portada, mostramos un placeholder con el icono correspondiente
+    const tienePortada = media.poster && media.poster.trim() !== '';
+    const iconoTipo = isMovie ? 'fa-film' : 'fa-tv';
+    const textoNoDisponible = isMovie ? 'PORTADA NO DISPONIBLE' : 'PORTADA NO DISPONIBLE';
+    
     return `
         <div class="game-card" data-id="${media.id}" data-type="${tipo}" style="cursor: pointer;">
             <div class="game-cover-container">
@@ -3052,7 +3057,10 @@ function crearTarjetaTMDB(media, tipo, userMediaInfo = null) {
                     <i class="fas fa-star" style="color:gold;"></i> ${media.nota}
                 </div>
                 ${nsfwTag} 
-                <img src="${media.poster}" alt="${media.titulo}" class="game-cover" loading="lazy" width="264" height="374">
+                ${tienePortada
+                    ? `<img src="${media.poster}" alt="${media.titulo}" class="game-cover" loading="lazy" width="264" height="374" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${iconoTipo}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:10px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>${textoNoDisponible}</span></div>'">`
+                    : `<div class="no-cover" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);"><i class="fas ${iconoTipo}" style="font-size:3rem;color:var(--text-muted);margin-bottom:10px;"></i><span style="font-size:0.8rem;color:var(--text-muted);text-align:center;">${textoNoDisponible}</span></div>`
+                }
             </div>
             <div class="game-info">
                 <h3 class="game-title">${media.titulo}</h3>
@@ -11951,7 +11959,7 @@ async function procesarImportTVTime(file) {
     console.log(`✅ Series procesadas: ${seriesProcesadas.length}`);
 
     // ============================================================
-    // 🔥 GUARDAR EN LISTA "SERIES" (DEFAULT)
+    // GUARDAR EN LISTA "SERIES" (DEFAULT)
     // ============================================================
     // Creamos o actualizamos una lista llamada "SERIES" con todas las series importadas
 
