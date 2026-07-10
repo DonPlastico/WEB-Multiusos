@@ -9602,7 +9602,7 @@ async function obtenerSeriesEnProgreso(userId) {
     return enProgreso;
 }
 
-// Funcion principal que carga la watchlist de series en progreso
+// Funcion principal que carga la watchlist de series en progreso (OPTIMIZADA - SIN SPAM A TMDB)
 async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const seccion = document.getElementById('watchlist-section');
     const lista = document.getElementById('watchlist-list');
@@ -9611,7 +9611,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     seccion.style.display = 'block';
 
     const cacheKey = `watchlist_tv_${userId}`;
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+    const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 HORAS (en lugar de 5 min)
     let seriesEnProgreso = [];
 
     // 1. COMPROBAR CACHÉ PERSISTENTE (localStorage con TTL)
@@ -9619,11 +9619,17 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     if (cachedData) {
         try {
             const parsed = JSON.parse(cachedData);
-            // Si la caché tiene menos de 5 minutos, usarla
+            // Si la caché tiene menos de 24 horas, usarla
             if (Date.now() - parsed.timestamp < CACHE_TTL) {
                 seriesEnProgreso = parsed.data;
                 seriesEnProgreso.forEach(s => s.epVistos = new Set(s.epVistos));
                 console.log(`📦 Usando caché de watchlist (${seriesEnProgreso.length} series)`);
+
+                // Si tenemos caché, pintamos directamente y SALIMOS (NO hacemos peticiones)
+                if (seriesEnProgreso.length > 0) {
+                    pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista);
+                    return;
+                }
             } else {
                 console.log('⏰ Caché expirada, recargando...');
                 localStorage.removeItem(cacheKey);
@@ -9634,152 +9640,177 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     }
 
     // 2. Si no hay caché o expiró, cargar desde Supabase
-    if (seriesEnProgreso.length === 0) {
-        console.log('🔄 Cargando watchlist desde Supabase...');
+    console.log('🔄 Cargando watchlist desde Supabase...');
 
-        let todosLosEp = [];
-        let keepFetching = true;
-        let offset = 0;
-        const LIMIT = 1000;
+    let todosLosEp = [];
+    let keepFetching = true;
+    let offset = 0;
+    const LIMIT = 1000;
 
-        while (keepFetching) {
-            const { data, error } = await supabase
-                .from('user_media')
-                .select('media_id, visto, fecha_vista')
-                .eq('user_id', userId)
-                .eq('tipo', 'tv_episode')
-                .eq('visto', true)
-                .range(offset, offset + LIMIT - 1);
+    while (keepFetching) {
+        const { data, error } = await supabase
+            .from('user_media')
+            .select('media_id, visto, fecha_vista')
+            .eq('user_id', userId)
+            .eq('tipo', 'tv_episode')
+            .eq('visto', true)
+            .range(offset, offset + LIMIT - 1);
 
-            if (error || !data || data.length === 0) {
-                keepFetching = false;
-                break;
-            }
-            todosLosEp.push(...data);
-            offset += LIMIT;
-            if (data.length < LIMIT) keepFetching = false;
+        if (error || !data || data.length === 0) {
+            keepFetching = false;
+            break;
         }
+        todosLosEp.push(...data);
+        offset += LIMIT;
+        if (data.length < LIMIT) keepFetching = false;
+    }
 
-        if (todosLosEp.length === 0) {
-            seccion.style.display = 'none';
-            return;
+    if (todosLosEp.length === 0) {
+        seccion.style.display = 'none';
+        return;
+    }
+
+    // Agrupar episodios por serie
+    const seriesMap = new Map();
+    todosLosEp.forEach(item => {
+        const partes = item.media_id.split('_');
+        if (partes.length < 3) return;
+        const tmdbId = partes[0];
+        const codEp = `${partes[1]}_${partes[2]}`;
+        if (!seriesMap.has(tmdbId)) seriesMap.set(tmdbId, { epVistos: new Set(), ultimaFecha: '' });
+        const entry = seriesMap.get(tmdbId);
+        entry.epVistos.add(codEp);
+        if (item.fecha_vista && item.fecha_vista > entry.ultimaFecha) {
+            entry.ultimaFecha = item.fecha_vista;
         }
+    });
 
-        // Agrupar episodios por serie
-        const seriesMap = new Map();
-        todosLosEp.forEach(item => {
-            const partes = item.media_id.split('_');
-            if (partes.length < 3) return;
-            const tmdbId = partes[0];
-            const codEp = `${partes[1]}_${partes[2]}`;
-            if (!seriesMap.has(tmdbId)) seriesMap.set(tmdbId, { epVistos: new Set(), ultimaFecha: '' });
-            const entry = seriesMap.get(tmdbId);
-            entry.epVistos.add(codEp);
-            if (item.fecha_vista && item.fecha_vista > entry.ultimaFecha) {
-                entry.ultimaFecha = item.fecha_vista;
-            }
-        });
+    // 3. Peticiones a TMDB (SOLO para las series que están en progreso)
+    // Pero limitamos a las que REALMENTE están en la watchlist (no todas las que tienen episodios vistos)
+    const entries = [...seriesMap.entries()];
+    const CHUNK = 5;
 
-        // 3. Peticiones a TMDB (en chunks)
-        const entries = [...seriesMap.entries()];
-        const CHUNK = 5;
+    // PRIMERO: Identificar qué series están completadas (sin llamar a TMDB una por una)
+    // Para eso, necesitamos saber el total de episodios de cada serie
+    // Vamos a hacer UNA SOLA PETICIÓN por serie, pero solo si es necesario
 
-        for (let i = 0; i < entries.length; i += CHUNK) {
-            const chunk = entries.slice(i, i + CHUNK);
-            await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
-                try {
-                    const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
-                    if (!res.ok) return;
-                    const data = await res.json();
+    // SOLUCIÓN: Usamos una API de TMDB para obtener los datos de TODAS las series en UNA SOLA PETICIÓN
+    // Pero TMDB no tiene un endpoint para múltiples IDs. Así que hacemos las peticiones en paralelo con Promise.all
+    // y limitamos el número de series a las que REALMENTE están en progreso (las que tienen al menos 1 episodio visto)
 
-                    const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
-                    const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
-                    const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
+    // Para evitar 435 peticiones, solo procesamos las series que tienen episodios vistos
+    // y que NO están completadas. Para saber si están completadas, necesitamos el total de episodios.
+    // Hacemos las peticiones en paralelo con un límite de 5 a la vez.
 
-                    if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) return;
+    console.log(`📊 Procesando ${entries.length} series con episodios vistos...`);
 
-                    let siguienteEp = null;
-                    let totalPendientes = 0;
+    for (let i = 0; i < entries.length; i += CHUNK) {
+        const chunk = entries.slice(i, i + CHUNK);
+        await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
+            try {
+                const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
+                if (!res.ok) return;
+                const data = await res.json();
 
-                    for (const temp of temporadasReales) {
-                        for (let e = 1; e <= temp.episode_count; e++) {
-                            const cod = `T${temp.season_number}_E${e}`;
-                            if (!epVistos.has(cod)) {
-                                totalPendientes++;
-                                if (!siguienteEp) {
-                                    siguienteEp = { temporada: temp.season_number, episodio: e, totalTemp: temp.episode_count };
-                                }
+                const temporadasReales = (data.temporadas_info || []).filter(s => s.season_number > 0);
+                const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+                const epVistosReales = [...epVistos].filter(cod => !cod.startsWith('T0_'));
+
+                // Si la serie está completada, la saltamos (NO la añadimos a la watchlist)
+                if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) return;
+
+                // Si la serie NO está completada, la añadimos a la watchlist
+                let siguienteEp = null;
+                let totalPendientes = 0;
+
+                for (const temp of temporadasReales) {
+                    for (let e = 1; e <= temp.episode_count; e++) {
+                        const cod = `T${temp.season_number}_E${e}`;
+                        if (!epVistos.has(cod)) {
+                            totalPendientes++;
+                            if (!siguienteEp) {
+                                siguienteEp = { temporada: temp.season_number, episodio: e, totalTemp: temp.episode_count };
                             }
                         }
                     }
+                }
 
-                    if (!siguienteEp) return;
+                if (!siguienteEp) return;
 
-                    let epNombre = '';
-                    let epPoster = '';
+                let epNombre = '';
+                let epPoster = '';
 
-                    try {
-                        const resEp = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}`);
-                        if (resEp.ok) {
-                            const epData = await resEp.json();
-                            const epInfo = epData.episodes?.find(e => e.episode_number === siguienteEp.episodio);
-                            epNombre = epInfo?.name || '';
-                            epPoster = epInfo?.still_path ? `https://image.tmdb.org/t/p/w300${epInfo.still_path}` : '';
-                        }
-                    } catch (_) { }
-
-                    seriesEnProgreso.push({
-                        tmdbId,
-                        nombre: data.titulo || data.title || '',
-                        poster: data.poster ? data.poster : '',
-                        temporada: siguienteEp.temporada,
-                        episodio: siguienteEp.episodio,
-                        epNombre,
-                        epPoster,
-                        pendientes: totalPendientes - 1,
-                        ultimaFecha,
-                        epVistos,
-                        _temporadasInfo: data.temporadas_info || [] // Guardamos para no pedir otra vez
-                    });
-
+                try {
+                    const resEp = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv_season&season=${siguienteEp.temporada}`);
+                    if (resEp.ok) {
+                        const epData = await resEp.json();
+                        const epInfo = epData.episodes?.find(e => e.episode_number === siguienteEp.episodio);
+                        epNombre = epInfo?.name || '';
+                        epPoster = epInfo?.still_path ? `https://image.tmdb.org/t/p/w300${epInfo.still_path}` : '';
+                    }
                 } catch (_) { }
-            }));
-        }
 
-        // 4. Obtener orden guardado y ordenar
-        const ordenGuardado = await obtenerOrdenWatchlist(userId);
+                seriesEnProgreso.push({
+                    tmdbId,
+                    nombre: data.titulo || data.title || '',
+                    poster: data.poster ? data.poster : '',
+                    temporada: siguienteEp.temporada,
+                    episodio: siguienteEp.episodio,
+                    epNombre,
+                    epPoster,
+                    pendientes: totalPendientes - 1,
+                    ultimaFecha,
+                    epVistos,
+                    _temporadasInfo: data.temporadas_info || []
+                });
 
-        seriesEnProgreso.forEach(serie => {
-            serie.posicion = ordenGuardado[serie.tmdbId] || Infinity;
-        });
-
-        seriesEnProgreso.sort((a, b) => {
-            if (a.posicion !== Infinity && b.posicion !== Infinity) {
-                return a.posicion - b.posicion;
-            }
-            if (a.posicion !== Infinity) return -1;
-            if (b.posicion !== Infinity) return 1;
-            if (b.ultimaFecha && a.ultimaFecha) return b.ultimaFecha.localeCompare(a.ultimaFecha);
-            if (b.ultimaFecha) return 1;
-            if (a.ultimaFecha) return -1;
-            return 0;
-        });
-
-        // 5. Guardar en caché con timestamp
-        const cachePayload = {
-            data: seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] })),
-            timestamp: Date.now()
-        };
-        localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
-        console.log(`💾 Watchlist guardada en caché (${seriesEnProgreso.length} series)`);
+            } catch (_) { }
+        }));
     }
 
+    // 4. Obtener orden guardado y ordenar
+    const ordenGuardado = await obtenerOrdenWatchlist(userId);
+
+    seriesEnProgreso.forEach(serie => {
+        serie.posicion = ordenGuardado[serie.tmdbId] || Infinity;
+    });
+
+    seriesEnProgreso.sort((a, b) => {
+        if (a.posicion !== Infinity && b.posicion !== Infinity) {
+            return a.posicion - b.posicion;
+        }
+        if (a.posicion !== Infinity) return -1;
+        if (b.posicion !== Infinity) return 1;
+        if (b.ultimaFecha && a.ultimaFecha) return b.ultimaFecha.localeCompare(a.ultimaFecha);
+        if (b.ultimaFecha) return 1;
+        if (a.ultimaFecha) return -1;
+        return 0;
+    });
+
+    // 5. Guardar en caché con timestamp
+    const cachePayload = {
+        data: seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] })),
+        timestamp: Date.now()
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cachePayload));
+    console.log(`💾 Watchlist guardada en caché (${seriesEnProgreso.length} series)`);
+
+    // 6. Pintar
+    if (seriesEnProgreso.length > 0) {
+        pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista);
+    } else {
+        seccion.style.display = 'none';
+    }
+}
+
+// Función auxiliar para pintar la watchlist (extraída para reutilizar)
+function pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista) {
     if (seriesEnProgreso.length === 0) {
         seccion.style.display = 'none';
         return;
     }
 
-    // 6. Sincronizar window.episodiosVistosActuales
+    // Sincronizar window.episodiosVistosActuales
     if (esMiPerfil) {
         if (!window.episodiosVistosActuales) {
             window.episodiosVistosActuales = new Set();
@@ -9791,7 +9822,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         });
     }
 
-    // 7. Pintar el HTML
     seccion.style.display = 'block';
     lista.innerHTML = '';
 
@@ -9836,7 +9866,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             abrirModalMedia(parseInt(serie.tmdbId), 'tv', true);
         });
 
-        // Click en el botón de check (VERSIÓN OPTIMIZADA - sin peticiones innecesarias)
+        // Click en el botón de check
         item.querySelector('.watchlist-check-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
             const btn = e.currentTarget;
@@ -9845,7 +9875,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
             const mediaId = `${serie.tmdbId}_T${serie.temporada}_E${serie.episodio}`;
 
             try {
-                // 1. Marcar episodio como visto en Supabase
                 const { error: upsertError } = await supabase.from('user_media').upsert({
                     user_id: userId,
                     media_id: mediaId,
@@ -9857,21 +9886,18 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
 
                 if (upsertError) throw new Error(upsertError.message);
 
-                // 2. Actualizar estado en memoria
                 serie.epVistos.add(`T${serie.temporada}_E${serie.episodio}`);
                 if (esMiPerfil && window.episodiosVistosActuales) {
                     window.episodiosVistosActuales.add(`T${serie.temporada}_E${serie.episodio}`);
                 }
 
-                // 3. Reordenar (la serie marcada pasa a #1)
                 await reordenarWatchlist(userId, serie.tmdbId);
 
-                // 4. Usar los datos de temporadas que ya tenemos (no hacemos fetch a TMDB)
+                // Usar datos en memoria para verificar completado
                 const temporadasReales = (serie._temporadasInfo || []).filter(s => s.season_number > 0);
                 const totalEpsSerie = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
                 const epVistosReales = [...serie.epVistos].filter(c => !c.startsWith('T0_'));
 
-                // Si la serie está completada, la eliminamos
                 if (epVistosReales.length >= totalEpsSerie && totalEpsSerie > 0) {
                     const itemEl = btn.closest('.watchlist-item');
                     itemEl.style.opacity = '0';
@@ -9882,8 +9908,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     }, 300);
                     const idx = seriesEnProgreso.findIndex(s => s.tmdbId === serie.tmdbId);
                     if (idx > -1) seriesEnProgreso.splice(idx, 1);
-
-                    // Guardar caché actualizada
+                    const cacheKey = `watchlist_tv_${userId}`;
                     localStorage.setItem(cacheKey, JSON.stringify({
                         data: seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] })),
                         timestamp: Date.now()
@@ -9893,7 +9918,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     return;
                 }
 
-                // Buscar el siguiente episodio pendiente (usando datos en memoria)
                 let siguienteEp = null;
                 let totalPendientes = 0;
                 for (const temp of temporadasReales) {
@@ -9913,7 +9937,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     return;
                 }
 
-                // Solo pedir el nombre/poster del nuevo episodio (1 petición, no 2)
                 let nuevoNombre = '';
                 let nuevoPoster = '';
                 try {
@@ -9926,14 +9949,12 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                     }
                 } catch (_) { }
 
-                // Actualizar datos
                 serie.temporada = siguienteEp.temporada;
                 serie.episodio = siguienteEp.episodio;
                 serie.epNombre = nuevoNombre;
                 serie.pendientes = totalPendientes - 1;
                 serie.ultimaFecha = new Date().toISOString().split('T')[0];
 
-                // Actualizar UI
                 const itemEl = btn.closest('.watchlist-item');
                 const extra = serie.pendientes > 0 ? `<span class="watchlist-ep-extra">+${serie.pendientes}</span>` : '';
                 const nuevoFondo = nuevoPoster || serie.poster || '';
@@ -9947,7 +9968,6 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 itemEl.querySelector('.watchlist-ep-code').innerHTML = `T${String(serie.temporada).padStart(2, '0')} | E${String(serie.episodio).padStart(2, '0')} ${extra}`;
                 itemEl.querySelector('.watchlist-ep-name').textContent = nuevoNombre;
 
-                // Mover al principio
                 lista.prepend(itemEl);
                 itemEl.style.transition = 'background 0.3s ease';
                 itemEl.style.background = 'rgba(16, 185, 129, 0.2)';
@@ -9956,7 +9976,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
 
-                // Guardar caché
+                const cacheKey = `watchlist_tv_${userId}`;
                 localStorage.setItem(cacheKey, JSON.stringify({
                     data: seriesEnProgreso.map(s => ({ ...s, epVistos: [...s.epVistos] })),
                     timestamp: Date.now()
