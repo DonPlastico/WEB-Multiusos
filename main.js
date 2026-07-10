@@ -9534,13 +9534,31 @@ async function guardarOrdenWatchlist(userId, tmdbIds) {
 
 // Reordenar al marcar un episodio (la serie marcada pasa a #1)
 async function reordenarWatchlist(userId, tmdbIdMarcado) {
-    const ordenActualMap = await obtenerOrdenWatchlist(userId);
-    const todosLosIdsConOrden = Object.keys(ordenActualMap).sort((a, b) => ordenActualMap[a] - ordenActualMap[b]);
-    const otrosIds = todosLosIdsConOrden.filter(id => id !== String(tmdbIdMarcado));
+    // 1. Obtener el orden actual (solo los IDs, sin peticiones a TMDB)
+    const { data, error } = await supabase
+        .from('watchlist_orden')
+        .select('tmdb_id')
+        .eq('user_id', userId)
+        .order('posicion', { ascending: true });
+
+    if (error) {
+        console.warn('⚠️ Error obteniendo orden:', error);
+        return;
+    }
+
+    // 2. Extraer los IDs actuales
+    const idsActuales = data.map(item => item.tmdb_id);
+
+    // 3. Filtrar la serie marcada (por si ya estaba en la lista)
+    const otrosIds = idsActuales.filter(id => id !== String(tmdbIdMarcado));
+
+    // 4. Nuevo orden: [marcado, ...resto]
     const nuevoOrden = [String(tmdbIdMarcado), ...otrosIds];
+
+    // 5. Guardar el nuevo orden en la base de datos
     await guardarOrdenWatchlist(userId, nuevoOrden);
 
-    // Invalidar caché SOLO cuando se reordena
+    // 6. Invalidar caché SOLO cuando se reordena
     const cacheKey = `watchlist_tv_${userId}`;
     localStorage.removeItem(cacheKey);
 }
@@ -9602,7 +9620,7 @@ async function obtenerSeriesEnProgreso(userId) {
     return enProgreso;
 }
 
-// Funcion principal que carga la watchlist de series en progreso (OPTIMIZADA - SIN SPAM A TMDB)
+// Funcion principal que carga la watchlist de series en progreso
 async function cargarWatchlistTVTime(userId, esMiPerfil) {
     const seccion = document.getElementById('watchlist-section');
     const lista = document.getElementById('watchlist-list');
@@ -9685,27 +9703,21 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
         }
     });
 
-    // 3. Peticiones a TMDB (SOLO para las series que están en progreso)
-    // Pero limitamos a las que REALMENTE están en la watchlist (no todas las que tienen episodios vistos)
-    const entries = [...seriesMap.entries()];
+    // 3. Obtener el orden guardado (para saber qué series están en la watchlist)
+    const ordenGuardado = await obtenerOrdenWatchlist(userId);
+    const idsEnWatchlist = Object.keys(ordenGuardado);
+
+    // 4. Filtrar SOLO las series que están en la watchlist (tienen orden guardado)
+    const entriesFiltradas = [...seriesMap.entries()].filter(([tmdbId]) =>
+        idsEnWatchlist.includes(tmdbId)
+    );
+
+    console.log(`📊 Series con episodios vistos: ${seriesMap.size}, en watchlist: ${entriesFiltradas.length}`);
+
     const CHUNK = 5;
 
-    // PRIMERO: Identificar qué series están completadas (sin llamar a TMDB una por una)
-    // Para eso, necesitamos saber el total de episodios de cada serie
-    // Vamos a hacer UNA SOLA PETICIÓN por serie, pero solo si es necesario
-
-    // SOLUCIÓN: Usamos una API de TMDB para obtener los datos de TODAS las series en UNA SOLA PETICIÓN
-    // Pero TMDB no tiene un endpoint para múltiples IDs. Así que hacemos las peticiones en paralelo con Promise.all
-    // y limitamos el número de series a las que REALMENTE están en progreso (las que tienen al menos 1 episodio visto)
-
-    // Para evitar 435 peticiones, solo procesamos las series que tienen episodios vistos
-    // y que NO están completadas. Para saber si están completadas, necesitamos el total de episodios.
-    // Hacemos las peticiones en paralelo con un límite de 5 a la vez.
-
-    console.log(`📊 Procesando ${entries.length} series con episodios vistos...`);
-
-    for (let i = 0; i < entries.length; i += CHUNK) {
-        const chunk = entries.slice(i, i + CHUNK);
+    for (let i = 0; i < entriesFiltradas.length; i += CHUNK) {
+        const chunk = entriesFiltradas.slice(i, i + CHUNK);
         await Promise.all(chunk.map(async ([tmdbId, { epVistos, ultimaFecha }]) => {
             try {
                 const res = await fetch(`/api/tmdb?id=${tmdbId}&tipo=tv&lang=${currentLang}`);
@@ -9803,7 +9815,7 @@ async function cargarWatchlistTVTime(userId, esMiPerfil) {
     }
 }
 
-// Función auxiliar para pintar la watchlist (extraída para reutilizar)
+// Función auxiliar para pintar la watchlist
 function pintarWatchlist(seriesEnProgreso, userId, esMiPerfil, seccion, lista) {
     if (seriesEnProgreso.length === 0) {
         seccion.style.display = 'none';
