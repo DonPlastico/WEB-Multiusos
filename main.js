@@ -5436,6 +5436,9 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
 async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
+    // Esperar a que las traducciones estén completamente cargadas
+    await translationsReadyPromise;
+
     // Guardar el tipo en el modal para futuras referencias (saber si es peli o serie)
     modalMedia.setAttribute('data-current-type', tipo);
 
