@@ -284,8 +284,24 @@ export default async function handler(req, res) {
 
         let urlLista;
         if (busqueda) {
+            let searchQuery = busqueda;
+            let yearParam = '';
+
+            // Extraer el año mágicamente si buscas "Título (YYYY)"
+            const yearMatch = searchQuery.match(/\s*\((\d{4})\)$/);
+            if (yearMatch) {
+                const year = yearMatch[1];
+                searchQuery = searchQuery.replace(yearMatch[0], '').trim(); // Dejamos solo "Pinocho"
+
+                if (tipo === 'movie') {
+                    yearParam = `&primary_release_year=${year}`;
+                } else {
+                    yearParam = `&first_air_date_year=${year}`;
+                }
+            }
+
             // TMDB ignora vote_count en /search, así que lo quitamos de la URL y lo haremos en JS
-            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(searchQuery)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}${yearParam}`;
         } else {
             // Bajamos el filtro base a 5 votos para descartar solo el spam absoluto, no las películas reales
             let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=5`;
