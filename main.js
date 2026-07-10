@@ -5604,11 +5604,37 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             popcorn: `https://www.popcornmeter.com/search?q=${tituloParaURL}`
         };
         
-        // Configurar los listeners de los botones
-        document.getElementById('btn-view-imdb').onclick = () => window.open(urls.imdb, '_blank');
-        document.getElementById('btn-view-rotten').onclick = () => window.open(urls.rottenTomatoes, '_blank');
-        document.getElementById('btn-view-metacritic').onclick = () => window.open(urls.metacritic, '_blank');
-        document.getElementById('btn-view-popcorn').onclick = () => window.open(urls.popcorn, '_blank');
+        // Determinar cuál es la plataforma "recomendada" con más votos
+        // Como no tenemos acceso a APIs de pago, usamos IMDb por defecto (tiene más reseñas generalmente)
+        let plataformaRecomendada = 'imdb';
+        let urlRecomendada = urls.imdb;
+        
+        // Heurística: si TMDB tiene muchos votos, priorizamos TMDB
+        if (data.votos && data.votos > 1000) {
+            plataformaRecomendada = 'tmdb';
+            urlRecomendada = `https://www.themoviedb.org/${tipo === 'movie' ? 'movie' : 'tv'}/${data.id}`;
+        }
+        
+        // Configurar el badge interactivo
+        const badgeElement = document.getElementById('media-platform-badge');
+        if (badgeElement) {
+            // Texto del badge según la plataforma
+            const textoBadge = plataformaRecomendada === 'tmdb' ? 'TMDB' : 'IMDb';
+            badgeElement.textContent = textoBadge;
+            
+            // Hacer clickeable para abrir la página de la plataforma
+            badgeElement.onclick = () => window.open(urlRecomendada, '_blank');
+            
+            // Efecto hover
+            badgeElement.onmouseover = () => {
+                badgeElement.style.background = 'var(--primary)';
+                badgeElement.style.transform = 'scale(1.05)';
+            };
+            badgeElement.onmouseout = () => {
+                badgeElement.style.background = 'var(--secondary)';
+                badgeElement.style.transform = 'scale(1)';
+            };
+        }
         // ==========================================
         // CONSTRUIR SINOPSIS COMPLETA (TAGLINE + OVERVIEW)
         // ==========================================
