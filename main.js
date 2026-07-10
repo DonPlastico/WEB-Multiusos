@@ -9469,7 +9469,7 @@ setTimeout(() => {
 //   WATCHLIST TVTIME — Episodios pendientes (CON CACHÉ PERSISTENTE Y OPTIMIZADO)
 // ==========================================================================
 
-// Función que sincroniza la watchlist global
+// Función que sincroniza la watchlist global (VERSIÓN OPTIMIZADA)
 window.sincronizarWatchlistGlobal = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -9485,9 +9485,25 @@ window.sincronizarWatchlistGlobal = async function () {
 
         if (nombrePerfilVisto === miNombre) {
             const lista = document.getElementById('watchlist-list');
-            // Solo recargar si la lista está vacía
+            // SOLO recargar si la lista está VACÍA
             if (lista && (!lista.children.length || lista.children.length === 0)) {
-                await cargarWatchlistTVTime(userId, true);
+                // ADEMÁS, comprobar si hay caché válida ANTES de llamar a cargarWatchlistTVTime
+                const cacheKey = `watchlist_tv_${userId}`;
+                const cachedData = localStorage.getItem(cacheKey);
+                if (!cachedData) {
+                    // Solo cargar si NO hay caché
+                    await cargarWatchlistTVTime(userId, true);
+                } else {
+                    // Si hay caché, usarla
+                    try {
+                        const parsed = JSON.parse(cachedData);
+                        if (parsed.data && parsed.data.length > 0) {
+                            // Ya hay datos en caché, NO recargar
+                            console.log('📦 Usando caché existente, no recargar');
+                            return;
+                        }
+                    } catch (e) { }
+                }
             }
         }
     }
