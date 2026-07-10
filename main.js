@@ -1893,15 +1893,13 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         }
 
     } catch (error) {
-        if (error.name === 'AbortError') {
-            console.log('🛑 Búsqueda cancelada e interceptada. Iniciando nueva orden.');
-        } else {
-            console.error("❌ Error cargando juegos:", error);
-            if (resetear) {
-                gridJuegos.innerHTML = `<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">${t('games.api_error')}</div>`;
-            }
-            if (peticionAbort === miAbort) cargando = false;
+        if (error.name === 'AbortError') return;
+
+        console.error("❌ Error cargando juegos:", error);
+        if (resetear) {
+            gridJuegos.innerHTML = `<div style="color:var(--error); text-align:center; width:100%; padding: 2rem;">${t('games.api_error')}</div>`;
         }
+        if (peticionAbort === miAbort) cargando = false;
     }
 }
 
