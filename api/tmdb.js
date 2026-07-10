@@ -286,9 +286,16 @@ export default async function handler(req, res) {
         if (busqueda) {
             const queryTrimmed = busqueda.trim();
 
-            // MODO DIOS: Búsqueda exacta por ID numérico
+            // Búsqueda exacta por ID numérico
             if (/^\d+$/.test(queryTrimmed)) {
+
+                // Si el frontend pide página 2 o más, le decimos que ya no hay más resultados.
+                if (page > 1) {
+                    return res.status(200).json([]);
+                }
+
                 try {
+                    const detailRes = await fetch(`${baseUrl}/${tipo}/${queryTrimmed}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
                     const detailRes = await fetch(`${baseUrl}/${tipo}/${queryTrimmed}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
 
                     if (!detailRes.ok) return res.status(200).json([]);
