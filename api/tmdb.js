@@ -284,8 +284,55 @@ export default async function handler(req, res) {
 
         let urlLista;
         if (busqueda) {
-            // TMDB ignora vote_count en /search, así que lo quitamos de la URL y lo haremos en JS
-            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(busqueda)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
+            const queryTrimmed = busqueda.trim();
+
+            // MODO DIOS: Búsqueda exacta por ID numérico
+            if (/^\d+$/.test(queryTrimmed)) {
+                try {
+                    const detailRes = await fetch(`${baseUrl}/${tipo}/${queryTrimmed}?append_to_response=watch/providers,release_dates,content_ratings&language=${tmdbLang}`, { headers });
+
+                    if (!detailRes.ok) return res.status(200).json([]);
+
+                    const data = await detailRes.json();
+
+                    const providersES = data['watch/providers']?.results?.ES;
+                    const plataformas = [];
+                    if (providersES && providersES.flatrate) {
+                        providersES.flatrate.forEach(p => plataformas.push(p.provider_name));
+                    }
+
+                    let releaseDates = '';
+                    if (tipo === 'movie') {
+                        releaseDates = data.release_dates?.results?.find(r => r.iso_3166_1 === 'ES')?.release_dates?.[0]?.certification ||
+                            data.release_dates?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || '';
+                    } else {
+                        releaseDates = data.content_ratings?.results?.find(r => r.iso_3166_1 === 'ES')?.rating ||
+                            data.content_ratings?.results?.find(r => r.iso_3166_1 === 'US')?.rating || '';
+                    }
+
+                    // Detenemos la ejecución aquí y devolvemos 1 solo elemento en el array
+                    return res.status(200).json([{
+                        id: data.id,
+                        adult: data.adult,
+                        titulo: tipo === 'movie' ? data.title : data.name,
+                        poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/264x374?text=SIN+POSTER',
+                        fecha: tipo === 'movie' ? data.release_date : data.first_air_date,
+                        nota: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
+                        votos: data.vote_count || 0,
+                        duracion: tipo === 'movie' ? data.runtime : (data.episode_run_time?.[0] || 0),
+                        temporadas: tipo === 'tv' ? data.number_of_seasons : null,
+                        episodios: tipo === 'tv' ? data.number_of_episodes : null,
+                        plataformas: plataformas.length > 0 ? plataformas.join(', ') : 'No disponible en streaming',
+                        certification: releaseDates
+                    }]);
+                } catch (e) {
+                    console.warn('⚠️ Error en búsqueda por ID:', e.message);
+                    return res.status(200).json([]);
+                }
+            }
+
+            // Búsqueda normal de texto si no son solo números
+            urlLista = `${baseUrl}/search/${tipo}?query=${encodeURIComponent(queryTrimmed)}&language=${tmdbLang}&page=${page}&include_adult=${includeAdult}`;
         } else {
             let discoverParams = `language=${tmdbLang}&page=${page}&include_adult=${includeAdult}&sort_by=popularity.desc&vote_count.gte=100`;
 
