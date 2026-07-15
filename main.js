@@ -5487,7 +5487,7 @@ function renderGaleriaMediaJuego(juego) {
         .map(s => ({
             type: 'image',
             url: s.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
-            thumbUrl: s.url.replace('t_thumb', 't_cover_small').replace('//', 'https://'),
+            thumbUrl: s.url.replace('t_thumb', 't_screenshot_med').replace('//', 'https://'),
             label: 'Captura'
         }));
 
@@ -12675,8 +12675,8 @@ function configurarHeroDinamico() {
         function reducirHero() {
             if (isReduced) return;
             isReduced = true;
-            hero.style.height = '250px';
-            hero.style.minHeight = '250px';
+            hero.style.height = '200px';
+            hero.style.minHeight = '200px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
 
@@ -12685,7 +12685,7 @@ function configurarHeroDinamico() {
             if (!isReduced) return;
             isReduced = false;
             hero.style.height = hero.dataset.originalHeight || '45vh';
-            hero.style.minHeight = '250px';
+            hero.style.minHeight = '200px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
 
