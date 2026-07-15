@@ -3085,6 +3085,28 @@ span.flatpickr-weekday {
     text-overflow: ellipsis;
 }
 
+/* Asegurar que el contenido no herede el blur de la imagen de fondo */
+#detail-hero-bg .hero-content-centered,
+#detail-hero-bg .hero-overlay-gradient,
+#detail-hero-bg #detail-title,
+#detail-hero-bg #detail-platforms,
+#detail-hero-bg .detail-platforms-badges {
+    filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* El overlay debe estar por encima de la imagen borrosa */
+#detail-hero-bg .hero-overlay-gradient {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+#detail-hero-bg .hero-content-centered {
+    position: relative;
+    z-index: 2;
+}
+
 /* ==========================================================================
    GALERÍA DE MEDIA DEL JUEGO (video/imagen grande + miniaturas seleccionables)
    ========================================================================== */
