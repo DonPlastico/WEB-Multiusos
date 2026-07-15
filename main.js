@@ -5274,12 +5274,7 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
     if (data.portadaSrc) {
         document.getElementById('detail-cover-img').src = data.portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
-
-        // Usar la portada como fondo, pero con un blur para que no se vea pixelada
-        const heroBg = document.getElementById('detail-hero-bg');
-        heroBg.style.backgroundImage = `url('${data.portadaSrc}')`;
-        heroBg.style.backgroundSize = 'cover';
-        heroBg.style.backgroundPosition = 'center 20%';
+        document.getElementById('detail-hero-bg').style.backgroundImage = `url('${data.portadaSrc}')`;
     } else {
         document.getElementById('detail-cover-img').style.display = 'none';
         document.getElementById('detail-hero-bg').style.backgroundImage = 'none';
@@ -5381,11 +5376,28 @@ async function llamarDetallesJuego(idJuego, titulo) {
         // Si no se encuentra por ID, buscar por título exacto y elegir el mejor
         if (!juego) {
             console.warn(`⚠️ Juego con ID ${idJuego} no encontrado, buscando por título: "${titulo}"`);
+
+            // Buscar por título exacto (case insensitive)
             const tituloLower = titulo.toLowerCase().trim();
+
+            // Primero intentar coincidencia exacta
             juego = datos.find(j => j.name.toLowerCase() === tituloLower);
+
+            // Si no, buscar el que tenga el título más parecido (contenga el título)
             if (!juego) {
                 juego = datos.find(j => j.name.toLowerCase().includes(tituloLower));
             }
+
+            // Si aún no hay, buscar por nombre base (sin numeros ni años)
+            if (!juego) {
+                const nombreBase = titulo.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
+                juego = datos.find(j => {
+                    const jName = j.name.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
+                    return jName === nombreBase || jName.includes(nombreBase);
+                });
+            }
+
+            // Último recurso: usar el primer resultado
             if (!juego && datos.length > 0) {
                 juego = datos[0];
                 console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
@@ -5393,36 +5405,20 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
-            document.getElementById('detail-description').style.fontStyle = "italic";
-            document.getElementById('detail-description').style.color = "var(--text-muted)";
+            document.getElementById('detail-description').textContent = t('details_extra.no_details');
+
+            // Mostrar mensaje de error más claro
+            const descElement = document.getElementById('detail-description');
+            descElement.textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
+            descElement.style.fontStyle = "italic";
+            descElement.style.color = "var(--text-muted)";
             return;
-        }
-
-        // ============================================================
-        // OBTENER IMAGEN DE STEAM PARA EL FONDO (PRIORIDAD MÁXIMA)
-        // ============================================================
-        const heroBg = document.getElementById('detail-hero-bg');
-
-        // PRIORIDAD 1: IMAGEN DE STEAM (horizontal, nítida, perfecta)
-        let steamImage = await obtenerImagenSteam(titulo);
-        if (steamImage) {
-            heroBg.style.backgroundImage = `url('${steamImage}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center';
-            heroBg.style.backgroundRepeat = 'no-repeat';
-            heroBg.style.filter = 'none';
-            console.log('✅ Fondo: Imagen de Steam');
-        } else {
-            // PRIORIDAD 2: IGDB (artworks > screenshots > cover con blur)
-            console.log('⚠️ No se encontró imagen de Steam, usando IGDB...');
-            // La función renderGaleriaMediaJuego ya se encarga del resto
         }
 
         // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
         renderGaleriaMediaJuego(juego);
 
-        // Rellenar Descripción
+        // Rellenar Descripción con un control de calidad
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
             descElement.textContent = juego.summary;
@@ -5434,7 +5430,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
             descElement.style.color = "var(--text-muted)";
         }
 
-        // Rellenar Desarrollador y Editor
+        // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
         const dev = empresas.find(e => e.developer)?.company?.name || t('details_extra.unknown');
         const pub = empresas.find(e => e.publisher)?.company?.name || t('details_extra.unknown');
@@ -5475,64 +5471,6 @@ function renderGaleriaMediaJuego(juego) {
 
     thumbsContainer.innerHTML = '';
 
-    // Usar imagen HORIZONTAL de IGDB
-    const heroBg = document.getElementById('detail-hero-bg');
-    let fondoAsignado = false;
-
-    // 1. PRIORIDAD 1: Artworks (arte conceptual horizontal, el más bonito)
-    if (juego.artworks && juego.artworks.length > 0) {
-        const artwork = juego.artworks[0];
-        if (artwork.url) {
-            const url = artwork.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://');
-            heroBg.style.backgroundImage = `url('${url}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center';
-            heroBg.style.backgroundRepeat = 'no-repeat';
-            fondoAsignado = true;
-            console.log('✅ Fondo: Artwork');
-        }
-    }
-
-    // 2. PRIORIDAD 2: Screenshots (capturas de juego horizontales)
-    if (!fondoAsignado && juego.screenshots && juego.screenshots.length > 0) {
-        const screenshot = juego.screenshots[0];
-        if (screenshot.url) {
-            const url = screenshot.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://');
-            heroBg.style.backgroundImage = `url('${url}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center';
-            heroBg.style.backgroundRepeat = 'no-repeat';
-            fondoAsignado = true;
-            console.log('✅ Fondo: Screenshot');
-        }
-    }
-
-    // 3. PRIORIDAD 3: Cover con blur (fallback, queda mejor que nada)
-    if (!fondoAsignado && juego.cover && juego.cover.url) {
-        const url = juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://');
-        heroBg.style.backgroundImage = `url('${url}')`;
-        heroBg.style.backgroundSize = 'cover';
-        heroBg.style.backgroundPosition = 'center 20%';
-        heroBg.style.backgroundRepeat = 'no-repeat';
-        // Aplicamos blur para disimular la pixelación
-        heroBg.style.filter = 'blur(12px) brightness(0.6)';
-        fondoAsignado = true;
-        console.log('✅ Fondo: Cover con blur (fallback)');
-    }
-
-    // 4. Si no hay nada, fondo oscuro por defecto
-    if (!fondoAsignado) {
-        heroBg.style.backgroundImage = 'none';
-        heroBg.style.background = 'var(--bg-elevated)';
-        console.log('⚠️ Sin fondo disponible');
-    }
-
-    // Aseguramos que el overlay existe y tiene el z-index correcto
-    const overlay = heroBg.querySelector('.hero-overlay-gradient');
-    if (overlay) {
-        overlay.style.zIndex = '2';
-    }
-
     // Primero los videos (trailers/gameplay), luego las capturas de pantalla
     const videos = (juego.videos || [])
         .filter(v => v.video_id)
@@ -5552,28 +5490,15 @@ function renderGaleriaMediaJuego(juego) {
             label: 'Captura'
         }));
 
-    // ============================================================
-    // 🖼️ TAMBIÉN AÑADIR ARTWORKS A LA GALERÍA (como imágenes extra)
-    // ============================================================
-    const artworks = (juego.artworks || [])
-        .filter(a => a.url)
-        .map(a => ({
-            type: 'image',
-            url: a.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
-            thumbUrl: a.url.replace('//', 'https://'),
-            label: 'Arte conceptual'
-        }));
-    // ============================================================
+    const itemsGaleria = [...videos, ...screenshots];
 
-    const itemsGaleria = [...videos, ...screenshots, ...artworks];
-
-    // Si el juego no tiene ni videos ni capturas ni artworks, mostramos un mensaje
+    // Si el juego no tiene ni videos ni capturas, mostramos un mensaje en lugar de ocultar
     if (itemsGaleria.length === 0) {
-        mediaSection.style.display = 'block';
+        mediaSection.style.display = 'block'; // Mostramos la sección
         mediaSection.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 30px 20px; color: var(--text-muted);">
                 <i class="fas fa-image" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
-                <span style="font-size: 0.9rem;">No hay trailers ni imágenes disponibles para este juego.</span>
+                <span style="font-size: 0.9rem;">No hay trailers ni capturas disponibles para este juego.</span>
             </div>
         `;
         return;
@@ -5582,7 +5507,7 @@ function renderGaleriaMediaJuego(juego) {
     // Restaurar la estructura si habia sido modificada
     mediaSection.style.display = 'grid';
 
-    // Crear las miniaturas
+    // Crear las miniaturas (mismo código que antes)
     itemsGaleria.forEach((item, index) => {
         const thumb = document.createElement('div');
         thumb.className = 'media-thumb';
@@ -5606,9 +5531,9 @@ function renderGaleriaMediaJuego(juego) {
             thumb.setAttribute('data-type', 'image');
             thumb.setAttribute('data-full-src', item.url);
             thumb.innerHTML = `
-                <img src="${item.thumbUrl}" alt="${item.label}" loading="lazy">
+                <img src="${item.thumbUrl}" alt="Captura ${index + 1}" loading="lazy">
                 <div class="media-thumb-overlay">
-                    <span class="thumb-type-label image"><i class="fas fa-image"></i> ${item.label}</span>
+                    <span class="thumb-type-label image"><i class="fas fa-image"></i> Captura</span>
                 </div>
                 <span class="thumb-order-badge">${index + 1}</span>
             `;
@@ -5617,7 +5542,7 @@ function renderGaleriaMediaJuego(juego) {
         thumbsContainer.appendChild(thumb);
     });
 
-    // Por defecto: el primer video si existe, si no la primera imagen
+    // Por defecto: el primer video si existe, si no la primera captura
     mostrarMediaSeleccionada(itemsGaleria[0], 0, itemsGaleria.length);
 }
 
@@ -5857,25 +5782,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // ==========================================
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-cover-img').src = data.poster;
-
-        // --- FONDO DEL HERO CON BACKDROP HORIZONTAL ---
-        const heroBg = document.getElementById('media-detail-hero-bg');
-        if (data.backdrop && data.backdrop.trim() !== '') {
-            // Si hay backdrop (horizontal), lo usamos
-            heroBg.style.backgroundImage = `url('${data.backdrop}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center';
-        } else if (data.poster && data.poster.trim() !== '') {
-            // Si NO hay backdrop, usamos el poster pero con blur + zoom out para que no se vea pixelado
-            // Añadimos un filtro de blur y oscurecemos para que no se note la pixelación
-            heroBg.style.backgroundImage = `url('${data.poster}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center 20%';
-            heroBg.style.filter = 'blur(8px) brightness(0.7)';
-            // El overlay ya se encarga del oscurecimiento adicional
-        } else {
-            heroBg.style.backgroundImage = 'none';
-        }
+        document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
 
         // ==========================================
         // GENERAR URLs PARA PLATAFORMAS EXTERNAS
@@ -8784,60 +8691,6 @@ function formatearTiempo(minutos) {
     if (mins > 0) texto += `${mins}m`;
 
     return texto.trim() || "--";
-}
-
-// ==========================================================================
-//   OBTENER IMAGEN DE STEAM PARA FONDO DEL HERO
-// ==========================================================================
-
-/**
- * Busca la imagen de Steam de un juego por su título
- * Usa tu propio endpoint /api/steam para obtener la imagen horizontal (616x353)
- */
-async function obtenerImagenSteam(titulo) {
-    try {
-        // 1. Usar tu endpoint /api/steam (el mismo que usas como fallback)
-        const response = await fetch(`/api/steam?query=${encodeURIComponent(titulo)}`);
-        if (!response.ok) return null;
-
-        const data = await response.json();
-
-        // El endpoint devuelve { juegos: [...], total, ... }
-        const juegos = data.juegos || [];
-
-        if (juegos.length === 0) return null;
-
-        // Buscar el juego que coincida exactamente con el título
-        // (Steam a veces devuelve juegos con el mismo nombre pero con año)
-        const tituloLower = titulo.toLowerCase().trim();
-        let juegoSteam = juegos.find(j =>
-            j.name.toLowerCase() === tituloLower ||
-            j.name.toLowerCase().startsWith(tituloLower)
-        );
-
-        // Si no se encuentra exacto, usar el primero
-        if (!juegoSteam && juegos.length > 0) {
-            juegoSteam = juegos[0];
-        }
-
-        if (!juegoSteam) return null;
-
-        // Extraer el appid del ID (formato "steam_12345")
-        const appId = juegoSteam.id.replace('steam_', '');
-
-        if (!appId) return null;
-
-        // La imagen de Steam es horizontal y se ve perfecta como fondo
-        // Usamos la imagen de header (horizontal 460x215 o 616x353)
-        const steamImageUrl = `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`;
-
-        console.log(`✅ Steam image found for "${titulo}": ${steamImageUrl}`);
-        return steamImageUrl;
-
-    } catch (error) {
-        console.warn('⚠️ Error obteniendo imagen de Steam:', error);
-        return null;
-    }
 }
 
 // ==========================================================================
