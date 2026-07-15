@@ -2534,9 +2534,6 @@ function crearTarjetaTrend(juego, posicion) {
             storesRaw: juego.itad?.stores || 'none',
             storeUrlRaw: juego.itad?.url || '',
             portadaSrc: portada,
-            screenshotSrc: juego.screenshots && juego.screenshots.length > 0
-                ? juego.screenshots[0].url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://')
-                : null,
             htmlPlataformas: '',
             fecha: fecha,
             priceText: juego.itad?.precio ? `${juego.itad.precio.toFixed(2)} €` : null,
@@ -5250,9 +5247,6 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
         storesRaw: card.getAttribute('data-stores'),
         storeUrlRaw: card.getAttribute('data-store-url'),
         portadaSrc: card.querySelector('img.game-cover')?.src || '',
-        screenshotSrc: juego.screenshots && juego.screenshots.length > 0
-            ? juego.screenshots[0].url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://')
-            : null,
         htmlPlataformas: card.querySelector('.platforms-container')?.innerHTML || '',
         fecha: card.querySelector('.date')?.textContent || 'TBA',
         priceText: card.querySelector('.price-badge strong')?.textContent || null,
@@ -5280,30 +5274,10 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
     if (data.portadaSrc) {
         document.getElementById('detail-cover-img').src = data.portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
-        // Configurar fondo del hero con imagen horizontal si existe
         const heroBg = document.getElementById('detail-hero-bg');
-        if (data.portadaSrc) {
-            // Primero intentamos usar una screenshot horizontal (mejor calidad)
-            const screenshotUrl = data.screenshotSrc || null;
-
-            if (screenshotUrl) {
-                // Si hay screenshot, la usamos directamente (sin blur)
-                heroBg.style.backgroundImage = `url('${screenshotUrl}')`;
-                heroBg.style.backgroundSize = 'cover';
-                heroBg.style.backgroundPosition = 'center 30%';
-                heroBg.style.filter = 'none';
-            } else {
-                // Si no hay screenshot, usamos la portada con blur para disimular pixelación
-                heroBg.style.backgroundImage = `url('${data.portadaSrc}')`;
-                heroBg.style.backgroundSize = 'cover';
-                heroBg.style.backgroundPosition = 'center 30%';
-                heroBg.style.filter = 'blur(6px) brightness(0.85)';
-                // Añadimos un overlay para que no se vea tan borroso
-                heroBg.style.backgroundBlendMode = 'overlay';
-            }
-        } else {
-            heroBg.style.backgroundImage = 'none';
-        }
+        heroBg.style.backgroundImage = `url('${data.portadaSrc}')`;
+        heroBg.style.filter = 'blur(12px) brightness(0.8)';
+        heroBg.style.transform = 'scale(1.05)';
     } else {
         document.getElementById('detail-cover-img').style.display = 'none';
         document.getElementById('detail-hero-bg').style.backgroundImage = 'none';
@@ -5446,23 +5420,6 @@ async function llamarDetallesJuego(idJuego, titulo) {
 
         // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
         renderGaleriaMediaJuego(juego);
-
-        // Actualizar el hero background con una screenshot si existe
-        const heroBg2 = document.getElementById('detail-hero-bg');
-        if (juego.screenshots && juego.screenshots.length > 0) {
-            const screenshotUrl = juego.screenshots[0].url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://');
-            heroBg2.style.backgroundImage = `url('${screenshotUrl}')`;
-            heroBg2.style.backgroundSize = 'cover';
-            heroBg2.style.backgroundPosition = 'center 30%';
-            heroBg2.style.filter = 'none';
-        } else if (juego.cover && juego.cover.url) {
-            // Fallback: usar portada con blur
-            const coverUrl = juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://');
-            heroBg2.style.backgroundImage = `url('${coverUrl}')`;
-            heroBg2.style.backgroundSize = 'cover';
-            heroBg2.style.backgroundPosition = 'center 30%';
-            heroBg2.style.filter = 'blur(6px) brightness(0.85)';
-        }
 
         // Rellenar Descripción con un control de calidad
         const descElement = document.getElementById('detail-description');
