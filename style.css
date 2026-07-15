@@ -6911,6 +6911,15 @@ cast-carousel::-webkit-scrollbar {
     .toast-desktop {
         display: flex !important;
     }
+
+    #media-details-modal .modal-content,
+    .game-details-panel {
+        height: 80dvh !important;
+    }
+
+    .cyber-modal .modal-content {
+        margin-top: 70px;
+    }
 }
 
 /* ===== MÓVILES (max 768px) ===== */
