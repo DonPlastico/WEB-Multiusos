@@ -3207,10 +3207,9 @@ span.flatpickr-weekday {
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
-    padding-right: 6px;
+    padding: 7.5px;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
-    padding-bottom: 4px;
 }
 
 .media-thumbs-scroll::-webkit-scrollbar {
@@ -7729,6 +7728,10 @@ cast-carousel::-webkit-scrollbar {
 
     .toast-mobile {
         display: flex !important;
+    }
+
+    .detail-media-main {
+        max-height: 170px !important;
     }
 }
 

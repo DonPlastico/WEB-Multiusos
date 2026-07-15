@@ -5250,8 +5250,7 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
         htmlPlataformas: card.querySelector('.platforms-container')?.innerHTML || '',
         fecha: card.querySelector('.date')?.textContent || 'TBA',
         priceText: card.querySelector('.price-badge strong')?.textContent || null,
-        priceNaText: card.querySelector('.price-na')?.textContent || null,
-        plataformas: card.getAttribute('data-platforms') || ''
+        priceNaText: card.querySelector('.price-na')?.textContent || null
     };
 
     procesarAperturaModalJuego(juegoData, true);
@@ -5367,121 +5366,59 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 // Funcion que obtiene los detalles del juego desde la API de IGDB
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        // Buscamos por título con filtro de plataformas
-        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
-        const data = await respuesta.json();
+        // Buscamos por ID primero (mas preciso)
+        let respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
+        let data = await respuesta.json();
 
         let datos = data.juegos || data;
-
-        if (!datos || datos.length === 0) {
-            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos.`;
-            return;
-        }
-
-        // 1. PRIMERO: Intentar encontrar por ID exacto (como antes)
         let juego = datos.find(j => j.id.toString() === idJuego.toString());
 
-        // 2. Si no se encuentra por ID, buscar inteligentemente
+        // Si no se encuentra por ID, buscar por título exacto y elegir el mejor
         if (!juego) {
             console.warn(`⚠️ Juego con ID ${idJuego} no encontrado, buscando por título: "${titulo}"`);
 
+            // Buscar por título exacto (case insensitive)
             const tituloLower = titulo.toLowerCase().trim();
 
-            // Filtrar juegos que coincidan con el título
-            let candidatos = datos.filter(j => {
-                const jName = j.name.toLowerCase();
-                return jName === tituloLower || jName.includes(tituloLower);
-            });
+            // Primero intentar coincidencia exacta
+            juego = datos.find(j => j.name.toLowerCase() === tituloLower);
 
-            // 3. SI HAY MÚLTIPLES CANDIDATOS, ELEGIR EL MÁS RECIENTE
-            if (candidatos.length > 1) {
-                console.log(`🔍 Encontrados ${candidatos.length} candidatos para "${titulo}"`);
+            // Si no, buscar el que tenga el título más parecido (contenga el título)
+            if (!juego) {
+                juego = datos.find(j => j.name.toLowerCase().includes(tituloLower));
+            }
 
-                // Mostrar todos los candidatos en consola para depuración
-                candidatos.forEach((c, i) => {
-                    const fecha = c.first_release_date
-                        ? new Date(c.first_release_date * 1000).toLocaleDateString('es-ES')
-                        : 'Sin fecha';
-                    console.log(`  ${i + 1}. ${c.name} (${fecha}) - ID: ${c.id}`);
-                });
-
-                // PRIORIZAR: 1. Juegos con fecha de lanzamiento FUTURA (2026+)
-                //            2. Juegos con fecha más reciente
-                //            3. Juegos con portada (para evitar placeholders)
-                const ahora = Date.now() / 1000; // Timestamp actual en segundos
-
-                candidatos.sort((a, b) => {
-                    // 1. Priorizar juegos con fecha (los que tienen fecha primero)
-                    const aHasDate = a.first_release_date !== null && a.first_release_date !== undefined;
-                    const bHasDate = b.first_release_date !== null && b.first_release_date !== undefined;
-
-                    if (aHasDate && !bHasDate) return -1;
-                    if (!aHasDate && bHasDate) return 1;
-
-                    // 2. Priorizar juegos FUTUROS (no lanzados aún)
-                    const aFuture = aHasDate && a.first_release_date > ahora;
-                    const bFuture = bHasDate && b.first_release_date > ahora;
-
-                    if (aFuture && !bFuture) return -1;
-                    if (!aFuture && bFuture) return 1;
-
-                    // 3. Si ambos son futuros o ambos son pasados, el más reciente primero
-                    if (aHasDate && bHasDate) {
-                        return b.first_release_date - a.first_release_date;
-                    }
-
-                    // 4. Priorizar juegos con portada
-                    const aHasCover = a.cover && a.cover.url;
-                    const bHasCover = b.cover && b.cover.url;
-                    if (aHasCover && !bHasCover) return -1;
-                    if (!aHasCover && bHasCover) return 1;
-
-                    return 0;
-                });
-
-                // Elegir el mejor candidato (el primero después del ordenamiento)
-                juego = candidatos[0];
-                console.log(`✅ Seleccionado: "${juego.name}" (${juego.first_release_date ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES') : 'Sin fecha'})`);
-            } else if (candidatos.length === 1) {
-                juego = candidatos[0];
-            } else {
-                // Si no hay candidatos, buscar por nombre base (sin números ni años)
+            // Si aún no hay, buscar por nombre base (sin numeros ni años)
+            if (!juego) {
                 const nombreBase = titulo.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
-                candidatos = datos.filter(j => {
+                juego = datos.find(j => {
                     const jName = j.name.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
                     return jName === nombreBase || jName.includes(nombreBase);
                 });
+            }
 
-                if (candidatos.length > 0) {
-                    // Ordenar por fecha (más nuevo primero)
-                    candidatos.sort((a, b) => {
-                        if (a.first_release_date && b.first_release_date) {
-                            return b.first_release_date - a.first_release_date;
-                        }
-                        return a.first_release_date ? -1 : 1;
-                    });
-                    juego = candidatos[0];
-                }
+            // Último recurso: usar el primer resultado
+            if (!juego && datos.length > 0) {
+                juego = datos[0];
+                console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
             }
         }
 
-        // Si aún no hay juego, usar el primer resultado
-        if (!juego && datos.length > 0) {
-            juego = datos[0];
-            console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
-        }
-
         if (!juego) {
-            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
+            document.getElementById('detail-description').textContent = t('details_extra.no_details');
+
+            // Mostrar mensaje de error más claro
+            const descElement = document.getElementById('detail-description');
+            descElement.textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
+            descElement.style.fontStyle = "italic";
+            descElement.style.color = "var(--text-muted)";
             return;
         }
-
-        // --- A PARTIR DE AQUÍ EL CÓDIGO ES IGUAL QUE ANTES ---
 
         // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
         renderGaleriaMediaJuego(juego);
 
-        // Rellenar Descripción
+        // Rellenar Descripción con un control de calidad
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
             descElement.textContent = juego.summary;
@@ -5493,7 +5430,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
             descElement.style.color = "var(--text-muted)";
         }
 
-        // Rellenar Desarrollador y Editor
+        // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
         const dev = empresas.find(e => e.developer)?.company?.name || t('details_extra.unknown');
         const pub = empresas.find(e => e.publisher)?.company?.name || t('details_extra.unknown');
@@ -5510,23 +5447,13 @@ async function llamarDetallesJuego(idJuego, titulo) {
             ? juego.game_modes.map(m => m.name).join(', ')
             : 'N/A';
 
-        // Enlaces
+        // Enlaces (sitio web oficial del juego)
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
             const web = juego.websites[0];
             containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">${t('details_extra.official_site')}</a>`;
         } else {
             containerLinks.textContent = 'N/A';
-        }
-
-        // Actualizar fecha en el modal con la del juego encontrado
-        if (juego.first_release_date) {
-            const fecha = new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            document.getElementById('detail-date').textContent = fecha;
         }
 
     } catch (error) {
@@ -12703,6 +12630,151 @@ function formatearFecha(fechaStr) {
         return new Date().toISOString().split('T')[0];
     }
 }
+
+// ==========================================================================
+//   HERO DINÁMICO DEL MODAL - REDUCCIÓN AL HACER SCROLL
+// ==========================================================================
+
+/**
+ * Configura el comportamiento del hero en los modales (juegos y media)
+ * Reduce la altura del hero cuando el usuario hace scroll hacia abajo,
+ * manteniendo un min-height de 350px, y la restaura al volver arriba.
+ */
+function configurarHeroDinamico() {
+    // Seleccionamos ambos heroes (juegos y media)
+    const heroes = document.querySelectorAll('.game-hero-section');
+
+    if (heroes.length === 0) return;
+
+    heroes.forEach(hero => {
+        // Solo aplicamos si el hero está dentro de un modal visible
+        const modal = hero.closest('.cyber-modal');
+        if (!modal) return;
+
+        // Creamos un observador para detectar cuándo el contenido del modal
+        // comienza a hacer scroll sobre el hero
+        const content = modal.querySelector('.modal-content, .game-details-panel');
+        if (!content) return;
+
+        // Guardamos la altura original en un atributo data para poder restaurarla
+        const heightOriginal = getComputedStyle(hero).height;
+        hero.dataset.originalHeight = heightOriginal;
+
+        // Estado interno
+        let isReduced = false;
+
+        // Función que reduce el hero
+        function reducirHero() {
+            if (isReduced) return;
+            isReduced = true;
+            hero.style.height = '350px';
+            hero.style.minHeight = '350px';
+            hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+
+        // Función que restaura el hero
+        function restaurarHero() {
+            if (!isReduced) return;
+            isReduced = false;
+            hero.style.height = hero.dataset.originalHeight || '45vh';
+            hero.style.minHeight = '350px';
+            hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
+
+        // Creamos un IntersectionObserver que vigila el contenido del modal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                // Si el contenido NO está intersectando la parte superior del modal
+                // significa que hemos hecho scroll hacia abajo
+                if (!entry.isIntersecting) {
+                    reducirHero();
+                } else {
+                    restaurarHero();
+                }
+            });
+        }, {
+            // Observamos la intersección del contenido con la parte superior del modal
+            root: modal,
+            threshold: 0,
+            rootMargin: '0px 0px 0px 0px'
+        });
+
+        // Observamos el contenido del modal (el elemento que contiene el scroll)
+        observer.observe(content);
+
+        // Guardamos el observador en el modal para limpiarlo al cerrar
+        modal._heroObserver = observer;
+    });
+}
+
+/**
+ * Limpia los observadores de los modales cuando se cierran
+ */
+function limpiarHeroObservers() {
+    document.querySelectorAll('.cyber-modal').forEach(modal => {
+        if (modal._heroObserver) {
+            modal._heroObserver.disconnect();
+            delete modal._heroObserver;
+        }
+    });
+}
+
+// Hook: Cuando se abre un modal, configuramos el hero
+// Interceptamos la apertura de los modales de juegos y media
+const _originalProcesarAperturaModalJuego = window.procesarAperturaModalJuego;
+window.procesarAperturaModalJuego = function (data, updateHistory) {
+    if (typeof _originalProcesarAperturaModalJuego === 'function') {
+        _originalProcesarAperturaModalJuego(data, updateHistory);
+    }
+    // Configurar hero después de que el modal esté visible
+    setTimeout(configurarHeroDinamico, 100);
+};
+
+const _originalAbrirModalMedia = window.abrirModalMedia;
+window.abrirModalMedia = function (id, tipo, updateHistory) {
+    if (typeof _originalAbrirModalMedia === 'function') {
+        _originalAbrirModalMedia(id, tipo, updateHistory);
+    }
+    setTimeout(configurarHeroDinamico, 100);
+};
+
+// Limpiar observadores al cerrar modales
+const _originalCerrarModalJuego = window.cerrarModalJuego;
+window.cerrarModalJuego = function () {
+    if (typeof _originalCerrarModalJuego === 'function') {
+        _originalCerrarModalJuego();
+    }
+    limpiarHeroObservers();
+};
+
+const _originalCerrarModalMedia = window.cerrarModalMedia;
+window.cerrarModalMedia = function () {
+    if (typeof _originalCerrarModalMedia === 'function') {
+        _originalCerrarModalMedia();
+    }
+    limpiarHeroObservers();
+};
+
+// También configurar cuando se abre el modal desde el enrutador (F5)
+document.addEventListener('DOMContentLoaded', () => {
+    // Observar cambios en la clase 'show' de los modales
+    const modalObserver = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const modal = mutation.target;
+                if (modal.classList.contains('show')) {
+                    setTimeout(configurarHeroDinamico, 150);
+                } else {
+                    limpiarHeroObservers();
+                }
+            }
+        });
+    });
+
+    document.querySelectorAll('.cyber-modal').forEach(modal => {
+        modalObserver.observe(modal, { attributes: true });
+    });
+});
 
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
