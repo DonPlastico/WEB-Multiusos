@@ -3292,7 +3292,7 @@ span.flatpickr-weekday {
 .media-thumb.active {
     opacity: 1;
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-soft), 0 4px 20px #6366f140;
+    box-shadow: 0 0 0 2px var(--primary-soft), 0 2px 5px #6366f140;
     transform: scale(1);
 }
 
@@ -7148,10 +7148,6 @@ cast-carousel::-webkit-scrollbar {
 
     .media-thumbs-scroll {
         flex-direction: row;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 7.5px;
-        gap: 8px;
     }
 
     .media-thumbs-scroll::-webkit-scrollbar {
@@ -7362,9 +7358,8 @@ cast-carousel::-webkit-scrollbar {
     }
 
     .detail-media-section {
+        gap: 0px;
         padding: 10px;
-        border-radius: 14px;
-        gap: 10px;
     }
 
     .media-main-frame {
@@ -7772,7 +7767,7 @@ cast-carousel::-webkit-scrollbar {
     }
 
     .detail-media-main {
-        max-height: 170px !important;
+        min-height: 170px !important;
     }
 }
 
