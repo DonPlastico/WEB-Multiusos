@@ -12632,19 +12632,16 @@ function formatearFecha(fechaStr) {
     }
 }
 
-// ==========================================================================
-//   HERO DINÁMICO DEL MODAL - REDUCCIÓN AL HACER SCROLL (VERSIÓN 4)
-// ==========================================================================
-
 /**
  * Configura el comportamiento del hero en los modales (juegos y media)
  * Reduce la altura del hero cuando el usuario hace scroll hacia abajo,
  * manteniendo un min-height de 200px, y la restaura al volver arriba.
  * 
- * VERSIÓN 4: Detecta automáticamente si el scroll está en el modal o en .game-detail-body
+ * VERSIÓN 5: Soporte para juegos (.game-hero-section) y pelis/series (#media-detail-hero-bg)
  */
 function configurarHeroDinamico() {
-    const heroes = document.querySelectorAll('.game-hero-section');
+    // Buscar TODOS los heroes: tanto los de juegos como los de pelis/series
+    const heroes = document.querySelectorAll('.game-hero-section, #media-detail-hero-bg');
 
     if (heroes.length === 0) return;
 
@@ -12663,7 +12660,6 @@ function configurarHeroDinamico() {
 
         // 3. Si el contenido es el modal, asegurarnos de que tenga overflow-y: auto
         if (content === modal) {
-            // Aseguramos que el modal tenga scroll
             modal.style.overflowY = 'auto';
             modal.style.maxHeight = '100vh';
         }
@@ -12694,7 +12690,7 @@ function configurarHeroDinamico() {
         function restaurarHero() {
             if (!isReduced) return;
             isReduced = false;
-            hero.style.height = hero.dataset.originalHeight || '45vh';
+            hero.style.height = hero.dataset.originalHeight || '30vh';
             hero.style.minHeight = '200px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
@@ -12703,21 +12699,15 @@ function configurarHeroDinamico() {
         function handleScroll() {
             let scrollTop;
 
-            // Si el contenido es el modal, usamos window.scrollY (porque el scroll está en el body)
             if (content === modal) {
-                // Cuando el modal está abierto, el scroll puede estar en el body
-                // Pero si el modal tiene overflow, usamos el scroll del modal
                 scrollTop = modal.scrollTop || 0;
             } else {
                 scrollTop = content.scrollTop || 0;
             }
 
-            // Si el scroll es mayor a 50px, reducimos el hero
             if (scrollTop > 50) {
                 reducirHero();
-            }
-            // Si el scroll es menor a 20px, restauramos el hero
-            else if (scrollTop < 20) {
+            } else if (scrollTop < 20) {
                 restaurarHero();
             }
         }
@@ -12750,7 +12740,7 @@ function configurarHeroDinamico() {
  */
 function limpiarHeroObservers() {
     document.querySelectorAll('.cyber-modal').forEach(modal => {
-        const heroes = modal.querySelectorAll('.game-hero-section');
+        const heroes = modal.querySelectorAll('.game-hero-section, #media-detail-hero-bg');
         const content = modal.querySelector('.game-detail-body');
         heroes.forEach(hero => {
             if (hero._scrollHandler && content) {
@@ -12760,7 +12750,7 @@ function limpiarHeroObservers() {
             // Restauramos la altura original al cerrar
             if (hero.dataset.originalHeight) {
                 hero.style.height = hero.dataset.originalHeight;
-                hero.style.minHeight = '350px';
+                hero.style.minHeight = '200px';
             }
         });
     });
