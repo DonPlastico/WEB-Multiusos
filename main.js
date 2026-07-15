@@ -12,84 +12,6 @@ inject();
 import { injectSpeedInsights } from '@vercel/speed-insights';
 injectSpeedInsights();
 
-// ============================================================
-//   FILTRO DE ERRORES - SOLO OCULTA UBLOCK/EXTENSIONES
-//   Los errores REALES de tu código SEGUIRÁN VISIBLES
-// ============================================================
-
-(function filtrarErroresDeExtensiones() {
-    // Guardamos la función original de console.error
-    const originalError = console.error;
-    const originalWarn = console.warn;
-    const originalLog = console.log;
-
-    // Lista de palabras clave que identifican errores de extensiones
-    // SOLO estos serán silenciados
-    const PALABRAS_BLOQUEADAS = [
-        // uBlock / AdBlock
-        'ERR_BLOCKED_BY_CLIENT',
-        'googleads.g.doubleclick.net',
-        'static.doubleclick.net',
-        'googletagmanager.com',
-        'gtag/js',
-        'doubleclick.net',
-
-        // Extensiones de YouTube (SponsorBlock, etc)
-        'TIMEOUT waiting for',
-        'player-control-container',
-        'SecurityError: Blocked a frame',
-        'No Listener: tabs:outgoing',
-        'content.js:2',
-
-        // Otras extensiones comunes
-        'chrome-extension://',
-        'moz-extension://',
-        'browser-extension://',
-
-        // Errores de CORS de extensiones
-        'The operation was aborted',
-        'NetworkError when attempting to fetch resource'
-    ];
-
-    // Función para comprobar si un mensaje es de extensión
-    function esErrorDeExtension(mensaje) {
-        if (!mensaje || typeof mensaje !== 'string') return false;
-        return PALABRAS_BLOQUEADAS.some(palabra => 
-            mensaje.toLowerCase().includes(palabra.toLowerCase())
-        );
-    }
-
-    // Sobrescribimos console.error
-    console.error = function (...args) {
-        const mensajeCompleto = args.join(' ');
-
-        // Si es error de extensión, lo ignoramos SILENCIOSAMENTE
-        if (esErrorDeExtension(mensajeCompleto)) {
-            return; // No mostramos nada
-        }
-
-        // Si NO es de extensión, lo mostramos NORMAL
-        originalError.apply(console, args);
-    };
-
-    // También filtramos warnings que sean de extensiones
-    console.warn = function (...args) {
-        const mensajeCompleto = args.join(' ');
-
-        if (esErrorDeExtension(mensajeCompleto)) {
-            return; // Silenciamos warnings de extensiones
-        }
-
-        originalWarn.apply(console, args);
-    };
-
-    // Los console.log NORMALES siguen funcionando igual
-    // (no los tocamos para no romper nada)
-
-    console.log('✅ [DP-SYS] Filtro de errores activado: SOLO oculta errores de extensiones.');
-    console.log('ℹ️  Los errores REALES de tu código seguirán visibles en la consola.');
-})();
-
 // =============================================
 //   OPEN GRAPH - META TAGS DINÁMICOS
 // =============================================
@@ -5444,14 +5366,52 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 // Funcion que obtiene los detalles del juego desde la API de IGDB
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
-        const data = await respuesta.json();
+        // Buscamos por ID primero (mas preciso)
+        let respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
+        let data = await respuesta.json();
 
-        const datos = data.juegos || data;
-        const juego = datos.find(j => j.id.toString() === idJuego.toString());
+        let datos = data.juegos || data;
+        let juego = datos.find(j => j.id.toString() === idJuego.toString());
+
+        // Si no se encuentra por ID, buscar por título exacto y elegir el mejor
+        if (!juego) {
+            console.warn(`⚠️ Juego con ID ${idJuego} no encontrado, buscando por título: "${titulo}"`);
+
+            // Buscar por título exacto (case insensitive)
+            const tituloLower = titulo.toLowerCase().trim();
+
+            // Primero intentar coincidencia exacta
+            juego = datos.find(j => j.name.toLowerCase() === tituloLower);
+
+            // Si no, buscar el que tenga el título más parecido (contenga el título)
+            if (!juego) {
+                juego = datos.find(j => j.name.toLowerCase().includes(tituloLower));
+            }
+
+            // Si aún no hay, buscar por nombre base (sin numeros ni años)
+            if (!juego) {
+                const nombreBase = titulo.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
+                juego = datos.find(j => {
+                    const jName = j.name.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
+                    return jName === nombreBase || jName.includes(nombreBase);
+                });
+            }
+
+            // Último recurso: usar el primer resultado
+            if (!juego && datos.length > 0) {
+                juego = datos[0];
+                console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
+            }
+        }
 
         if (!juego) {
             document.getElementById('detail-description').textContent = t('details_extra.no_details');
+
+            // Mostrar mensaje de error más claro
+            const descElement = document.getElementById('detail-description');
+            descElement.textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
+            descElement.style.fontStyle = "italic";
+            descElement.style.color = "var(--text-muted)";
             return;
         }
 
@@ -5462,15 +5422,18 @@ async function llamarDetallesJuego(idJuego, titulo) {
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
             descElement.textContent = juego.summary;
+            descElement.style.fontStyle = "normal";
+            descElement.style.color = "";
         } else {
             descElement.textContent = t('details_extra.no_description');
             descElement.style.fontStyle = "italic";
+            descElement.style.color = "var(--text-muted)";
         }
 
         // Rellenar Desarrollador y Editor con seguridad
         const empresas = juego.involved_companies || [];
-        const dev = empresas.find(e => e.developer)?.company.name || t('details_extra.unknown');
-        const pub = empresas.find(e => e.publisher)?.company.name || t('details_extra.unknown');
+        const dev = empresas.find(e => e.developer)?.company?.name || t('details_extra.unknown');
+        const pub = empresas.find(e => e.publisher)?.company?.name || t('details_extra.unknown');
 
         document.getElementById('detail-dev').textContent = dev;
         document.getElementById('detail-pub').textContent = pub;
@@ -5494,12 +5457,12 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error en llamarDetallesJuego:", error);
+        document.getElementById('detail-description').textContent = 'Error al cargar los detalles del juego.';
     }
 }
 
 // Construye la galería de media (videos + capturas) a partir de los datos de IGDB
-// El bloque grande de la izquierda SOLO renderiza lo seleccionado (iframe o img)
 function renderGaleriaMediaJuego(juego) {
     const mediaSection = document.querySelector('.detail-media-section');
     const mainFrame = document.getElementById('detail-media-main-frame');
@@ -5529,14 +5492,22 @@ function renderGaleriaMediaJuego(juego) {
 
     const itemsGaleria = [...videos, ...screenshots];
 
-    // Si el juego no tiene ni videos ni capturas, ocultamos toda la sección
+    // Si el juego no tiene ni videos ni capturas, mostramos un mensaje en lugar de ocultar
     if (itemsGaleria.length === 0) {
-        mediaSection.style.display = 'none';
+        mediaSection.style.display = 'block'; // Mostramos la sección
+        mediaSection.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 30px 20px; color: var(--text-muted);">
+                <i class="fas fa-image" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
+                <span style="font-size: 0.9rem;">No hay trailers ni capturas disponibles para este juego.</span>
+            </div>
+        `;
         return;
     }
+
+    // Restaurar la estructura si habia sido modificada
     mediaSection.style.display = 'grid';
 
-    // Crear las miniaturas
+    // Crear las miniaturas (mismo código que antes)
     itemsGaleria.forEach((item, index) => {
         const thumb = document.createElement('div');
         thumb.className = 'media-thumb';
