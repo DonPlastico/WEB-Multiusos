@@ -14,15 +14,17 @@ injectSpeedInsights();
 
 // ============================================================
 //   FILTRO DE ERRORES - SOLO OCULTA UBLOCK/EXTENSIONES
-//   (VERSIÓN MEJORADA - TAMBIÉN FILTRA IFRAMES)
+//   Los errores REALES de tu código SEGUIRÁN VISIBLES
 // ============================================================
 
 (function filtrarErroresDeExtensiones() {
     // Guardamos la función original de console.error
     const originalError = console.error;
     const originalWarn = console.warn;
+    const originalLog = console.log;
 
     // Lista de palabras clave que identifican errores de extensiones
+    // SOLO estos serán silenciados
     const PALABRAS_BLOQUEADAS = [
         // uBlock / AdBlock
         'ERR_BLOCKED_BY_CLIENT',
@@ -31,21 +33,25 @@ injectSpeedInsights();
         'googletagmanager.com',
         'gtag/js',
         'doubleclick.net',
-        
-        // Extensiones de YouTube
+
+        // Extensiones de YouTube (SponsorBlock, etc)
         'TIMEOUT waiting for',
         'player-control-container',
         'SecurityError: Blocked a frame',
         'No Listener: tabs:outgoing',
         'content.js:2',
-        'Echoes_of_Aincrad',
+
+        // Otras extensiones comunes
         'chrome-extension://',
         'moz-extension://',
         'browser-extension://',
+
+        // Errores de CORS de extensiones
         'The operation was aborted',
         'NetworkError when attempting to fetch resource'
     ];
 
+    // Función para comprobar si un mensaje es de extensión
     function esErrorDeExtension(mensaje) {
         if (!mensaje || typeof mensaje !== 'string') return false;
         return PALABRAS_BLOQUEADAS.some(palabra => 
@@ -54,19 +60,34 @@ injectSpeedInsights();
     }
 
     // Sobrescribimos console.error
-    console.error = function(...args) {
+    console.error = function (...args) {
         const mensajeCompleto = args.join(' ');
-        if (esErrorDeExtension(mensajeCompleto)) return;
+
+        // Si es error de extensión, lo ignoramos SILENCIOSAMENTE
+        if (esErrorDeExtension(mensajeCompleto)) {
+            return; // No mostramos nada
+        }
+
+        // Si NO es de extensión, lo mostramos NORMAL
         originalError.apply(console, args);
     };
 
-    console.warn = function(...args) {
+    // También filtramos warnings que sean de extensiones
+    console.warn = function (...args) {
         const mensajeCompleto = args.join(' ');
-        if (esErrorDeExtension(mensajeCompleto)) return;
+
+        if (esErrorDeExtension(mensajeCompleto)) {
+            return; // Silenciamos warnings de extensiones
+        }
+
         originalWarn.apply(console, args);
     };
 
-    console.log('✅ [DP-SYS] Filtro de errores activado (incluye iframes)');
+    // Los console.log NORMALES siguen funcionando igual
+    // (no los tocamos para no romper nada)
+
+    console.log('✅ [DP-SYS] Filtro de errores activado: SOLO oculta errores de extensiones.');
+    console.log('ℹ️  Los errores REALES de tu código seguirán visibles en la consola.');
 })();
 
 // =============================================
