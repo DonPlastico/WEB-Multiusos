@@ -5276,8 +5276,6 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
         document.getElementById('detail-cover-img').style.display = 'block';
         const heroBg = document.getElementById('detail-hero-bg');
         heroBg.style.backgroundImage = `url('${data.portadaSrc}')`;
-        heroBg.style.filter = 'blur(12px) brightness(0.7)';
-        heroBg.style.transform = 'scale(1.08)';
     } else {
         document.getElementById('detail-cover-img').style.display = 'none';
         document.getElementById('detail-hero-bg').style.backgroundImage = 'none';

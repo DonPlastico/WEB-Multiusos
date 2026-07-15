@@ -2937,16 +2937,30 @@ span.flatpickr-weekday {
     position: relative;
     height: 45vh;
     min-height: 350px;
-    background-size: cover;
-    background-position: top center;
-    background-repeat: no-repeat;
     display: flex;
     align-items: flex-end;
     justify-content: center;
     padding-bottom: 50px;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
+/* Imagen de fondo con BLUR en pseudo-elemento */
+#detail-hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: inherit;
+    background-size: cover;
+    background-position: center 30%;
+    background-repeat: no-repeat;
+    filter: blur(12px) brightness(0.7);
+    transform: scale(1.08);
+    z-index: 0;
+    transition: filter 0.5s ease;
+}
+
+/* Overlay gradiente por encima de la imagen borrosa */
 .hero-overlay-gradient {
     position: absolute;
     inset: 0;
@@ -2954,6 +2968,7 @@ span.flatpickr-weekday {
     z-index: 1;
 }
 
+/* Contenido del hero (texto) por encima de todo */
 .hero-content-centered {
     position: relative;
     z-index: 2;
@@ -2965,6 +2980,9 @@ span.flatpickr-weekday {
 #detail-title {
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     margin-bottom: 5px;
+    /* Aseguramos que el texto NO herede nada raro */
+    filter: none !important;
+    backdrop-filter: none !important;
 }
 
 .detail-platforms-badges {
@@ -2972,6 +2990,8 @@ span.flatpickr-weekday {
     gap: 8px;
     justify-content: center;
     margin-top: 15px;
+    filter: none !important;
+    backdrop-filter: none !important;
 }
 
 .game-detail-body {
