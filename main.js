@@ -5487,7 +5487,7 @@ function renderGaleriaMediaJuego(juego) {
         .map(s => ({
             type: 'image',
             url: s.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
-            thumbUrl: s.url.replace('//', 'https://'),
+            thumbUrl: s.url.replace('t_thumb', 't_cover_small').replace('//', 'https://'),
             label: 'Captura'
         }));
 
