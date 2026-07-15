@@ -5274,7 +5274,12 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
     if (data.portadaSrc) {
         document.getElementById('detail-cover-img').src = data.portadaSrc;
         document.getElementById('detail-cover-img').style.display = 'block';
-        document.getElementById('detail-hero-bg').style.backgroundImage = `url('${data.portadaSrc}')`;
+
+        // Usar la portada como fondo, pero con un blur para que no se vea pixelada
+        const heroBg = document.getElementById('detail-hero-bg');
+        heroBg.style.backgroundImage = `url('${data.portadaSrc}')`;
+        heroBg.style.backgroundSize = 'cover';
+        heroBg.style.backgroundPosition = 'center 20%';
     } else {
         document.getElementById('detail-cover-img').style.display = 'none';
         document.getElementById('detail-hero-bg').style.backgroundImage = 'none';
@@ -5489,6 +5494,19 @@ function renderGaleriaMediaJuego(juego) {
             thumbUrl: s.url.replace('//', 'https://'),
             label: 'Captura'
         }));
+
+    // Esto evita que el fondo se vea pixelado usando una imagen horizontal
+    if (screenshots.length > 0) {
+        // La primera captura es horizontal (16:9) perfecta para fondo
+        const primeraCaptura = screenshots[0].url; // Ya está formateada con t_screenshot_big
+        const heroBg = document.getElementById('detail-hero-bg');
+        if (heroBg) {
+            heroBg.style.backgroundImage = `url('${primeraCaptura}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center';
+            heroBg.style.backgroundRepeat = 'no-repeat';
+        }
+    }
 
     const itemsGaleria = [...videos, ...screenshots];
 
@@ -5782,7 +5800,25 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         // ==========================================
         document.getElementById('media-detail-title').textContent = data.titulo;
         document.getElementById('media-detail-cover-img').src = data.poster;
-        document.getElementById('media-detail-hero-bg').style.backgroundImage = `url('${data.backdrop}')`;
+
+        // --- FONDO DEL HERO CON BACKDROP HORIZONTAL ---
+        const heroBg = document.getElementById('media-detail-hero-bg');
+        if (data.backdrop && data.backdrop.trim() !== '') {
+            // Si hay backdrop (horizontal), lo usamos
+            heroBg.style.backgroundImage = `url('${data.backdrop}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center';
+        } else if (data.poster && data.poster.trim() !== '') {
+            // Si NO hay backdrop, usamos el poster pero con blur + zoom out para que no se vea pixelado
+            // Añadimos un filtro de blur y oscurecemos para que no se note la pixelación
+            heroBg.style.backgroundImage = `url('${data.poster}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center 20%';
+            heroBg.style.filter = 'blur(8px) brightness(0.7)';
+            // El overlay ya se encarga del oscurecimiento adicional
+        } else {
+            heroBg.style.backgroundImage = 'none';
+        }
 
         // ==========================================
         // GENERAR URLs PARA PLATAFORMAS EXTERNAS
@@ -12674,8 +12710,8 @@ function configurarHeroDinamico() {
         function reducirHero() {
             if (isReduced) return;
             isReduced = true;
-            hero.style.height = '350px';
-            hero.style.minHeight = '350px';
+            hero.style.height = '250px';
+            hero.style.minHeight = '250px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
 
@@ -12684,7 +12720,7 @@ function configurarHeroDinamico() {
             if (!isReduced) return;
             isReduced = false;
             hero.style.height = hero.dataset.originalHeight || '45vh';
-            hero.style.minHeight = '350px';
+            hero.style.minHeight = '250px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
 

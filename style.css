@@ -3085,6 +3085,20 @@ span.flatpickr-weekday {
     text-overflow: ellipsis;
 }
 
+/* Asegurar que el overlay oscuro cubra bien el fondo borroso */
+.game-hero-section .hero-overlay-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.1) 0%, rgba(10, 10, 15, 0.7) 60%, var(--bg-main) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Cuando el fondo está borroso, el overlay se oscurece más */
+.game-hero-section .hero-overlay-gradient.blur-fallback {
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.4) 0%, rgba(10, 10, 15, 0.85) 60%, var(--bg-main) 100%);
+}
+
 /* ==========================================================================
    GALERÍA DE MEDIA DEL JUEGO (video/imagen grande + miniaturas seleccionables)
    ========================================================================== */
