@@ -2797,18 +2797,6 @@ span.flatpickr-weekday {
     visibility: visible;
 }
 
-.cyber-modal .modal-content {
-    width: 90%;
-    max-width: 900px;
-    max-height: 85dvh;
-    display: flex;
-    flex-direction: column;
-    transform: scale(0.95);
-    transition: all 0.3s ease;
-    border-radius: 20px;
-    margin-top: 25px;
-}
-
 .cyber-modal.show .modal-content {
     transform: scale(1);
 }
@@ -3114,7 +3102,8 @@ span.flatpickr-weekday {
    MODAL PELIS/SERIES
    ========================================================================== */
 
-#media-details-modal .modal-content {
+#media-details-modal .modal-content,
+.cyber-modal .modal-content {
     width: 90vw !important;
     height: 85dvh !important;
     max-width: 1920px !important;
