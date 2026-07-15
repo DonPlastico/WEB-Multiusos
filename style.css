@@ -3086,6 +3086,82 @@ span.flatpickr-weekday {
 }
 
 /* ==========================================================================
+   EFECTO HERO BACKGROUND - BLUR PARA PORTADAS VERTICALES
+   ========================================================================== */
+
+/* Contenedor del hero con transición suave */
+#detail-hero-bg {
+    transition: filter 0.5s ease, background-image 0.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cuando el hero tiene blur aplicado (para portadas verticales) */
+#detail-hero-bg.blurred {
+    filter: blur(8px) brightness(0.75);
+    transform: scale(1.05);
+}
+
+/* Overlay para mejorar legibilidad cuando hay blur */
+#detail-hero-bg.blurred::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            rgba(10, 10, 15, 0.3) 0%,
+            rgba(10, 10, 15, 0.6) 50%,
+            var(--bg-main) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Asegurar que el contenido del hero esté por encima del overlay */
+#detail-hero-bg .hero-overlay-gradient,
+#detail-hero-bg .hero-content-centered {
+    position: relative;
+    z-index: 2;
+}
+
+/* Versión para el modal de películas/series (media-details) */
+#media-detail-hero-bg {
+    transition: filter 0.5s ease, background-image 0.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#media-detail-hero-bg.blurred {
+    filter: blur(8px) brightness(0.75);
+    transform: scale(1.05);
+}
+
+#media-detail-hero-bg.blurred::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+            rgba(10, 10, 15, 0.3) 0%,
+            rgba(10, 10, 15, 0.6) 50%,
+            var(--bg-main) 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+#media-detail-hero-bg .hero-overlay-gradient,
+#media-detail-hero-bg .hero-content-centered,
+#media-detail-hero-bg #media-detail-info {
+    position: relative;
+    z-index: 2;
+}
+
+/* Efecto de escala suave al cambiar la imagen de fondo */
+.game-hero-section,
+#media-detail-hero-bg {
+    background-size: cover !important;
+    background-position: center 30% !important;
+    background-repeat: no-repeat !important;
+}
+
+/* ==========================================================================
    GALERÍA DE MEDIA DEL JUEGO (video/imagen grande + miniaturas seleccionables)
    ========================================================================== */
 
