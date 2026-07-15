@@ -5250,7 +5250,8 @@ document.getElementById('games-grid')?.addEventListener('click', (e) => {
         htmlPlataformas: card.querySelector('.platforms-container')?.innerHTML || '',
         fecha: card.querySelector('.date')?.textContent || 'TBA',
         priceText: card.querySelector('.price-badge strong')?.textContent || null,
-        priceNaText: card.querySelector('.price-na')?.textContent || null
+        priceNaText: card.querySelector('.price-na')?.textContent || null,
+        plataformas: card.getAttribute('data-platforms') || ''
     };
 
     procesarAperturaModalJuego(juegoData, true);
@@ -5366,59 +5367,121 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModa
 // Funcion que obtiene los detalles del juego desde la API de IGDB
 async function llamarDetallesJuego(idJuego, titulo) {
     try {
-        // Buscamos por ID primero (mas preciso)
-        let respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
-        let data = await respuesta.json();
+        // Buscamos por título con filtro de plataformas
+        const respuesta = await fetch(`/api/igdb?query=${encodeURIComponent(titulo)}&lang=${currentLang}`);
+        const data = await respuesta.json();
 
         let datos = data.juegos || data;
+
+        if (!datos || datos.length === 0) {
+            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos.`;
+            return;
+        }
+
+        // 1. PRIMERO: Intentar encontrar por ID exacto (como antes)
         let juego = datos.find(j => j.id.toString() === idJuego.toString());
 
-        // Si no se encuentra por ID, buscar por título exacto y elegir el mejor
+        // 2. Si no se encuentra por ID, buscar inteligentemente
         if (!juego) {
             console.warn(`⚠️ Juego con ID ${idJuego} no encontrado, buscando por título: "${titulo}"`);
 
-            // Buscar por título exacto (case insensitive)
             const tituloLower = titulo.toLowerCase().trim();
 
-            // Primero intentar coincidencia exacta
-            juego = datos.find(j => j.name.toLowerCase() === tituloLower);
+            // Filtrar juegos que coincidan con el título
+            let candidatos = datos.filter(j => {
+                const jName = j.name.toLowerCase();
+                return jName === tituloLower || jName.includes(tituloLower);
+            });
 
-            // Si no, buscar el que tenga el título más parecido (contenga el título)
-            if (!juego) {
-                juego = datos.find(j => j.name.toLowerCase().includes(tituloLower));
-            }
+            // 3. SI HAY MÚLTIPLES CANDIDATOS, ELEGIR EL MÁS RECIENTE
+            if (candidatos.length > 1) {
+                console.log(`🔍 Encontrados ${candidatos.length} candidatos para "${titulo}"`);
 
-            // Si aún no hay, buscar por nombre base (sin numeros ni años)
-            if (!juego) {
+                // Mostrar todos los candidatos en consola para depuración
+                candidatos.forEach((c, i) => {
+                    const fecha = c.first_release_date
+                        ? new Date(c.first_release_date * 1000).toLocaleDateString('es-ES')
+                        : 'Sin fecha';
+                    console.log(`  ${i + 1}. ${c.name} (${fecha}) - ID: ${c.id}`);
+                });
+
+                // PRIORIZAR: 1. Juegos con fecha de lanzamiento FUTURA (2026+)
+                //            2. Juegos con fecha más reciente
+                //            3. Juegos con portada (para evitar placeholders)
+                const ahora = Date.now() / 1000; // Timestamp actual en segundos
+
+                candidatos.sort((a, b) => {
+                    // 1. Priorizar juegos con fecha (los que tienen fecha primero)
+                    const aHasDate = a.first_release_date !== null && a.first_release_date !== undefined;
+                    const bHasDate = b.first_release_date !== null && b.first_release_date !== undefined;
+
+                    if (aHasDate && !bHasDate) return -1;
+                    if (!aHasDate && bHasDate) return 1;
+
+                    // 2. Priorizar juegos FUTUROS (no lanzados aún)
+                    const aFuture = aHasDate && a.first_release_date > ahora;
+                    const bFuture = bHasDate && b.first_release_date > ahora;
+
+                    if (aFuture && !bFuture) return -1;
+                    if (!aFuture && bFuture) return 1;
+
+                    // 3. Si ambos son futuros o ambos son pasados, el más reciente primero
+                    if (aHasDate && bHasDate) {
+                        return b.first_release_date - a.first_release_date;
+                    }
+
+                    // 4. Priorizar juegos con portada
+                    const aHasCover = a.cover && a.cover.url;
+                    const bHasCover = b.cover && b.cover.url;
+                    if (aHasCover && !bHasCover) return -1;
+                    if (!aHasCover && bHasCover) return 1;
+
+                    return 0;
+                });
+
+                // Elegir el mejor candidato (el primero después del ordenamiento)
+                juego = candidatos[0];
+                console.log(`✅ Seleccionado: "${juego.name}" (${juego.first_release_date ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES') : 'Sin fecha'})`);
+            } else if (candidatos.length === 1) {
+                juego = candidatos[0];
+            } else {
+                // Si no hay candidatos, buscar por nombre base (sin números ni años)
                 const nombreBase = titulo.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
-                juego = datos.find(j => {
+                candidatos = datos.filter(j => {
                     const jName = j.name.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
                     return jName === nombreBase || jName.includes(nombreBase);
                 });
-            }
 
-            // Último recurso: usar el primer resultado
-            if (!juego && datos.length > 0) {
-                juego = datos[0];
-                console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
+                if (candidatos.length > 0) {
+                    // Ordenar por fecha (más nuevo primero)
+                    candidatos.sort((a, b) => {
+                        if (a.first_release_date && b.first_release_date) {
+                            return b.first_release_date - a.first_release_date;
+                        }
+                        return a.first_release_date ? -1 : 1;
+                    });
+                    juego = candidatos[0];
+                }
             }
+        }
+
+        // Si aún no hay juego, usar el primer resultado
+        if (!juego && datos.length > 0) {
+            juego = datos[0];
+            console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
         }
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = t('details_extra.no_details');
-
-            // Mostrar mensaje de error más claro
-            const descElement = document.getElementById('detail-description');
-            descElement.textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
-            descElement.style.fontStyle = "italic";
-            descElement.style.color = "var(--text-muted)";
+            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
             return;
         }
+
+        // --- A PARTIR DE AQUÍ EL CÓDIGO ES IGUAL QUE ANTES ---
 
         // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
         renderGaleriaMediaJuego(juego);
 
-        // Rellenar Descripción con un control de calidad
+        // Rellenar Descripción
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
             descElement.textContent = juego.summary;
@@ -5430,7 +5493,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
             descElement.style.color = "var(--text-muted)";
         }
 
-        // Rellenar Desarrollador y Editor con seguridad
+        // Rellenar Desarrollador y Editor
         const empresas = juego.involved_companies || [];
         const dev = empresas.find(e => e.developer)?.company?.name || t('details_extra.unknown');
         const pub = empresas.find(e => e.publisher)?.company?.name || t('details_extra.unknown');
@@ -5447,13 +5510,23 @@ async function llamarDetallesJuego(idJuego, titulo) {
             ? juego.game_modes.map(m => m.name).join(', ')
             : 'N/A';
 
-        // Enlaces (sitio web oficial del juego)
+        // Enlaces
         const containerLinks = document.getElementById('detail-links');
         if (juego.websites && juego.websites.length > 0) {
             const web = juego.websites[0];
             containerLinks.innerHTML = `<a href="${web.url}" target="_blank" style="color:var(--secondary); text-decoration:none;">${t('details_extra.official_site')}</a>`;
         } else {
             containerLinks.textContent = 'N/A';
+        }
+
+        // Actualizar fecha en el modal con la del juego encontrado
+        if (juego.first_release_date) {
+            const fecha = new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('detail-date').textContent = fecha;
         }
 
     } catch (error) {
