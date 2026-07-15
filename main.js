@@ -5422,7 +5422,6 @@ async function llamarDetallesJuego(idJuego, titulo) {
 
 // Construye la galería de media (videos + capturas) a partir de los datos de IGDB
 // El bloque grande de la izquierda SOLO renderiza lo seleccionado (iframe o img)
-// El bloque de la derecha SOLO es la lista de miniaturas seleccionables
 function renderGaleriaMediaJuego(juego) {
     const mediaSection = document.querySelector('.detail-media-section');
     const mainFrame = document.getElementById('detail-media-main-frame');
@@ -5434,14 +5433,20 @@ function renderGaleriaMediaJuego(juego) {
     // Primero los videos (trailers/gameplay), luego las capturas de pantalla
     const videos = (juego.videos || [])
         .filter(v => v.video_id)
-        .map(v => ({ type: 'video', id: v.video_id, label: v.name || 'Video' }));
+        .map(v => ({
+            type: 'video',
+            id: v.video_id,
+            label: v.name || 'Video',
+            thumbnail: `https://img.youtube.com/vi/${v.video_id}/mqdefault.jpg`
+        }));
 
     const screenshots = (juego.screenshots || [])
         .filter(s => s.url)
         .map(s => ({
             type: 'image',
             url: s.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
-            thumbUrl: s.url.replace('//', 'https://')
+            thumbUrl: s.url.replace('//', 'https://'),
+            label: 'Captura'
         }));
 
     const itemsGaleria = [...videos, ...screenshots];
@@ -5451,8 +5456,9 @@ function renderGaleriaMediaJuego(juego) {
         mediaSection.style.display = 'none';
         return;
     }
-    mediaSection.style.display = '';
+    mediaSection.style.display = 'grid';
 
+    // Crear las miniaturas
     itemsGaleria.forEach((item, index) => {
         const thumb = document.createElement('div');
         thumb.className = 'media-thumb';
@@ -5463,32 +5469,59 @@ function renderGaleriaMediaJuego(juego) {
             thumb.setAttribute('data-video-id', item.id);
             thumb.setAttribute('data-label', item.label);
             thumb.innerHTML = `
-                <img src="https://img.youtube.com/vi/${item.id}/mqdefault.jpg" alt="${item.label}" loading="lazy">
-                <span class="thumb-play-icon"><i class="fas fa-play"></i></span>
+                <img src="${item.thumbnail}" alt="${item.label}" loading="lazy">
+                <div class="thumb-play-icon-overlay">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="media-thumb-overlay">
+                    <span class="thumb-type-label video"><i class="fas fa-play"></i> Video</span>
+                </div>
+                <span class="thumb-order-badge">${index + 1}</span>
             `;
         } else {
             thumb.setAttribute('data-type', 'image');
             thumb.setAttribute('data-full-src', item.url);
-            thumb.innerHTML = `<img src="${item.thumbUrl}" alt="Captura de pantalla ${index + 1}" loading="lazy">`;
+            thumb.innerHTML = `
+                <img src="${item.thumbUrl}" alt="Captura ${index + 1}" loading="lazy">
+                <div class="media-thumb-overlay">
+                    <span class="thumb-type-label image"><i class="fas fa-image"></i> Captura</span>
+                </div>
+                <span class="thumb-order-badge">${index + 1}</span>
+            `;
         }
 
         thumbsContainer.appendChild(thumb);
     });
 
     // Por defecto: el primer video si existe, si no la primera captura
-    mostrarMediaSeleccionada(itemsGaleria[0], 0);
+    mostrarMediaSeleccionada(itemsGaleria[0], 0, itemsGaleria.length);
 }
 
-// Pinta en el frame grande de la izquierda SOLO el elemento seleccionado (iframe o img)
-// y marca la miniatura correspondiente como activa en la galería de la derecha
-function mostrarMediaSeleccionada(item, index) {
+// Pinta en el frame grande SOLO el elemento seleccionado (iframe o img)
+function mostrarMediaSeleccionada(item, index, totalItems) {
     const mainFrame = document.getElementById('detail-media-main-frame');
     if (!mainFrame || !item) return;
 
+    // Limpiar badges anteriores
+    mainFrame.querySelectorAll('.media-type-badge, .media-counter').forEach(el => el.remove());
+
     if (item.type === 'video') {
-        mainFrame.innerHTML = `<iframe src="https://www.youtube.com/embed/${item.id}" title="${item.label || 'Video'}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        mainFrame.innerHTML = `
+            <iframe src="https://www.youtube.com/embed/${item.id}" 
+                    title="${item.label || 'Video'}" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
+            <span class="media-type-badge video"><i class="fas fa-play"></i> Video</span>
+            <span class="media-counter">${index + 1} / ${totalItems || '?'}</span>
+        `;
     } else {
-        mainFrame.innerHTML = `<img src="${item.url}" alt="Captura de pantalla">`;
+        mainFrame.innerHTML = `
+            <img src="${item.url}" alt="Captura de pantalla">
+            <span class="media-type-badge image"><i class="fas fa-image"></i> Captura</span>
+            <span class="media-counter">${index + 1} / ${totalItems || '?'}</span>
+        `;
     }
 
     document.querySelectorAll('#detail-media-thumbs .media-thumb').forEach(t => t.classList.remove('active'));
@@ -5502,12 +5535,22 @@ document.getElementById('detail-media-thumbs')?.addEventListener('click', (e) =>
 
     const index = parseInt(thumb.getAttribute('data-index'), 10);
     const type = thumb.getAttribute('data-type');
+    const totalItems = document.querySelectorAll('#detail-media-thumbs .media-thumb').length;
 
     const item = type === 'video'
-        ? { type: 'video', id: thumb.getAttribute('data-video-id'), label: thumb.getAttribute('data-label') }
-        : { type: 'image', url: thumb.getAttribute('data-full-src') };
+        ? {
+            type: 'video',
+            id: thumb.getAttribute('data-video-id'),
+            label: thumb.getAttribute('data-label'),
+            thumbnail: `https://img.youtube.com/vi/${thumb.getAttribute('data-video-id')}/mqdefault.jpg`
+        }
+        : {
+            type: 'image',
+            url: thumb.getAttribute('data-full-src'),
+            thumbUrl: thumb.querySelector('img')?.src || ''
+        };
 
-    mostrarMediaSeleccionada(item, index);
+    mostrarMediaSeleccionada(item, index, totalItems);
 });
 
 // ==========================================================================

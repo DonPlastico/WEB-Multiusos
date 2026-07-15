@@ -3091,31 +3091,59 @@ span.flatpickr-weekday {
 
 .detail-media-section {
     display: grid;
-    grid-template-columns: 1fr 260px;
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 16px;
-    background: rgba(20, 20, 28, 0.55);
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(12px);
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md), inset 0 0 60px rgba(99, 102, 241, 0.03);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Efecto de borde brillante superior */
+.detail-media-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), var(--primary), transparent);
+    background-size: 200% 100%;
+    animation: shimmerBorder 4s linear infinite;
+    border-radius: 0 0 50% 50%;
 }
 
 /* Columna izquierda: SOLO renderiza lo seleccionado (iframe de video o img) */
 .detail-media-main {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
 }
 
+/* Contenedor del frame principal */
 .media-main-frame {
     width: 100%;
-    aspect-ratio: 16/9;
-    border-radius: 12px;
+    aspect-ratio: 16 / 9;
+    max-height: 460px;
+    border-radius: 14px;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border-light);
+    background: var(--bg-elevated);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .media-main-frame iframe,
@@ -3125,28 +3153,93 @@ span.flatpickr-weekday {
     object-fit: cover;
     border: none;
     display: block;
+    transition: all 0.4s ease;
+}
+
+.media-main-frame img {
+    object-fit: contain;
+    background: var(--bg-elevated);
+}
+
+.media-type-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--neon-white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.media-type-badge i {
+    font-size: 0.55rem;
+}
+
+.media-type-badge.video {
+    color: #ff4444;
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.media-type-badge.image {
+    color: var(--primary);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Contador de media en la esquina inferior */
+.media-counter {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    padding: 3px 12px;
+    border-radius: 16px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    z-index: 5;
+    letter-spacing: 0.5px;
 }
 
 /* Columna derecha: SOLO la lista de miniaturas seleccionables */
 .detail-media-gallery {
     display: flex;
+    flex-direction: column;
     min-width: 0;
+    max-height: 460px;
 }
 
+/* Scroll vertical de miniaturas */
 .media-thumbs-scroll {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
     padding-right: 6px;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
+    padding-bottom: 4px;
 }
 
 .media-thumbs-scroll::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
+}
+
+.media-thumbs-scroll::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .media-thumbs-scroll::-webkit-scrollbar-thumb {
@@ -3154,27 +3247,34 @@ span.flatpickr-weekday {
     border-radius: 4px;
 }
 
+/* Cada miniatura */
 .media-thumb {
     position: relative;
     flex-shrink: 0;
-    aspect-ratio: 16/9;
-    border-radius: 8px;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
     border: 2px solid transparent;
-    opacity: 0.7;
-    transition: opacity 0.2s, border-color 0.2s, transform 0.2s;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-elevated);
+    opacity: 0.6;
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .media-thumb:hover {
-    opacity: 1;
-    transform: scale(1.02);
+    opacity: 0.9;
+    transform: scale(1.01);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .media-thumb.active {
     opacity: 1;
+    transform: scale(1);
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px var(--primary-soft);
+    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(99, 102, 241, 0.25);
 }
 
 .media-thumb img {
@@ -3182,28 +3282,107 @@ span.flatpickr-weekday {
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.3s ease;
 }
 
-.thumb-play-icon {
+.media-thumb:hover img {
+    transform: scale(1.05);
+}
+
+.media-thumb.active img {
+    transform: scale(1.02);
+}
+
+.media-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 10px 12px;
+}
+
+.media-thumb:hover .media-thumb-overlay,
+.media-thumb.active .media-thumb-overlay {
+    opacity: 1;
+}
+
+/* Etiqueta del tipo dentro de la miniatura */
+.thumb-type-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--neon-white);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.thumb-type-label i {
+    font-size: 0.5rem;
+}
+
+.thumb-type-label.video {
+    color: #ff6b6b;
+}
+
+.thumb-type-label.image {
+    color: var(--secondary);
+}
+
+/* Icono de play superpuesto en videos */
+.thumb-play-icon-overlay {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--neon-white);
-    font-size: 1.4rem;
-    pointer-events: none;
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.bar-extra {
-    background-color: #3f51b5;
-    width: 0%;
+.media-thumb:hover .thumb-play-icon-overlay,
+.media-thumb.active .thumb-play-icon-overlay {
+    opacity: 1;
 }
 
-.bar-comp {
-    background-color: #4caf50;
-    width: 0%;
+.thumb-play-icon-overlay i {
+    font-size: 2rem;
+    color: white;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.media-thumb:hover .thumb-play-icon-overlay i {
+    transform: scale(1);
+}
+
+/* Badge de número de orden en la miniatura */
+.thumb-order-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 1px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    z-index: 2;
 }
 
 /* ==========================================================================
@@ -6789,6 +6968,16 @@ cast-carousel::-webkit-scrollbar {
     }
 }
 
+@keyframes shimmerBorder {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
 /* ==========================================================================
    RESPONSIVE
    ========================================================================== */
@@ -6929,7 +7118,49 @@ cast-carousel::-webkit-scrollbar {
     }
 
     .detail-media-section {
-        grid-template-columns: 1fr 220px;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 14px;
+    }
+
+    .detail-media-gallery {
+        max-height: 180px;
+    }
+
+    .media-thumbs-scroll {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-right: 0;
+        padding-bottom: 4px;
+        gap: 8px;
+    }
+
+    .media-thumbs-scroll::-webkit-scrollbar {
+        height: 4px;
+        width: auto;
+    }
+
+    .media-thumb {
+        min-width: 180px;
+        max-width: 220px;
+        aspect-ratio: 16 / 9;
+        flex-shrink: 0;
+        transform: scale(1);
+        opacity: 0.7;
+    }
+
+    .media-thumb.active {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+
+    .media-thumb:hover {
+        transform: scale(1.03);
+    }
+
+    .media-main-frame {
+        max-height: 340px;
     }
 
     .detail-desc-col {
@@ -7113,21 +7344,33 @@ cast-carousel::-webkit-scrollbar {
     }
 
     .detail-media-section {
-        grid-template-columns: 1fr;
+        padding: 10px;
+        border-radius: 14px;
         gap: 10px;
     }
 
-    .media-thumbs-scroll {
-        flex-direction: row;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-right: 0;
-        padding-bottom: 6px;
+    .media-main-frame {
+        max-height: 250px;
+        border-radius: 10px;
     }
 
     .media-thumb {
-        width: 140px;
-        aspect-ratio: 16/9;
+        min-width: 140px;
+        max-width: 170px;
+    }
+
+    .media-type-badge {
+        font-size: 0.5rem;
+        padding: 2px 10px;
+        top: 8px;
+        left: 8px;
+    }
+
+    .media-counter {
+        font-size: 0.5rem;
+        padding: 2px 10px;
+        bottom: 8px;
+        right: 8px;
     }
 
     .detail-cover-col {
@@ -7833,5 +8076,14 @@ cast-carousel::-webkit-scrollbar {
     .hero-section .hero-badge-dot {
         width: 8px !important;
         height: 8px !important;
+    }
+
+    .media-thumb {
+        min-width: 120px;
+        max-width: 140px;
+    }
+
+    .media-main-frame {
+        max-height: 200px;
     }
 }
