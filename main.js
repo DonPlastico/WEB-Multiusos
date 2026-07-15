@@ -5381,28 +5381,11 @@ async function llamarDetallesJuego(idJuego, titulo) {
         // Si no se encuentra por ID, buscar por título exacto y elegir el mejor
         if (!juego) {
             console.warn(`⚠️ Juego con ID ${idJuego} no encontrado, buscando por título: "${titulo}"`);
-
-            // Buscar por título exacto (case insensitive)
             const tituloLower = titulo.toLowerCase().trim();
-
-            // Primero intentar coincidencia exacta
             juego = datos.find(j => j.name.toLowerCase() === tituloLower);
-
-            // Si no, buscar el que tenga el título más parecido (contenga el título)
             if (!juego) {
                 juego = datos.find(j => j.name.toLowerCase().includes(tituloLower));
             }
-
-            // Si aún no hay, buscar por nombre base (sin numeros ni años)
-            if (!juego) {
-                const nombreBase = titulo.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
-                juego = datos.find(j => {
-                    const jName = j.name.replace(/[0-9]/g, '').replace(/[:\-–]/g, '').trim().toLowerCase();
-                    return jName === nombreBase || jName.includes(nombreBase);
-                });
-            }
-
-            // Último recurso: usar el primer resultado
             if (!juego && datos.length > 0) {
                 juego = datos[0];
                 console.warn(`⚠️ Usando primer resultado: "${juego.name}" (ID: ${juego.id})`);
@@ -5410,20 +5393,36 @@ async function llamarDetallesJuego(idJuego, titulo) {
         }
 
         if (!juego) {
-            document.getElementById('detail-description').textContent = t('details_extra.no_details');
-
-            // Mostrar mensaje de error más claro
-            const descElement = document.getElementById('detail-description');
-            descElement.textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
-            descElement.style.fontStyle = "italic";
-            descElement.style.color = "var(--text-muted)";
+            document.getElementById('detail-description').textContent = `No se encontró información para "${titulo}" en la base de datos de IGDB.`;
+            document.getElementById('detail-description').style.fontStyle = "italic";
+            document.getElementById('detail-description').style.color = "var(--text-muted)";
             return;
+        }
+
+        // ============================================================
+        // OBTENER IMAGEN DE STEAM PARA EL FONDO (PRIORIDAD MÁXIMA)
+        // ============================================================
+        const heroBg = document.getElementById('detail-hero-bg');
+
+        // PRIORIDAD 1: IMAGEN DE STEAM (horizontal, nítida, perfecta)
+        let steamImage = await obtenerImagenSteam(titulo);
+        if (steamImage) {
+            heroBg.style.backgroundImage = `url('${steamImage}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center';
+            heroBg.style.backgroundRepeat = 'no-repeat';
+            heroBg.style.filter = 'none';
+            console.log('✅ Fondo: Imagen de Steam');
+        } else {
+            // PRIORIDAD 2: IGDB (artworks > screenshots > cover con blur)
+            console.log('⚠️ No se encontró imagen de Steam, usando IGDB...');
+            // La función renderGaleriaMediaJuego ya se encarga del resto
         }
 
         // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
         renderGaleriaMediaJuego(juego);
 
-        // Rellenar Descripción con un control de calidad
+        // Rellenar Descripción
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
             descElement.textContent = juego.summary;
@@ -5435,7 +5434,7 @@ async function llamarDetallesJuego(idJuego, titulo) {
             descElement.style.color = "var(--text-muted)";
         }
 
-        // Rellenar Desarrollador y Editor con seguridad
+        // Rellenar Desarrollador y Editor
         const empresas = juego.involved_companies || [];
         const dev = empresas.find(e => e.developer)?.company?.name || t('details_extra.unknown');
         const pub = empresas.find(e => e.publisher)?.company?.name || t('details_extra.unknown');
@@ -5476,9 +5475,7 @@ function renderGaleriaMediaJuego(juego) {
 
     thumbsContainer.innerHTML = '';
 
-    // ============================================================
-    // 🖼️ FONDO DEL HERO - Usar imagen HORIZONTAL de IGDB
-    // ============================================================
+    // Usar imagen HORIZONTAL de IGDB
     const heroBg = document.getElementById('detail-hero-bg');
     let fondoAsignado = false;
 
@@ -5535,7 +5532,6 @@ function renderGaleriaMediaJuego(juego) {
     if (overlay) {
         overlay.style.zIndex = '2';
     }
-    // ============================================================
 
     // Primero los videos (trailers/gameplay), luego las capturas de pantalla
     const videos = (juego.videos || [])
@@ -8788,6 +8784,60 @@ function formatearTiempo(minutos) {
     if (mins > 0) texto += `${mins}m`;
 
     return texto.trim() || "--";
+}
+
+// ==========================================================================
+//   OBTENER IMAGEN DE STEAM PARA FONDO DEL HERO
+// ==========================================================================
+
+/**
+ * Busca la imagen de Steam de un juego por su título
+ * Usa tu propio endpoint /api/steam para obtener la imagen horizontal (616x353)
+ */
+async function obtenerImagenSteam(titulo) {
+    try {
+        // 1. Usar tu endpoint /api/steam (el mismo que usas como fallback)
+        const response = await fetch(`/api/steam?query=${encodeURIComponent(titulo)}`);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+
+        // El endpoint devuelve { juegos: [...], total, ... }
+        const juegos = data.juegos || [];
+
+        if (juegos.length === 0) return null;
+
+        // Buscar el juego que coincida exactamente con el título
+        // (Steam a veces devuelve juegos con el mismo nombre pero con año)
+        const tituloLower = titulo.toLowerCase().trim();
+        let juegoSteam = juegos.find(j =>
+            j.name.toLowerCase() === tituloLower ||
+            j.name.toLowerCase().startsWith(tituloLower)
+        );
+
+        // Si no se encuentra exacto, usar el primero
+        if (!juegoSteam && juegos.length > 0) {
+            juegoSteam = juegos[0];
+        }
+
+        if (!juegoSteam) return null;
+
+        // Extraer el appid del ID (formato "steam_12345")
+        const appId = juegoSteam.id.replace('steam_', '');
+
+        if (!appId) return null;
+
+        // La imagen de Steam es horizontal y se ve perfecta como fondo
+        // Usamos la imagen de header (horizontal 460x215 o 616x353)
+        const steamImageUrl = `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`;
+
+        console.log(`✅ Steam image found for "${titulo}": ${steamImageUrl}`);
+        return steamImageUrl;
+
+    } catch (error) {
+        console.warn('⚠️ Error obteniendo imagen de Steam:', error);
+        return null;
+    }
 }
 
 // ==========================================================================

@@ -1,5 +1,5 @@
 // ============================================================
-//   API STEAM - FALLBACK PARA JUEGOS
+//   API STEAM - FALLBACK PARA JUEGOS + IMÁGENES
 // ============================================================
 // Endpoint de respaldo cuando IGDB no encuentra un juego.
 // Busca en la tienda de Steam y devuelve los resultados
@@ -38,6 +38,9 @@ export default async function handler(req, res) {
             cover: {
                 url: `https://steamcdn-a.akamaihd.net/apps/${item.id}/library_600x900_2x.jpg`
             },
+            // 🔥 NUEVO: Añadimos la imagen horizontal para el fondo del hero
+            headerImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${item.id}/header.jpg`,
+            heroImage: `https://cdn.cloudflare.steamstatic.com/steam/apps/${item.id}/hero_capsule.jpg`,
             first_release_date: null,
             platforms: [{ name: 'PC' }],
             category: 0,
