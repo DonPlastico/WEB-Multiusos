@@ -6914,7 +6914,7 @@ cast-carousel::-webkit-scrollbar {
 
     #media-details-modal .modal-content,
     .game-details-panel {
-        height: 83dvh !important;
+        height: 80dvh !important;
     }
 
     .cyber-modal .modal-content {
