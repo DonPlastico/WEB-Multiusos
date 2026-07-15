@@ -12633,38 +12633,48 @@ function formatearFecha(fechaStr) {
 }
 
 // ==========================================================================
-//   HERO DINÁMICO DEL MODAL - REDUCCIÓN AL HACER SCROLL
+//   HERO DINÁMICO DEL MODAL - REDUCCIÓN AL HACER SCROLL (VERSIÓN 4)
 // ==========================================================================
 
 /**
  * Configura el comportamiento del hero en los modales (juegos y media)
  * Reduce la altura del hero cuando el usuario hace scroll hacia abajo,
- * manteniendo un min-height de 350px, y la restaura al volver arriba.
+ * manteniendo un min-height de 200px, y la restaura al volver arriba.
  * 
- * VERSIÓN 3: Escucha el scroll en game-detail-body
+ * VERSIÓN 4: Detecta automáticamente si el scroll está en el modal o en .game-detail-body
  */
 function configurarHeroDinamico() {
-    // Seleccionamos ambos heroes (juegos y media)
     const heroes = document.querySelectorAll('.game-hero-section');
 
     if (heroes.length === 0) return;
 
     heroes.forEach(hero => {
-        // Solo aplicamos si el hero está dentro de un modal visible
         const modal = hero.closest('.cyber-modal');
         if (!modal) return;
 
-        // El elemento que hace scroll es .game-detail-body dentro del modal
-        const content = modal.querySelector('.game-detail-body');
-        if (!content) return;
+        // --- DETECTAR EL ELEMENTO DE SCROLL CORRECTO ---
+        // 1. Intentar con .game-detail-body (para juegos)
+        let content = modal.querySelector('.game-detail-body');
+
+        // 2. Si no existe .game-detail-body, usar el propio modal como scroll
+        if (!content) {
+            content = modal;
+        }
+
+        // 3. Si el contenido es el modal, asegurarnos de que tenga overflow-y: auto
+        if (content === modal) {
+            // Aseguramos que el modal tenga scroll
+            modal.style.overflowY = 'auto';
+            modal.style.maxHeight = '100vh';
+        }
 
         // Si ya tiene un listener de scroll, lo removemos para evitar duplicados
-        if (hero._scrollHandler) {
+        if (hero._scrollHandler && content) {
             content.removeEventListener('scroll', hero._scrollHandler);
             delete hero._scrollHandler;
         }
 
-        // Guardamos la altura original
+        // Guardamos la altura original (para restaurar después)
         const heightOriginal = getComputedStyle(hero).height;
         hero.dataset.originalHeight = heightOriginal;
 
@@ -12691,7 +12701,16 @@ function configurarHeroDinamico() {
 
         // Handler del scroll - lógica principal
         function handleScroll() {
-            const scrollTop = content.scrollTop;
+            let scrollTop;
+
+            // Si el contenido es el modal, usamos window.scrollY (porque el scroll está en el body)
+            if (content === modal) {
+                // Cuando el modal está abierto, el scroll puede estar en el body
+                // Pero si el modal tiene overflow, usamos el scroll del modal
+                scrollTop = modal.scrollTop || 0;
+            } else {
+                scrollTop = content.scrollTop || 0;
+            }
 
             // Si el scroll es mayor a 50px, reducimos el hero
             if (scrollTop > 50) {
@@ -12718,7 +12737,7 @@ function configurarHeroDinamico() {
         // Guardamos el handler para poder limpiarlo después
         hero._scrollHandler = throttledScroll;
 
-        // Añadimos el listener al elemento que hace scroll (.game-detail-body)
+        // Añadimos el listener al elemento correcto
         content.addEventListener('scroll', throttledScroll, { passive: true });
 
         // Ejecutamos una vez al abrir para asegurar estado inicial
