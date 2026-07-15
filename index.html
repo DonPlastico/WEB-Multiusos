@@ -114,6 +114,7 @@
         <!-- los enlaces del menu en el centro -->
         <!-- Estos son los botones principales de navegacion: Juegos, Peliculas, Series -->
         <ul class="nav-links">
+            <li><a href="#" data-target="search" id="nav-search">BUSCAR</a></li>
             <li><a href="#" data-target="games" id="nav-games">JUEGOS</a></li>
             <li><a href="#" data-target="movies" id="nav-movies">PELICULAS</a></li>
             <li><a href="#" data-target="series" id="nav-series">SERIES</a></li>
@@ -358,6 +359,118 @@
         </section>
 
         <!-- ============================================================ -->
+        <!--   VISTA DE BÚSQUEDA UNIFICADA (NUEVA)                         -->
+        <!-- ============================================================ -->
+        <section id="search" class="view">
+            <div class="search-unified-layout">
+                <!-- Contenido principal: buscador + resultados -->
+                <div class="search-unified-content">
+
+                    <!-- BARRA DE BÚSQUEDA UNIFICADA -->
+                    <div class="search-box glass-panel search-unified-box">
+                        <input type="text" id="search-unified-input" placeholder="Buscar en todo el Nexus..."
+                            autocomplete="off">
+                        <button id="btn-search-unified"><i class="fas fa-search"></i></button>
+                    </div>
+
+                    <!-- FILTROS TIPO TOGGLE (selector de categorías) -->
+                    <div class="search-filters-row glass-panel">
+                        <span class="search-filters-label"><i class="fas fa-sliders-h"></i> Buscar en:</span>
+                        <div class="search-filter-toggles">
+                            <label class="toggle-chip" data-type="games">
+                                <input type="checkbox" class="search-type-toggle" value="games" checked>
+                                <span class="toggle-chip-text"><i class="fas fa-gamepad"></i> Juegos</span>
+                            </label>
+                            <label class="toggle-chip" data-type="movies">
+                                <input type="checkbox" class="search-type-toggle" value="movies" checked>
+                                <span class="toggle-chip-text"><i class="fas fa-film"></i> Películas</span>
+                            </label>
+                            <label class="toggle-chip" data-type="series">
+                                <input type="checkbox" class="search-type-toggle" value="series" checked>
+                                <span class="toggle-chip-text"><i class="fas fa-tv"></i> Series</span>
+                            </label>
+                            <label class="toggle-chip" data-type="users">
+                                <input type="checkbox" class="search-type-toggle" value="users" checked>
+                                <span class="toggle-chip-text"><i class="fas fa-users"></i> Usuarios</span>
+                            </label>
+                            <label class="toggle-chip" data-type="actors">
+                                <input type="checkbox" class="search-type-toggle" value="actors" checked>
+                                <span class="toggle-chip-text"><i class="fas fa-user-tie"></i> Actores</span>
+                            </label>
+                        </div>
+                        <button id="btn-select-all-toggles" class="auth-btn secondary"
+                            style="padding: 6px 14px; font-size: 0.7rem;">
+                            <i class="fas fa-check-double"></i> Todo
+                        </button>
+                    </div>
+
+                    <!-- CONTENEDOR DE RESULTADOS -->
+                    <div id="search-results-container" class="search-results-wrapper">
+                        <!-- Estado: sin búsqueda (mensaje inicial) -->
+                        <div id="search-empty-state" class="search-state-message">
+                            <i class="fas fa-search fa-fade"
+                                style="font-size: 3rem; color: var(--text-muted); opacity: 0.4;"></i>
+                            <h3 style="color: var(--text-secondary); margin: 15px 0 5px 0;">Busca en el Nexus</h3>
+                            <p
+                                style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                                Escribe lo que quieras encontrar y selecciona las categorías que te interesen.
+                            </p>
+                        </div>
+
+                        <!-- Estado: sin filtros seleccionados (alerta) -->
+                        <div id="search-no-filters" class="search-state-message" style="display: none;">
+                            <i class="fas fa-exclamation-triangle fa-bounce"
+                                style="font-size: 3rem; color: var(--warning);"></i>
+                            <h3 style="color: var(--warning); margin: 15px 0 5px 0;">¡Selecciona al menos una categoría!
+                            </h3>
+                            <p
+                                style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                                Activa al menos un filtro para realizar la búsqueda.
+                            </p>
+                            <button id="btn-select-all-from-empty" class="auth-btn primary" style="margin-top: 15px;">
+                                <i class="fas fa-check-double"></i> Seleccionar Todo
+                            </button>
+                        </div>
+
+                        <!-- Estado: cargando resultados -->
+                        <div id="search-loading-state" class="search-state-message" style="display: none;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
+                            <h3 style="color: var(--text-secondary); margin: 15px 0 5px 0;">Buscando en el Nexus...</h3>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">Rastreando bases de datos y APIs</p>
+                        </div>
+
+                        <!-- Estado: sin resultados -->
+                        <div id="search-no-results" class="search-state-message" style="display: none;">
+                            <i class="fas fa-face-frown"
+                                style="font-size: 3rem; color: var(--text-muted); opacity: 0.4;"></i>
+                            <h3 style="color: var(--text-secondary); margin: 15px 0 5px 0;">No se encontraron resultados
+                            </h3>
+                            <p
+                                style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                                Prueba con otros términos o ajusta los filtros seleccionados.
+                            </p>
+                        </div>
+
+                        <!-- RESULTADOS AGRUPADOS POR CATEGORÍA -->
+                        <div id="search-results-grid" style="display: none;">
+                            <!-- Cada categoría se renderiza como un bloque con su título y grid -->
+                            <!-- Ejemplo de estructura que genera JS:
+                            <div class="search-result-category">
+                                <div class="search-category-header">
+                                    <h3><i class="fas fa-gamepad"></i> Juegos (12)</h3>
+                                </div>
+                                <div class="cyber-grid search-result-grid">
+                                    ...tarjetas...
+                                </div>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
         <!--   VISTA DE JUEGOS                                             -->
         <!-- ============================================================ -->
         <section id="games" class="view">
@@ -365,15 +478,6 @@
 
                 <!-- zona izquierda con los juegos -->
                 <div class="games-content">
-                    <!-- Buscador de juegos -->
-                    <div class="search-box glass-panel">
-                        <input type="text" id="search-juegos" placeholder="Buscar juegos..." autocomplete="off">
-                        <button id="btn-buscar-juegos"><i class="fas fa-search"></i></button>
-                        <!-- Boton para abrir filtros en movil -->
-                        <button id="btn-mobile-filters" class="btn-mobile-filters" aria-label="Abrir filtros">
-                            <i class="fas fa-sliders-h"></i>
-                        </button>
-                    </div>
 
                     <!-- Grid donde se pintan las tarjetas de juegos -->
                     <div id="games-grid" class="cyber-grid" data-needs-init="true"></div>
@@ -660,14 +764,6 @@
         <section id="movies" class="view">
             <div class="games-layout">
                 <div class="games-content">
-                    <!-- Buscador de peliculas -->
-                    <div class="search-box glass-panel">
-                        <input type="text" id="search-movies" placeholder="Buscar películas..." autocomplete="off">
-                        <button id="btn-buscar-movies"><i class="fas fa-search"></i></button>
-                        <button class="btn-mobile-filters" id="btn-filters-movies-mobile" aria-label="Abrir filtros">
-                            <i class="fas fa-sliders-h"></i>
-                        </button>
-                    </div>
                     <!-- Grid de peliculas -->
                     <div id="movies-grid" class="cyber-grid"></div>
                 </div>
@@ -843,15 +939,6 @@
         <section id="series" class="view">
             <div class="games-layout">
                 <div class="games-content">
-                    <!-- Buscador de series -->
-                    <div class="search-box glass-panel">
-                        <input type="text" id="search-series" placeholder="Buscar series..." autocomplete="off">
-                        <button id="btn-buscar-series"><i class="fas fa-search"></i></button>
-                        <!-- Boton para abrir filtros en movil -->
-                        <button class="btn-mobile-filters" id="btn-filters-series-mobile" aria-label="Abrir filtros">
-                            <i class="fas fa-sliders-h"></i>
-                        </button>
-                    </div>
                     <!-- Grid donde se pintan las tarjetas de series -->
                     <div id="series-grid" class="cyber-grid"></div>
                 </div>

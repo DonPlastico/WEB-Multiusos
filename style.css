@@ -741,64 +741,6 @@ input[type=number]::-webkit-outer-spin-button {
     opacity: 0.3;
 }
 
-/* ==========================================================================
-   BUSCADOR Y JUEGOS
-   ========================================================================== */
-
-.search-box {
-    position: relative;
-    z-index: 90;
-    background: var(--glass-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 15px;
-    display: flex;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.search-box:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.search-box input {
-    flex: 1;
-    min-width: 0;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 14px 20px;
-    border-radius: 12px;
-    color: var(--text-main);
-    font-family: var(--font-cyber);
-    font-size: 1rem;
-    outline: none;
-    transition: 0.3s;
-}
-
-.search-box button:not(.btn-mobile-filters) {
-    background: var(--primary);
-    border: none;
-    color: #fff;
-    padding: 0 28px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
-}
-
-.search-box button:not(.btn-mobile-filters):hover {
-    background: var(--primary-hover);
-    transform: scale(1.02);
-    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.3);
-}
-
-.search-box button:not(.btn-mobile-filters):active {
-    transform: scale(0.98);
-}
-
 /* --- HISTORIAL DE BÚSQUEDA --- */
 /* Dropdown que aparece debajo del input con las busquedas recientes */
 .search-history-dropdown {
@@ -6675,6 +6617,424 @@ cast-carousel::-webkit-scrollbar {
     top: -45px;
 }
 
+/* ==========================================================================
+   BÚSQUEDA UNIFICADA (NUEVA PAGE #search)
+   ========================================================================== */
+/* Layout principal de la página de búsqueda */
+.search-unified-layout {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.search-unified-content {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Barra de búsqueda unificada - más grande y prominente */
+.search-unified-box {
+    padding: 20px 24px;
+    margin-bottom: 0;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-unified-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft), 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.search-unified-box input {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 16px 24px;
+    border-radius: 12px;
+    color: var(--text-main);
+    font-family: var(--font-cyber);
+    font-size: 1.1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-unified-box input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.search-unified-box input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.search-unified-box button {
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    padding: 0 32px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+    min-height: 56px;
+}
+
+.search-unified-box button:hover {
+    background: var(--primary-hover);
+    transform: scale(1.02);
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.35);
+}
+
+.search-unified-box button:active {
+    transform: scale(0.97);
+}
+
+/* FILTROS TIPO CHIP (TOGGLES) */
+.search-filters-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.search-filters-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.search-filters-label i {
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+
+.search-filter-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
+}
+
+/* Cada chip toggle */
+.toggle-chip {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 30px;
+    transition: all 0.25s ease;
+    padding: 0;
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border-color);
+}
+
+.toggle-chip:hover {
+    border-color: var(--text-muted);
+}
+
+.toggle-chip input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-chip-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-family: var(--font-cyber);
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    border-radius: 30px;
+}
+
+.toggle-chip-text i {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition: all 0.25s ease;
+}
+
+/* Estado ACTIVO del chip */
+.toggle-chip input:checked+.toggle-chip-text {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.toggle-chip input:checked+.toggle-chip-text i {
+    opacity: 1;
+    color: white;
+}
+
+/* Efecto hover en estado activo */
+.toggle-chip input:checked+.toggle-chip-text:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+}
+
+/* Botón "Seleccionar Todo" */
+#btn-select-all-toggles {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: var(--font-cyber);
+    height: 34px;
+}
+
+#btn-select-all-toggles:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-soft);
+}
+
+/* === CONTENEDOR DE RESULTADOS === */
+.search-results-wrapper {
+    min-height: 300px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estados de mensaje (vacío, sin filtros, cargando, sin resultados) */
+.search-state-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 30px;
+    text-align: center;
+    gap: 10px;
+    min-height: 300px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+}
+
+.search-state-message i {
+    font-size: 3.5rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+}
+
+.search-state-message h3 {
+    font-size: 1.3rem;
+    font-family: var(--font-cyber);
+    color: var(--text-secondary);
+    margin: 5px 0;
+    letter-spacing: 0.5px;
+}
+
+.search-state-message p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    max-width: 500px;
+    line-height: 1.7;
+    margin: 0 auto;
+}
+
+/* === RESULTADOS AGRUPADOS POR CATEGORÍA === */
+#search-results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+.search-result-category {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.search-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.search-category-header h3 {
+    font-size: 1.1rem;
+    font-family: var(--font-cyber);
+    color: var(--neon-white);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-category-header h3 i {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.search-category-header .category-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    background: var(--bg-secondary);
+    padding: 2px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.search-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Tarjeta dentro de resultados de búsqueda (mismo estilo que game-card) */
+.search-result-grid .game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+}
+
+.search-result-grid .game-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-lg);
+}
+
+.search-result-grid .game-card .game-cover-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--bg-card);
+}
+
+.search-result-grid .game-card .game-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.search-result-grid .game-card:hover .game-cover {
+    transform: scale(1.05);
+}
+
+.search-result-grid .game-card .game-info {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.search-result-grid .game-card .game-title {
+    font-size: 0.95rem;
+    color: var(--neon-white);
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.search-result-grid .game-card .game-release-info {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Badge de tipo (juego/película/serie) en tarjeta de búsqueda */
+.search-result-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    z-index: 5;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    backdrop-filter: blur(4px);
+}
+
+.search-result-badge.game {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.3);
+    color: var(--primary);
+}
+
+.search-result-badge.movie {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: var(--warning);
+}
+
+.search-result-badge.tv {
+    background: rgba(45, 212, 191, 0.2);
+    border-color: rgba(45, 212, 191, 0.3);
+    color: var(--secondary);
+}
+
+.search-result-badge.user {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--success);
+}
+
+.search-result-badge.actor {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: var(--error);
+}
+
+/* Estado de búsqueda vacía con icono animado */
+#search-empty-state i.fa-search {
+    animation: fa-beat 2s ease-in-out infinite;
+}
+
+/* Botón "Seleccionar Todo" dentro del estado sin filtros */
+#btn-select-all-from-empty {
+    margin-top: 10px;
+}
 
 
 
@@ -7785,6 +8145,80 @@ cast-carousel::-webkit-scrollbar {
     .detail-media-main {
         min-height: 170px !important;
     }
+
+    .search-filters-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .search-filters-label {
+        font-size: 0.7rem;
+    }
+
+    .search-filter-toggles {
+        gap: 6px;
+    }
+
+    .toggle-chip-text {
+        font-size: 0.7rem;
+        padding: 4px 12px 4px 8px;
+        gap: 4px;
+    }
+
+    .toggle-chip-text i {
+        font-size: 0.7rem;
+    }
+
+    #btn-select-all-toggles {
+        font-size: 0.6rem;
+        padding: 4px 12px;
+        height: 30px;
+        align-self: flex-end;
+    }
+
+    .search-unified-box {
+        padding: 12px 16px;
+    }
+
+    .search-unified-box input {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        min-height: 44px;
+    }
+
+    .search-unified-box button {
+        padding: 0 20px;
+        font-size: 1.1rem;
+        min-height: 44px;
+    }
+
+    .search-result-grid {
+        grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+        gap: 12px;
+    }
+
+    .search-category-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .search-state-message {
+        padding: 40px 20px;
+        min-height: 200px;
+    }
+
+    .search-state-message i {
+        font-size: 2.5rem;
+    }
+
+    .search-state-message h3 {
+        font-size: 1.1rem;
+    }
+
+    .search-state-message p {
+        font-size: 0.8rem;
+    }
 }
 
 /* ===== MÓVILES PEQUEÑOS (max 600px) ===== */
@@ -8118,5 +8552,50 @@ cast-carousel::-webkit-scrollbar {
 
     .media-main-frame {
         max-height: 200px;
+    }
+
+    .search-filter-toggles {
+        gap: 4px;
+    }
+
+    .toggle-chip-text {
+        font-size: 0.6rem;
+        padding: 3px 8px 3px 6px;
+        gap: 3px;
+    }
+
+    .toggle-chip-text i {
+        font-size: 0.6rem;
+    }
+
+    .search-result-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .search-unified-box input {
+        font-size: 0.85rem;
+        padding: 10px 14px;
+        min-height: 38px;
+    }
+
+    .search-unified-box button {
+        padding: 0 14px;
+        font-size: 0.95rem;
+        min-height: 38px;
+    }
+
+    .search-unified-box {
+        padding: 10px 12px;
+    }
+
+    .search-filters-row {
+        padding: 10px 12px;
+    }
+
+    #btn-select-all-toggles {
+        font-size: 0.55rem;
+        padding: 3px 10px;
+        height: 26px;
     }
 }
