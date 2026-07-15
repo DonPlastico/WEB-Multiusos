@@ -2954,7 +2954,7 @@ span.flatpickr-weekday {
     background-size: cover;
     background-position: center 30%;
     background-repeat: no-repeat;
-    filter: blur(12px) brightness(0.7);
+    filter: blur(5px) brightness(0.7);
     transform: scale(1.08);
     z-index: 0;
     transition: filter 0.5s ease;
@@ -2980,7 +2980,6 @@ span.flatpickr-weekday {
 #detail-title {
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     margin-bottom: 5px;
-    /* Aseguramos que el texto NO herede nada raro */
     filter: none !important;
     backdrop-filter: none !important;
 }
