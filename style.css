@@ -3090,32 +3090,11 @@ span.flatpickr-weekday {
    ========================================================================== */
 
 .detail-media-section {
+    grid-template-columns: 3fr 1fr;
+    margin-bottom: 7.5px;
+    padding: 10px;
+    transition: all .3s;
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 20px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md), inset 0 0 60px rgba(99, 102, 241, 0.03);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-/* Efecto de borde brillante superior */
-.detail-media-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 10%;
-    right: 10%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), var(--primary), transparent);
-    background-size: 200% 100%;
-    animation: shimmerBorder 4s linear infinite;
-    border-radius: 0 0 50% 50%;
 }
 
 /* Columna izquierda: SOLO renderiza lo seleccionado (iframe de video o img) */
@@ -3272,9 +3251,9 @@ span.flatpickr-weekday {
 
 .media-thumb.active {
     opacity: 1;
-    transform: scale(1);
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-soft), 0 4px 20px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 0 2px var(--primary-soft), 0 4px 20px #6366f140;
+    transform: scale(1);
 }
 
 .media-thumb img {
