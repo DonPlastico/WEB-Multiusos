@@ -3039,7 +3039,6 @@ span.flatpickr-weekday {
 }
 
 .game-desc-text {
-    font-size: 0.95rem;
     line-height: 1.7;
     color: #d1d1e0;
     white-space: pre-wrap;
@@ -3084,6 +3083,117 @@ span.flatpickr-weekday {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   GALERÍA DE MEDIA DEL JUEGO (video/imagen grande + miniaturas seleccionables)
+   ========================================================================== */
+
+.detail-media-section {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(20, 20, 28, 0.55);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+}
+
+/* Columna izquierda: SOLO renderiza lo seleccionado (iframe de video o img) */
+.detail-media-main {
+    display: flex;
+}
+
+.media-main-frame {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-main-frame iframe,
+.media-main-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: none;
+    display: block;
+}
+
+/* Columna derecha: SOLO la lista de miniaturas seleccionables */
+.detail-media-gallery {
+    display: flex;
+    min-width: 0;
+}
+
+.media-thumbs-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+}
+
+.media-thumbs-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.media-thumbs-scroll::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.media-thumb {
+    position: relative;
+    flex-shrink: 0;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.media-thumb:hover {
+    opacity: 1;
+    transform: scale(1.02);
+}
+
+.media-thumb.active {
+    opacity: 1;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-soft);
+}
+
+.media-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.thumb-play-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--neon-white);
+    font-size: 1.4rem;
+    pointer-events: none;
 }
 
 .bar-extra {
@@ -6818,6 +6928,10 @@ cast-carousel::-webkit-scrollbar {
         grid-template-columns: 220px 1fr;
     }
 
+    .detail-media-section {
+        grid-template-columns: 1fr 220px;
+    }
+
     .detail-desc-col {
         grid-column: 1 / -1;
     }
@@ -6996,6 +7110,24 @@ cast-carousel::-webkit-scrollbar {
     .game-detail-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+    }
+
+    .detail-media-section {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .media-thumbs-scroll {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-right: 0;
+        padding-bottom: 6px;
+    }
+
+    .media-thumb {
+        width: 140px;
+        aspect-ratio: 16/9;
     }
 
     .detail-cover-col {

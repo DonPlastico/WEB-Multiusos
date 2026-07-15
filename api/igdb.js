@@ -168,7 +168,8 @@ export default async function handler(req, res) {
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
                     total_rating, total_rating_count, rating, rating_count, category,
                     summary, involved_companies.company.name, involved_companies.developer,
-                    involved_companies.publisher, genres.name, game_modes.name, websites.url;
+                    involved_companies.publisher, genres.name, game_modes.name, websites.url,
+                    screenshots.url, videos.video_id, videos.name;
                 search "${busqueda}";
                 ${whereQuery}
                 limit ${limit};
@@ -179,7 +180,8 @@ export default async function handler(req, res) {
                 fields name, cover.url, first_release_date, platforms.name, platforms.id,
                     total_rating, total_rating_count, rating, rating_count, category,
                     summary, involved_companies.company.name, involved_companies.developer,
-                    involved_companies.publisher, genres.name, game_modes.name, websites.url;
+                    involved_companies.publisher, genres.name, game_modes.name, websites.url,
+                    screenshots.url, videos.video_id, videos.name;
                 ${whereQuery}
                 ${sortQuery}
                 limit ${limit};

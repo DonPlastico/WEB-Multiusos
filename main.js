@@ -5322,6 +5322,14 @@ window.procesarAperturaModalJuego = function (data, updateHistory = true) {
         `;
     }
 
+    // Reseteamos la sección de media (video/imagen grande + galería) mientras cargan los detalles
+    const mediaSection = document.querySelector('.detail-media-section');
+    const mainFrameReset = document.getElementById('detail-media-main-frame');
+    const thumbsReset = document.getElementById('detail-media-thumbs');
+    if (mediaSection) mediaSection.style.display = 'none';
+    if (mainFrameReset) mainFrameReset.innerHTML = '';
+    if (thumbsReset) thumbsReset.innerHTML = '';
+
     // Ponemos los campos en estado de carga mientras se obtienen los detalles
     document.getElementById('detail-description').innerHTML = '<i class="fas fa-circle-notch fa-spin" style="color:var(--primary);"></i> Estableciendo conexión cifrada...';
     document.getElementById('detail-dev').textContent = 'Escaneando...';
@@ -5369,6 +5377,9 @@ async function llamarDetallesJuego(idJuego, titulo) {
             return;
         }
 
+        // Rellenar la galería de media (video/imagen grande + miniaturas seleccionables)
+        renderGaleriaMediaJuego(juego);
+
         // Rellenar Descripción con un control de calidad
         const descElement = document.getElementById('detail-description');
         if (juego.summary) {
@@ -5408,6 +5419,96 @@ async function llamarDetallesJuego(idJuego, titulo) {
         console.error("Error:", error);
     }
 }
+
+// Construye la galería de media (videos + capturas) a partir de los datos de IGDB
+// El bloque grande de la izquierda SOLO renderiza lo seleccionado (iframe o img)
+// El bloque de la derecha SOLO es la lista de miniaturas seleccionables
+function renderGaleriaMediaJuego(juego) {
+    const mediaSection = document.querySelector('.detail-media-section');
+    const mainFrame = document.getElementById('detail-media-main-frame');
+    const thumbsContainer = document.getElementById('detail-media-thumbs');
+    if (!mediaSection || !mainFrame || !thumbsContainer) return;
+
+    thumbsContainer.innerHTML = '';
+
+    // Primero los videos (trailers/gameplay), luego las capturas de pantalla
+    const videos = (juego.videos || [])
+        .filter(v => v.video_id)
+        .map(v => ({ type: 'video', id: v.video_id, label: v.name || 'Video' }));
+
+    const screenshots = (juego.screenshots || [])
+        .filter(s => s.url)
+        .map(s => ({
+            type: 'image',
+            url: s.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
+            thumbUrl: s.url.replace('//', 'https://')
+        }));
+
+    const itemsGaleria = [...videos, ...screenshots];
+
+    // Si el juego no tiene ni videos ni capturas, ocultamos toda la sección
+    if (itemsGaleria.length === 0) {
+        mediaSection.style.display = 'none';
+        return;
+    }
+    mediaSection.style.display = '';
+
+    itemsGaleria.forEach((item, index) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'media-thumb';
+        thumb.setAttribute('data-index', index);
+
+        if (item.type === 'video') {
+            thumb.setAttribute('data-type', 'video');
+            thumb.setAttribute('data-video-id', item.id);
+            thumb.setAttribute('data-label', item.label);
+            thumb.innerHTML = `
+                <img src="https://img.youtube.com/vi/${item.id}/mqdefault.jpg" alt="${item.label}" loading="lazy">
+                <span class="thumb-play-icon"><i class="fas fa-play"></i></span>
+            `;
+        } else {
+            thumb.setAttribute('data-type', 'image');
+            thumb.setAttribute('data-full-src', item.url);
+            thumb.innerHTML = `<img src="${item.thumbUrl}" alt="Captura de pantalla ${index + 1}" loading="lazy">`;
+        }
+
+        thumbsContainer.appendChild(thumb);
+    });
+
+    // Por defecto: el primer video si existe, si no la primera captura
+    mostrarMediaSeleccionada(itemsGaleria[0], 0);
+}
+
+// Pinta en el frame grande de la izquierda SOLO el elemento seleccionado (iframe o img)
+// y marca la miniatura correspondiente como activa en la galería de la derecha
+function mostrarMediaSeleccionada(item, index) {
+    const mainFrame = document.getElementById('detail-media-main-frame');
+    if (!mainFrame || !item) return;
+
+    if (item.type === 'video') {
+        mainFrame.innerHTML = `<iframe src="https://www.youtube.com/embed/${item.id}" title="${item.label || 'Video'}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    } else {
+        mainFrame.innerHTML = `<img src="${item.url}" alt="Captura de pantalla">`;
+    }
+
+    document.querySelectorAll('#detail-media-thumbs .media-thumb').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#detail-media-thumbs .media-thumb[data-index="${index}"]`)?.classList.add('active');
+}
+
+// Escuchamos los clics en la galería de miniaturas (delegación de eventos)
+document.getElementById('detail-media-thumbs')?.addEventListener('click', (e) => {
+    const thumb = e.target.closest('.media-thumb');
+    if (!thumb) return;
+
+    const index = parseInt(thumb.getAttribute('data-index'), 10);
+    const type = thumb.getAttribute('data-type');
+
+    const item = type === 'video'
+        ? { type: 'video', id: thumb.getAttribute('data-video-id'), label: thumb.getAttribute('data-label') }
+        : { type: 'image', url: thumb.getAttribute('data-full-src') };
+
+    mostrarMediaSeleccionada(item, index);
+});
 
 // ==========================================================================
 //   MODAL DE DETALLES PELÍCULAS/SERIES
