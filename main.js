@@ -12640,7 +12640,6 @@ function formatearFecha(fechaStr) {
  * VERSIÓN 5: Soporte para juegos (.game-hero-section) y pelis/series (#media-detail-hero-bg)
  */
 function configurarHeroDinamico() {
-    // Buscar TODOS los heroes: tanto los de juegos como los de pelis/series
     const heroes = document.querySelectorAll('.game-hero-section, #media-detail-hero-bg');
 
     if (heroes.length === 0) return;
@@ -12649,53 +12648,55 @@ function configurarHeroDinamico() {
         const modal = hero.closest('.cyber-modal');
         if (!modal) return;
 
-        // --- DETECTAR EL ELEMENTO DE SCROLL CORRECTO ---
-        // 1. Intentar con .game-detail-body (para juegos)
         let content = modal.querySelector('.game-detail-body');
-
-        // 2. Si no existe .game-detail-body, usar el propio modal como scroll
         if (!content) {
             content = modal;
         }
 
-        // 3. Si el contenido es el modal, asegurarnos de que tenga overflow-y: auto
         if (content === modal) {
             modal.style.overflowY = 'auto';
             modal.style.maxHeight = '100vh';
         }
 
-        // Si ya tiene un listener de scroll, lo removemos para evitar duplicados
+        // --- BUSCAR EL CONTENEDOR DE BOTONES FLOTANTES ---
+        const floatingContainer = modal.querySelector('#floating-buttons-container');
+
         if (hero._scrollHandler && content) {
             content.removeEventListener('scroll', hero._scrollHandler);
             delete hero._scrollHandler;
         }
 
-        // Guardamos la altura original (para restaurar después)
         const heightOriginal = getComputedStyle(hero).height;
         hero.dataset.originalHeight = heightOriginal;
 
-        // Estado interno
         let isReduced = false;
 
-        // Función que reduce el hero
         function reducirHero() {
             if (isReduced) return;
             isReduced = true;
             hero.style.height = '200px';
             hero.style.minHeight = '200px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            // Mover el contenedor de botones hacia arriba
+            if (floatingContainer) {
+                floatingContainer.classList.add('reduced');
+            }
         }
 
-        // Función que restaura el hero
         function restaurarHero() {
             if (!isReduced) return;
             isReduced = false;
             hero.style.height = hero.dataset.originalHeight || '30vh';
             hero.style.minHeight = '200px';
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            // Restaurar el contenedor de botones a su posición original
+            if (floatingContainer) {
+                floatingContainer.classList.remove('reduced');
+            }
         }
 
-        // Handler del scroll - lógica principal
         function handleScroll() {
             let scrollTop;
 
@@ -12712,7 +12713,6 @@ function configurarHeroDinamico() {
             }
         }
 
-        // Función throttle para evitar muchas ejecuciones
         let ticking = false;
         function throttledScroll() {
             if (!ticking) {
@@ -12724,13 +12724,9 @@ function configurarHeroDinamico() {
             }
         }
 
-        // Guardamos el handler para poder limpiarlo después
         hero._scrollHandler = throttledScroll;
-
-        // Añadimos el listener al elemento correcto
         content.addEventListener('scroll', throttledScroll, { passive: true });
 
-        // Ejecutamos una vez al abrir para asegurar estado inicial
         setTimeout(handleScroll, 50);
     });
 }
@@ -12747,12 +12743,17 @@ function limpiarHeroObservers() {
                 content.removeEventListener('scroll', hero._scrollHandler);
                 delete hero._scrollHandler;
             }
-            // Restauramos la altura original al cerrar
             if (hero.dataset.originalHeight) {
                 hero.style.height = hero.dataset.originalHeight;
                 hero.style.minHeight = '200px';
             }
         });
+
+        // Restaurar el contenedor de botones
+        const floatingContainer = modal.querySelector('#floating-buttons-container');
+        if (floatingContainer) {
+            floatingContainer.classList.remove('reduced');
+        }
     });
 }
 

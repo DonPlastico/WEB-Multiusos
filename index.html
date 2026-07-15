@@ -2077,8 +2077,8 @@
                 </button>
 
                 <!-- Contenedor del ojo y menú contextual + FAVORITOS -->
-                <div
-                    style="position: absolute;top: 90px;right: 20px;z-index: 100;display: flex;gap: 10px;align-items: flex-end;">
+                <div id="floating-buttons-container"
+                    style="position: absolute; right: 20px; z-index: 100; display: flex; gap: 10px; align-items: flex-end;">
                     <!-- BOTÓN DE FAVORITOS (SOLO ICONO) - aparece si el usuario ha visto el contenido -->
                     <div id="favorite-button-container" style="display: none; transform: translateY(4px);">
                         <button id="btn-add-to-favorites" class="favorite-btn-icon-only" title="Añadir a favoritos"
@@ -2089,7 +2089,7 @@
 
                     <!-- Botón de OJO (estado de vista) - para marcar como visto/no visto -->
                     <button id="btn-watch-toggle" class="icon-btn close-floating-btn"
-                        style="position: relative; top: 0; right: 0; z-index: 10;"
+                        style="position: relative; right: 0; z-index: 10;"
                         title="Clic izq: Marcar vista | Clic der: Opciones">
                         <i id="icon-watch-status" class="fas fa-eye-slash" style="color: grey !important;"></i>
                         <span id="watch-count-badge" class="watch-count-badge"></span>

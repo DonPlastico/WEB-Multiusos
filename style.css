@@ -6658,7 +6658,22 @@ cast-carousel::-webkit-scrollbar {
     border-radius: 4px;
 }
 
+/* Contenedor de botones flotantes en el modal de pelis/series */
+#floating-buttons-container {
+    position: absolute;
+    top: 90px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+/* Estado cuando el hero está reducido (scroll hacia abajo) */
+#floating-buttons-container.reduced {
+    top: -45px;
+}
 
 
 
