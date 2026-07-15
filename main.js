@@ -9672,592 +9672,592 @@ setTimeout(() => {
 //   BÚSQUEDA UNIFICADA (PAGE #search)
 // ==========================================================================
 
-// === FUNCIONES DE BÚSQUEDA UNIFICADA ===
-
-/**
- * Busca juegos en IGDB (con fallback a Steam)
- */
-async function searchGames(query, offset = 0, sort = 'popularity.desc', lang = 'es') {
-    try {
-        const params = new URLSearchParams({
-            query: query,
-            offset: offset,
-            limit: 50,
-            sort: sort,
-            lang: lang
-        });
-
-        const response = await fetch(`/api/igdb?${params.toString()}`);
-
-        if (!response.ok) {
-            return await searchGamesSteam(query);
-        }
-
-        const data = await response.json();
-
-        if (!data.juegos || data.juegos.length === 0) {
-            return await searchGamesSteam(query);
-        }
-
-        return data.juegos.map(juego => ({
-            id: juego.id,
-            title: juego.name || 'Sin título',
-            cover: juego.cover?.url?.replace('//images.igdb.com/igdb/image/upload/t_thumb/', 'https://images.igdb.com/igdb/image/upload/t_cover_big/') || null,
-            releaseDate: juego.first_release_date ? new Date(juego.first_release_date * 1000).toISOString().split('T')[0] : null,
-            rating: juego.total_rating ? juego.total_rating.toFixed(1) : null,
-            ratingCount: juego.total_rating_count || 0,
-            platforms: juego.platforms?.map(p => p.name).join(', ') || '',
-            genres: juego.genres?.map(g => g.name).join(', ') || '',
-            description: juego.summary || '',
-            developer: juego.involved_companies?.find(c => c.developer)?.company?.name || '',
-            publisher: juego.involved_companies?.find(c => c.publisher)?.company?.name || '',
-            price: juego.itad?.precio || null,
-            priceStore: juego.itad?.stores || 'none',
-            priceUrl: juego.itad?.url || '',
-            type: 'game',
-            _raw: juego
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchGames:', error);
-        return await searchGamesSteam(query);
-    }
-}
-
-async function searchGamesSteam(query) {
-    try {
-        const response = await fetch(`/api/steam?query=${encodeURIComponent(query)}`);
-        const data = await response.json();
-
-        if (!data.juegos || data.juegos.length === 0) {
-            return [];
-        }
-
-        return data.juegos.map(juego => ({
-            id: juego.id,
-            title: juego.name || 'Sin título',
-            cover: juego.cover?.url || null,
-            releaseDate: null,
-            rating: null,
-            ratingCount: 0,
-            platforms: 'PC',
-            genres: '',
-            description: '',
-            developer: '',
-            publisher: '',
-            price: null,
-            priceStore: 'steam',
-            priceUrl: juego.itad?.url || '',
-            type: 'game',
-            _raw: juego,
-            _isSteamFallback: true
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchGamesSteam:', error);
-        return [];
-    }
-}
-
-async function searchMovies(query, page = 1, lang = 'es', minVotes = 0) {
-    try {
-        const params = new URLSearchParams({
-            tipo: 'movie',
-            query: query,
-            page: page,
-            lang: lang
-        });
-
-        if (minVotes > 0) {
-            params.append('minVotes', minVotes);
-        }
-
-        const response = await fetch(`/api/tmdb?${params.toString()}`);
-
-        if (!response.ok) {
-            return [];
-        }
-
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-            return [];
-        }
-
-        return data.map(item => ({
-            id: item.id,
-            title: item.titulo || 'Sin título',
-            cover: item.poster || null,
-            releaseDate: item.fecha || null,
-            rating: item.nota || null,
-            ratingCount: item.votos || 0,
-            platforms: item.plataformas || '',
-            genres: '',
-            description: '',
-            developer: '',
-            publisher: '',
-            price: null,
-            priceStore: 'none',
-            priceUrl: '',
-            duration: item.duracion || 0,
-            type: 'movie',
-            _raw: item
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchMovies:', error);
-        return [];
-    }
-}
-
-async function searchSeries(query, page = 1, lang = 'es', minVotes = 0) {
-    try {
-        const params = new URLSearchParams({
-            tipo: 'tv',
-            query: query,
-            page: page,
-            lang: lang
-        });
-
-        if (minVotes > 0) {
-            params.append('minVotes', minVotes);
-        }
-
-        const response = await fetch(`/api/tmdb?${params.toString()}`);
-
-        if (!response.ok) {
-            return [];
-        }
-
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-            return [];
-        }
-
-        return data.map(item => ({
-            id: item.id,
-            title: item.titulo || 'Sin título',
-            cover: item.poster || null,
-            releaseDate: item.fecha || null,
-            rating: item.nota || null,
-            ratingCount: item.votos || 0,
-            platforms: item.plataformas || '',
-            genres: '',
-            description: '',
-            developer: '',
-            publisher: '',
-            price: null,
-            priceStore: 'none',
-            priceUrl: '',
-            duration: item.duracion || 0,
-            seasons: item.temporadas || 0,
-            episodes: item.episodios || 0,
-            type: 'tv',
-            _raw: item
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchSeries:', error);
-        return [];
-    }
-}
-
-async function searchUsers(query) {
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return [];
-
-        const { data, error } = await supabase
-            .from('perfiles_publicos')
-            .select('auth_id, username, avatar')
-            .ilike('username', `%${query}%`)
-            .neq('auth_id', session.user.id)
-            .limit(20);
-
-        if (error) {
-            console.warn('⚠️ Error buscando usuarios:', error);
-            return [];
-        }
-
-        if (!data || data.length === 0) {
-            return [];
-        }
-
-        return data.map(user => ({
-            id: user.auth_id,
-            title: user.username || 'Usuario',
-            cover: user.avatar || null,
-            releaseDate: null,
-            rating: null,
-            ratingCount: 0,
-            platforms: '',
-            genres: '',
-            description: '',
-            developer: '',
-            publisher: '',
-            price: null,
-            priceStore: 'none',
-            priceUrl: '',
-            type: 'user',
-            username: user.username,
-            _raw: user
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchUsers:', error);
-        return [];
-    }
-}
-
-async function searchActors(query, lang = 'es') {
-    try {
-        const params = new URLSearchParams({
-            tipo: 'person',
-            query: query,
-            lang: lang
-        });
-
-        const response = await fetch(`/api/tmdb?${params.toString()}`);
-
-        if (!response.ok) {
-            return [];
-        }
-
-        const data = await response.json();
-
-        if (!data || data.length === 0) {
-            return [];
-        }
-
-        return data.map(item => ({
-            id: item.id,
-            title: item.name || 'Actor',
-            cover: item.profile_path ? `https://image.tmdb.org/t/p/w185${item.profile_path}` : null,
-            releaseDate: null,
-            rating: null,
-            ratingCount: 0,
-            platforms: '',
-            genres: '',
-            description: item.known_for_department || '',
-            developer: '',
-            publisher: '',
-            price: null,
-            priceStore: 'none',
-            priceUrl: '',
-            type: 'actor',
-            knownFor: item.known_for?.map(m => m.title || m.name).join(', ') || '',
-            _raw: item
-        }));
-
-    } catch (error) {
-        console.error('❌ Error en searchActors:', error);
-        return [];
-    }
-}
-
-// === RENDERIZADO DE RESULTADOS ===
-
-function renderSearchResults(results, searchTerm) {
-    const container = document.getElementById('search-results-grid');
-    const emptyState = document.getElementById('search-empty-state');
-    const noResults = document.getElementById('search-no-results');
-    const loadingState = document.getElementById('search-loading-state');
-    const noFilters = document.getElementById('search-no-filters');
-
-    if (!container) return;
-
-    // Ocultar estados de mensaje
-    if (emptyState) emptyState.style.display = 'none';
-    if (noResults) noResults.style.display = 'none';
-    if (loadingState) loadingState.style.display = 'none';
-    if (noFilters) noFilters.style.display = 'none';
-
-    // Si no hay resultados
-    if (!results || results.length === 0) {
-        container.style.display = 'none';
-        if (noResults) {
-            noResults.style.display = 'flex';
-            const msg = noResults.querySelector('p');
-            if (msg) msg.textContent = `No se encontraron resultados para "${searchTerm}". Prueba con otros términos o ajusta los filtros.`;
-        }
-        return;
-    }
-
-    // Agrupar por tipo
-    const grouped = {
-        game: [],
-        movie: [],
-        tv: [],
-        user: [],
-        actor: []
-    };
-
-    const typeLabels = {
-        game: { icon: 'fa-gamepad', label: 'Juegos' },
-        movie: { icon: 'fa-film', label: 'Películas' },
-        tv: { icon: 'fa-tv', label: 'Series' },
-        user: { icon: 'fa-users', label: 'Usuarios' },
-        actor: { icon: 'fa-user-tie', label: 'Actores' }
-    };
-
-    results.forEach(item => {
-        if (grouped[item.type]) {
-            grouped[item.type].push(item);
-        }
-    });
-
-    // Construir HTML
-    let html = '';
-    let totalResults = 0;
-
-    for (const [type, items] of Object.entries(grouped)) {
-        if (items.length === 0) continue;
-        totalResults += items.length;
-
-        const info = typeLabels[type] || { icon: 'fa-circle', label: type };
-        html += `
-            <div class="search-result-category">
-                <div class="search-category-header">
-                    <h3><i class="fas ${info.icon}"></i> ${info.label} <span class="category-count">${items.length}</span></h3>
-                </div>
-                <div class="search-result-grid">
-                    ${items.map(item => createSearchResultCard(item)).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    container.innerHTML = html;
-    container.style.display = 'flex';
-}
-
-function createSearchResultCard(item) {
-    const cover = item.cover || '';
-    const title = item.title || 'Sin título';
-    const type = item.type || 'unknown';
-
-    let badgeClass = 'search-result-badge';
-    let badgeText = type.toUpperCase();
-
-    if (type === 'game') badgeClass += ' game';
-    else if (type === 'movie') badgeClass += ' movie';
-    else if (type === 'tv') badgeClass += ' tv';
-    else if (type === 'user') badgeClass += ' user';
-    else if (type === 'actor') badgeClass += ' actor';
-
-    let extraInfo = '';
-    if (item.releaseDate) {
-        extraInfo = `<div class="game-release-info">${item.releaseDate}</div>`;
-    }
-    if (item.rating) {
-        extraInfo += `<div class="game-release-info">⭐ ${item.rating}</div>`;
-    }
-
-    return `
-        <div class="game-card" data-id="${item.id}" data-type="${item.type}" data-title="${title}">
-            <div class="game-cover-container">
-                <span class="${badgeClass}">${badgeText}</span>
-                ${cover ? `<img src="${cover}" alt="${title}" class="game-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas ${type === 'game' ? 'fa-gamepad' : type === 'movie' ? 'fa-film' : type === 'tv' ? 'fa-tv' : type === 'user' ? 'fa-user' : 'fa-user-tie'}\\'></i></div>'">`
-            : `<div class="no-cover"><i class="fas ${type === 'game' ? 'fa-gamepad' : type === 'movie' ? 'fa-film' : type === 'tv' ? 'fa-tv' : type === 'user' ? 'fa-user' : 'fa-user-tie'}"></i></div>`}
-            </div>
-            <div class="game-info">
-                <h3 class="game-title">${title}</h3>
-                ${extraInfo}
-            </div>
-        </div>
-    `;
-}
-
-// === EVENTOS DE LA PÁGINA #search ===
-
-let searchUnifiedTimeout = null;
-
-function initSearchUnified() {
-    const input = document.getElementById('search-unified-input');
-    if (!input) {
-        console.warn('⚠️ Elementos de búsqueda unificada no encontrados en el DOM');
-        return;
-    }
-
-    const btnSearch = document.getElementById('btn-search-unified');
-    const toggles = document.querySelectorAll('.search-type-toggle');
-    const btnSelectAll = document.getElementById('btn-select-all-toggles');
-    const btnSelectAllFromEmpty = document.getElementById('btn-select-all-from-empty');
-
-    if (!input) return;
-
-    // Función de búsqueda principal
-    async function performSearch() {
-        const query = input.value.trim();
-        if (!query) {
-            // Mostrar estado vacío
-            document.getElementById('search-results-grid').style.display = 'none';
-            document.getElementById('search-empty-state').style.display = 'flex';
-            document.getElementById('search-no-filters').style.display = 'none';
-            document.getElementById('search-no-results').style.display = 'none';
-            document.getElementById('search-loading-state').style.display = 'none';
-            return;
-        }
-
-        // Obtener tipos seleccionados
-        const selectedTypes = [];
-        toggles.forEach(toggle => {
-            if (toggle.checked) {
-                selectedTypes.push(toggle.value);
-            }
-        });
-
-        if (selectedTypes.length === 0) {
-            document.getElementById('search-results-grid').style.display = 'none';
-            document.getElementById('search-empty-state').style.display = 'none';
-            document.getElementById('search-no-filters').style.display = 'flex';
-            document.getElementById('search-no-results').style.display = 'none';
-            document.getElementById('search-loading-state').style.display = 'none';
-            return;
-        }
-
-        // Mostrar loading
-        document.getElementById('search-empty-state').style.display = 'none';
-        document.getElementById('search-no-filters').style.display = 'none';
-        document.getElementById('search-no-results').style.display = 'none';
-        document.getElementById('search-results-grid').style.display = 'none';
-        document.getElementById('search-loading-state').style.display = 'flex';
-
-        try {
-            // Ejecutar búsquedas en paralelo según tipos seleccionados
-            const promises = [];
-            const typeMap = {
-                'games': () => searchGames(query),
-                'movies': () => searchMovies(query),
-                'series': () => searchSeries(query),
-                'users': () => searchUsers(query),
-                'actors': () => searchActors(query)
-            };
-
-            selectedTypes.forEach(type => {
-                if (typeMap[type]) {
-                    promises.push(typeMap[type]());
-                }
-            });
-
-            const results = await Promise.all(promises);
-            const allResults = results.flat();
-
-            // Ocultar loading
-            document.getElementById('search-loading-state').style.display = 'none';
-
-            // Renderizar resultados
-            renderSearchResults(allResults, query);
-
-        } catch (error) {
-            console.error('❌ Error en búsqueda unificada:', error);
-            document.getElementById('search-loading-state').style.display = 'none';
-            showToast('error', 'Error', 'No se pudo completar la búsqueda.');
-        }
-    }
-
-    // Evento de búsqueda con debounce
-    function triggerSearch() {
-        clearTimeout(searchUnifiedTimeout);
-        searchUnifiedTimeout = setTimeout(performSearch, 500);
-    }
-
-    input.addEventListener('input', triggerSearch);
-
-    btnSearch?.addEventListener('click', () => {
-        clearTimeout(searchUnifiedTimeout);
-        performSearch();
-    });
-
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            clearTimeout(searchUnifiedTimeout);
-            performSearch();
-        }
-    });
-
-    // Toggles: recargar al cambiar
-    toggles.forEach(toggle => {
-        toggle.addEventListener('change', triggerSearch);
-    });
-
-    // Botón "Seleccionar Todo"
-    btnSelectAll?.addEventListener('click', () => {
-        const allChecked = Array.from(toggles).every(t => t.checked);
-        toggles.forEach(t => t.checked = !allChecked);
-        triggerSearch();
-    });
-
-    // Botón "Seleccionar Todo" desde el estado sin filtros
-    btnSelectAllFromEmpty?.addEventListener('click', () => {
-        toggles.forEach(t => t.checked = true);
-        triggerSearch();
-    });
-
-    // Clic en tarjetas para abrir modales
-    document.addEventListener('click', (e) => {
-        const card = e.target.closest('.search-result-grid .game-card');
-        if (!card) return;
-
-        const id = card.dataset.id;
-        const type = card.dataset.type;
-        const title = card.dataset.title || '';
-
-        if (type === 'game') {
-            // Abrir modal de juego
-            const juegoData = {
-                idJuego: id,
-                titulo: title,
-                urlAmigable: title.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_'),
-                storesRaw: 'none',
-                storeUrlRaw: '',
-                portadaSrc: card.querySelector('.game-cover')?.src || '',
-                htmlPlataformas: '',
-                fecha: 'TBA',
-                priceText: null,
-                priceNaText: null
-            };
-            if (typeof procesarAperturaModalJuego === 'function') {
-                procesarAperturaModalJuego(juegoData, true);
-            }
-        } else if (type === 'movie' || type === 'tv') {
-            if (typeof abrirModalMedia === 'function') {
-                abrirModalMedia(id, type);
-            }
-        } else if (type === 'user') {
-            if (typeof cambiarVista === 'function') {
-                cambiarVista('profile', true, title);
-            }
-        } else if (type === 'actor') {
-            // Mostrar información del actor (sin modal por ahora)
-            showToast('info', 'Actor', title);
-        }
-    });
-}
-
-// === INICIALIZAR CUANDO LA VISTA #search ESTÉ ACTIVA ===
-
-// Hook en cambiarVista para inicializar la búsqueda unificada
-const _originalCambiarVistaSearch = window.cambiarVista;
-if (typeof window.cambiarVista === 'function') {
-    window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
-        await _originalCambiarVistaSearch(target, guardarEnHistorial, usernameUrl);
-
-        if (target === 'search') {
-            // Inicializar la búsqueda unificada (solo una vez)
-            if (!window._searchUnifiedInited) {
-                // Esperar a que el DOM esté completamente renderizado
-                setTimeout(() => {
-                    if (document.getElementById('search-unified-input')) {
-                        initSearchUnified();
-                        window._searchUnifiedInited = true;
-                    }
-                }, 500);
-            }
-        }
-    };
-}
+// // === FUNCIONES DE BÚSQUEDA UNIFICADA ===
+
+// /**
+//  * Busca juegos en IGDB (con fallback a Steam)
+//  */
+// async function searchGames(query, offset = 0, sort = 'popularity.desc', lang = 'es') {
+//     try {
+//         const params = new URLSearchParams({
+//             query: query,
+//             offset: offset,
+//             limit: 50,
+//             sort: sort,
+//             lang: lang
+//         });
+
+//         const response = await fetch(`/api/igdb?${params.toString()}`);
+
+//         if (!response.ok) {
+//             return await searchGamesSteam(query);
+//         }
+
+//         const data = await response.json();
+
+//         if (!data.juegos || data.juegos.length === 0) {
+//             return await searchGamesSteam(query);
+//         }
+
+//         return data.juegos.map(juego => ({
+//             id: juego.id,
+//             title: juego.name || 'Sin título',
+//             cover: juego.cover?.url?.replace('//images.igdb.com/igdb/image/upload/t_thumb/', 'https://images.igdb.com/igdb/image/upload/t_cover_big/') || null,
+//             releaseDate: juego.first_release_date ? new Date(juego.first_release_date * 1000).toISOString().split('T')[0] : null,
+//             rating: juego.total_rating ? juego.total_rating.toFixed(1) : null,
+//             ratingCount: juego.total_rating_count || 0,
+//             platforms: juego.platforms?.map(p => p.name).join(', ') || '',
+//             genres: juego.genres?.map(g => g.name).join(', ') || '',
+//             description: juego.summary || '',
+//             developer: juego.involved_companies?.find(c => c.developer)?.company?.name || '',
+//             publisher: juego.involved_companies?.find(c => c.publisher)?.company?.name || '',
+//             price: juego.itad?.precio || null,
+//             priceStore: juego.itad?.stores || 'none',
+//             priceUrl: juego.itad?.url || '',
+//             type: 'game',
+//             _raw: juego
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchGames:', error);
+//         return await searchGamesSteam(query);
+//     }
+// }
+
+// async function searchGamesSteam(query) {
+//     try {
+//         const response = await fetch(`/api/steam?query=${encodeURIComponent(query)}`);
+//         const data = await response.json();
+
+//         if (!data.juegos || data.juegos.length === 0) {
+//             return [];
+//         }
+
+//         return data.juegos.map(juego => ({
+//             id: juego.id,
+//             title: juego.name || 'Sin título',
+//             cover: juego.cover?.url || null,
+//             releaseDate: null,
+//             rating: null,
+//             ratingCount: 0,
+//             platforms: 'PC',
+//             genres: '',
+//             description: '',
+//             developer: '',
+//             publisher: '',
+//             price: null,
+//             priceStore: 'steam',
+//             priceUrl: juego.itad?.url || '',
+//             type: 'game',
+//             _raw: juego,
+//             _isSteamFallback: true
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchGamesSteam:', error);
+//         return [];
+//     }
+// }
+
+// async function searchMovies(query, page = 1, lang = 'es', minVotes = 0) {
+//     try {
+//         const params = new URLSearchParams({
+//             tipo: 'movie',
+//             query: query,
+//             page: page,
+//             lang: lang
+//         });
+
+//         if (minVotes > 0) {
+//             params.append('minVotes', minVotes);
+//         }
+
+//         const response = await fetch(`/api/tmdb?${params.toString()}`);
+
+//         if (!response.ok) {
+//             return [];
+//         }
+
+//         const data = await response.json();
+
+//         if (!data || data.length === 0) {
+//             return [];
+//         }
+
+//         return data.map(item => ({
+//             id: item.id,
+//             title: item.titulo || 'Sin título',
+//             cover: item.poster || null,
+//             releaseDate: item.fecha || null,
+//             rating: item.nota || null,
+//             ratingCount: item.votos || 0,
+//             platforms: item.plataformas || '',
+//             genres: '',
+//             description: '',
+//             developer: '',
+//             publisher: '',
+//             price: null,
+//             priceStore: 'none',
+//             priceUrl: '',
+//             duration: item.duracion || 0,
+//             type: 'movie',
+//             _raw: item
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchMovies:', error);
+//         return [];
+//     }
+// }
+
+// async function searchSeries(query, page = 1, lang = 'es', minVotes = 0) {
+//     try {
+//         const params = new URLSearchParams({
+//             tipo: 'tv',
+//             query: query,
+//             page: page,
+//             lang: lang
+//         });
+
+//         if (minVotes > 0) {
+//             params.append('minVotes', minVotes);
+//         }
+
+//         const response = await fetch(`/api/tmdb?${params.toString()}`);
+
+//         if (!response.ok) {
+//             return [];
+//         }
+
+//         const data = await response.json();
+
+//         if (!data || data.length === 0) {
+//             return [];
+//         }
+
+//         return data.map(item => ({
+//             id: item.id,
+//             title: item.titulo || 'Sin título',
+//             cover: item.poster || null,
+//             releaseDate: item.fecha || null,
+//             rating: item.nota || null,
+//             ratingCount: item.votos || 0,
+//             platforms: item.plataformas || '',
+//             genres: '',
+//             description: '',
+//             developer: '',
+//             publisher: '',
+//             price: null,
+//             priceStore: 'none',
+//             priceUrl: '',
+//             duration: item.duracion || 0,
+//             seasons: item.temporadas || 0,
+//             episodes: item.episodios || 0,
+//             type: 'tv',
+//             _raw: item
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchSeries:', error);
+//         return [];
+//     }
+// }
+
+// async function searchUsers(query) {
+//     try {
+//         const { data: { session } } = await supabase.auth.getSession();
+//         if (!session) return [];
+
+//         const { data, error } = await supabase
+//             .from('perfiles_publicos')
+//             .select('auth_id, username, avatar')
+//             .ilike('username', `%${query}%`)
+//             .neq('auth_id', session.user.id)
+//             .limit(20);
+
+//         if (error) {
+//             console.warn('⚠️ Error buscando usuarios:', error);
+//             return [];
+//         }
+
+//         if (!data || data.length === 0) {
+//             return [];
+//         }
+
+//         return data.map(user => ({
+//             id: user.auth_id,
+//             title: user.username || 'Usuario',
+//             cover: user.avatar || null,
+//             releaseDate: null,
+//             rating: null,
+//             ratingCount: 0,
+//             platforms: '',
+//             genres: '',
+//             description: '',
+//             developer: '',
+//             publisher: '',
+//             price: null,
+//             priceStore: 'none',
+//             priceUrl: '',
+//             type: 'user',
+//             username: user.username,
+//             _raw: user
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchUsers:', error);
+//         return [];
+//     }
+// }
+
+// async function searchActors(query, lang = 'es') {
+//     try {
+//         const params = new URLSearchParams({
+//             tipo: 'person',
+//             query: query,
+//             lang: lang
+//         });
+
+//         const response = await fetch(`/api/tmdb?${params.toString()}`);
+
+//         if (!response.ok) {
+//             return [];
+//         }
+
+//         const data = await response.json();
+
+//         if (!data || data.length === 0) {
+//             return [];
+//         }
+
+//         return data.map(item => ({
+//             id: item.id,
+//             title: item.name || 'Actor',
+//             cover: item.profile_path ? `https://image.tmdb.org/t/p/w185${item.profile_path}` : null,
+//             releaseDate: null,
+//             rating: null,
+//             ratingCount: 0,
+//             platforms: '',
+//             genres: '',
+//             description: item.known_for_department || '',
+//             developer: '',
+//             publisher: '',
+//             price: null,
+//             priceStore: 'none',
+//             priceUrl: '',
+//             type: 'actor',
+//             knownFor: item.known_for?.map(m => m.title || m.name).join(', ') || '',
+//             _raw: item
+//         }));
+
+//     } catch (error) {
+//         console.error('❌ Error en searchActors:', error);
+//         return [];
+//     }
+// }
+
+// // === RENDERIZADO DE RESULTADOS ===
+
+// function renderSearchResults(results, searchTerm) {
+//     const container = document.getElementById('search-results-grid');
+//     const emptyState = document.getElementById('search-empty-state');
+//     const noResults = document.getElementById('search-no-results');
+//     const loadingState = document.getElementById('search-loading-state');
+//     const noFilters = document.getElementById('search-no-filters');
+
+//     if (!container) return;
+
+//     // Ocultar estados de mensaje
+//     if (emptyState) emptyState.style.display = 'none';
+//     if (noResults) noResults.style.display = 'none';
+//     if (loadingState) loadingState.style.display = 'none';
+//     if (noFilters) noFilters.style.display = 'none';
+
+//     // Si no hay resultados
+//     if (!results || results.length === 0) {
+//         container.style.display = 'none';
+//         if (noResults) {
+//             noResults.style.display = 'flex';
+//             const msg = noResults.querySelector('p');
+//             if (msg) msg.textContent = `No se encontraron resultados para "${searchTerm}". Prueba con otros términos o ajusta los filtros.`;
+//         }
+//         return;
+//     }
+
+//     // Agrupar por tipo
+//     const grouped = {
+//         game: [],
+//         movie: [],
+//         tv: [],
+//         user: [],
+//         actor: []
+//     };
+
+//     const typeLabels = {
+//         game: { icon: 'fa-gamepad', label: 'Juegos' },
+//         movie: { icon: 'fa-film', label: 'Películas' },
+//         tv: { icon: 'fa-tv', label: 'Series' },
+//         user: { icon: 'fa-users', label: 'Usuarios' },
+//         actor: { icon: 'fa-user-tie', label: 'Actores' }
+//     };
+
+//     results.forEach(item => {
+//         if (grouped[item.type]) {
+//             grouped[item.type].push(item);
+//         }
+//     });
+
+//     // Construir HTML
+//     let html = '';
+//     let totalResults = 0;
+
+//     for (const [type, items] of Object.entries(grouped)) {
+//         if (items.length === 0) continue;
+//         totalResults += items.length;
+
+//         const info = typeLabels[type] || { icon: 'fa-circle', label: type };
+//         html += `
+//             <div class="search-result-category">
+//                 <div class="search-category-header">
+//                     <h3><i class="fas ${info.icon}"></i> ${info.label} <span class="category-count">${items.length}</span></h3>
+//                 </div>
+//                 <div class="search-result-grid">
+//                     ${items.map(item => createSearchResultCard(item)).join('')}
+//                 </div>
+//             </div>
+//         `;
+//     }
+
+//     container.innerHTML = html;
+//     container.style.display = 'flex';
+// }
+
+// function createSearchResultCard(item) {
+//     const cover = item.cover || '';
+//     const title = item.title || 'Sin título';
+//     const type = item.type || 'unknown';
+
+//     let badgeClass = 'search-result-badge';
+//     let badgeText = type.toUpperCase();
+
+//     if (type === 'game') badgeClass += ' game';
+//     else if (type === 'movie') badgeClass += ' movie';
+//     else if (type === 'tv') badgeClass += ' tv';
+//     else if (type === 'user') badgeClass += ' user';
+//     else if (type === 'actor') badgeClass += ' actor';
+
+//     let extraInfo = '';
+//     if (item.releaseDate) {
+//         extraInfo = `<div class="game-release-info">${item.releaseDate}</div>`;
+//     }
+//     if (item.rating) {
+//         extraInfo += `<div class="game-release-info">⭐ ${item.rating}</div>`;
+//     }
+
+//     return `
+//         <div class="game-card" data-id="${item.id}" data-type="${item.type}" data-title="${title}">
+//             <div class="game-cover-container">
+//                 <span class="${badgeClass}">${badgeText}</span>
+//                 ${cover ? `<img src="${cover}" alt="${title}" class="game-cover" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\'><i class=\\'fas ${type === 'game' ? 'fa-gamepad' : type === 'movie' ? 'fa-film' : type === 'tv' ? 'fa-tv' : type === 'user' ? 'fa-user' : 'fa-user-tie'}\\'></i></div>'">`
+//             : `<div class="no-cover"><i class="fas ${type === 'game' ? 'fa-gamepad' : type === 'movie' ? 'fa-film' : type === 'tv' ? 'fa-tv' : type === 'user' ? 'fa-user' : 'fa-user-tie'}"></i></div>`}
+//             </div>
+//             <div class="game-info">
+//                 <h3 class="game-title">${title}</h3>
+//                 ${extraInfo}
+//             </div>
+//         </div>
+//     `;
+// }
+
+// // === EVENTOS DE LA PÁGINA #search ===
+
+// let searchUnifiedTimeout = null;
+
+// function initSearchUnified() {
+//     const input = document.getElementById('search-unified-input');
+//     if (!input) {
+//         console.warn('⚠️ Elementos de búsqueda unificada no encontrados en el DOM');
+//         return;
+//     }
+
+//     const btnSearch = document.getElementById('btn-search-unified');
+//     const toggles = document.querySelectorAll('.search-type-toggle');
+//     const btnSelectAll = document.getElementById('btn-select-all-toggles');
+//     const btnSelectAllFromEmpty = document.getElementById('btn-select-all-from-empty');
+
+//     if (!input) return;
+
+//     // Función de búsqueda principal
+//     async function performSearch() {
+//         const query = input.value.trim();
+//         if (!query) {
+//             // Mostrar estado vacío
+//             document.getElementById('search-results-grid').style.display = 'none';
+//             document.getElementById('search-empty-state').style.display = 'flex';
+//             document.getElementById('search-no-filters').style.display = 'none';
+//             document.getElementById('search-no-results').style.display = 'none';
+//             document.getElementById('search-loading-state').style.display = 'none';
+//             return;
+//         }
+
+//         // Obtener tipos seleccionados
+//         const selectedTypes = [];
+//         toggles.forEach(toggle => {
+//             if (toggle.checked) {
+//                 selectedTypes.push(toggle.value);
+//             }
+//         });
+
+//         if (selectedTypes.length === 0) {
+//             document.getElementById('search-results-grid').style.display = 'none';
+//             document.getElementById('search-empty-state').style.display = 'none';
+//             document.getElementById('search-no-filters').style.display = 'flex';
+//             document.getElementById('search-no-results').style.display = 'none';
+//             document.getElementById('search-loading-state').style.display = 'none';
+//             return;
+//         }
+
+//         // Mostrar loading
+//         document.getElementById('search-empty-state').style.display = 'none';
+//         document.getElementById('search-no-filters').style.display = 'none';
+//         document.getElementById('search-no-results').style.display = 'none';
+//         document.getElementById('search-results-grid').style.display = 'none';
+//         document.getElementById('search-loading-state').style.display = 'flex';
+
+//         try {
+//             // Ejecutar búsquedas en paralelo según tipos seleccionados
+//             const promises = [];
+//             const typeMap = {
+//                 'games': () => searchGames(query),
+//                 'movies': () => searchMovies(query),
+//                 'series': () => searchSeries(query),
+//                 'users': () => searchUsers(query),
+//                 'actors': () => searchActors(query)
+//             };
+
+//             selectedTypes.forEach(type => {
+//                 if (typeMap[type]) {
+//                     promises.push(typeMap[type]());
+//                 }
+//             });
+
+//             const results = await Promise.all(promises);
+//             const allResults = results.flat();
+
+//             // Ocultar loading
+//             document.getElementById('search-loading-state').style.display = 'none';
+
+//             // Renderizar resultados
+//             renderSearchResults(allResults, query);
+
+//         } catch (error) {
+//             console.error('❌ Error en búsqueda unificada:', error);
+//             document.getElementById('search-loading-state').style.display = 'none';
+//             showToast('error', 'Error', 'No se pudo completar la búsqueda.');
+//         }
+//     }
+
+//     // Evento de búsqueda con debounce
+//     function triggerSearch() {
+//         clearTimeout(searchUnifiedTimeout);
+//         searchUnifiedTimeout = setTimeout(performSearch, 500);
+//     }
+
+//     input.addEventListener('input', triggerSearch);
+
+//     btnSearch?.addEventListener('click', () => {
+//         clearTimeout(searchUnifiedTimeout);
+//         performSearch();
+//     });
+
+//     input.addEventListener('keypress', (e) => {
+//         if (e.key === 'Enter') {
+//             clearTimeout(searchUnifiedTimeout);
+//             performSearch();
+//         }
+//     });
+
+//     // Toggles: recargar al cambiar
+//     toggles.forEach(toggle => {
+//         toggle.addEventListener('change', triggerSearch);
+//     });
+
+//     // Botón "Seleccionar Todo"
+//     btnSelectAll?.addEventListener('click', () => {
+//         const allChecked = Array.from(toggles).every(t => t.checked);
+//         toggles.forEach(t => t.checked = !allChecked);
+//         triggerSearch();
+//     });
+
+//     // Botón "Seleccionar Todo" desde el estado sin filtros
+//     btnSelectAllFromEmpty?.addEventListener('click', () => {
+//         toggles.forEach(t => t.checked = true);
+//         triggerSearch();
+//     });
+
+//     // Clic en tarjetas para abrir modales
+//     document.addEventListener('click', (e) => {
+//         const card = e.target.closest('.search-result-grid .game-card');
+//         if (!card) return;
+
+//         const id = card.dataset.id;
+//         const type = card.dataset.type;
+//         const title = card.dataset.title || '';
+
+//         if (type === 'game') {
+//             // Abrir modal de juego
+//             const juegoData = {
+//                 idJuego: id,
+//                 titulo: title,
+//                 urlAmigable: title.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_'),
+//                 storesRaw: 'none',
+//                 storeUrlRaw: '',
+//                 portadaSrc: card.querySelector('.game-cover')?.src || '',
+//                 htmlPlataformas: '',
+//                 fecha: 'TBA',
+//                 priceText: null,
+//                 priceNaText: null
+//             };
+//             if (typeof procesarAperturaModalJuego === 'function') {
+//                 procesarAperturaModalJuego(juegoData, true);
+//             }
+//         } else if (type === 'movie' || type === 'tv') {
+//             if (typeof abrirModalMedia === 'function') {
+//                 abrirModalMedia(id, type);
+//             }
+//         } else if (type === 'user') {
+//             if (typeof cambiarVista === 'function') {
+//                 cambiarVista('profile', true, title);
+//             }
+//         } else if (type === 'actor') {
+//             // Mostrar información del actor (sin modal por ahora)
+//             showToast('info', 'Actor', title);
+//         }
+//     });
+// }
+
+// // === INICIALIZAR CUANDO LA VISTA #search ESTÉ ACTIVA ===
+
+// // Hook en cambiarVista para inicializar la búsqueda unificada
+// const _originalCambiarVistaSearch = window.cambiarVista;
+// if (typeof window.cambiarVista === 'function') {
+//     window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+//         await _originalCambiarVistaSearch(target, guardarEnHistorial, usernameUrl);
+
+//         if (target === 'search') {
+//             // Inicializar la búsqueda unificada (solo una vez)
+//             if (!window._searchUnifiedInited) {
+//                 // Esperar a que el DOM esté completamente renderizado
+//                 setTimeout(() => {
+//                     if (document.getElementById('search-unified-input')) {
+//                         initSearchUnified();
+//                         window._searchUnifiedInited = true;
+//                     }
+//                 }, 500);
+//             }
+//         }
+//     };
+// }
 
 // ==========================================================================
 //   WATCHLIST TVTIME — Episodios pendientes de series en progreso (CON CACHÉ)
