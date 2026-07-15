@@ -12637,8 +12637,7 @@ function formatearFecha(fechaStr) {
  * Reduce la altura del hero cuando el usuario hace scroll hacia abajo,
  * manteniendo un min-height de 200px, y la restaura al volver arriba.
  * 
- * VERSIÓN 6: Soporte para juegos (.game-hero-section) y pelis/series (#media-detail-hero-bg)
- * Además mueve los botones flotantes (favoritos y ojo) junto con el hero.
+ * VERSIÓN 5: Soporte para juegos (.game-hero-section) y pelis/series (#media-detail-hero-bg)
  */
 function configurarHeroDinamico() {
     // Buscar TODOS los heroes: tanto los de juegos como los de pelis/series
@@ -12651,44 +12650,21 @@ function configurarHeroDinamico() {
         if (!modal) return;
 
         // --- DETECTAR EL ELEMENTO DE SCROLL CORRECTO ---
+        // 1. Intentar con .game-detail-body (para juegos)
         let content = modal.querySelector('.game-detail-body');
+
+        // 2. Si no existe .game-detail-body, usar el propio modal como scroll
         if (!content) {
             content = modal;
         }
 
+        // 3. Si el contenido es el modal, asegurarnos de que tenga overflow-y: auto
         if (content === modal) {
             modal.style.overflowY = 'auto';
             modal.style.maxHeight = '100vh';
         }
 
-        // Buscar botones flotantes dentro del modal
-        const watchBtn = modal.querySelector('#btn-watch-toggle');
-        const favBtn = modal.querySelector('#favorite-button-container');
-        const favBtnInner = modal.querySelector('.favorite-btn-icon-only');
-
-        // Guardar posición original de los botones (offset desde el hero)
-        let watchBtnOriginalTop = null;
-        let favBtnOriginalTop = null;
-        let favContainerOriginalTop = null;
-
-        // Calcular posición original relativa al hero
-        const heroRect = hero.getBoundingClientRect();
-        const modalRect = modal.getBoundingClientRect();
-
-        if (watchBtn) {
-            const watchRect = watchBtn.getBoundingClientRect();
-            watchBtnOriginalTop = watchRect.top - heroRect.top;
-            // Guardar en dataset para usar después
-            watchBtn.dataset.originalTop = watchBtnOriginalTop;
-        }
-
-        if (favBtn) {
-            const favRect = favBtn.getBoundingClientRect();
-            favBtnOriginalTop = favRect.top - heroRect.top;
-            favBtn.dataset.originalTop = favBtnOriginalTop;
-        }
-
-        // Si ya tiene un listener de scroll, lo removemos
+        // Si ya tiene un listener de scroll, lo removemos para evitar duplicados
         if (hero._scrollHandler && content) {
             content.removeEventListener('scroll', hero._scrollHandler);
             delete hero._scrollHandler;
@@ -12729,45 +12705,10 @@ function configurarHeroDinamico() {
                 scrollTop = content.scrollTop || 0;
             }
 
-            // Reducir/restaurar hero
             if (scrollTop > 50) {
                 reducirHero();
             } else if (scrollTop < 20) {
                 restaurarHero();
-            }
-
-            // --- MOVER BOTONES FLOTANTES JUNTO CON EL HERO ---
-            // Calculamos cuánto se ha reducido el hero
-            const currentHeroHeight = hero.getBoundingClientRect().height;
-            const originalHeroHeight = parseFloat(hero.dataset.originalHeight) ||
-                (hero === document.querySelector('#media-detail-hero-bg') ? 250 : 350);
-
-            // Si el hero está reducido, mover los botones hacia arriba
-            if (isReduced) {
-                // Reducción = altura original - altura actual (pero sin pasarnos)
-                const reduction = Math.min(scrollTop, 150); // Máximo 150px de reducción
-
-                if (watchBtn && watchBtn.dataset.originalTop) {
-                    const baseTop = parseFloat(watchBtn.dataset.originalTop);
-                    const newTop = Math.max(10, baseTop - reduction); // Mínimo 10px desde el borde
-                    watchBtn.style.top = `${newTop}px`;
-                    watchBtn.style.transition = 'top 0.15s ease';
-                }
-
-                if (favBtn && favBtn.dataset.originalTop) {
-                    const baseTop = parseFloat(favBtn.dataset.originalTop);
-                    const newTop = Math.max(10, baseTop - reduction);
-                    favBtn.style.top = `${newTop}px`;
-                    favBtn.style.transition = 'top 0.15s ease';
-                }
-            } else {
-                // Restaurar posición original cuando el hero está expandido
-                if (watchBtn && watchBtn.dataset.originalTop) {
-                    watchBtn.style.top = `${watchBtn.dataset.originalTop}px`;
-                }
-                if (favBtn && favBtn.dataset.originalTop) {
-                    favBtn.style.top = `${favBtn.dataset.originalTop}px`;
-                }
             }
         }
 
@@ -12790,7 +12731,7 @@ function configurarHeroDinamico() {
         content.addEventListener('scroll', throttledScroll, { passive: true });
 
         // Ejecutamos una vez al abrir para asegurar estado inicial
-        setTimeout(handleScroll, 100);
+        setTimeout(handleScroll, 50);
     });
 }
 
@@ -12810,17 +12751,6 @@ function limpiarHeroObservers() {
             if (hero.dataset.originalHeight) {
                 hero.style.height = hero.dataset.originalHeight;
                 hero.style.minHeight = '200px';
-            }
-
-            // Restaurar posición de los botones flotantes
-            const watchBtn = modal.querySelector('#btn-watch-toggle');
-            const favBtn = modal.querySelector('#favorite-button-container');
-
-            if (watchBtn && watchBtn.dataset.originalTop) {
-                watchBtn.style.top = watchBtn.dataset.originalTop + 'px';
-            }
-            if (favBtn && favBtn.dataset.originalTop) {
-                favBtn.style.top = favBtn.dataset.originalTop + 'px';
             }
         });
     });
