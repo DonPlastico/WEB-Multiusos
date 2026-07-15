@@ -12639,6 +12639,8 @@ function formatearFecha(fechaStr) {
  * Configura el comportamiento del hero en los modales (juegos y media)
  * Reduce la altura del hero cuando el usuario hace scroll hacia abajo,
  * manteniendo un min-height de 350px, y la restaura al volver arriba.
+ * 
+ * VERSIÓN 3: Escucha el scroll en game-detail-body
  */
 function configurarHeroDinamico() {
     // Seleccionamos ambos heroes (juegos y media)
@@ -12651,12 +12653,17 @@ function configurarHeroDinamico() {
         const modal = hero.closest('.cyber-modal');
         if (!modal) return;
 
-        // Creamos un observador para detectar cuándo el contenido del modal
-        // comienza a hacer scroll sobre el hero
-        const content = modal.querySelector('.modal-content, .game-details-panel');
+        // El elemento que hace scroll es .game-detail-body dentro del modal
+        const content = modal.querySelector('.game-detail-body');
         if (!content) return;
 
-        // Guardamos la altura original en un atributo data para poder restaurarla
+        // Si ya tiene un listener de scroll, lo removemos para evitar duplicados
+        if (hero._scrollHandler) {
+            content.removeEventListener('scroll', hero._scrollHandler);
+            delete hero._scrollHandler;
+        }
+
+        // Guardamos la altura original
         const heightOriginal = getComputedStyle(hero).height;
         hero.dataset.originalHeight = heightOriginal;
 
@@ -12681,53 +12688,71 @@ function configurarHeroDinamico() {
             hero.style.transition = 'height 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
         }
 
-        // Creamos un IntersectionObserver que vigila el contenido del modal
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                // Si el contenido NO está intersectando la parte superior del modal
-                // significa que hemos hecho scroll hacia abajo
-                if (!entry.isIntersecting) {
-                    reducirHero();
-                } else {
-                    restaurarHero();
-                }
-            });
-        }, {
-            // Observamos la intersección del contenido con la parte superior del modal
-            root: modal,
-            threshold: 0,
-            rootMargin: '0px 0px 0px 0px'
-        });
+        // Handler del scroll - lógica principal
+        function handleScroll() {
+            const scrollTop = content.scrollTop;
 
-        // Observamos el contenido del modal (el elemento que contiene el scroll)
-        observer.observe(content);
+            // Si el scroll es mayor a 50px, reducimos el hero
+            if (scrollTop > 50) {
+                reducirHero();
+            }
+            // Si el scroll es menor a 20px, restauramos el hero
+            else if (scrollTop < 20) {
+                restaurarHero();
+            }
+        }
 
-        // Guardamos el observador en el modal para limpiarlo al cerrar
-        modal._heroObserver = observer;
+        // Función throttle para evitar muchas ejecuciones
+        let ticking = false;
+        function throttledScroll() {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    handleScroll();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+
+        // Guardamos el handler para poder limpiarlo después
+        hero._scrollHandler = throttledScroll;
+
+        // Añadimos el listener al elemento que hace scroll (.game-detail-body)
+        content.addEventListener('scroll', throttledScroll, { passive: true });
+
+        // Ejecutamos una vez al abrir para asegurar estado inicial
+        setTimeout(handleScroll, 50);
     });
 }
 
 /**
- * Limpia los observadores de los modales cuando se cierran
+ * Limpia los listeners de scroll de los modales cuando se cierran
  */
 function limpiarHeroObservers() {
     document.querySelectorAll('.cyber-modal').forEach(modal => {
-        if (modal._heroObserver) {
-            modal._heroObserver.disconnect();
-            delete modal._heroObserver;
-        }
+        const heroes = modal.querySelectorAll('.game-hero-section');
+        const content = modal.querySelector('.game-detail-body');
+        heroes.forEach(hero => {
+            if (hero._scrollHandler && content) {
+                content.removeEventListener('scroll', hero._scrollHandler);
+                delete hero._scrollHandler;
+            }
+            // Restauramos la altura original al cerrar
+            if (hero.dataset.originalHeight) {
+                hero.style.height = hero.dataset.originalHeight;
+                hero.style.minHeight = '350px';
+            }
+        });
     });
 }
 
 // Hook: Cuando se abre un modal, configuramos el hero
-// Interceptamos la apertura de los modales de juegos y media
 const _originalProcesarAperturaModalJuego = window.procesarAperturaModalJuego;
 window.procesarAperturaModalJuego = function (data, updateHistory) {
     if (typeof _originalProcesarAperturaModalJuego === 'function') {
         _originalProcesarAperturaModalJuego(data, updateHistory);
     }
-    // Configurar hero después de que el modal esté visible
-    setTimeout(configurarHeroDinamico, 100);
+    setTimeout(configurarHeroDinamico, 150);
 };
 
 const _originalAbrirModalMedia = window.abrirModalMedia;
@@ -12735,10 +12760,10 @@ window.abrirModalMedia = function (id, tipo, updateHistory) {
     if (typeof _originalAbrirModalMedia === 'function') {
         _originalAbrirModalMedia(id, tipo, updateHistory);
     }
-    setTimeout(configurarHeroDinamico, 100);
+    setTimeout(configurarHeroDinamico, 150);
 };
 
-// Limpiar observadores al cerrar modales
+// Limpiar al cerrar modales
 const _originalCerrarModalJuego = window.cerrarModalJuego;
 window.cerrarModalJuego = function () {
     if (typeof _originalCerrarModalJuego === 'function') {
@@ -12757,13 +12782,12 @@ window.cerrarModalMedia = function () {
 
 // También configurar cuando se abre el modal desde el enrutador (F5)
 document.addEventListener('DOMContentLoaded', () => {
-    // Observar cambios en la clase 'show' de los modales
     const modalObserver = new MutationObserver((mutations) => {
         mutations.forEach(mutation => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                 const modal = mutation.target;
                 if (modal.classList.contains('show')) {
-                    setTimeout(configurarHeroDinamico, 150);
+                    setTimeout(configurarHeroDinamico, 200);
                 } else {
                     limpiarHeroObservers();
                 }
