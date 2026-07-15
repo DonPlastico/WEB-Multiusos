@@ -10075,6 +10075,11 @@ let searchUnifiedTimeout = null;
 
 function initSearchUnified() {
     const input = document.getElementById('search-unified-input');
+    if (!input) {
+        console.warn('⚠️ Elementos de búsqueda unificada no encontrados en el DOM');
+        return;
+    }
+
     const btnSearch = document.getElementById('btn-search-unified');
     const toggles = document.querySelectorAll('.search-type-toggle');
     const btnSelectAll = document.getElementById('btn-select-all-toggles');
@@ -10242,8 +10247,13 @@ if (typeof window.cambiarVista === 'function') {
         if (target === 'search') {
             // Inicializar la búsqueda unificada (solo una vez)
             if (!window._searchUnifiedInited) {
-                setTimeout(initSearchUnified, 200);
-                window._searchUnifiedInited = true;
+                // Esperar a que el DOM esté completamente renderizado
+                setTimeout(() => {
+                    if (document.getElementById('search-unified-input')) {
+                        initSearchUnified();
+                        window._searchUnifiedInited = true;
+                    }
+                }, 500);
             }
         }
     };
