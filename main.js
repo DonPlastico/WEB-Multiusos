@@ -5476,6 +5476,67 @@ function renderGaleriaMediaJuego(juego) {
 
     thumbsContainer.innerHTML = '';
 
+    // ============================================================
+    // 🖼️ FONDO DEL HERO - Usar imagen HORIZONTAL de IGDB
+    // ============================================================
+    const heroBg = document.getElementById('detail-hero-bg');
+    let fondoAsignado = false;
+
+    // 1. PRIORIDAD 1: Artworks (arte conceptual horizontal, el más bonito)
+    if (juego.artworks && juego.artworks.length > 0) {
+        const artwork = juego.artworks[0];
+        if (artwork.url) {
+            const url = artwork.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://');
+            heroBg.style.backgroundImage = `url('${url}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center';
+            heroBg.style.backgroundRepeat = 'no-repeat';
+            fondoAsignado = true;
+            console.log('✅ Fondo: Artwork');
+        }
+    }
+
+    // 2. PRIORIDAD 2: Screenshots (capturas de juego horizontales)
+    if (!fondoAsignado && juego.screenshots && juego.screenshots.length > 0) {
+        const screenshot = juego.screenshots[0];
+        if (screenshot.url) {
+            const url = screenshot.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://');
+            heroBg.style.backgroundImage = `url('${url}')`;
+            heroBg.style.backgroundSize = 'cover';
+            heroBg.style.backgroundPosition = 'center';
+            heroBg.style.backgroundRepeat = 'no-repeat';
+            fondoAsignado = true;
+            console.log('✅ Fondo: Screenshot');
+        }
+    }
+
+    // 3. PRIORIDAD 3: Cover con blur (fallback, queda mejor que nada)
+    if (!fondoAsignado && juego.cover && juego.cover.url) {
+        const url = juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://');
+        heroBg.style.backgroundImage = `url('${url}')`;
+        heroBg.style.backgroundSize = 'cover';
+        heroBg.style.backgroundPosition = 'center 20%';
+        heroBg.style.backgroundRepeat = 'no-repeat';
+        // Aplicamos blur para disimular la pixelación
+        heroBg.style.filter = 'blur(12px) brightness(0.6)';
+        fondoAsignado = true;
+        console.log('✅ Fondo: Cover con blur (fallback)');
+    }
+
+    // 4. Si no hay nada, fondo oscuro por defecto
+    if (!fondoAsignado) {
+        heroBg.style.backgroundImage = 'none';
+        heroBg.style.background = 'var(--bg-elevated)';
+        console.log('⚠️ Sin fondo disponible');
+    }
+
+    // Aseguramos que el overlay existe y tiene el z-index correcto
+    const overlay = heroBg.querySelector('.hero-overlay-gradient');
+    if (overlay) {
+        overlay.style.zIndex = '2';
+    }
+    // ============================================================
+
     // Primero los videos (trailers/gameplay), luego las capturas de pantalla
     const videos = (juego.videos || [])
         .filter(v => v.video_id)
@@ -5495,28 +5556,28 @@ function renderGaleriaMediaJuego(juego) {
             label: 'Captura'
         }));
 
-    // Esto evita que el fondo se vea pixelado usando una imagen horizontal
-    if (screenshots.length > 0) {
-        // La primera captura es horizontal (16:9) perfecta para fondo
-        const primeraCaptura = screenshots[0].url; // Ya está formateada con t_screenshot_big
-        const heroBg = document.getElementById('detail-hero-bg');
-        if (heroBg) {
-            heroBg.style.backgroundImage = `url('${primeraCaptura}')`;
-            heroBg.style.backgroundSize = 'cover';
-            heroBg.style.backgroundPosition = 'center';
-            heroBg.style.backgroundRepeat = 'no-repeat';
-        }
-    }
+    // ============================================================
+    // 🖼️ TAMBIÉN AÑADIR ARTWORKS A LA GALERÍA (como imágenes extra)
+    // ============================================================
+    const artworks = (juego.artworks || [])
+        .filter(a => a.url)
+        .map(a => ({
+            type: 'image',
+            url: a.url.replace('t_thumb', 't_screenshot_big').replace('//', 'https://'),
+            thumbUrl: a.url.replace('//', 'https://'),
+            label: 'Arte conceptual'
+        }));
+    // ============================================================
 
-    const itemsGaleria = [...videos, ...screenshots];
+    const itemsGaleria = [...videos, ...screenshots, ...artworks];
 
-    // Si el juego no tiene ni videos ni capturas, mostramos un mensaje en lugar de ocultar
+    // Si el juego no tiene ni videos ni capturas ni artworks, mostramos un mensaje
     if (itemsGaleria.length === 0) {
-        mediaSection.style.display = 'block'; // Mostramos la sección
+        mediaSection.style.display = 'block';
         mediaSection.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 30px 20px; color: var(--text-muted);">
                 <i class="fas fa-image" style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.3;"></i>
-                <span style="font-size: 0.9rem;">No hay trailers ni capturas disponibles para este juego.</span>
+                <span style="font-size: 0.9rem;">No hay trailers ni imágenes disponibles para este juego.</span>
             </div>
         `;
         return;
@@ -5525,7 +5586,7 @@ function renderGaleriaMediaJuego(juego) {
     // Restaurar la estructura si habia sido modificada
     mediaSection.style.display = 'grid';
 
-    // Crear las miniaturas (mismo código que antes)
+    // Crear las miniaturas
     itemsGaleria.forEach((item, index) => {
         const thumb = document.createElement('div');
         thumb.className = 'media-thumb';
@@ -5549,9 +5610,9 @@ function renderGaleriaMediaJuego(juego) {
             thumb.setAttribute('data-type', 'image');
             thumb.setAttribute('data-full-src', item.url);
             thumb.innerHTML = `
-                <img src="${item.thumbUrl}" alt="Captura ${index + 1}" loading="lazy">
+                <img src="${item.thumbUrl}" alt="${item.label}" loading="lazy">
                 <div class="media-thumb-overlay">
-                    <span class="thumb-type-label image"><i class="fas fa-image"></i> Captura</span>
+                    <span class="thumb-type-label image"><i class="fas fa-image"></i> ${item.label}</span>
                 </div>
                 <span class="thumb-order-badge">${index + 1}</span>
             `;
@@ -5560,7 +5621,7 @@ function renderGaleriaMediaJuego(juego) {
         thumbsContainer.appendChild(thumb);
     });
 
-    // Por defecto: el primer video si existe, si no la primera captura
+    // Por defecto: el primer video si existe, si no la primera imagen
     mostrarMediaSeleccionada(itemsGaleria[0], 0, itemsGaleria.length);
 }
 

@@ -2935,6 +2935,7 @@ span.flatpickr-weekday {
    ========================================================================== */
 .game-hero-section {
     position: relative;
+    overflow: hidden;
     height: 45vh;
     min-height: 350px;
     background-size: cover;
@@ -3089,9 +3090,15 @@ span.flatpickr-weekday {
 .game-hero-section .hero-overlay-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.1) 0%, rgba(10, 10, 15, 0.7) 60%, var(--bg-main) 100%);
-    z-index: 1;
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.2) 0%, rgba(10, 10, 15, 0.7) 50%, var(--bg-main) 100%);
+    z-index: 2;
     pointer-events: none;
+}
+
+/* El contenido del hero debe estar por encima del overlay */
+.game-hero-section .hero-content-centered {
+    position: relative;
+    z-index: 3;
 }
 
 /* Cuando el fondo está borroso, el overlay se oscurece más */
