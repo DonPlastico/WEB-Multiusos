@@ -8540,10 +8540,19 @@ function actualizarBarraProgresoSeries() {
         return;
     }
 
-    // Contar episodios vistos
+    // Contar episodios vistos (restringido SOLO a los de esta serie)
     let vistos = 0;
-    if (window.episodiosVistosActuales) {
-        vistos = window.episodiosVistosActuales.size || 0;
+    if (window.episodiosVistosActuales && window.serieInfoActual && window.serieInfoActual.temporadas) {
+        window.serieInfoActual.temporadas.forEach(temp => {
+            if (temp.season_number > 0) { // Saltamos especiales
+                for (let i = 1; i <= temp.episode_count; i++) {
+                    // Verificamos si la key del episodio ("temporada_episodio") está en el Set
+                    if (window.episodiosVistosActuales.has(`${temp.season_number}_${i}`)) {
+                        vistos++;
+                    }
+                }
+            }
+        });
     }
 
     // Calcular porcentaje

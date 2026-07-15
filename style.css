@@ -2806,6 +2806,7 @@ span.flatpickr-weekday {
     transform: scale(0.95);
     transition: all 0.3s ease;
     border-radius: 20px;
+    margin-top: 25px;
 }
 
 .cyber-modal.show .modal-content {
@@ -2935,7 +2936,7 @@ span.flatpickr-weekday {
 
 .game-details-panel {
     width: 90vw !important;
-    height: 90vh !important;
+    height: 85vh !important;
     max-width: 1920px !important;
     max-height: 1080px !important;
     padding: 0 !important;
@@ -3115,7 +3116,7 @@ span.flatpickr-weekday {
 
 #media-details-modal .modal-content {
     width: 90vw !important;
-    height: 90dvh !important;
+    height: 85dvh !important;
     max-width: 1920px !important;
     max-height: 1080px !important;
     padding: 0 !important;
