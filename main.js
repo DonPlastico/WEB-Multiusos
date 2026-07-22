@@ -568,9 +568,24 @@ let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
 // funcion central de navegacion: cambia de vista, actualiza la url y el historial
 async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
-    // Si ya estamos en esa vista, no hacer nada (excepto si es profile con otro usuario)
-    // Si ya estamos en esa vista, no hacer nada (excepto si es profile con otro usuario)
+
+    // --- 1. DESTRUIR MODALES AL NAVEGAR ---
+    document.getElementById('media-details-modal')?.classList.remove('show');
+    document.getElementById('game-details-modal')?.classList.remove('show');
+    document.getElementById('edit-modal')?.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+
+    localStorage.removeItem('modalJuegoAbierto');
+    localStorage.removeItem('modalMediaAbierto');
+    if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
+    // --------------------------------------
+
+    // Si ya estamos en esa vista, actualizamos la URL (por si venimos de cerrar un modal) y salimos
     if (vistaActualGlobal === target && target !== 'profile') {
+        if (guardarEnHistorial && mapaRutas[target]) {
+            window.history.pushState({ vista: target }, '', mapaRutas[target]);
+        }
         return;
     }
 
@@ -607,7 +622,6 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     vistaActualGlobal = target;
 
     // RESOLVER USERNAME Y CAMBIAR LA URL AL INSTANTE
-    // si vamos a "profile" y no nos pasaron el username, cogemos el del usuario logeado
     if (target === 'profile' && !usernameUrl) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.user_metadata?.username) {
@@ -615,7 +629,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     }
 
-    // si toca, metemos la entrada nueva en el historial del navegador (pa el boton atras)
+    // si toca, metemos la entrada nueva en el historial
     if (guardarEnHistorial) {
         if (target === 'profile' && usernameUrl) {
             window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
@@ -624,9 +638,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     }
 
-    // lazy loading, cargo la api solo la primera vez que entro (asin no reventamos las apis a peticiones)
+    // lazy loading
     if (target === 'home') {
-        // Estas funciones ya tienen sus propios "if (yaCargado) return;", así que es seguro llamarlas
         cargarTendenciasInicial();
         cargarTendenciasPeliculasInicial();
         cargarTendenciasSeriesInicial();
@@ -643,7 +656,6 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         seriesCargadas = true;
         cargarGeneros('tv');
     } else if (target === 'profile') {
-        // Ejecutamos en segundo plano, sin recargas extra al terminar
         cargarPerfilPublico(usernameUrl).catch(err => console.error(err));
     } else if (target === 'admin-panel') {
         iniciarPanelAdmin();
@@ -651,6 +663,11 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
         inicializarMisListas();
+    }
+
+    // --- ACTUALIZAR META TAGS AL FINAL ---
+    if (typeof detectPageAndUpdate === 'function') {
+        setTimeout(detectPageAndUpdate, 50);
     }
 }
 
@@ -660,11 +677,9 @@ linksMenu.forEach(link => {
         evento.preventDefault();
         const target = link.getAttribute('data-target');
 
-        // DETECTAR SI HAY MODALES ABIERTOS
+        // Permitimos el clic si cambiamos de vista o si estamos en la misma pero hay un modal estorbando
         const modalAbierto = document.querySelector('.show#game-details-modal, .show#media-details-modal, .show#edit-modal');
 
-        // Solo cambiamos si NO estamos ya en esa vista (Evita historiales duplicados)
-        // EXCEPCIÓN: Si hay un modal abierto, permitimos el clic para forzar el cierre y resetear la URL
         if (vistaActualGlobal !== target || modalAbierto) {
             await cambiarVista(target, true);
         }
@@ -676,7 +691,6 @@ const logoHome = document.getElementById('logo-home');
 if (logoHome) {
     logoHome.addEventListener('click', async () => {
         await cambiarVista('home', true);
-        // quito el active del menu
         linksMenu.forEach(l => l.classList.remove('active'));
     });
 }
@@ -694,10 +708,8 @@ if (btnAdminTop) {
 // detecto cuando usan los botones atras/adelante del navegador
 window.addEventListener('popstate', async (evento) => {
 
-    // DESTRUCCIÓN MASIVA DE MODALES AL NAVEGAR ATRÁS/ADELANTE
     const modalJuego = document.getElementById('game-details-modal');
     const modalMedia = document.getElementById('media-details-modal');
-
     let cerroModal = false;
 
     if (modalJuego && modalJuego.classList.contains('show')) {
@@ -709,8 +721,6 @@ window.addEventListener('popstate', async (evento) => {
         cerroModal = true;
     }
 
-    // Si el botón de 'atrás' acaba de cerrar un modal, limpiamos scroll y nos detenemos.
-    // La URL ya ha retrocedido sola, así que la página de fondo ya es correcta.
     if (cerroModal) {
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
