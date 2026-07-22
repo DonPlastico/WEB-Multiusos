@@ -170,20 +170,25 @@ const _originalCambiarVista = window.cambiarVista || cambiarVista;
 // 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
 window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
 
-    // 1. Quitamos la clase 'show' de cualquier modal o menú desplegable abierto
-    document.querySelectorAll('.show').forEach(elemento => {
-        elemento.classList.remove('show');
-    });
+    // CERRAR MODALES ESPECÍFICOS POR ID
+    const mediaModal = document.getElementById('media-details-modal');
+    if (mediaModal) mediaModal.classList.remove('show');
 
-    // 2. Desbloqueamos el scroll por si había un modal gigante abierto
+    const gameModal = document.getElementById('game-details-modal');
+    if (gameModal) gameModal.classList.remove('show');
+
+    const editModal = document.getElementById('edit-modal');
+    if (editModal) editModal.classList.remove('show');
+
+    // Desbloqueamos el scroll del body
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // 3. Limpiamos la memoria local para que al hacer F5 en la nueva vista no salte el modal anterior
+    // Limpiamos la memoria local para que al hacer F5 en la nueva vista no salte el modal anterior
     localStorage.removeItem('modalJuegoAbierto');
     localStorage.removeItem('modalMediaAbierto');
 
-    // 4. Cerramos menús contextuales sueltos si están abiertos
+    // Cerramos menús contextuales sueltos si están abiertos
     if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
 
     // Llamar a la función original primero, dejamos q haga lo suyo de siempre
@@ -192,7 +197,6 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
     }
 
     // Actualizar meta tags DESPUÉS de cambiar la vista
-    // el setTimeout es pa dar tiempo a q el DOM se actualice del todo antes
     setTimeout(() => {
         detectPageAndUpdate();
     }, 50);
