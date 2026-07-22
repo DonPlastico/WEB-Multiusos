@@ -184,10 +184,6 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
 
-    // Limpiamos la memoria local para que al hacer F5 en la nueva vista no salte el modal anterior
-    localStorage.removeItem('modalJuegoAbierto');
-    localStorage.removeItem('modalMediaAbierto');
-
     // Cerramos menús contextuales sueltos si están abiertos
     if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
 
@@ -664,8 +660,12 @@ linksMenu.forEach(link => {
         evento.preventDefault();
         const target = link.getAttribute('data-target');
 
+        // DETECTAR SI HAY MODALES ABIERTOS
+        const modalAbierto = document.querySelector('.show#game-details-modal, .show#media-details-modal, .show#edit-modal');
+
         // Solo cambiamos si NO estamos ya en esa vista (Evita historiales duplicados)
-        if (vistaActualGlobal !== target) {
+        // EXCEPCIÓN: Si hay un modal abierto, permitimos el clic para forzar el cierre y resetear la URL
+        if (vistaActualGlobal !== target || modalAbierto) {
             await cambiarVista(target, true);
         }
     });
@@ -693,18 +693,35 @@ if (btnAdminTop) {
 
 // detecto cuando usan los botones atras/adelante del navegador
 window.addEventListener('popstate', async (evento) => {
-    // Si hay un modal de detalles de juego abierto, lo cerramos primero
+
+    // DESTRUCCIÓN MASIVA DE MODALES AL NAVEGAR ATRÁS/ADELANTE
     const modalJuego = document.getElementById('game-details-modal');
+    const modalMedia = document.getElementById('media-details-modal');
+
+    let cerroModal = false;
+
     if (modalJuego && modalJuego.classList.contains('show')) {
         modalJuego.classList.remove('show');
+        cerroModal = true;
+    }
+    if (modalMedia && modalMedia.classList.contains('show')) {
+        modalMedia.classList.remove('show');
+        cerroModal = true;
+    }
+
+    // Si el botón de 'atrás' acaba de cerrar un modal, limpiamos scroll y nos detenemos.
+    // La URL ya ha retrocedido sola, así que la página de fondo ya es correcta.
+    if (cerroModal) {
         document.body.classList.remove('no-scroll');
         document.documentElement.classList.remove('no-scroll');
+        localStorage.removeItem('modalJuegoAbierto');
+        localStorage.removeItem('modalMediaAbierto');
         return;
     }
 
     // Limpiar vista de editar perfil
     if (vistaActualGlobal === 'edit-profile') {
-        limpiarVistaEditarPerfil();
+        if (typeof limpiarVistaEditarPerfil === 'function') limpiarVistaEditarPerfil();
     }
 
     if (evento.state && evento.state.vista) {
