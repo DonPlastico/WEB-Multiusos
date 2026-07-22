@@ -164,14 +164,28 @@ let tendenciasSeriesCargadas = false;
 // =============================================
 //   INYECTAR EN EL FLUJO EXISTENTE
 // =============================================
-// aqui lo q hacemos es un "hook": pillamos la funcion cambiarVista que ya
-// existia y le metemos código extra por encima sin tener q tocarla entera
-
 // 1. Guardar referencia a la función original
 const _originalCambiarVista = window.cambiarVista || cambiarVista;
 
-// 2. Sobrescribir cambiarVista para incluir la actualización de meta tags
+// 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
 window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+
+    // 1. Quitamos la clase 'show' de cualquier modal o menú desplegable abierto
+    document.querySelectorAll('.show').forEach(elemento => {
+        elemento.classList.remove('show');
+    });
+
+    // 2. Desbloqueamos el scroll por si había un modal gigante abierto
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+
+    // 3. Limpiamos la memoria local para que al hacer F5 en la nueva vista no salte el modal anterior
+    localStorage.removeItem('modalJuegoAbierto');
+    localStorage.removeItem('modalMediaAbierto');
+
+    // 4. Cerramos menús contextuales sueltos si están abiertos
+    if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
+
     // Llamar a la función original primero, dejamos q haga lo suyo de siempre
     if (typeof _originalCambiarVista === 'function') {
         await _originalCambiarVista(target, guardarEnHistorial, usernameUrl);
