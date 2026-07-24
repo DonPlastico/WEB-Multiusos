@@ -168,7 +168,8 @@ let tendenciasSeriesCargadas = false;
 const _originalCambiarVista = window.cambiarVista || cambiarVista;
 
 // 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
-window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+// ¡AÑADIDO EL CUARTO PARÁMETRO: listaInfo!
+window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
 
     // CERRAR MODALES ESPECÍFICOS POR ID
     const mediaModal = document.getElementById('media-details-modal');
@@ -187,9 +188,9 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
     // Cerramos menús contextuales sueltos si están abiertos
     if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
 
-    // Llamar a la función original primero, dejamos q haga lo suyo de siempre
+    // Llamar a la función original primero, pasándole todos los parámetros
     if (typeof _originalCambiarVista === 'function') {
-        await _originalCambiarVista(target, guardarEnHistorial, usernameUrl);
+        await _originalCambiarVista(target, guardarEnHistorial, usernameUrl, listaInfo);
     }
 
     // Actualizar meta tags DESPUÉS de cambiar la vista
