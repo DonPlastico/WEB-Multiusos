@@ -2702,9 +2702,9 @@ function cargarTendenciasInicial() {
 // Esto es un "hack" para que cuando el usuario navegue a la vista de juegos,
 // las tendencias se carguen automaticamente
 const originalCambiarVista = cambiarVista;
-cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
-    // Llamar a la función original
-    await originalCambiarVista(target, guardarEnHistorial, usernameUrl);
+cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
+    // Llamar a la función original pasándole TODOS los parámetros
+    await originalCambiarVista(target, guardarEnHistorial, usernameUrl, listaInfo);
 
     // Si es la vista de juegos, cargar tendencias
     if (target === 'games') {
