@@ -1206,7 +1206,8 @@ input[type=number]::-webkit-outer-spin-button {
 
 /* Boton de limpiar filtros */
 #btn-reset-filters,
-.btn-reset-tmdb {
+.btn-reset-tmdb,
+#btn-reset-lista-filters {
     background: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-muted);
@@ -6707,7 +6708,6 @@ cast-carousel::-webkit-scrollbar {
 
 /* Contenido vacío con estilo glass */
 #lista-detalle .glass-panel {
-    padding: 60px 40px;
     text-align: center;
     margin-top: 20px;
     background: var(--glass-bg);
@@ -6715,14 +6715,6 @@ cast-carousel::-webkit-scrollbar {
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     box-shadow: var(--shadow-md);
-}
-
-#lista-detalle .glass-panel i {
-    font-size: 3rem;
-    color: var(--text-muted);
-    opacity: 0.5;
-    margin-bottom: 20px;
-    display: block;
 }
 
 #lista-detalle .glass-panel p {
@@ -7091,7 +7083,7 @@ cast-carousel::-webkit-scrollbar {
 
 .lista-detalle-layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1.5fr 0.5fr;
     gap: 40px;
     align-items: start;
     width: 100%;
