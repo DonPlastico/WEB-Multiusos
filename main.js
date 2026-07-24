@@ -13017,8 +13017,6 @@ function crearTarjetaConEstilo(estilo, data) {
     card.dataset.rating = data.rating;
     card.dataset.imagen = data.imagen;
 
-    console.log(`📌 [crearTarjetaConEstilo] Datos: ID=${data.id}, Tipo=${data.tipo}, Título=${data.titulo}`);
-
     card.onclick = () => {
         console.log(`🖱️ [click] Abriendo modal para ${data.titulo} (${data.tipo})`);
         abrirModalMedia(data.id, data.tipo);
@@ -13034,7 +13032,6 @@ function crearTarjetaConEstilo(estilo, data) {
 
     const ratingNum = parseFloat(data.rating) || 0;
     const estrellas = generarEstrellas(ratingNum);
-    console.log(`⭐ [crearTarjetaConEstilo] Rating: ${ratingNum}, estrellas generadas`);
 
     let html = '';
 
@@ -13110,7 +13107,6 @@ function crearTarjetaConEstilo(estilo, data) {
  * Genera el HTML de estrellas según una nota (0-10)
  */
 function generarEstrellas(nota) {
-    console.log(`⭐ [generarEstrellas] Nota: ${nota}`);
     const notaSobre5 = nota / 2;
     let html = '';
 
@@ -13123,7 +13119,6 @@ function generarEstrellas(nota) {
             html += '<i class="far fa-star" style="color:var(--text-muted);font-size:0.65rem;"></i>';
         }
     }
-    console.log(`✅ [generarEstrellas] HTML generado: ${html}`);
     return html;
 }
 
@@ -13589,14 +13584,12 @@ function renderizarItemsLista(items, resetear) {
     items.forEach((item, index) => {
         const key = `${item._media_id || item.id}_${item._media_tipo || item.tipo}`;
         const enriched = listaItemsEnriquecidos[key];
-        console.log(`🏗️ [renderizarItemsLista] Item ${index}: ${key}, enriquecido=${!!enriched}`);
 
         let card;
         if (enriched) {
             card = crearTarjetaConEstilo(estiloGuardado, enriched);
             console.log(`✅ [renderizarItemsLista] Item ${index} renderizado con datos enriquecidos`);
         } else if (item.placeholder) {
-            console.log(`⏳ [renderizarItemsLista] Item ${index} renderizado como placeholder`);
             card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
             card.style.opacity = '0.5';
@@ -13659,8 +13652,6 @@ function configurarObservadorLista() {
 //   SOBRESCRIBIR cargarDetalleLista PARA USAR LA CARGA DINÁMICA (VERSIÓN FINAL)
 // ==========================================================================
 window.cargarDetalleLista = async function (nombreLista) {
-    console.log(`📌 [cargarDetalleLista] nombreLista: "${nombreLista}"`);
-
     if (!nombreLista) {
         console.error('❌ [cargarDetalleLista] nombreLista está vacío');
         return;
