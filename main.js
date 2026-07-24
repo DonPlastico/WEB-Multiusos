@@ -13092,20 +13092,19 @@ function initListaEstiloFiltro() {
 
     /**
      * Aplica placeholders a las imágenes que fallen
+     * Soporta: .list-card-image (estilos 1,2,4) y .list-card-thumb (estilos 3,5)
      */
     function aplicarPlaceholders() {
         const content = document.querySelector('.lista-detalle-content');
         if (!content) return;
 
         // Buscar TODAS las imágenes dentro de tarjetas de lista
-        const images = content.querySelectorAll('.list-card-image img');
+        // Usamos dos selectores: .list-card-image img (estilos 1,2,4) y .list-card-thumb img (estilos 3,5)
+        const images = content.querySelectorAll('.list-card-image img, .list-card-thumb img');
 
         images.forEach(img => {
             // Si la imagen ya tiene un manejador onerror, no lo sobreescribimos
             if (img.hasAttribute('data-placeholder-applied')) return;
-
-            // Guardar el src original para depuración
-            const originalSrc = img.src;
 
             // Aplicar manejador de error
             img.onerror = function () {
@@ -13114,7 +13113,7 @@ function initListaEstiloFiltro() {
                 let iconClass = 'fa-film';
                 let texto = 'PORTADA NO DISPONIBLE';
 
-                // Buscar si hay un overlay con el tipo
+                // Buscar si hay un overlay con el tipo (estilos 1,2,4)
                 const overlay = card?.querySelector('.list-card-overlay');
                 if (overlay) {
                     const typeText = overlay.textContent.trim();
@@ -13145,7 +13144,43 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Crear el placeholder con Font Awesome (mismo estilo que en crearTarjetaTMDB)
+                // Para el estilo 3 (Listado), también podemos buscar el texto del subtítulo
+                if (!overlay) {
+                    const subEl = card?.querySelector('.list-card-sub');
+                    if (subEl) {
+                        const subText = subEl.textContent.trim();
+                        if (subText.includes('Película')) {
+                            iconClass = 'fa-film';
+                            texto = 'PORTADA NO DISPONIBLE';
+                        } else if (subText.includes('Serie')) {
+                            iconClass = 'fa-tv';
+                            texto = 'PORTADA NO DISPONIBLE';
+                        } else if (subText.includes('Juego')) {
+                            iconClass = 'fa-gamepad';
+                            texto = 'PORTADA NO DISPONIBLE';
+                        }
+                    }
+                }
+
+                // Determinar si es estilo 3 (Listado) para usar un placeholder más pequeño
+                const isListStyle = card?.classList.contains('list-card-style-3');
+                const isMosaicStyle = card?.classList.contains('list-card-style-5');
+
+                // Estilo diferente para tarjetas de listado (más compacto)
+                let fontSizeIcon = '3rem';
+                let fontSizeText = '0.8rem';
+                let padding = '0';
+
+                if (isListStyle) {
+                    fontSizeIcon = '2rem';
+                    fontSizeText = '0.65rem';
+                    padding = '5px';
+                } else if (isMosaicStyle) {
+                    fontSizeIcon = '2.5rem';
+                    fontSizeText = '0.7rem';
+                }
+
+                // Crear el placeholder con Font Awesome
                 this.parentElement.innerHTML = `
                     <div class="no-cover" style="
                         width: 100%;
@@ -13156,9 +13191,10 @@ function initListaEstiloFiltro() {
                         justify-content: center;
                         background: var(--bg-secondary);
                         color: var(--text-muted);
+                        padding: ${padding};
                     ">
-                        <i class="fas ${iconClass}" style="font-size: 3rem; margin-bottom: 10px;"></i>
-                        <span style="font-size: 0.8rem; text-align: center; font-weight: 600;">${texto}</span>
+                        <i class="fas ${iconClass}" style="font-size: ${fontSizeIcon}; margin-bottom: 6px;"></i>
+                        <span style="font-size: ${fontSizeText}; text-align: center; font-weight: 600; line-height: 1.3;">${texto}</span>
                     </div>
                 `;
             };
