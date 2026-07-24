@@ -13071,6 +13071,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * Inicializa el filtro de estilo de tarjeta en la vista de detalle de lista.
  * - Solo permite un estilo activo a la vez (comportamiento radio button).
  * - Muestra/oculta los contenedores de cada estilo.
+ * - Añade placeholders con icono para tarjetas sin imagen.
  */
 function initListaEstiloFiltro() {
     const sidebar = document.getElementById('lista-filter-sidebar');
@@ -13081,7 +13082,6 @@ function initListaEstiloFiltro() {
     if (styleCheckboxes.length === 0) return;
 
     // Mapeo de valor del checkbox -> clase del contenedor de estilo
-    // Los estilos en el HTML están agrupados en divs con clases específicas
     const estiloMap = {
         'estilo1': '.list-card-style-1',
         'estilo2': '.list-card-style-2',
@@ -13090,8 +13090,83 @@ function initListaEstiloFiltro() {
         'estilo5': '.list-card-style-5'
     };
 
-    // Para cada estilo, también necesitamos el contenedor padre (.lista-cards-grid)
-    // para poder ocultar/mostrar el grid completo
+    /**
+     * Aplica placeholders a las imágenes que fallen
+     */
+    function aplicarPlaceholders() {
+        const content = document.querySelector('.lista-detalle-content');
+        if (!content) return;
+
+        // Buscar TODAS las imágenes dentro de tarjetas de lista
+        const images = content.querySelectorAll('.list-card-image img');
+
+        images.forEach(img => {
+            // Si la imagen ya tiene un manejador onerror, no lo sobreescribimos
+            if (img.hasAttribute('data-placeholder-applied')) return;
+
+            // Guardar el src original para depuración
+            const originalSrc = img.src;
+
+            // Aplicar manejador de error
+            img.onerror = function () {
+                // Determinar el tipo de contenido por la clase del contenedor padre
+                const card = this.closest('[class*="list-card-style-"]');
+                let iconClass = 'fa-film';
+                let texto = 'PORTADA NO DISPONIBLE';
+
+                // Buscar si hay un overlay con el tipo
+                const overlay = card?.querySelector('.list-card-overlay');
+                if (overlay) {
+                    const typeText = overlay.textContent.trim();
+                    if (typeText.includes('Película')) {
+                        iconClass = 'fa-film';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    } else if (typeText.includes('Serie')) {
+                        iconClass = 'fa-tv';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    } else if (typeText.includes('Juego')) {
+                        iconClass = 'fa-gamepad';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    }
+                }
+
+                // Si no hay overlay, intentar adivinar por el onclick
+                if (!overlay) {
+                    const onclickAttr = card?.getAttribute('onclick') || '';
+                    if (onclickAttr.includes("'movie'")) {
+                        iconClass = 'fa-film';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    } else if (onclickAttr.includes("'tv'")) {
+                        iconClass = 'fa-tv';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    } else if (onclickAttr.includes("'game'")) {
+                        iconClass = 'fa-gamepad';
+                        texto = 'PORTADA NO DISPONIBLE';
+                    }
+                }
+
+                // Crear el placeholder con Font Awesome (mismo estilo que en crearTarjetaTMDB)
+                this.parentElement.innerHTML = `
+                    <div class="no-cover" style="
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        background: var(--bg-secondary);
+                        color: var(--text-muted);
+                    ">
+                        <i class="fas ${iconClass}" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                        <span style="font-size: 0.8rem; text-align: center; font-weight: 600;">${texto}</span>
+                    </div>
+                `;
+            };
+
+            // Marcar como procesada
+            img.setAttribute('data-placeholder-applied', 'true');
+        });
+    }
 
     /**
      * Aplica el estilo seleccionado: muestra solo el grid correspondiente
@@ -13110,7 +13185,9 @@ function initListaEstiloFiltro() {
             // Verificar si este grid contiene el estilo seleccionado
             const hasStyle = grid.querySelector(estiloMap[estiloSeleccionado]);
             if (hasStyle) {
-                grid.style.display = 'grid'; // Mostrar el grid que contiene el estilo
+                grid.style.display = 'grid';
+                // Aplicar placeholders a las imágenes de este grid
+                setTimeout(aplicarPlaceholders, 50);
             }
         });
     }
@@ -13164,8 +13241,13 @@ function initListaEstiloFiltro() {
 
     // --- Asignar event listeners ---
     styleCheckboxes.forEach(cb => {
+        cb.removeEventListener('change', handleStyleChange);
         cb.addEventListener('change', handleStyleChange);
     });
+
+    // También aplicar placeholders cuando se cargue completamente la vista
+    // (por si las imágenes se cargan después)
+    setTimeout(aplicarPlaceholders, 300);
 }
 
 // ==========================================
