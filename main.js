@@ -12982,7 +12982,6 @@ function aplicarEstiloLista(estilo) {
 
     // 3. Limpiar el grid
     grid.innerHTML = '';
-    console.log('🧹 [aplicarEstiloLista] Grid limpiado');
 
     // 4. Reconstruir cada tarjeta con el nuevo estilo
     tarjetasData.forEach((data, idx) => {
@@ -13146,27 +13145,22 @@ function actualizarGridColumns(estilo) {
         case 'estilo2':
         case 'estilo4':
             grid.classList.add('cards-grid-5');
-            console.log('✅ [actualizarGridColumns] Grid 5 columnas');
             break;
         case 'estilo3':
             grid.classList.add('cards-grid-1');
-            console.log('✅ [actualizarGridColumns] Grid 1 columna');
             break;
         default:
             grid.classList.add('cards-grid-5');
-            console.log('⚠️ [actualizarGridColumns] Default a 5 columnas');
     }
 }
 
 // --- CONFIGURAR EVENTOS DEL FILTRO DE ESTILO ---
 function configurarFiltroEstiloLista() {
-    console.log('🟢 [configurarFiltroEstiloLista] Iniciando...');
     const sidebar = document.getElementById('lista-filter-sidebar');
     if (!sidebar) {
         console.warn('⚠️ [configurarFiltroEstiloLista] Sidebar no encontrada');
         return;
     }
-    console.log('✅ [configurarFiltroEstiloLista] Sidebar encontrada');
 
     const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
     if (styleCheckboxes.length === 0) {
@@ -13202,23 +13196,17 @@ function configurarFiltroEstiloLista() {
         if (grid && grid.children.length > 0) {
             console.log(`⏰ [configurarFiltroEstiloLista] Aplicando estilo guardado: ${estiloGuardado}`);
             aplicarEstiloLista(estiloGuardado);
-        } else {
-            console.log('⏰ [configurarFiltroEstiloLista] Grid vacío, esperando carga de datos...');
         }
     }, 300);
-
-    console.log('✅ [configurarFiltroEstiloLista] Configuración completada');
 }
 
 // --- Manejador de cambio de estilo ---
 function handleStyleChange(e) {
-    console.log('🔄 [handleStyleChange] Evento change detectado');
     const changed = e.target;
     const isChecked = changed.checked;
     console.log(`📌 [handleStyleChange] Checkbox: ${changed.value}, checked: ${isChecked}`);
 
     if (!isChecked) {
-        console.log('🔄 [handleStyleChange] Desmarcado, volviendo a marcar');
         changed.checked = true;
         return;
     }
@@ -13244,11 +13232,8 @@ function handleStyleChange(e) {
 
 // También ejecutar cuando se carga la vista por primera vez
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 [DOMContentLoaded] Documento cargado');
     if (vistaActualGlobal === 'lista-detalle') {
-        console.log('🎯 [DOMContentLoaded] Vista actual es lista-detalle, configurando filtro');
         setTimeout(() => {
-            console.log('⏰ [DOMContentLoaded] Ejecutando configurarFiltroEstiloLista...');
             configurarFiltroEstiloLista();
         }, 300);
     } else {
@@ -13291,7 +13276,6 @@ async function cargarItemsLista(listaId, resetear = true) {
     }
 
     if (resetear) {
-        console.log('🔄 [cargarItemsLista] Resetear estado');
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
@@ -13300,7 +13284,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         const grid = document.getElementById('lista-detalle-grid');
         if (grid) {
             grid.innerHTML = '';
-            console.log('🧹 [cargarItemsLista] Grid limpiado');
         }
 
         document.getElementById('lista-detalle-loader').style.display = 'none';
@@ -13309,23 +13292,18 @@ async function cargarItemsLista(listaId, resetear = true) {
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) {
             mensaje.textContent = 'Cargando elementos...';
-            console.log('📝 [cargarItemsLista] Mensaje actualizado');
         }
     }
 
     if (listaItemsCargando) {
-        console.log('⏳ [cargarItemsLista] Ya está cargando, saliendo...');
         return;
     }
     listaItemsCargando = true;
-    console.log('🔒 [cargarItemsLista] Estado de carga: true');
 
     const loader = document.getElementById('lista-detalle-loader');
     loader.style.display = 'block';
-    console.log('⏳ [cargarItemsLista] Loader mostrado');
 
     try {
-        console.log('🔑 [cargarItemsLista] Obteniendo sesión de Supabase...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('No hay sesión activa');
@@ -13351,7 +13329,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         // ================================================================
         //  CONTAR TOTAL DE ITEMS (SIN range)
         // ================================================================
-        console.log(`📊 [cargarItemsLista] Contando items totales...`);
         const { count: totalCount, error: countError } = await supabase
             .from('listas_items')
             .select('id', { count: 'exact', head: true })
@@ -13381,7 +13358,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         console.log(`✅ [cargarItemsLista] Items obtenidos: ${items?.length || 0}`);
 
         if (!items || items.length === 0) {
-            console.log('📭 [cargarItemsLista] No hay items en esta lista');
             if (resetear) {
                 const grid = document.getElementById('lista-detalle-grid');
                 if (grid) {
@@ -13392,14 +13368,12 @@ async function cargarItemsLista(listaId, resetear = true) {
                             <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
                         </div>
                     `;
-                    console.log('📝 [cargarItemsLista] Mensaje de lista vacía mostrado');
                 }
                 const mensaje = document.getElementById('lista-detalle-mensaje');
                 if (mensaje) mensaje.textContent = '0 elementos en esta lista';
             }
             loader.style.display = 'none';
             listaItemsCargando = false;
-            console.log('🔓 [cargarItemsLista] Estado de carga: false');
             return;
         }
 
@@ -13418,14 +13392,12 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         if (resetear) {
             listaItemsActuales = itemsBasicos;
-            console.log('🔄 [cargarItemsLista] Lista actualizada (reset)');
         } else {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
             console.log(`🔄 [cargarItemsLista] Lista actualizada (append): ${listaItemsActuales.length} total`);
         }
 
         renderizarItemsLista(itemsBasicos, resetear);
-        console.log('🎨 [cargarItemsLista] Items renderizados');
 
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) {
@@ -13436,7 +13408,6 @@ async function cargarItemsLista(listaId, resetear = true) {
             console.log(`📝 [cargarItemsLista] Mensaje actualizado: ${mensaje.textContent}`);
         }
 
-        console.log('🚀 [cargarItemsLista] Iniciando enriquecimiento en segundo plano...');
         enriquecerItemsLista(itemsBasicos, resetear);
 
         let hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
@@ -13445,16 +13416,13 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (hayMas) {
             loader.style.display = 'block';
             document.getElementById('lista-detalle-end').style.display = 'none';
-            console.log('📡 [cargarItemsLista] Configurando observador...');
             configurarObservadorLista();
         } else {
             loader.style.display = 'none';
             document.getElementById('lista-detalle-end').style.display = 'block';
-            console.log('🏁 [cargarItemsLista] No hay más elementos');
             if (listaObservador) {
                 listaObservador.disconnect();
                 listaObservador = null;
-                console.log('🔌 [cargarItemsLista] Observador desconectado');
             }
         }
 
@@ -13473,16 +13441,13 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (hayMas) {
             loader.style.display = 'block';
             document.getElementById('lista-detalle-end').style.display = 'none';
-            console.log('📡 [cargarItemsLista] Configurando observador...');
             configurarObservadorLista();
         } else {
             loader.style.display = 'none';
             document.getElementById('lista-detalle-end').style.display = 'block';
-            console.log('🏁 [cargarItemsLista] No hay más elementos');
             if (listaObservador) {
                 listaObservador.disconnect();
                 listaObservador = null;
-                console.log('🔌 [cargarItemsLista] Observador desconectado');
             }
         }
 
@@ -13502,12 +13467,10 @@ async function cargarItemsLista(listaId, resetear = true) {
                     </button>
                 </div>
             `;
-            console.log('📝 [cargarItemsLista] Mensaje de error mostrado');
         }
     } finally {
         listaItemsCargando = false;
         loader.style.display = 'none';
-        console.log('🔓 [cargarItemsLista] Estado de carga: false, loader oculto');
     }
 }
 
@@ -13603,8 +13566,6 @@ async function enriquecerItemsLista(items, resetear) {
 
         await new Promise(resolve => setTimeout(resolve, 100));
     }
-
-    console.log('✅ [enriquecerItemsLista] Enriquecimiento completado');
 }
 
 /**
@@ -13623,7 +13584,6 @@ function renderizarItemsLista(items, resetear) {
 
     if (resetear) {
         grid.innerHTML = '';
-        console.log('🧹 [renderizarItemsLista] Grid limpiado (reset)');
     }
 
     items.forEach((item, index) => {
@@ -13668,11 +13628,9 @@ function renderizarItemsLista(items, resetear) {
  * Configura el observador de scroll para cargar más elementos
  */
 function configurarObservadorLista() {
-    console.log('📡 [configurarObservadorLista] Configurando observador...');
     if (listaObservador) {
         listaObservador.disconnect();
         listaObservador = null;
-        console.log('🔌 [configurarObservadorLista] Observador anterior desconectado');
     }
 
     const loader = document.getElementById('lista-detalle-loader');
@@ -13680,7 +13638,6 @@ function configurarObservadorLista() {
         console.warn('⚠️ [configurarObservadorLista] Loader no encontrado');
         return;
     }
-    console.log('✅ [configurarObservadorLista] Loader encontrado');
 
     // IMPORTANTE: Usar una función que capture el estado actual
     listaObservador = new IntersectionObserver((entries) => {
@@ -13696,17 +13653,12 @@ function configurarObservadorLista() {
     });
 
     listaObservador.observe(loader);
-    console.log('✅ [configurarObservadorLista] Observador configurado y observando');
 }
 
 // ==========================================================================
 //   SOBRESCRIBIR cargarDetalleLista PARA USAR LA CARGA DINÁMICA (VERSIÓN FINAL)
 // ==========================================================================
-
-console.log('📦 [GLOBAL] Sobrescribiendo cargarDetalleLista con versión definitiva...');
-
 window.cargarDetalleLista = async function (nombreLista) {
-    console.log(`🔍 [cargarDetalleLista] === INICIO ===`);
     console.log(`📌 [cargarDetalleLista] nombreLista: "${nombreLista}"`);
 
     if (!nombreLista) {
@@ -13723,7 +13675,6 @@ window.cargarDetalleLista = async function (nombreLista) {
 
     try {
         // 1. Obtener sesión
-        console.log('🔑 [cargarDetalleLista] Obteniendo sesión...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('No hay sesión activa');
@@ -13744,19 +13695,15 @@ window.cargarDetalleLista = async function (nombreLista) {
             throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
         }
 
-        console.log(`✅ [cargarDetalleLista] Lista encontrada: ID=${lista.id}, Tipo=${lista.tag_tipo}`);
-
         // 3. Guardar ID para futuras cargas
         listaIdActual = lista.id;
         listaTipoActual = lista.tag_tipo;
 
         // 4. Cargar los items (con paginación)
-        console.log('🚀 [cargarDetalleLista] Cargando items de la lista...');
         await cargarItemsLista(lista.id, true);
 
         // 5. Configurar el filtro de estilo DESPUÉS de que los items se hayan renderizado
         setTimeout(() => {
-            console.log('⏰ [cargarDetalleLista] Configurando filtro de estilo...');
             configurarFiltroEstiloLista();
         }, 500);
 
@@ -13780,11 +13727,7 @@ window.cargarDetalleLista = async function (nombreLista) {
             `;
         }
     }
-
-    console.log('🏁 [cargarDetalleLista] === FIN ===');
 };
-
-console.log('✅ [GLOBAL] Todos los scripts cargados correctamente');
 
 // ==========================================================================
 //   LIMPIAR FILTROS DE LISTA
