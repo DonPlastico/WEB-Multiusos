@@ -1,22 +1,18 @@
 // ============================================================
 //   API IGDB - JUEGOS (CON PRECIOS DE ITAD Y CACHÉ DE TOKEN)
 // ============================================================
-// Este endpoint se encarga de buscar juegos en IGDB, filtrarlos,
-// obtener sus precios desde IsThereAnyDeal (ITAD) y devolverlos
-// en un formato uniforme para el frontend.
 
 export default async function handler(req, res) {
-    // Desactivar caché para Vercel (para que siempre tengamos datos frescos)
+    // Desactivar caché para Vercel
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
 
-    // Variables de entorno para las APIs externas
+    // Variables de entorno
     const TWITCH_CLIENT_ID = process.env.TWITCH_CLIENT_ID;
     const TWITCH_CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
     const ITAD_API_KEY = process.env.ITAD_API_KEY;
 
-    // Verificar credenciales - si faltan, no podemos hacer nada
     if (!TWITCH_CLIENT_ID || !TWITCH_CLIENT_SECRET) {
         console.error('🔴 Faltan credenciales de Twitch');
         return res.status(500).json({
@@ -25,82 +21,30 @@ export default async function handler(req, res) {
         });
     }
 
-    // Extraer todos los parametros de la query string
     const { query } = req;
-    const busqueda = query.query || ''; // Texto de busqueda
-    const buscarPorId = query.id || ''; // Parámetro para buscar por ID
-    const offset = parseInt(query.offset) || 0; // Paginacion
-    const limit = Math.min(parseInt(query.limit) || 50, 50); // Limite de resultados (max 50)
-    const sortField = query.sort || 'first_release_date.desc'; // Orden
-    const platforms = query.platforms || ''; // Filtro de plataformas
-    const genres = query.genres || ''; // Filtro de generos
-    const dateMin = query.dateMin || ''; // Filtro fecha desde
-    const dateMax = query.dateMax || ''; // Filtro fecha hasta
-    const modes = query.modes || ''; // Filtro modos de juego
-    const lang = query.lang || 'es'; // Idioma
-
-    // Si se pasa 'id', buscar directamente por ID en IGDB
-    if (buscarPorId) {
-        try {
-            const igdbRes = await fetch('https://api.igdb.com/v4/games', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Client-ID': TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${access_token}`,
-                },
-                body: `
-                    fields name, cover.url, first_release_date, platforms.name, platforms.id,
-                        total_rating, total_rating_count, rating, rating_count, category,
-                        summary, involved_companies.company.name, involved_companies.developer,
-                        involved_companies.publisher, genres.name, game_modes.name, websites.url,
-                        screenshots.url, videos.video_id, videos.name;
-                    where id = ${buscarPorId};
-                    limit 1;
-                `
-            });
-
-            if (igdbRes.ok) {
-                const data = await igdbRes.json();
-                if (data && data.length > 0) {
-                    const juego = data[0];
-                    juego.itad = { precio: null, stores: 'none', url: '' };
-                    return res.status(200).json({
-                        juegos: [juego],
-                        total: 1,
-                        offset: 0,
-                        limit: 1,
-                        hasMore: false
-                    });
-                }
-            }
-        } catch (e) {
-            console.error('Error buscando por ID:', e);
-        }
-        return res.status(404).json({ juegos: [], total: 0 });
-    }
-
-    // Mapeo de idiomas a codigos numericos de IGDB
-    const langMap = {
-        'es': 169, 'en': 1, 'fr': 3, 'it': 4, 'de': 2,
-        'zh': 28, 'ja': 9, 'ko': 11
-    };
-    const igdbLang = langMap[lang] || 169;
+    const busqueda = query.query || '';
+    const buscarPorId = query.id || '';
+    const offset = parseInt(query.offset) || 0;
+    const limit = Math.min(parseInt(query.limit) || 50, 50);
+    const sortField = query.sort || 'first_release_date.desc';
+    const platforms = query.platforms || '';
+    const genres = query.genres || '';
+    const dateMin = query.dateMin || '';
+    const dateMax = query.dateMax || '';
+    const modes = query.modes || '';
+    const lang = query.lang || 'es';
+    const period = query.period || '';
 
     try {
         // =============================================
         // 1. OBTENER TOKEN DE TWITCH CON CACHÉ
         // =============================================
-        // IGDB requiere un token de Twitch que caduca cada ~24h
-        // Lo guardamos en memoria global para no pedirlo cada vez
         let access_token;
         const tokenCache = global.twitchToken;
 
         if (tokenCache && tokenCache.expires_at > Date.now()) {
-            // Si el token es valido, lo reutilizamos
             access_token = tokenCache.access_token;
         } else {
-            // Si ha caducado, pedimos uno nuevo
             const tokenRes = await fetch(
                 `https://id.twitch.tv/oauth2/token?client_id=${TWITCH_CLIENT_ID}&client_secret=${TWITCH_CLIENT_SECRET}&grant_type=client_credentials`,
                 { method: 'POST' }
@@ -118,7 +62,6 @@ export default async function handler(req, res) {
                 return res.status(500).json({ error: 'No se pudo obtener access_token' });
             }
 
-            // Guardamos el token en global con su fecha de expiracion (23h para ir seguros)
             global.twitchToken = {
                 access_token: tokenData.access_token,
                 expires_at: Date.now() + (23 * 60 * 60 * 1000)
@@ -127,75 +70,93 @@ export default async function handler(req, res) {
         }
 
         // =============================================
-        // 2. CONSTRUIR LA QUERY DE IGDB
+        // 2. SI SE PASA 'id', BUSCAR POR ID
         // =============================================
-        // IGDB usa un lenguaje de consulta tipo SQL personalizado
+        if (buscarPorId) {
+            try {
+                const igdbRes = await fetch('https://api.igdb.com/v4/games', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Client-ID': TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${access_token}`,
+                    },
+                    body: `
+                        fields name, cover.url, first_release_date, platforms.name, platforms.id,
+                            total_rating, total_rating_count, rating, rating_count, category,
+                            summary, involved_companies.company.name, involved_companies.developer,
+                            involved_companies.publisher, genres.name, game_modes.name, websites.url,
+                            screenshots.url, videos.video_id, videos.name;
+                        where id = ${buscarPorId};
+                        limit 1;
+                    `
+                });
+
+                if (igdbRes.ok) {
+                    const data = await igdbRes.json();
+                    if (data && data.length > 0) {
+                        const juego = data[0];
+                        juego.itad = { precio: null, stores: 'none', url: '' };
+                        return res.status(200).json({
+                            juegos: [juego],
+                            total: 1,
+                            offset: 0,
+                            limit: 1,
+                            hasMore: false
+                        });
+                    }
+                }
+                return res.status(404).json({ juegos: [], total: 0 });
+            } catch (e) {
+                console.error('Error buscando por ID:', e);
+                return res.status(500).json({ error: 'Error buscando por ID', details: e.message });
+            }
+        }
+
+        // =============================================
+        // 3. CONSTRUIR LA QUERY DE IGDB
+        // =============================================
         let whereClauses = [];
 
-        // Filtros basicos (plataformas, generos, modos)
         if (platforms) whereClauses.push(`platforms = (${platforms})`);
         if (genres) whereClauses.push(`genres = (${genres})`);
         if (modes) whereClauses.push(`game_modes = (${modes})`);
-
-        // Si se pasa 'period' en lugar de fechas, calcular automaticamente
-        // Esto es para las pestañas de "tendencias" (dia, semana, mes, año)
-        const period = query.period || '';
 
         if (period && !dateMin && !dateMax) {
             const ahora = new Date();
             let fechaInicio = new Date(ahora);
 
             switch (period) {
-                case 'day':
-                    fechaInicio.setDate(ahora.getDate() - 1);
-                    break;
-                case 'week':
-                    fechaInicio.setDate(ahora.getDate() - 7);
-                    break;
-                case 'month':
-                    fechaInicio.setMonth(ahora.getMonth() - 1);
-                    break;
-                case 'year':
-                    fechaInicio.setFullYear(ahora.getFullYear() - 1);
-                    break;
-                default:
-                    fechaInicio.setDate(ahora.getDate() - 7);
+                case 'day': fechaInicio.setDate(ahora.getDate() - 1); break;
+                case 'week': fechaInicio.setDate(ahora.getDate() - 7); break;
+                case 'month': fechaInicio.setMonth(ahora.getMonth() - 1); break;
+                case 'year': fechaInicio.setFullYear(ahora.getFullYear() - 1); break;
+                default: fechaInicio.setDate(ahora.getDate() - 7);
             }
 
             fechaInicio.setHours(0, 0, 0, 0);
             ahora.setHours(23, 59, 59, 999);
 
-            const minTimestamp = Math.floor(fechaInicio.getTime() / 1000);
-            const maxTimestamp = Math.floor(ahora.getTime() / 1000);
-
-            whereClauses.push(`first_release_date >= ${minTimestamp}`);
-            whereClauses.push(`first_release_date <= ${maxTimestamp}`);
+            whereClauses.push(`first_release_date >= ${Math.floor(fechaInicio.getTime() / 1000)}`);
+            whereClauses.push(`first_release_date <= ${Math.floor(ahora.getTime() / 1000)}`);
         }
 
-        // Filtros de fechas especificos (desde/hasta)
         if (dateMin) {
-            const minTimestamp = Math.floor(new Date(dateMin).getTime() / 1000);
-            whereClauses.push(`first_release_date >= ${minTimestamp}`);
+            whereClauses.push(`first_release_date >= ${Math.floor(new Date(dateMin).getTime() / 1000)}`);
         }
         if (dateMax) {
-            const maxTimestamp = Math.floor(new Date(dateMax).getTime() / 1000);
-            whereClauses.push(`first_release_date <= ${maxTimestamp}`);
+            whereClauses.push(`first_release_date <= ${Math.floor(new Date(dateMax).getTime() / 1000)}`);
         }
 
-        // Siempre incluir fecha para evitar resultados infinitos
-        // Si no hay busqueda ni filtros, mostramos juegos recientes con rating
         if (!busqueda && !dateMin && !dateMax && !period) {
             const hoy = Math.floor(Date.now() / 1000);
             whereClauses.push(`first_release_date != null`);
             whereClauses.push(`first_release_date <= ${hoy}`);
-            // Filtro para juegos con rating > 0 (evita basura)
             whereClauses.push(`total_rating_count > 0`);
         }
 
-        // Unimos todas las clausulas WHERE con "&" (AND en IGDB)
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
-        // Determinar el ordenamiento segun lo que pida el frontend
         let sortQuery = 'sort first_release_date desc;';
         if (sortField === 'rating.desc') sortQuery = 'sort total_rating desc;';
         else if (sortField === 'rating.asc') sortQuery = 'sort total_rating asc;';
@@ -203,7 +164,6 @@ export default async function handler(req, res) {
         else if (sortField === 'first_release_date.desc') sortQuery = 'sort first_release_date desc;';
         else if (sortField === 'first_release_date.asc') sortQuery = 'sort first_release_date asc;';
 
-        // Construir el body de la consulta (con o sin busqueda)
         let bodyQuery;
         if (busqueda) {
             bodyQuery = `
@@ -214,6 +174,7 @@ export default async function handler(req, res) {
                     screenshots.url, videos.video_id, videos.name;
                 search "${busqueda}";
                 ${whereQuery}
+                ${sortQuery}
                 limit ${limit};
                 offset ${offset};
             `;
@@ -232,7 +193,7 @@ export default async function handler(req, res) {
         }
 
         // =============================================
-        // 3. EJECUTAR CONSULTA EN IGDB
+        // 4. EJECUTAR CONSULTA EN IGDB
         // =============================================
         const igdbRes = await fetch('https://api.igdb.com/v4/games', {
             method: 'POST',
@@ -253,20 +214,16 @@ export default async function handler(req, res) {
         const dataRaw = await igdbRes.json();
 
         // =============================================
-        // 4. FILTRAR JUEGOS VÁLIDOS
+        // 5. FILTRAR JUEGOS
         // =============================================
-
-        // Categorias que queremos bloquear (3 = "addon" / DLC)
         const CATEGORIAS_BLOQUEADAS = [3];
 
-        // Filtramos juegos sin nombre o sin portada
         let juegosFiltrados = dataRaw.filter(juego => {
             const tieneNombre = juego.name && juego.name.length > 0;
             const tienePortada = juego.cover && juego.cover.url;
             return tieneNombre && tienePortada;
         });
 
-        // Si no es busqueda, tambien filtramos por categoria (excluimos DLCs)
         if (!busqueda) {
             juegosFiltrados = juegosFiltrados.filter(juego => {
                 const categoria = juego.category ?? -1;
@@ -274,8 +231,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // Desduplicación - a veces IGDB devuelve el mismo juego varias veces
-        // con diferentes categorias (base game, edition, etc). Nos quedamos con la mejor.
         const vistos = new Map();
         juegosFiltrados.forEach(juego => {
             let nombreBase = juego.name;
@@ -290,7 +245,7 @@ export default async function handler(req, res) {
             const key = nombreBase.toLowerCase();
             if (vistos.has(key)) {
                 const existente = vistos.get(key);
-                const esBase = juego.category === 0; // 0 = base game
+                const esBase = juego.category === 0;
                 const existenteEsBase = existente.category === 0;
                 if (esBase && !existenteEsBase) {
                     vistos.set(key, juego);
@@ -303,14 +258,12 @@ export default async function handler(req, res) {
         juegosFiltrados = Array.from(vistos.values());
 
         // =============================================
-        // 5. CONSULTAR ITAD (PRECIOS)
+        // 6. CONSULTAR ITAD (PRECIOS)
         // =============================================
-        // IsThereAnyDeal nos da los precios mas baratos de cada juego
         let mapaPrecios = {};
 
         if (ITAD_API_KEY) {
             try {
-                // Primero buscamos el ID de cada juego en ITAD
                 const promesasITAD = juegosFiltrados.map(async (juego) => {
                     try {
                         const controller = new AbortController();
@@ -336,7 +289,6 @@ export default async function handler(req, res) {
                 const resultadosITAD = (await Promise.all(promesasITAD)).filter(r => r !== null);
                 const itadIds = resultadosITAD.map(r => r.itadId);
 
-                // Luego pedimos los precios de todos los IDs encontrados
                 if (itadIds.length > 0) {
                     try {
                         const controller = new AbortController();
@@ -364,7 +316,6 @@ export default async function handler(req, res) {
                     }
                 }
 
-                // Asignamos la informacion de precio a cada juego
                 juegosFiltrados.forEach(juego => {
                     const matchITAD = resultadosITAD?.find(r => r.igdbId === juego.id);
                     let infoPrecio = { precio: null, stores: 'none', url: '' };
@@ -386,16 +337,13 @@ export default async function handler(req, res) {
                 console.warn('⚠️ Error en ITAD:', e.message);
             }
         } else {
-            // Si no hay API key de ITAD, dejamos precio null
             juegosFiltrados.forEach(juego => {
                 juego.itad = { precio: null, stores: 'none', url: '' };
             });
         }
 
-        // hasMore se basa en si IGDB devolvió el límite completo
         const hasMore = dataRaw.length === limit;
 
-        // Devolvemos los resultados en el formato que espera el frontend
         res.status(200).json({
             juegos: juegosFiltrados,
             total: dataRaw.length,
