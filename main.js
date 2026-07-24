@@ -771,6 +771,9 @@ function arrancarEnrutador() {
         vistaInicial = 'series';
     } else if (rutaActual.startsWith('/admin')) {
         vistaInicial = 'admin-panel';
+    } else if (rutaActual.startsWith('/mis-listas/')) {
+        vistaInicial = 'lista-detalle';
+        listaSegmentoInicial = decodeURIComponent(rutaActual.replace('/mis-listas/', '').split('/')[0]);
     } else if (rutaActual.startsWith('/mis-listas')) {
         vistaInicial = 'mis-listas';
     } else if (rutaActual.startsWith('/editar-perfil')) {
@@ -791,7 +794,11 @@ function arrancarEnrutador() {
     }
 
     // Cambiar directamente a la vista detectada
-    cambiarVista(vistaInicial, false, userInitial);
+    if (vistaInicial === 'lista-detalle' && listaSegmentoInicial) {
+        cambiarVista(vistaInicial, false, userInitial, { param: listaSegmentoInicial });
+    } else {
+        cambiarVista(vistaInicial, false, userInitial);
+    }
 
     // ACTUALIZAR EL MENÚ ACTIVO
     linksMenu.forEach(link => {
@@ -11523,6 +11530,8 @@ function crearListCard(lista) {
 
     const cardEl = clone.querySelector('.list-card');
     cardEl.dataset.listId = lista.id;
+    cardEl.style.cursor = 'pointer';
+    cardEl.addEventListener('click', () => abrirListaDetalle(lista));
 
     // Rellenar datos basicos
     clone.querySelector('.list-card-title').textContent = lista.titulo;
@@ -11566,6 +11575,95 @@ function crearListCard(lista) {
     });
 
     return clone.firstElementChild;
+}
+
+// ==========================================================================
+//   DETALLE DE UNA LISTA (vista /mis-listas/{slug o token})
+// ==========================================================================
+
+// Genera el mismo tipo de slug que ya usamos para /juegos/{nombre}
+function generarSlugLista(titulo) {
+    return (titulo || '').replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
+}
+
+// Se llama al hacer click en una card: decide la URL (publica=slug, privada=token de sesion)
+function abrirListaDetalle(lista) {
+    let segmento;
+
+    if (lista.is_public) {
+        segmento = generarSlugLista(lista.titulo);
+    } else {
+        // Token nuevo cada vez, solo vive en esta pestaña/sesion (sessionStorage)
+        segmento = crypto.randomUUID();
+        const tokens = JSON.parse(sessionStorage.getItem('tokensListasPrivadas') || '{}');
+        tokens[segmento] = lista.id;
+        sessionStorage.setItem('tokensListasPrivadas', JSON.stringify(tokens));
+    }
+
+    cambiarVista('lista-detalle', true, null, { param: lista, urlPath: `/mis-listas/${segmento}` });
+}
+
+// Resuelve un segmento de URL (token privado o slug publico) contra Supabase
+async function resolverListaPorSegmento(segmento) {
+    const tokens = JSON.parse(sessionStorage.getItem('tokensListasPrivadas') || '{}');
+    const listaIdPorToken = tokens[segmento];
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (listaIdPorToken) {
+        const { data, error } = await supabase
+            .from('listas_maestra')
+            .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
+            .eq('id', listaIdPorToken)
+            .maybeSingle();
+
+        if (error || !data) return null;
+        if (data.is_public) return data;
+        if (!session) return null;
+        if (data.owner_id === session.user.id) return data;
+
+        const { data: miembro } = await supabase
+            .from('listas_miembros')
+            .select('id')
+            .eq('lista_id', data.id)
+            .eq('user_id', session.user.id)
+            .eq('estado', 'accepted')
+            .maybeSingle();
+
+        return miembro ? data : null;
+    }
+
+    // No es un token nuestro: lo tratamos como slug de una lista publica
+    const { data: publicas, error } = await supabase
+        .from('listas_maestra')
+        .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
+        .eq('is_public', true);
+
+    if (error || !publicas) return null;
+    return publicas.find(l => generarSlugLista(l.titulo) === segmento) || null;
+}
+
+// Carga (si hace falta) y pinta la vista de detalle de lista
+async function cargarYPintarListaDetalle(param) {
+    const contenedor = document.getElementById('lista-detalle-contenido');
+    const nombreEl = document.getElementById('lista-detalle-nombre');
+    if (contenedor) contenedor.innerHTML = '<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>';
+
+    let lista = null;
+    if (param && typeof param === 'object') {
+        lista = param; // ya la teniamos (venimos de un click en la card)
+    } else if (typeof param === 'string') {
+        lista = await resolverListaPorSegmento(param); // venimos de URL directa/recarga
+    }
+
+    if (!lista) {
+        showToast('error', 'Lista no encontrada', 'No existe esa lista o no tienes acceso a ella.');
+        await cambiarVista('mis-listas', true);
+        return;
+    }
+
+    listaDetalleActual = lista;
+    if (nombreEl) nombreEl.textContent = lista.titulo;
+    if (contenedor) contenedor.innerHTML = ''; // vacio -> el CSS :empty ya pinta el placeholder
 }
 
 // ==========================================================================
