@@ -11434,6 +11434,9 @@ async function cargarDetalleLista(nombreLista) {
             window._listaUrlNombre = slugEsperado;
         }
 
+        configurarFiltrosLista(lista.tag_tipo);
+        initListaEstiloFiltro();
+
     } catch (err) {
         console.error('Error cargando detalle de lista:', err);
         if (tituloEl) tituloEl.textContent = 'Error';
@@ -11469,10 +11472,6 @@ function configurarFiltrosLista(tagTipo) {
 
     console.log(`🎯 Filtros configurados para tipo: ${tagTipo}`);
 }
-
-// Llamar esta función desde cargarDetalleLista() después de obtener la lista
-// Añadir al final de cargarDetalleLista():
-// configurarFiltrosLista(lista.tag_tipo);
 
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
@@ -13063,6 +13062,111 @@ document.addEventListener('DOMContentLoaded', () => {
         modalObserver.observe(modal, { attributes: true });
     });
 });
+
+// ============================================================
+//   FILTRO DE ESTILO DE TARJETA EN LISTA DETALLE
+// ============================================================
+
+/**
+ * Inicializa el filtro de estilo de tarjeta en la vista de detalle de lista.
+ * - Solo permite un estilo activo a la vez (comportamiento radio button).
+ * - Muestra/oculta los contenedores de cada estilo.
+ */
+function initListaEstiloFiltro() {
+    const sidebar = document.getElementById('lista-filter-sidebar');
+    if (!sidebar) return;
+
+    // Buscar los checkboxes dentro del accordion "ESTILO DE TARJETA"
+    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
+    if (styleCheckboxes.length === 0) return;
+
+    // Mapeo de valor del checkbox -> clase del contenedor de estilo
+    // Los estilos en el HTML están agrupados en divs con clases específicas
+    const estiloMap = {
+        'estilo1': '.list-card-style-1',
+        'estilo2': '.list-card-style-2',
+        'estilo3': '.list-card-style-3',
+        'estilo4': '.list-card-style-4',
+        'estilo5': '.list-card-style-5'
+    };
+
+    // Para cada estilo, también necesitamos el contenedor padre (.lista-cards-grid)
+    // para poder ocultar/mostrar el grid completo
+
+    /**
+     * Aplica el estilo seleccionado: muestra solo el grid correspondiente
+     */
+    function aplicarEstilo(estiloSeleccionado) {
+        const content = document.querySelector('.lista-detalle-content');
+        if (!content) return;
+
+        // Buscar TODOS los grids de tarjetas dentro del contenido
+        const grids = content.querySelectorAll('.lista-cards-grid');
+
+        grids.forEach(grid => {
+            // Ocultar todos por defecto
+            grid.style.display = 'none';
+
+            // Verificar si este grid contiene el estilo seleccionado
+            const hasStyle = grid.querySelector(estiloMap[estiloSeleccionado]);
+            if (hasStyle) {
+                grid.style.display = 'grid'; // Mostrar el grid que contiene el estilo
+            }
+        });
+    }
+
+    /**
+     * Maneja el cambio de checkbox: desmarca los demás y aplica el estilo
+     */
+    function handleStyleChange(e) {
+        const changed = e.target;
+        const isChecked = changed.checked;
+
+        // Si se ha DESmarcado, lo volvemos a marcar (no permitimos desactivar todos)
+        if (!isChecked) {
+            changed.checked = true;
+            return;
+        }
+
+        // Desmarcar todos los demás checkboxes
+        styleCheckboxes.forEach(cb => {
+            if (cb !== changed) {
+                cb.checked = false;
+            }
+        });
+
+        // Aplicar el estilo seleccionado
+        const valor = changed.value;
+        if (estiloMap[valor]) {
+            aplicarEstilo(valor);
+        }
+    }
+
+    // --- Configurar estado inicial ---
+    // Por defecto, activar "estilo1" (Estándar)
+    let defaultSet = false;
+    styleCheckboxes.forEach(cb => {
+        if (cb.value === 'estilo1') {
+            cb.checked = true;
+            defaultSet = true;
+        } else {
+            cb.checked = false;
+        }
+    });
+
+    // Si por algún casual no existe "estilo1", activar el primero
+    if (!defaultSet && styleCheckboxes.length > 0) {
+        styleCheckboxes[0].checked = true;
+        aplicarEstilo(styleCheckboxes[0].value);
+    } else {
+        aplicarEstilo('estilo1');
+    }
+
+    // --- Asignar event listeners ---
+    styleCheckboxes.forEach(cb => {
+        cb.addEventListener('change', handleStyleChange);
+    });
+}
 
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
