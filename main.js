@@ -12948,7 +12948,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Reconstruye las tarjetas de la lista con el estilo seleccionado.
- * @param {string} estilo - 'estilo1', 'estilo2', 'estilo3', 'estilo4', 'estilo5'
+ * @param {string} estilo - 'estilo1', 'estilo2', 'estilo3', 'estilo4'
  */
 function aplicarEstiloLista(estilo) {
     console.log(`🔄 [aplicarEstiloLista] Aplicando estilo: ${estilo}`);
@@ -13097,17 +13097,6 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo5':
-            html = `
-                <div class="list-card-mosaic">
-                    <div class="list-card-image">
-                        <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
-                    </div>
-                    <div class="list-card-title">${data.titulo}</div>
-                </div>
-            `;
-            break;
-
         default:
             console.warn(`⚠️ [crearTarjetaConEstilo] Estilo no soportado: ${estilo}`);
             html = `<div>Error: estilo no soportado</div>`;
@@ -13156,7 +13145,6 @@ function actualizarGridColumns(estilo) {
         case 'estilo1':
         case 'estilo2':
         case 'estilo4':
-        case 'estilo5':
             grid.classList.add('cards-grid-5');
             console.log('✅ [actualizarGridColumns] Grid 5 columnas');
             break;
@@ -13470,8 +13458,33 @@ async function cargarItemsLista(listaId, resetear = true) {
             }
         }
 
+        // ================================================================
+        //  ACTUALIZAR OFFSET DESPUÉS DE CARGAR
+        // ================================================================
         listaItemsOffset += items.length;
         console.log(`📈 [cargarItemsLista] Nuevo offset: ${listaItemsOffset}`);
+
+        // ================================================================
+        //  VERIFICAR SI HAY MÁS ELEMENTOS (USANDO EL NUEVO OFFSET)
+        // ================================================================
+        const hayMas = listaItemsOffset < listaItemsTotal;
+        console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
+
+        if (hayMas) {
+            loader.style.display = 'block';
+            document.getElementById('lista-detalle-end').style.display = 'none';
+            console.log('📡 [cargarItemsLista] Configurando observador...');
+            configurarObservadorLista();
+        } else {
+            loader.style.display = 'none';
+            document.getElementById('lista-detalle-end').style.display = 'block';
+            console.log('🏁 [cargarItemsLista] No hay más elementos');
+            if (listaObservador) {
+                listaObservador.disconnect();
+                listaObservador = null;
+                console.log('🔌 [cargarItemsLista] Observador desconectado');
+            }
+        }
 
     } catch (error) {
         console.error('❌ [cargarItemsLista] Error:', error);
@@ -13571,7 +13584,7 @@ async function enriquecerItemsLista(items, resetear) {
                 listaItemsEnriquecidos[key] = enrichedItem;
                 console.log(`✅ [enriquecerItemsLista] Item ${key} enriquecido: "${enrichedItem.titulo}"`);
 
-                const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4, .list-card-estilo5');
+                const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
 
                 if (cards[cardIndex]) {
@@ -13669,10 +13682,11 @@ function configurarObservadorLista() {
     }
     console.log('✅ [configurarObservadorLista] Loader encontrado');
 
+    // IMPORTANTE: Usar una función que capture el estado actual
     listaObservador = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !listaItemsCargando) {
-                console.log('📡 [IntersectionObserver] Cargando más elementos...');
+                console.log(`📡 [IntersectionObserver] Cargando más elementos... offset actual: ${listaItemsOffset}`);
                 cargarItemsLista(listaIdActual, false);
             }
         });

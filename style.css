@@ -7371,66 +7371,6 @@ cast-carousel::-webkit-scrollbar {
     margin-top: 2px;
 }
 
-/* Estilo 5 - Mosaico */
-.list-card-estilo5,
-.list-card-style-5 {
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.list-card-estilo5:hover,
-.list-card-style-5:hover {
-    transform: translateY(-6px);
-}
-
-.list-card-estilo5 .list-card-mosaic,
-.list-card-style-5 .list-card-mosaic {
-    background: var(--bg-card);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-.list-card-estilo5:hover .list-card-mosaic,
-.list-card-style-5:hover .list-card-mosaic {
-    border-color: var(--primary);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
-}
-
-.list-card-estilo5 .list-card-image,
-.list-card-style-5 .list-card-image {
-    aspect-ratio: 1/1;
-    overflow: hidden;
-    background: var(--bg-secondary);
-}
-
-.list-card-estilo5 .list-card-image img,
-.list-card-style-5 .list-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.list-card-estilo5:hover .list-card-image img,
-.list-card-style-5:hover .list-card-image img {
-    transform: scale(1.05);
-}
-
-.list-card-estilo5 .list-card-title,
-.list-card-style-5 .list-card-title {
-    padding: 10px 12px;
-    font-family: var(--font-cyber);
-    font-weight: 700;
-    font-size: 0.8rem;
-    color: var(--text-main);
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 
 
 
