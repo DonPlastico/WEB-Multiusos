@@ -167,9 +167,8 @@ let tendenciasSeriesCargadas = false;
 // 1. Guardar referencia a la función original
 const _originalCambiarVista = window.cambiarVista || cambiarVista;
 
-// 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
-// ¡AÑADIDO EL CUARTO PARÁMETRO: listaInfo!
-window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
+// 2. Sobrescribir cambiarVista usando ...args para que NUNCA pierda parámetros
+window.cambiarVista = async function (...args) {
 
     // CERRAR MODALES ESPECÍFICOS POR ID
     const mediaModal = document.getElementById('media-details-modal');
@@ -188,9 +187,9 @@ window.cambiarVista = async function (target, guardarEnHistorial = true, usernam
     // Cerramos menús contextuales sueltos si están abiertos
     if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
 
-    // Llamar a la función original primero, pasándole todos los parámetros
+    // Llamar a la función original pasando TODOS los argumentos intactos
     if (typeof _originalCambiarVista === 'function') {
-        await _originalCambiarVista(target, guardarEnHistorial, usernameUrl, listaInfo);
+        await _originalCambiarVista(...args);
     }
 
     // Actualizar meta tags DESPUÉS de cambiar la vista
@@ -11588,7 +11587,27 @@ function generarSlugLista(titulo) {
 }
 
 // Se llama al hacer click en una card: decide la URL (publica=slug, privada=token de sesion)
-function abrirListaDetalle(lista) {
+async function abrirListaDetalle(listaOId) {
+    let lista = listaOId;
+
+    // AUTOSANADO: Si nos llega un ID de texto o un Evento en vez del objeto de la lista, lo arreglamos
+    if (typeof listaOId === 'string' || (listaOId && listaOId.type === 'click')) {
+        // Extraemos el ID real (ya sea string puro o sacándolo del dataset del elemento clicado)
+        const idReal = typeof listaOId === 'string' ? listaOId : listaOId.currentTarget.dataset.listId;
+
+        const { data, error } = await supabase
+            .from('listas_maestra')
+            .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
+            .eq('id', idReal)
+            .maybeSingle();
+
+        if (error || !data) {
+            showToast('error', 'Error', 'No se pudo cargar la información de la lista.');
+            return;
+        }
+        lista = data; // Problema arreglado, ya tenemos el objeto completo
+    }
+
     let segmento;
 
     if (lista.is_public) {
