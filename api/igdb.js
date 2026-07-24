@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     // Extraer todos los parametros de la query string
     const { query } = req;
     const busqueda = query.query || ''; // Texto de busqueda
+    const buscarPorId = query.id || ''; // Parámetro para buscar por ID
     const offset = parseInt(query.offset) || 0; // Paginacion
     const limit = Math.min(parseInt(query.limit) || 50, 50); // Limite de resultados (max 50)
     const sortField = query.sort || 'first_release_date.desc'; // Orden
@@ -37,6 +38,47 @@ export default async function handler(req, res) {
     const dateMax = query.dateMax || ''; // Filtro fecha hasta
     const modes = query.modes || ''; // Filtro modos de juego
     const lang = query.lang || 'es'; // Idioma
+
+    // Si se pasa 'id', buscar directamente por ID en IGDB
+    if (buscarPorId) {
+        try {
+            const igdbRes = await fetch('https://api.igdb.com/v4/games', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Client-ID': TWITCH_CLIENT_ID,
+                    'Authorization': `Bearer ${access_token}`,
+                },
+                body: `
+                    fields name, cover.url, first_release_date, platforms.name, platforms.id,
+                        total_rating, total_rating_count, rating, rating_count, category,
+                        summary, involved_companies.company.name, involved_companies.developer,
+                        involved_companies.publisher, genres.name, game_modes.name, websites.url,
+                        screenshots.url, videos.video_id, videos.name;
+                    where id = ${buscarPorId};
+                    limit 1;
+                `
+            });
+
+            if (igdbRes.ok) {
+                const data = await igdbRes.json();
+                if (data && data.length > 0) {
+                    const juego = data[0];
+                    juego.itad = { precio: null, stores: 'none', url: '' };
+                    return res.status(200).json({
+                        juegos: [juego],
+                        total: 1,
+                        offset: 0,
+                        limit: 1,
+                        hasMore: false
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Error buscando por ID:', e);
+        }
+        return res.status(404).json({ juegos: [], total: 0 });
+    }
 
     // Mapeo de idiomas a codigos numericos de IGDB
     const langMap = {

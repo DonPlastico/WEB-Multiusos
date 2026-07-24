@@ -13497,15 +13497,14 @@ async function enriquecerItemsListaCompleto(items) {
                         }
 
                     } else {
-                        // Es un ID de IGDB → buscar en IGDB
+                        // Es un ID de IGDB → buscar en IGDB POR ID (AHORA CON EL PARÁMETRO id)
                         try {
-                            // Buscar por el ID numérico en IGDB
-                            const res = await fetch(`/api/igdb?query=${mediaIdStr}&lang=${currentLang}`);
+                            // 🔥 CAMBIADO: usar 'id' en lugar de 'query'
+                            const res = await fetch(`/api/igdb?id=${mediaIdStr}&lang=${currentLang}`);
                             if (res.ok) {
                                 const result = await res.json();
                                 const juegos = result.juegos || result || [];
-                                // Buscar coincidencia exacta por ID
-                                juegoData = juegos.find(j => String(j.id) === mediaIdStr) || juegos[0] || null;
+                                juegoData = juegos[0] || null;
                             }
                         } catch (e) {
                             console.warn(`⚠️ [IGDB] Error buscando ${mediaIdStr}:`, e);
