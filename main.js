@@ -634,6 +634,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     if (guardarEnHistorial) {
         if (target === 'profile' && usernameUrl) {
             window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
+        } else if (target === 'lista-detalle' && window._listaUrlNombre) {
+            window.history.pushState({ vista: target }, '', `/mis-listas/${window._listaUrlNombre}`);
         } else if (mapaRutas[target]) {
             window.history.pushState({ vista: target }, '', mapaRutas[target]);
         }
@@ -11356,48 +11358,52 @@ async function inicializarMisListas() {
  * @param {string} nombreLista - El nombre de la lista (slug) desde la URL
  */
 async function cargarDetalleLista(nombreLista) {
+    // 1. TÍTULO INSTANTÁNEO desde la URL (sin esperar a Supabase)
+    const tituloEl = document.getElementById('lista-detalle-nombre');
+    const mensajeEl = document.getElementById('lista-detalle-mensaje');
+
+    // Decodificar el nombre de la URL (reemplazar guiones bajos por espacios)
+    const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
+    if (tituloEl) tituloEl.textContent = tituloDecodificado;
+    if (mensajeEl) mensajeEl.textContent = 'Conectando con el Nexus...';
+
+    // 2. QUITAR BOTÓN "VOLVER A MIS LISTAS"
+    const btnVolver = document.getElementById('btn-volver-mis-listas');
+    if (btnVolver) btnVolver.style.display = 'none';
+
+    // 3. Verificar sesión
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        // Si no hay sesión, redirigir a login
+        if (mensajeEl) mensajeEl.textContent = 'Inicia sesión para ver tus listas.';
         cambiarVista('login');
         return;
     }
 
     const userId = session.user.id;
 
-    // Limpiar estado de carga anterior
-    const tituloEl = document.getElementById('lista-detalle-nombre');
-    const mensajeEl = document.getElementById('lista-detalle-mensaje');
-    if (tituloEl) tituloEl.textContent = 'Cargando...';
-    if (mensajeEl) mensajeEl.textContent = 'Conectando con el Nexus...';
-
     try {
-        // 1. Buscar la lista por su título (slug) y owner
-        // Decodificar el nombre de la URL (reemplazar guiones bajos por espacios)
-        const tituloBusqueda = decodeURIComponent(nombreLista).replace(/_/g, ' ');
-
+        // 4. Buscar la lista por su título (slug) y owner
         const { data: lista, error } = await supabase
             .from('listas_maestra')
             .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, created_at')
-            .eq('titulo', tituloBusqueda)
+            .eq('titulo', tituloDecodificado)
             .single();
 
         if (error || !lista) {
-            // Si no existe, mostrar mensaje de error
             if (tituloEl) tituloEl.textContent = 'Lista no encontrada';
             if (mensajeEl) mensajeEl.textContent = 'La lista que buscas no existe o fue eliminada.';
             return;
         }
 
-        // 2. VERIFICAR PERMISOS: Solo el owner puede ver su lista
+        // 5. VERIFICAR PERMISOS: Solo el owner puede ver su lista
         if (lista.owner_id !== userId) {
             if (tituloEl) tituloEl.textContent = 'Acceso denegado';
-            if (mensajeEl) mensajeEl.textContent = 'No tienes permisos para ver esta lista. Solo el propietario puede acceder.';
+            if (mensajeEl) mensajeEl.textContent = 'No tienes permisos para ver esta lista.';
             showToast('error', 'Acceso denegado', 'No eres el propietario de esta lista.');
             return;
         }
 
-        // 3. Cargar los items de la lista
+        // 6. Cargar los items de la lista
         const { data: items, error: itemsError } = await supabase
             .from('listas_items')
             .select('media_id, media_tipo, added_at')
@@ -11406,10 +11412,9 @@ async function cargarDetalleLista(nombreLista) {
 
         if (itemsError) throw itemsError;
 
-        // 4. Actualizar UI con los datos de la lista
+        // 7. Actualizar UI con los datos de la lista
         if (tituloEl) tituloEl.textContent = lista.titulo;
 
-        // Actualizar el mensaje con el número de elementos
         const count = items?.length || 0;
         if (mensajeEl) {
             const tipoLabel = lista.tag_tipo === 'game' ? 'Juegos' :
@@ -11418,19 +11423,16 @@ async function cargarDetalleLista(nombreLista) {
             mensajeEl.textContent = `${count} ${tipoLabel} en esta lista.`;
         }
 
-        // 5. Guardar los items en una variable global para futuras acciones
+        // 8. Guardar los items en una variable global para futuras acciones
         window._listaItemsActual = items || [];
 
-        // 6. Actualizar el botón de volver
-        const btnVolver = document.getElementById('btn-volver-mis-listas');
-        if (btnVolver) {
-            btnVolver.onclick = () => {
-                cambiarVista('mis-listas');
-            };
+        // 9. ACTUALIZAR LA URL si no coincide (por si el usuario entró con un nombre diferente)
+        const slugEsperado = lista.titulo.replace(/ /g, '_');
+        const rutaActual = window.location.pathname;
+        if (!rutaActual.endsWith(slugEsperado) && rutaActual.startsWith('/mis-listas/')) {
+            window.history.replaceState({ vista: 'lista-detalle' }, '', `/mis-listas/${slugEsperado}`);
+            window._listaUrlNombre = slugEsperado;
         }
-
-        // Aquí en el futuro se pintarán las tarjetas de los items
-        // Por ahora solo mostramos el mensaje
 
     } catch (err) {
         console.error('Error cargando detalle de lista:', err);
