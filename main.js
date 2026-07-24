@@ -13467,7 +13467,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         // ================================================================
         //  VERIFICAR SI HAY MÁS ELEMENTOS (USANDO EL NUEVO OFFSET)
         // ================================================================
-        const hayMas = listaItemsOffset < listaItemsTotal;
+        hayMas = listaItemsOffset < listaItemsTotal;
         console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
 
         if (hayMas) {
