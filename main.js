@@ -13344,11 +13344,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         // ================================================================
         //  ENRIQUECER TODOS LOS ITEMS (esperar a que terminen)
         // ================================================================
-        const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) {
-            mensaje.textContent = `Obteniendo datos de ${itemsBasicos.length} elementos...`;
-        }
-
         // Mostrar loader SOLO en la primera carga (resetear = true)
         const grid = document.getElementById('lista-detalle-grid');
         if (resetear && grid) {
