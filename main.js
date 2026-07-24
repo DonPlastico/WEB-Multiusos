@@ -232,6 +232,7 @@ const ICONO_TIPO = {
 let listasTabActual = 'mias';       // mias | compartidas | siguiendo
 let listasFiltroActual = 'all';     // all | game | movie | tv
 let listasEventosListos = false;    // pa no duplicar listeners
+let listaDetalleActual = null;      // guarda la lista que se está viendo en /mis-listas/{id o slug}
 
 // Usar var para que esté disponible en todo el ámbito
 // (con let/const en algunos casos daba problemas de scope, con var vamos sobre seguro)
@@ -567,7 +568,7 @@ const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
 // funcion central de navegacion: cambia de vista, actualiza la url y el historial
-async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
+async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
 
     // --- 1. DESTRUIR MODALES AL NAVEGAR ---
     document.getElementById('media-details-modal')?.classList.remove('show');
@@ -633,6 +634,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     if (guardarEnHistorial) {
         if (target === 'profile' && usernameUrl) {
             window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
+        } else if (target === 'lista-detalle' && listaInfo) {
+            window.history.pushState({ vista: target, lista: listaInfo.param }, '', listaInfo.urlPath);
         } else if (mapaRutas[target]) {
             window.history.pushState({ vista: target }, '', mapaRutas[target]);
         }
@@ -663,6 +666,8 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
         inicializarMisListas();
+    } else if (target === 'lista-detalle') {
+        cargarYPintarListaDetalle(listaInfo ? listaInfo.param : null);
     }
 
     // --- ACTUALIZAR META TAGS AL FINAL ---
@@ -735,8 +740,12 @@ window.addEventListener('popstate', async (evento) => {
     }
 
     if (evento.state && evento.state.vista) {
-        // vuelvo a la vista anterior sin guardar (pa no meter otra entrada en el historial)
-        await cambiarVista(evento.state.vista, false, evento.state.user || null);
+        if (evento.state.vista === 'lista-detalle' && evento.state.lista) {
+            await cambiarVista('lista-detalle', false, null, { param: evento.state.lista });
+        } else {
+            // vuelvo a la vista anterior sin guardar (pa no meter otra entrada en el historial)
+            await cambiarVista(evento.state.vista, false, evento.state.user || null);
+        }
     } else {
         arrancarEnrutador();
     }
@@ -748,6 +757,7 @@ function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
     let vistaInicial = 'home';
     let userInitial = null;
+    let listaSegmentoInicial = null;
 
     // DETECTAR URL DINÁMICA DE PERFIL Y DE MODALES
     if (rutaActual.startsWith('/perfil/usuario/')) {
