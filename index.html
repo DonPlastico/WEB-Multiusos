@@ -1970,179 +1970,31 @@
                                 id="lista-detalle-nombre">Cargando...</span>
                         </h1>
 
+                        <!-- Mensaje de carga/estado -->
+                        <div id="lista-detalle-mensaje"
+                            style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
+                            Conectando con el Nexus...
+                        </div>
+
                         <!-- ========================================================= -->
-                        <!--   GRID DE TARJETAS (reconstruido dinámicamente)          -->
+                        <!--   GRID DE TARJETAS (carga dinámica)                      -->
                         <!-- ========================================================= -->
                         <div class="lista-cards-grid cards-grid-5" id="lista-detalle-grid">
-                            <!-- 1. Dune: Part Two -->
-                            <div class="list-card-style-1" data-id="1" data-tipo="movie" data-titulo="Dune: Part Two"
-                                data-year="2024" data-rating="8.5"
-                                data-imagen="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg"
-                                onclick="abrirModalMedia('1', 'movie')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg"
-                                        alt="Dune" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-film"></i> Película
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Dune: Part Two</div>
-                            </div>
+                            <!-- Aquí se inyectarán las tarjetas dinámicamente -->
+                        </div>
 
-                            <!-- 2. The Last of Us -->
-                            <div class="list-card-style-1" data-id="2" data-tipo="tv" data-titulo="The Last of Us"
-                                data-year="2023" data-rating="8.8"
-                                data-imagen="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
-                                onclick="abrirModalMedia('2', 'tv')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
-                                        alt="The Last of Us" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-tv"></i> Serie
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">The Last of Us</div>
-                            </div>
+                        <!-- Loader de carga (se muestra al hacer scroll) -->
+                        <div id="lista-detalle-loader" style="display: none; text-align: center; padding: 40px 0;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                            <p style="color: var(--text-muted); margin-top: 10px;">Cargando más elementos...</p>
+                        </div>
 
-                            <!-- 3. Elden Ring -->
-                            <div class="list-card-style-1" data-id="3" data-tipo="game" data-titulo="Elden Ring"
-                                data-year="2022" data-rating="9.5"
-                                data-imagen="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
-                                onclick="abrirModalMedia('3', 'game')">
-                                <div class="list-card-image">
-                                    <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
-                                        alt="Elden Ring" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-gamepad"></i> Juego
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Elden Ring</div>
-                            </div>
-
-                            <!-- 4. Oppenheimer -->
-                            <div class="list-card-style-1" data-id="4" data-tipo="movie" data-titulo="Oppenheimer"
-                                data-year="2023" data-rating="8.4"
-                                data-imagen="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
-                                onclick="abrirModalMedia('4', 'movie')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
-                                        alt="Oppenheimer" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-film"></i> Película
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Oppenheimer</div>
-                            </div>
-
-                            <!-- 5. Fallout -->
-                            <div class="list-card-style-1" data-id="5" data-tipo="tv" data-titulo="Fallout"
-                                data-year="2024" data-rating="8.2"
-                                data-imagen="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
-                                onclick="abrirModalMedia('5', 'tv')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
-                                        alt="Fallout" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-tv"></i> Serie
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Fallout</div>
-                            </div>
-
-                            <!-- 6. Deadpool & Wolverine -->
-                            <div class="list-card-style-1" data-id="6" data-tipo="movie"
-                                data-titulo="Deadpool & Wolverine" data-year="2024" data-rating="8.0"
-                                data-imagen="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
-                                onclick="abrirModalMedia('6', 'movie')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
-                                        alt="Deadpool" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-film"></i> Película
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Deadpool & Wolverine</div>
-                            </div>
-
-                            <!-- 7. House of the Dragon -->
-                            <div class="list-card-style-1" data-id="7" data-tipo="tv" data-titulo="House of the Dragon"
-                                data-year="2024" data-rating="8.3"
-                                data-imagen="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
-                                onclick="abrirModalMedia('7', 'tv')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
-                                        alt="House of Dragon" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-tv"></i> Serie
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">House of the Dragon</div>
-                            </div>
-
-                            <!-- 8. Baldur's Gate 3 -->
-                            <div class="list-card-style-1" data-id="8" data-tipo="game" data-titulo="Baldur's Gate 3"
-                                data-year="2023" data-rating="9.6"
-                                data-imagen="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
-                                onclick="abrirModalMedia('8', 'game')">
-                                <div class="list-card-image">
-                                    <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
-                                        alt="Baldur's Gate" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-gamepad"></i> Juego
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Baldur's Gate 3</div>
-                            </div>
-
-                            <!-- 9. Inside Out 2 -->
-                            <div class="list-card-style-1" data-id="9" data-tipo="movie" data-titulo="Inside Out 2"
-                                data-year="2024" data-rating="8.1"
-                                data-imagen="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
-                                onclick="abrirModalMedia('9', 'movie')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
-                                        alt="Inside Out 2" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-film"></i> Película
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">Inside Out 2</div>
-                            </div>
-
-                            <!-- 10. The Bear -->
-                            <div class="list-card-style-1" data-id="10" data-tipo="tv" data-titulo="The Bear"
-                                data-year="2024" data-rating="8.6"
-                                data-imagen="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
-                                onclick="abrirModalMedia('10', 'tv')">
-                                <div class="list-card-image">
-                                    <img src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
-                                        alt="The Bear" loading="lazy">
-                                    <div class="list-card-overlay">
-                                        <span class="list-card-type">
-                                            <i class="fas fa-tv"></i> Serie
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="list-card-title">The Bear</div>
-                            </div>
+                        <!-- Mensaje de "No hay más elementos" -->
+                        <div id="lista-detalle-end"
+                            style="display: none; text-align: center; padding: 40px 0; color: var(--text-muted);">
+                            <i class="fas fa-flag-checkered"
+                                style="font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <span>Has llegado al final de la lista</span>
                         </div>
                     </div>
 
@@ -2188,27 +2040,6 @@
                                     <label class="custom-check">
                                         <input type="checkbox" value="estilo5">
                                         <span class="box"></span> Mosaico
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- FILTRO: TIPO DE CONTENIDO -->
-                            <div class="accordion-item">
-                                <div class="accordion-header">
-                                    <span><i class="fas fa-chevron-down chevron-icon"></i> TIPO DE CONTENIDO</span>
-                                </div>
-                                <div class="accordion-content">
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="movie" checked>
-                                        <span class="box"></span> Películas
-                                    </label>
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="tv" checked>
-                                        <span class="box"></span> Series
-                                    </label>
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="game" checked>
-                                        <span class="box"></span> Juegos
                                     </label>
                                 </div>
                             </div>
@@ -2263,30 +2094,6 @@
                                 </div>
                             </div>
 
-                            <!-- FILTRO: ETIQUETAS -->
-                            <div class="accordion-item">
-                                <div class="accordion-header">
-                                    <span><i class="fas fa-chevron-down chevron-icon"></i> ETIQUETAS</span>
-                                </div>
-                                <div class="accordion-content">
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="visto">
-                                        <span class="box"></span> Visto
-                                    </label>
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="pendiente">
-                                        <span class="box"></span> Pendiente
-                                    </label>
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="favorito">
-                                        <span class="box"></span> Favorito
-                                    </label>
-                                    <label class="custom-check">
-                                        <input type="checkbox" value="recomendado">
-                                        <span class="box"></span> Recomendado
-                                    </label>
-                                </div>
-                            </div>
                         </div>
                     </aside>
                 </div>

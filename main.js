@@ -13459,7 +13459,7 @@ function crearTarjetaConEstilo(estilo, data) {
 function generarEstrellas(nota) {
     const notaSobre5 = nota / 2; // 0-10 -> 0-5
     let html = '';
-    
+
     for (let i = 1; i <= 5; i++) {
         if (notaSobre5 >= i) {
             html += '<i class="fas fa-star" style="color:gold;font-size:0.65rem;"></i>';
@@ -13593,6 +13593,410 @@ document.addEventListener('DOMContentLoaded', () => {
     // Si estamos en la vista de detalle, configurar el filtro
     if (vistaActualGlobal === 'lista-detalle') {
         setTimeout(configurarFiltroEstiloLista, 300);
+    }
+});
+
+// ==========================================================================
+//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA)
+// ==========================================================================
+
+// Variables de estado para la carga de items
+let listaItemsOffset = 0;
+const LISTA_ITEMS_LIMIT = 50;
+let listaItemsCargando = false;
+let listaItemsTotal = 0;
+let listaItemsActuales = [];
+let listaIdActual = null;
+let listaTipoActual = null;
+let listaObservador = null;
+
+/**
+ * Carga los items de una lista desde Supabase con paginación
+ */
+async function cargarItemsLista(listaId, resetear = true) {
+    if (!listaId) {
+        console.error('❌ No se proporcionó ID de lista');
+        return;
+    }
+
+    // Si estamos reseteando, reiniciamos el estado
+    if (resetear) {
+        listaItemsOffset = 0;
+        listaItemsActuales = [];
+        listaIdActual = listaId;
+
+        const grid = document.getElementById('lista-detalle-grid');
+        if (grid) grid.innerHTML = '';
+
+        document.getElementById('lista-detalle-loader').style.display = 'none';
+        document.getElementById('lista-detalle-end').style.display = 'none';
+
+        const mensaje = document.getElementById('lista-detalle-mensaje');
+        if (mensaje) mensaje.textContent = 'Cargando elementos...';
+    }
+
+    if (listaItemsCargando) return;
+    listaItemsCargando = true;
+
+    // Mostrar loader
+    const loader = document.getElementById('lista-detalle-loader');
+    loader.style.display = 'block';
+
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            throw new Error('No hay sesión activa');
+        }
+
+        // Verificar permisos: solo el owner puede ver su lista
+        const { data: listaInfo, error: errLista } = await supabase
+            .from('listas_maestra')
+            .select('owner_id, tag_tipo')
+            .eq('id', listaId)
+            .single();
+
+        if (errLista) throw errLista;
+        if (listaInfo.owner_id !== session.user.id) {
+            throw new Error('No tienes permisos para ver esta lista');
+        }
+
+        listaTipoActual = listaInfo.tag_tipo;
+
+        // Obtener items de la lista con paginación
+        const { data: items, error, count } = await supabase
+            .from('listas_items')
+            .select('media_id, media_tipo, added_at', { count: 'exact' })
+            .eq('lista_id', listaId)
+            .order('added_at', { ascending: false })
+            .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
+
+        if (error) throw error;
+
+        // Guardar el total para saber si hay más
+        listaItemsTotal = count || 0;
+
+        // Si no hay items, mostrar mensaje
+        if (!items || items.length === 0) {
+            if (resetear) {
+                const grid = document.getElementById('lista-detalle-grid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <i class="fas fa-box-open" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                            <p style="font-size: 1.1rem;">Esta lista está vacía</p>
+                            <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
+                        </div>
+                    `;
+                }
+                const mensaje = document.getElementById('lista-detalle-mensaje');
+                if (mensaje) mensaje.textContent = '0 elementos en esta lista';
+            }
+            loader.style.display = 'none';
+            listaItemsCargando = false;
+            return;
+        }
+
+        // Convertir items a objetos con los datos necesarios
+        const itemsConData = await Promise.all(items.map(async (item) => {
+            // Intentar obtener datos del media desde TMDB o IGDB
+            let data = null;
+
+            if (item.media_tipo === 'movie' || item.media_tipo === 'tv') {
+                // Buscar en TMDB
+                try {
+                    const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.media_tipo}&lang=${currentLang}`);
+                    if (res.ok) {
+                        data = await res.json();
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Error obteniendo datos de TMDB para ${item.media_id}:`, e);
+                }
+            } else if (item.media_tipo === 'game') {
+                // Buscar en IGDB
+                try {
+                    const res = await fetch(`/api/igdb?query=${encodeURIComponent(item.media_id)}&lang=${currentLang}`);
+                    if (res.ok) {
+                        const result = await res.json();
+                        data = result.juegos?.[0] || result[0] || null;
+                    }
+                } catch (e) {
+                    console.warn(`⚠️ Error obteniendo datos de IGDB para ${item.media_id}:`, e);
+                }
+            }
+
+            // Si no se encontraron datos, crear un objeto mínimo
+            if (!data) {
+                return {
+                    id: item.media_id,
+                    tipo: item.media_tipo,
+                    titulo: `ID: ${item.media_id}`,
+                    year: '----',
+                    rating: '0.0',
+                    imagen: '',
+                    placeholder: true
+                };
+            }
+
+            // Extraer datos según el tipo
+            if (item.media_tipo === 'movie' || item.media_tipo === 'tv') {
+                return {
+                    id: item.media_id,
+                    tipo: item.media_tipo,
+                    titulo: data.titulo || 'Sin título',
+                    year: data.fecha ? new Date(data.fecha).getFullYear() : '----',
+                    rating: data.nota || '0.0',
+                    imagen: data.poster || '',
+                };
+            } else if (item.media_tipo === 'game') {
+                const portada = data.cover?.url
+                    ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+                    : '';
+                const fecha = data.first_release_date
+                    ? new Date(data.first_release_date * 1000).getFullYear()
+                    : '----';
+                const rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
+
+                return {
+                    id: item.media_id,
+                    tipo: 'game',
+                    titulo: data.name || 'Sin título',
+                    year: fecha,
+                    rating: rating,
+                    imagen: portada,
+                };
+            }
+        }));
+
+        // Filtrar items nulos
+        const itemsValidos = itemsConData.filter(item => item !== null);
+
+        // Almacenar en la lista actual
+        if (resetear) {
+            listaItemsActuales = itemsValidos;
+        } else {
+            listaItemsActuales = [...listaItemsActuales, ...itemsValidos];
+        }
+
+        // Renderizar items en el grid
+        renderizarItemsLista(itemsValidos, resetear);
+
+        // Actualizar mensaje con el total
+        const mensaje = document.getElementById('lista-detalle-mensaje');
+        if (mensaje) {
+            const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
+                listaTipoActual === 'movie' ? 'Películas' :
+                    listaTipoActual === 'tv' ? 'Series' : 'Elementos';
+            mensaje.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista (mostrando ${listaItemsActuales.length})`;
+        }
+
+        // Verificar si hay más elementos para cargar
+        const hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
+
+        if (hayMas) {
+            loader.style.display = 'block';
+            document.getElementById('lista-detalle-end').style.display = 'none';
+
+            // Configurar el observador para cargar más al hacer scroll
+            configurarObservadorLista();
+        } else {
+            loader.style.display = 'none';
+            document.getElementById('lista-detalle-end').style.display = 'block';
+
+            // Desconectar observador si existe
+            if (listaObservador) {
+                listaObservador.disconnect();
+                listaObservador = null;
+            }
+        }
+
+        // Actualizar el offset para la próxima carga
+        listaItemsOffset += items.length;
+
+    } catch (error) {
+        console.error('❌ Error cargando items de lista:', error);
+        const mensaje = document.getElementById('lista-detalle-mensaje');
+        if (mensaje) mensaje.textContent = 'Error al cargar elementos: ' + error.message;
+
+        const grid = document.getElementById('lista-detalle-grid');
+        if (grid && grid.children.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                    <p>No se pudieron cargar los elementos</p>
+                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    } finally {
+        listaItemsCargando = false;
+        loader.style.display = 'none';
+    }
+}
+
+/**
+ * Renderiza los items en el grid con el estilo actual
+ */
+function renderizarItemsLista(items, resetear) {
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) return;
+
+    // Obtener el estilo seleccionado
+    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+
+    // Si estamos reseteando, limpiar el grid
+    if (resetear) {
+        grid.innerHTML = '';
+    }
+
+    // Renderizar cada item
+    items.forEach((item) => {
+        // Si es un placeholder, creamos una tarjeta especial
+        if (item.placeholder) {
+            const card = document.createElement('div');
+            card.className = 'list-card-estilo1 list-card-style-1';
+            card.style.opacity = '0.5';
+            card.style.cursor = 'default';
+            card.innerHTML = `
+                <div class="list-card-image">
+                    <div class="no-cover" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);">
+                        <i class="fas fa-question-circle" style="font-size:3rem;color:var(--text-muted);margin-bottom:6px;"></i>
+                        <span style="font-size:0.7rem;color:var(--text-muted);text-align:center;">Datos no disponibles</span>
+                    </div>
+                </div>
+                <div class="list-card-title">${item.titulo}</div>
+            `;
+            grid.appendChild(card);
+            return;
+        }
+
+        // Usar la función existente para crear la tarjeta
+        const card = crearTarjetaConEstilo(estiloGuardado, item);
+        grid.appendChild(card);
+    });
+
+    // Actualizar las columnas del grid según el estilo
+    actualizarGridColumns(estiloGuardado);
+}
+
+/**
+ * Configura el observador de scroll para cargar más elementos
+ */
+function configurarObservadorLista() {
+    // Desconectar observador anterior si existe
+    if (listaObservador) {
+        listaObservador.disconnect();
+        listaObservador = null;
+    }
+
+    const loader = document.getElementById('lista-detalle-loader');
+    if (!loader) return;
+
+    // Crear nuevo observador
+    listaObservador = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !listaItemsCargando) {
+                // Cargar más elementos
+                cargarItemsLista(listaIdActual, false);
+            }
+        });
+    }, {
+        rootMargin: '200px',
+        threshold: 0.1
+    });
+
+    listaObservador.observe(loader);
+}
+
+/**
+ * Sobrescribe la función cargarDetalleLista para usar la carga dinámica
+ */
+const _originalCargarDetalleLista2 = window.cargarDetalleLista || cargarDetalleLista;
+
+window.cargarDetalleLista = async function (nombreLista) {
+    // Llamar a la función original (para mantener la compatibilidad)
+    if (typeof _originalCargarDetalleLista2 === 'function') {
+        await _originalCargarDetalleLista2(nombreLista);
+    }
+
+    // Decodificar el nombre de la lista
+    const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
+
+    // Obtener el ID de la lista desde Supabase
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            throw new Error('No hay sesión activa');
+        }
+
+        const { data: lista, error } = await supabase
+            .from('listas_maestra')
+            .select('id')
+            .eq('titulo', tituloDecodificado)
+            .eq('owner_id', session.user.id)
+            .single();
+
+        if (error || !lista) {
+            throw new Error('Lista no encontrada o no tienes permisos');
+        }
+
+        // Configurar el título
+        const tituloEl = document.getElementById('lista-detalle-nombre');
+        if (tituloEl) tituloEl.textContent = tituloDecodificado;
+
+        // Cargar los items de la lista
+        await cargarItemsLista(lista.id, true);
+
+        // Configurar los filtros de estilo
+        setTimeout(() => {
+            configurarFiltroEstiloLista();
+        }, 200);
+
+    } catch (error) {
+        console.error('❌ Error cargando detalle de lista:', error);
+        const mensaje = document.getElementById('lista-detalle-mensaje');
+        if (mensaje) mensaje.textContent = 'Error: ' + error.message;
+    }
+};
+
+// ==========================================================================
+//   LIMPIAR FILTROS DE LISTA
+// ==========================================================================
+
+document.getElementById('btn-reset-lista-filters')?.addEventListener('click', () => {
+    // Resetear checkboxes de estilo (dejar solo estilo1)
+    const styleCheckboxes = document.querySelectorAll('#lista-filter-sidebar .accordion-item .custom-check input[type="checkbox"]');
+    styleCheckboxes.forEach(cb => {
+        if (cb.value === 'estilo1') {
+            cb.checked = true;
+        } else {
+            cb.checked = false;
+        }
+    });
+
+    // Resetear checkboxes de tipo (dejar todos marcados)
+    const typeCheckboxes = document.querySelectorAll('#lista-filter-sidebar .accordion-item .custom-check input[type="checkbox"][value]');
+    typeCheckboxes.forEach(cb => {
+        if (['movie', 'tv', 'game'].includes(cb.value)) {
+            cb.checked = true;
+        }
+    });
+
+    // Resetear radio buttons (dejar "fecha" seleccionado)
+    const radios = document.querySelectorAll('#lista-filter-sidebar input[type="radio"][name="orden-lista"]');
+    radios.forEach(rb => {
+        if (rb.value === 'fecha') {
+            rb.checked = true;
+        } else {
+            rb.checked = false;
+        }
+    });
+
+    // Aplicar estilo por defecto y recargar
+    localStorage.setItem('pref_estilo_lista', 'estilo1');
+    if (listaIdActual) {
+        cargarItemsLista(listaIdActual, true);
     }
 });
 
