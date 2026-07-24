@@ -7052,7 +7052,352 @@ cast-carousel::-webkit-scrollbar {
     min-width: 0;
 }
 
+/* ==========================================================================
+   SOPORTE PARA TARJETAS GENERADAS POR JS (list-card-estiloN)
+   ========================================================================== */
 
+/* Las tarjetas generadas por JS usan list-card-estiloN, 
+   pero los estilos están definidos para list-card-style-N.
+   Hacemos que ambas clases compartan los mismos estilos */
+
+/* Estilo 1 */
+.list-card-estilo1,
+.list-card-style-1 {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.list-card-estilo1:hover,
+.list-card-style-1:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);
+}
+
+.list-card-estilo1 .list-card-image,
+.list-card-style-1 .list-card-image {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.list-card-estilo1 .list-card-image img,
+.list-card-style-1 .list-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.list-card-estilo1:hover .list-card-image img,
+.list-card-style-1:hover .list-card-image img {
+    transform: scale(1.05);
+}
+
+.list-card-estilo1 .list-card-overlay,
+.list-card-style-1 .list-card-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    color: var(--neon-white);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.list-card-estilo1 .list-card-overlay i,
+.list-card-style-1 .list-card-overlay i {
+    font-size: 0.55rem;
+    margin-right: 4px;
+}
+
+.list-card-estilo1 .list-card-title,
+.list-card-style-1 .list-card-title {
+    padding: 12px 14px;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* Estilo 2 */
+.list-card-estilo2,
+.list-card-style-2 {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    position: relative;
+}
+
+.list-card-estilo2:hover,
+.list-card-style-2:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--primary);
+    box-shadow: var(--neon-glow);
+}
+
+.list-card-estilo2 .list-card-image,
+.list-card-style-2 .list-card-image {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+}
+
+.list-card-estilo2 .list-card-image img,
+.list-card-style-2 .list-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-card-estilo2 .list-card-glow,
+.list-card-style-2 .list-card-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(99, 102, 241, 0.3) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.list-card-estilo2:hover .list-card-glow,
+.list-card-style-2:hover .list-card-glow {
+    opacity: 1;
+}
+
+.list-card-estilo2 .list-card-title,
+.list-card-style-2 .list-card-title {
+    padding: 12px 14px 2px;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--neon-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+.list-card-estilo2 .list-card-year,
+.list-card-style-2 .list-card-year {
+    padding: 0 14px 12px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Estilo 3 - Listado */
+.list-card-estilo3,
+.list-card-style-3 {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.list-card-estilo3:hover,
+.list-card-style-3:hover {
+    transform: translateX(8px);
+}
+
+.list-card-estilo3 .list-card-list-item,
+.list-card-style-3 .list-card-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.list-card-estilo3:hover .list-card-list-item,
+.list-card-style-3:hover .list-card-list-item {
+    border-color: var(--primary);
+    background: var(--bg-hover);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+.list-card-estilo3 .list-card-thumb,
+.list-card-style-3 .list-card-thumb {
+    flex-shrink: 0;
+    width: 56px;
+    height: 76px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.list-card-estilo3 .list-card-thumb img,
+.list-card-style-3 .list-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-card-estilo3 .list-card-info,
+.list-card-style-3 .list-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-card-estilo3 .list-card-title,
+.list-card-style-3 .list-card-title {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-card-estilo3 .list-card-sub,
+.list-card-style-3 .list-card-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Estilo 4 - Cinemascope */
+.list-card-estilo4,
+.list-card-style-4 {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: var(--bg-card);
+}
+
+.list-card-estilo4:hover,
+.list-card-style-4:hover {
+    transform: scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+}
+
+.list-card-estilo4 .list-card-image,
+.list-card-style-4 .list-card-image {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.list-card-estilo4 .list-card-image img,
+.list-card-style-4 .list-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.list-card-estilo4:hover .list-card-image img,
+.list-card-style-4:hover .list-card-image img {
+    transform: scale(1.05);
+}
+
+.list-card-estilo4 .list-card-info,
+.list-card-style-4 .list-card-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 16px 14px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+}
+
+.list-card-estilo4 .list-card-title,
+.list-card-style-4 .list-card-title {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--neon-white);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.list-card-estilo4 .list-card-sub,
+.list-card-style-4 .list-card-sub {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Estilo 5 - Mosaico */
+.list-card-estilo5,
+.list-card-style-5 {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.list-card-estilo5:hover,
+.list-card-style-5:hover {
+    transform: translateY(-6px);
+}
+
+.list-card-estilo5 .list-card-mosaic,
+.list-card-style-5 .list-card-mosaic {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.list-card-estilo5:hover .list-card-mosaic,
+.list-card-style-5:hover .list-card-mosaic {
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+}
+
+.list-card-estilo5 .list-card-image,
+.list-card-style-5 .list-card-image {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.list-card-estilo5 .list-card-image img,
+.list-card-style-5 .list-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.list-card-estilo5:hover .list-card-image img,
+.list-card-style-5:hover .list-card-image img {
+    transform: scale(1.05);
+}
+
+.list-card-estilo5 .list-card-title,
+.list-card-style-5 .list-card-title {
+    padding: 10px 12px;
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 
 

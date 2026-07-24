@@ -13286,6 +13286,282 @@ function initListaEstiloFiltro() {
     setTimeout(aplicarPlaceholders, 300);
 }
 
+// ==========================================================================
+//   FILTRO DE ESTILO EN LISTA DETALLE (REFACTOR)
+// ==========================================================================
+
+/**
+ * Reconstruye las tarjetas de la lista con el estilo seleccionado.
+ * @param {string} estilo - 'estilo1', 'estilo2', 'estilo3', 'estilo4', 'estilo5'
+ */
+function aplicarEstiloLista(estilo) {
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) {
+        console.warn('⚠️ Grid de lista detalle no encontrado');
+        return;
+    }
+
+    // 1. Guardar los datos de las tarjetas actuales
+    const tarjetasData = [];
+    grid.querySelectorAll('[class*="list-card-style-"]').forEach(card => {
+        // Leer los atributos data-* que pusimos en el HTML
+        tarjetasData.push({
+            id: card.dataset.id || '0',
+            tipo: card.dataset.tipo || 'movie',
+            titulo: card.dataset.titulo || 'Sin título',
+            year: card.dataset.year || '----',
+            rating: card.dataset.rating || '0.0',
+            imagen: card.dataset.imagen || '',
+        });
+    });
+
+    // 2. Si no hay tarjetas, salir
+    if (tarjetasData.length === 0) {
+        console.warn('⚠️ No hay tarjetas en el grid');
+        return;
+    }
+
+    // 3. Limpiar el grid
+    grid.innerHTML = '';
+
+    // 4. Reconstruir cada tarjeta con el nuevo estilo
+    tarjetasData.forEach((data) => {
+        const nuevaCard = crearTarjetaConEstilo(estilo, data);
+        grid.appendChild(nuevaCard);
+    });
+
+    // 5. Actualizar el estilo del grid (columnas)
+    actualizarGridColumns(estilo);
+
+    // 6. Guardar preferencia en localStorage
+    localStorage.setItem('pref_estilo_lista', estilo);
+}
+
+/**
+ * Crea una tarjeta HTML con el estilo especificado
+ */
+function crearTarjetaConEstilo(estilo, data) {
+    const card = document.createElement('div');
+    // Asignamos la clase principal del estilo
+    card.className = `list-card-${estilo}`;
+    // También añadimos la clase específica por si el CSS usa .list-card-style-1
+    const numeroEstilo = estilo.replace('estilo', '');
+    card.classList.add(`list-card-style-${numeroEstilo}`);
+
+    // Restauramos los data-* para futuros cambios
+    card.dataset.id = data.id;
+    card.dataset.tipo = data.tipo;
+    card.dataset.titulo = data.titulo;
+    card.dataset.year = data.year;
+    card.dataset.rating = data.rating;
+    card.dataset.imagen = data.imagen;
+
+    // Evento click (abrir modal)
+    card.onclick = () => abrirModalMedia(data.id, data.tipo);
+
+    // Icono según tipo
+    const iconMap = {
+        'movie': 'fa-film',
+        'tv': 'fa-tv',
+        'game': 'fa-gamepad'
+    };
+    const icono = iconMap[data.tipo] || 'fa-film';
+    const tipoTexto = data.tipo === 'movie' ? 'Película' : data.tipo === 'tv' ? 'Serie' : 'Juego';
+
+    // --- CONSTRUIR HTML SEGÚN ESTILO ---
+    let html = '';
+
+    switch (estilo) {
+        case 'estilo1': // Estándar
+            html = `
+                <div class="list-card-image">
+                    <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
+                    <div class="list-card-overlay"><span class="list-card-type"><i class="fas ${icono}"></i> ${tipoTexto}</span></div>
+                </div>
+                <div class="list-card-title">${data.titulo}</div>
+            `;
+            break;
+
+        case 'estilo2': // Estándar Detallado
+            html = `
+                <div class="list-card-image">
+                    <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
+                    <div class="list-card-glow"></div>
+                </div>
+                <div class="list-card-title">${data.titulo}</div>
+                <div class="list-card-year">${data.year}</div>
+            `;
+            break;
+
+        case 'estilo3': // Listado
+            html = `
+                <div class="list-card-list-item">
+                    <div class="list-card-thumb">
+                        <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:2rem;color:var(--text-muted);margin-bottom:4px;\\'></i><span style=\\'font-size:0.6rem;color:var(--text-muted);text-align:center;\\'>NO DISPONIBLE</span></div>'">
+                    </div>
+                    <div class="list-card-info">
+                        <div class="list-card-title">${data.titulo}</div>
+                        <div class="list-card-sub">${data.year} · ⭐ ${data.rating} · ${tipoTexto}</div>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'estilo4': // Cuadrícula
+            html = `
+                <div class="list-card-image">
+                    <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
+                    <div class="list-card-info">
+                        <div class="list-card-title">${data.titulo}</div>
+                        <div class="list-card-sub">${data.year} · ⭐ ${data.rating}</div>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'estilo5': // Mosaico
+            html = `
+                <div class="list-card-mosaic">
+                    <div class="list-card-image">
+                        <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
+                    </div>
+                    <div class="list-card-title">${data.titulo}</div>
+                </div>
+            `;
+            break;
+
+        default:
+            html = `<div>Error: estilo no soportado</div>`;
+    }
+
+    card.innerHTML = html;
+    return card;
+}
+
+/**
+ * Cambia el número de columnas del grid según el estilo
+ */
+function actualizarGridColumns(estilo) {
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) return;
+
+    // Eliminar todas las clases de columnas previas
+    grid.className = 'lista-cards-grid';
+
+    // Añadir la clase correspondiente
+    switch (estilo) {
+        case 'estilo1':
+        case 'estilo2':
+        case 'estilo4':
+        case 'estilo5':
+            grid.classList.add('cards-grid-5');
+            break;
+        case 'estilo3':
+            grid.classList.add('cards-grid-1');
+            break;
+        default:
+            grid.classList.add('cards-grid-5');
+    }
+}
+
+// --- CONFIGURAR EVENTOS DEL FILTRO DE ESTILO ---
+function configurarFiltroEstiloLista() {
+    const sidebar = document.getElementById('lista-filter-sidebar');
+    if (!sidebar) {
+        console.warn('⚠️ Sidebar de filtros no encontrada');
+        return;
+    }
+
+    // Buscar los checkboxes de estilo (dentro del accordion de ESTILO DE TARJETA)
+    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
+
+    if (styleCheckboxes.length === 0) {
+        console.warn('⚠️ No se encontraron checkboxes de estilo');
+        return;
+    }
+
+    // Eliminar listeners antiguos (para evitar duplicados)
+    styleCheckboxes.forEach(cb => {
+        cb.removeEventListener('change', handleStyleChange);
+        cb.addEventListener('change', handleStyleChange);
+    });
+
+    // --- Cargar preferencia guardada ---
+    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+
+    // Marcar el checkbox correspondiente
+    styleCheckboxes.forEach(cb => {
+        if (cb.value === estiloGuardado) {
+            cb.checked = true;
+        } else {
+            cb.checked = false;
+        }
+    });
+
+    // Aplicar el estilo guardado (con un pequeño retraso para que el DOM esté listo)
+    setTimeout(() => {
+        aplicarEstiloLista(estiloGuardado);
+    }, 100);
+}
+
+// --- Manejador de cambio de estilo ---
+function handleStyleChange(e) {
+    const changed = e.target;
+    const isChecked = changed.checked;
+
+    // Si se DESmarca, lo volvemos a marcar (no permitimos desactivar todos)
+    if (!isChecked) {
+        changed.checked = true;
+        return;
+    }
+
+    // Desmarcar todos los demás checkboxes del mismo grupo
+    const sidebar = document.getElementById('lista-filter-sidebar');
+    if (!sidebar) return;
+
+    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
+    styleCheckboxes.forEach(cb => {
+        if (cb !== changed) cb.checked = false;
+    });
+
+    // Aplicar el estilo seleccionado
+    const estilo = changed.value; // 'estilo1', 'estilo2', ...
+    aplicarEstiloLista(estilo);
+}
+
+// ==========================================================================
+//   MODIFICAR cargarDetalleLista PARA INCLUIR EL FILTRO DE ESTILO
+// ==========================================================================
+
+// Guardar referencia a la función original
+const _originalCargarDetalleLista = window.cargarDetalleLista || cargarDetalleLista;
+
+// Sobrescribir cargarDetalleLista
+window.cargarDetalleLista = async function (nombreLista) {
+    // Llamar a la función original (si existe)
+    if (typeof _originalCargarDetalleLista === 'function') {
+        await _originalCargarDetalleLista(nombreLista);
+    } else {
+        // Si no existe la función original (por si está definida después), la ejecutamos manualmente
+        // Esto es un fallback por si tu cargarDetalleLista no está definida globalmente
+        console.warn('⚠️ cargarDetalleLista original no encontrada, usando fallback');
+    }
+
+    // Configurar el filtro de estilo DESPUÉS de cargar los datos
+    // Usamos setTimeout para dar tiempo a que el DOM se actualice
+    setTimeout(() => {
+        configurarFiltroEstiloLista();
+    }, 200);
+};
+
+// También ejecutar cuando se carga la vista por primera vez (por si el enrutador llama directamente)
+document.addEventListener('DOMContentLoaded', () => {
+    // Si estamos en la vista de detalle, configurar el filtro
+    if (vistaActualGlobal === 'lista-detalle') {
+        setTimeout(configurarFiltroEstiloLista, 300);
+    }
+});
+
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
 // ==========================================
