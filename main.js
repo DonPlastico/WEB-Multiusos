@@ -13469,7 +13469,6 @@ async function enriquecerItemsListaCompleto(items) {
                     // ======================================================
                     const mediaIdStr = String(item._media_id);
                     let juegoData = null;
-                    let enrichedItem = null;
 
                     // DETECTAR SI ES ID DE STEAM (empieza con "steam_")
                     if (mediaIdStr.startsWith('steam_')) {
@@ -13517,40 +13516,39 @@ async function enriquecerItemsListaCompleto(items) {
                         }
 
                         // ======================================================
-                        // INTENTO 2: SIEMPRE intentar Steam (incluso si IGDB no devolvió 404)
-                        // Esto asegura que SIEMPRE tengamos un fallback
+                        // INTENTO 2: Si IGDB devolvió 404, buscar en Steam
                         // ======================================================
-                        if (!juegoData) {
+                        if (!juegoData && igdb404) {
                             try {
-                                // Primero intentar con el ID directamente (si es número)
-                                let steamQuery = mediaIdStr;
-
-                                // Si el ID es muy largo (> 6 dígitos), probablemente no es Steam
-                                // pero aún así lo intentamos
-                                const res = await fetch(`/api/steam?query=${steamQuery}&lang=${currentLang}`);
+                                const res = await fetch(`/api/steam?query=${mediaIdStr}&lang=${currentLang}`);
                                 if (res.ok) {
                                     const result = await res.json();
                                     juegoData = result.juegos?.[0] || result[0] || null;
-
-                                    // Si Steam devolvió datos, marcar como fuente Steam
-                                    if (juegoData) {
-                                        juegoData._source = 'steam';
-                                    }
                                 }
                             } catch (e) {
                                 console.warn(`⚠️ [Steam] Fallback error para ${mediaIdStr}:`, e);
                             }
+
+                            // Si Steam devolvió datos, formateamos para que tenga la pinta de IGDB
+                            if (juegoData) {
+                                // Steam ya devuelve en formato IGDB gracias a steam.js
+                                // Pero puede que no tenga first_release_date
+                                juegoData.first_release_date = juegoData.first_release_date || null;
+                                juegoData.rating = juegoData.rating || 0;
+                                juegoData._source = 'steam';
+                            }
                         }
 
                         // ======================================================
-                        // INTENTO 3: Si Steam no encontró, intentar IGDB por query (texto)
+                        // INTENTO 3: Si Steam no encontró, buscar en IGDB por query (texto)
                         // ======================================================
-                        if (!juegoData) {
+                        if (!juegoData && !igdb404) {
                             try {
                                 const res = await fetch(`/api/igdb?query=${mediaIdStr}&lang=${currentLang}`);
                                 if (res.ok) {
                                     const result = await res.json();
                                     const juegos = result.juegos || result || [];
+                                    // Buscar coincidencia exacta por ID o por nombre que contenga el ID
                                     juegoData = juegos.find(j => String(j.id) === mediaIdStr) || juegos[0] || null;
                                 }
                             } catch (e) {
@@ -13569,9 +13567,9 @@ async function enriquecerItemsListaCompleto(items) {
                                 // Si es de IGDB, usar la portada de IGDB
                                 imagen = juegoData.cover?.url ? juegoData.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
 
-                                // Si no tiene portada en IGDB, intentar con Steam (si el ID es numérico)
-                                if (!imagen && /^\d+$/.test(mediaIdStr)) {
-                                    const steamId = mediaIdStr;
+                                // Si no tiene portada en IGDB, intentar con Steam
+                                if (!imagen) {
+                                    const steamId = juegoData.id?.toString().replace('steam_', '') || mediaIdStr;
                                     imagen = `https://steamcdn-a.akamaihd.net/apps/${steamId}/library_600x900_2x.jpg`;
                                 }
                             }
