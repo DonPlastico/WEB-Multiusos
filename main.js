@@ -11442,6 +11442,38 @@ async function cargarDetalleLista(nombreLista) {
     }
 }
 
+// ==========================================================================
+//   FILTROS DINÁMICOS PARA LISTA DETALLE (según tag_tipo)
+// ==========================================================================
+
+/**
+ * Configura los filtros de la lista según el tipo de contenido
+ * @param {string} tagTipo - 'game', 'movie', 'tv' o 'mixta'
+ */
+function configurarFiltrosLista(tagTipo) {
+    const sidebar = document.getElementById('lista-filter-sidebar');
+    if (!sidebar) return;
+
+    // Mostrar/ocultar filtros según el tipo
+    // Por ahora mantenemos todos visibles, pero en el futuro filtraremos
+
+    // Ejemplo de cómo se podría hacer:
+    // const filtroTipo = sidebar.querySelector('.accordion-item:nth-child(2)');
+    // if (filtroTipo) {
+    //     if (tagTipo === 'mixta') {
+    //         filtroTipo.style.display = 'block';
+    //     } else {
+    //         filtroTipo.style.display = 'none';
+    //     }
+    // }
+
+    console.log(`🎯 Filtros configurados para tipo: ${tagTipo}`);
+}
+
+// Llamar esta función desde cargarDetalleLista() después de obtener la lista
+// Añadir al final de cargarDetalleLista():
+// configurarFiltrosLista(lista.tag_tipo);
+
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
     // Pestañas principales: Mis listas | Compartidas conmigo | Siguiendo

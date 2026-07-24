@@ -7102,7 +7102,7 @@ cast-carousel::-webkit-scrollbar {
     min-width: 0;
 }
 
-/* Sidebar de filtros en lista-detalle */
+/* Sidebar de filtros - MISMO ESTILO QUE EL RESTO */
 #lista-filter-sidebar {
     position: sticky;
     top: 100px;
@@ -7113,15 +7113,6 @@ cast-carousel::-webkit-scrollbar {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     backdrop-filter: blur(12px);
-    max-height: calc(100vh - 120px);
-    overflow: hidden;
-}
-
-#lista-filter-sidebar .filters-scroll-area {
-    overflow-y: auto;
-    flex-grow: 1;
-    overscroll-behavior: contain;
-    padding-bottom: 10px;
 }
 
 #lista-filter-sidebar .filter-main-header {
@@ -7160,7 +7151,13 @@ cast-carousel::-webkit-scrollbar {
     border-color: var(--primary);
 }
 
-/* Acordeones en el sidebar de lista */
+.filters-scroll-area {
+    overflow-y: auto;
+    flex-grow: 1;
+    overscroll-behavior: contain;
+}
+
+/* Acordeones - IDÉNTICOS AL RESTO DE LA WEB */
 #lista-filter-sidebar .accordion-item {
     border-bottom: 1px solid var(--border-color);
 }
@@ -7170,7 +7167,7 @@ cast-carousel::-webkit-scrollbar {
 }
 
 #lista-filter-sidebar .accordion-header {
-    padding: 14px 24px;
+    padding: 16px 24px;
     cursor: pointer;
     transition: 0.3s;
     user-select: none;
@@ -7184,7 +7181,7 @@ cast-carousel::-webkit-scrollbar {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -7192,7 +7189,7 @@ cast-carousel::-webkit-scrollbar {
 }
 
 #lista-filter-sidebar .chevron-icon {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     transition: transform 0.3s ease;
     color: var(--text-muted);
 }
@@ -7202,7 +7199,7 @@ cast-carousel::-webkit-scrollbar {
 }
 
 #lista-filter-sidebar .accordion-content {
-    padding: 6px 30px 16px;
+    padding: 10px 30px;
     display: none;
 }
 
@@ -7211,7 +7208,53 @@ cast-carousel::-webkit-scrollbar {
     animation: slideDown 0.3s ease;
 }
 
-/* CUSTOM CHECK para radio buttons (círculos) */
+/* Custom Check - IDÉNTICO AL RESTO */
+#lista-filter-sidebar .custom-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: 0.2s;
+    user-select: none;
+}
+
+#lista-filter-sidebar .custom-check:hover {
+    color: var(--text-main);
+}
+
+#lista-filter-sidebar .custom-check input {
+    display: none;
+}
+
+#lista-filter-sidebar .custom-check .box {
+    width: 18px;
+    height: 18px;
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border-color);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+
+#lista-filter-sidebar .custom-check input:checked+.box {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+#lista-filter-sidebar .custom-check input:checked+.box::after {
+    content: '\f00c';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 0.7rem;
+    color: white;
+}
+
+/* Radio buttons (círculos) */
 #lista-filter-sidebar .custom-check .box[style*="border-radius: 50%"] {
     border-radius: 50% !important;
 }
@@ -7922,27 +7965,6 @@ cast-carousel::-webkit-scrollbar {
 
     #lista-filter-sidebar .filter-main-header {
         display: none;
-    }
-
-    /* Botón móvil para abrir filtros */
-    .btn-mobile-filters-lista {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        background: var(--primary);
-        border: none;
-        color: #fff;
-        width: 46px;
-        height: 46px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-        transition: background 0.2s ease;
-    }
-
-    .btn-mobile-filters-lista:hover {
-        background: var(--primary-hover);
     }
 }
 
