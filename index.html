@@ -1966,15 +1966,508 @@
                     <div class="lista-detalle-content">
                         <!-- Título dinámico -->
                         <h1 class="section-title" id="lista-detalle-titulo">
-                            <i class="fas fa-list"></i> LISTA SELECCIONADA: <span
-                                id="lista-detalle-nombre">Cargando...</span>
+                            <i class="fas fa-list"></i> LISTA SELECCIONADA: <span id="lista-detalle-nombre">Cargando...</span>
                         </h1>
 
                         <!-- ========================================================= -->
-                        <!--   GRID ÚNICO DE TARJETAS (estilo cambia vía clase)        -->
+                        <!--   ESTILO 1: Estándar                                    -->
                         <!-- ========================================================= -->
-                        <div id="lista-items-grid" class="lista-cards-grid cards-grid-5" data-current-style="estilo1">
-                            <!-- Las tarjetas se generarán dinámicamente desde JS -->
+                        <div class="lista-cards-grid cards-grid-5">
+                            <!-- 10 tarjetas -->
+                            <div class="list-card-style-1" onclick="abrirModalMedia('1', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                        loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-film"></i> Película</span></div>
+                                </div>
+                                <div class="list-card-title">Dune: Part Two</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('2', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                        alt="The Last of Us" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-tv"></i> Serie</span></div>
+                                </div>
+                                <div class="list-card-title">The Last of Us</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('3', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                        alt="Elden Ring" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-gamepad"></i> Juego</span></div>
+                                </div>
+                                <div class="list-card-title">Elden Ring</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('4', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                        alt="Oppenheimer" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-film"></i> Película</span></div>
+                                </div>
+                                <div class="list-card-title">Oppenheimer</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('5', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
+                                        alt="Fallout" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-tv"></i> Serie</span></div>
+                                </div>
+                                <div class="list-card-title">Fallout</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('6', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
+                                        alt="Deadpool" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-film"></i> Película</span></div>
+                                </div>
+                                <div class="list-card-title">Deadpool & Wolverine</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('7', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
+                                        alt="House of Dragon" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-tv"></i> Serie</span></div>
+                                </div>
+                                <div class="list-card-title">House of the Dragon</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('8', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
+                                        alt="Baldur's Gate" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-gamepad"></i> Juego</span></div>
+                                </div>
+                                <div class="list-card-title">Baldur's Gate 3</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('9', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
+                                        alt="Inside Out 2" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-film"></i> Película</span></div>
+                                </div>
+                                <div class="list-card-title">Inside Out 2</div>
+                            </div>
+                            <div class="list-card-style-1" onclick="abrirModalMedia('10', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
+                                        alt="The Bear" loading="lazy">
+                                    <div class="list-card-overlay"><span class="list-card-type"><i
+                                                class="fas fa-tv"></i> Serie</span></div>
+                                </div>
+                                <div class="list-card-title">The Bear</div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!--   ESTILO 2: Estándar Detallado                          -->
+                        <!-- ========================================================= -->
+                        <div class="lista-cards-grid cards-grid-5">
+                            <div class="list-card-style-2" onclick="abrirModalMedia('1', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                        loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Dune: Part Two</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('2', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                        alt="The Last of Us" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">The Last of Us</div>
+                                <div class="list-card-year">2023</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('3', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                        alt="Elden Ring" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Elden Ring</div>
+                                <div class="list-card-year">2022</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('4', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                        alt="Oppenheimer" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Oppenheimer</div>
+                                <div class="list-card-year">2023</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('5', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
+                                        alt="Fallout" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Fallout</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('6', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
+                                        alt="Deadpool" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Deadpool & Wolverine</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('7', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
+                                        alt="House of Dragon" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">House of the Dragon</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('8', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
+                                        alt="Baldur's Gate" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Baldur's Gate 3</div>
+                                <div class="list-card-year">2023</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('9', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
+                                        alt="Inside Out 2" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">Inside Out 2</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                            <div class="list-card-style-2" onclick="abrirModalMedia('10', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
+                                        alt="The Bear" loading="lazy">
+                                    <div class="list-card-glow"></div>
+                                </div>
+                                <div class="list-card-title">The Bear</div>
+                                <div class="list-card-year">2024</div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!--   ESTILO 3: Listado                                       -->
+                        <!-- ========================================================= -->
+                        <div class="lista-cards-grid cards-grid-1">
+                            <div class="list-card-style-3" onclick="abrirModalMedia('1', 'movie')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg"
+                                            alt="Dune" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Dune: Part Two</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.5 · Película</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('2', 'tv')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                            alt="The Last of Us" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">The Last of Us</div>
+                                        <div class="list-card-sub">2023 · ⭐ 8.8 · Serie</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('3', 'game')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                            alt="Elden Ring" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Elden Ring</div>
+                                        <div class="list-card-sub">2022 · ⭐ 9.5 · Juego</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('4', 'movie')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                            alt="Oppenheimer" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Oppenheimer</div>
+                                        <div class="list-card-sub">2023 · ⭐ 8.4 · Película</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('5', 'tv')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
+                                            alt="Fallout" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Fallout</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.2 · Serie</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('6', 'movie')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
+                                            alt="Deadpool" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Deadpool & Wolverine</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.0 · Película</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('7', 'tv')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
+                                            alt="House of Dragon" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">House of the Dragon</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.3 · Serie</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('8', 'game')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
+                                            alt="Baldur's Gate" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Baldur's Gate 3</div>
+                                        <div class="list-card-sub">2023 · ⭐ 9.6 · Juego</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('9', 'movie')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
+                                            alt="Inside Out 2" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Inside Out 2</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.1 · Película</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-3" onclick="abrirModalMedia('10', 'tv')">
+                                <div class="list-card-list-item">
+                                    <div class="list-card-thumb"><img
+                                            src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
+                                            alt="The Bear" loading="lazy"></div>
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">The Bear</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.6 · Serie</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!--   ESTILO 4: Cuadrícula                                   -->
+                        <!-- ========================================================= -->
+                        <div class="lista-cards-grid cards-grid-5">
+                            <div class="list-card-style-4" onclick="abrirModalMedia('1', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                        loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Dune: Part Two</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.5</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('2', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                        alt="The Last of Us" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">The Last of Us</div>
+                                        <div class="list-card-sub">2023 · ⭐ 8.8</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('3', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                        alt="Elden Ring" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Elden Ring</div>
+                                        <div class="list-card-sub">2022 · ⭐ 9.5</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('4', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                        alt="Oppenheimer" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Oppenheimer</div>
+                                        <div class="list-card-sub">2023 · ⭐ 8.4</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('5', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
+                                        alt="Fallout" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Fallout</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.2</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('6', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
+                                        alt="Deadpool" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Deadpool & Wolverine</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('7', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
+                                        alt="House of Dragon" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">House of the Dragon</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.3</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('8', 'game')">
+                                <div class="list-card-image"><img
+                                        src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
+                                        alt="Baldur's Gate" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Baldur's Gate 3</div>
+                                        <div class="list-card-sub">2023 · ⭐ 9.6</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('9', 'movie')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
+                                        alt="Inside Out 2" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">Inside Out 2</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.1</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-4" onclick="abrirModalMedia('10', 'tv')">
+                                <div class="list-card-image"><img
+                                        src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
+                                        alt="The Bear" loading="lazy">
+                                    <div class="list-card-info">
+                                        <div class="list-card-title">The Bear</div>
+                                        <div class="list-card-sub">2024 · ⭐ 8.6</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!--   ESTILO 5: Mosaico                                       -->
+                        <!-- ========================================================= -->
+                        <div class="lista-cards-grid cards-grid-5">
+                            <div class="list-card-style-5" onclick="abrirModalMedia('1', 'movie')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg"
+                                            alt="Dune" loading="lazy"></div>
+                                    <div class="list-card-title">Dune: Part Two</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('2', 'tv')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                            alt="The Last of Us" loading="lazy"></div>
+                                    <div class="list-card-title">The Last of Us</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('3', 'game')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                            alt="Elden Ring" loading="lazy"></div>
+                                    <div class="list-card-title">Elden Ring</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('4', 'movie')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                            alt="Oppenheimer" loading="lazy"></div>
+                                    <div class="list-card-title">Oppenheimer</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('5', 'tv')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg"
+                                            alt="Fallout" loading="lazy"></div>
+                                    <div class="list-card-title">Fallout</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('6', 'movie')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/8BkfGFWbyhVSTsRxLS9BqJSh0Vq.jpg"
+                                            alt="Deadpool" loading="lazy"></div>
+                                    <div class="list-card-title">Deadpool & Wolverine</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('7', 'tv')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/2y0r0MrMh7G9xMDJUS6SWA3zTOD.jpg"
+                                            alt="House of Dragon" loading="lazy"></div>
+                                    <div class="list-card-title">House of the Dragon</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('8', 'game')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4r2q.jpg"
+                                            alt="Baldur's Gate" loading="lazy"></div>
+                                    <div class="list-card-title">Baldur's Gate 3</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('9', 'movie')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5uRwIZAn.jpg"
+                                            alt="Inside Out 2" loading="lazy"></div>
+                                    <div class="list-card-title">Inside Out 2</div>
+                                </div>
+                            </div>
+                            <div class="list-card-style-5" onclick="abrirModalMedia('10', 'tv')">
+                                <div class="list-card-mosaic">
+                                    <div class="list-card-image"><img
+                                            src="https://image.tmdb.org/t/p/w500/4xgNtQ1N9wA3cmCxQ5wqC1wD2X1.jpg"
+                                            alt="The Bear" loading="lazy"></div>
+                                    <div class="list-card-title">The Bear</div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -2003,24 +2496,24 @@
                                 </div>
                                 <div class="accordion-content">
                                     <label class="custom-check">
-                                        <input type="radio" name="lista-card-style" value="estilo1" checked>
-                                        <span class="box" style="border-radius: 50%;"></span> Estándar
+                                        <input type="checkbox" value="estilo1" checked>
+                                        <span class="box"></span> Estándar
                                     </label>
                                     <label class="custom-check">
-                                        <input type="radio" name="lista-card-style" value="estilo2">
-                                        <span class="box" style="border-radius: 50%;"></span> Estándar Detallado
+                                        <input type="checkbox" value="estilo2">
+                                        <span class="box"></span> Estándar Detallado
                                     </label>
                                     <label class="custom-check">
-                                        <input type="radio" name="lista-card-style" value="estilo3">
-                                        <span class="box" style="border-radius: 50%;"></span> Listado
+                                        <input type="checkbox" value="estilo3">
+                                        <span class="box"></span> Listado
                                     </label>
                                     <label class="custom-check">
-                                        <input type="radio" name="lista-card-style" value="estilo4">
-                                        <span class="box" style="border-radius: 50%;"></span> Cuadrícula
+                                        <input type="checkbox" value="estilo4">
+                                        <span class="box"></span> Cuadrícula
                                     </label>
                                     <label class="custom-check">
-                                        <input type="radio" name="lista-card-style" value="estilo5">
-                                        <span class="box" style="border-radius: 50%;"></span> Mosaico
+                                        <input type="checkbox" value="estilo5">
+                                        <span class="box"></span> Mosaico
                                     </label>
                                 </div>
                             </div>
