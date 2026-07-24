@@ -167,8 +167,8 @@ let tendenciasSeriesCargadas = false;
 // 1. Guardar referencia a la función original
 const _originalCambiarVista = window.cambiarVista || cambiarVista;
 
-// 2. Sobrescribir cambiarVista usando ...args para que NUNCA pierda parámetros
-window.cambiarVista = async function (...args) {
+// 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
+window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
 
     // CERRAR MODALES ESPECÍFICOS POR ID
     const mediaModal = document.getElementById('media-details-modal');
@@ -187,9 +187,9 @@ window.cambiarVista = async function (...args) {
     // Cerramos menús contextuales sueltos si están abiertos
     if (typeof cerrarMenuAddToList === 'function') cerrarMenuAddToList();
 
-    // Llamar a la función original pasando TODOS los argumentos intactos
+    // Llamar a la función original primero, dejamos q haga lo suyo de siempre
     if (typeof _originalCambiarVista === 'function') {
-        await _originalCambiarVista(...args);
+        await _originalCambiarVista(target, guardarEnHistorial, usernameUrl);
     }
 
     // Actualizar meta tags DESPUÉS de cambiar la vista
@@ -232,7 +232,6 @@ const ICONO_TIPO = {
 let listasTabActual = 'mias';       // mias | compartidas | siguiendo
 let listasFiltroActual = 'all';     // all | game | movie | tv
 let listasEventosListos = false;    // pa no duplicar listeners
-let listaDetalleActual = null;      // guarda la lista que se está viendo en /mis-listas/{id o slug}
 
 // Usar var para que esté disponible en todo el ámbito
 // (con let/const en algunos casos daba problemas de scope, con var vamos sobre seguro)
@@ -568,7 +567,7 @@ const memoriaScroll = {};
 let vistaActualGlobal = 'home'; // saco cual es la vista actual
 
 // funcion central de navegacion: cambia de vista, actualiza la url y el historial
-async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
+async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = null) {
 
     // --- 1. DESTRUIR MODALES AL NAVEGAR ---
     document.getElementById('media-details-modal')?.classList.remove('show');
@@ -634,8 +633,6 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
     if (guardarEnHistorial) {
         if (target === 'profile' && usernameUrl) {
             window.history.pushState({ vista: target, user: usernameUrl }, '', `/perfil/usuario/${usernameUrl}`);
-        } else if (target === 'lista-detalle' && listaInfo) {
-            window.history.pushState({ vista: target, lista: listaInfo.param }, '', listaInfo.urlPath);
         } else if (mapaRutas[target]) {
             window.history.pushState({ vista: target }, '', mapaRutas[target]);
         }
@@ -666,8 +663,6 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
         inicializarMisListas();
-    } else if (target === 'lista-detalle') {
-        cargarYPintarListaDetalle(listaInfo ? listaInfo.param : null);
     }
 
     // --- ACTUALIZAR META TAGS AL FINAL ---
@@ -740,12 +735,8 @@ window.addEventListener('popstate', async (evento) => {
     }
 
     if (evento.state && evento.state.vista) {
-        if (evento.state.vista === 'lista-detalle' && evento.state.lista) {
-            await cambiarVista('lista-detalle', false, null, { param: evento.state.lista });
-        } else {
-            // vuelvo a la vista anterior sin guardar (pa no meter otra entrada en el historial)
-            await cambiarVista(evento.state.vista, false, evento.state.user || null);
-        }
+        // vuelvo a la vista anterior sin guardar (pa no meter otra entrada en el historial)
+        await cambiarVista(evento.state.vista, false, evento.state.user || null);
     } else {
         arrancarEnrutador();
     }
@@ -757,7 +748,6 @@ function arrancarEnrutador() {
     const rutaActual = window.location.pathname;
     let vistaInicial = 'home';
     let userInitial = null;
-    let listaSegmentoInicial = null;
 
     // DETECTAR URL DINÁMICA DE PERFIL Y DE MODALES
     if (rutaActual.startsWith('/perfil/usuario/')) {
@@ -771,9 +761,6 @@ function arrancarEnrutador() {
         vistaInicial = 'series';
     } else if (rutaActual.startsWith('/admin')) {
         vistaInicial = 'admin-panel';
-    } else if (rutaActual.startsWith('/mis-listas/')) {
-        vistaInicial = 'lista-detalle';
-        listaSegmentoInicial = decodeURIComponent(rutaActual.replace('/mis-listas/', '').split('/')[0]);
     } else if (rutaActual.startsWith('/mis-listas')) {
         vistaInicial = 'mis-listas';
     } else if (rutaActual.startsWith('/editar-perfil')) {
@@ -794,11 +781,7 @@ function arrancarEnrutador() {
     }
 
     // Cambiar directamente a la vista detectada
-    if (vistaInicial === 'lista-detalle' && listaSegmentoInicial) {
-        cambiarVista(vistaInicial, false, userInitial, { param: listaSegmentoInicial });
-    } else {
-        cambiarVista(vistaInicial, false, userInitial);
-    }
+    cambiarVista(vistaInicial, false, userInitial);
 
     // ACTUALIZAR EL MENÚ ACTIVO
     linksMenu.forEach(link => {
@@ -2702,9 +2685,9 @@ function cargarTendenciasInicial() {
 // Esto es un "hack" para que cuando el usuario navegue a la vista de juegos,
 // las tendencias se carguen automaticamente
 const originalCambiarVista = cambiarVista;
-cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null, listaInfo = null) {
-    // Llamar a la función original pasándole TODOS los parámetros
-    await originalCambiarVista(target, guardarEnHistorial, usernameUrl, listaInfo);
+cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
+    // Llamar a la función original
+    await originalCambiarVista(target, guardarEnHistorial, usernameUrl);
 
     // Si es la vista de juegos, cargar tendencias
     if (target === 'games') {
@@ -11530,8 +11513,6 @@ function crearListCard(lista) {
 
     const cardEl = clone.querySelector('.list-card');
     cardEl.dataset.listId = lista.id;
-    cardEl.style.cursor = 'pointer';
-    cardEl.addEventListener('click', () => abrirListaDetalle(lista));
 
     // Rellenar datos basicos
     clone.querySelector('.list-card-title').textContent = lista.titulo;
@@ -11575,115 +11556,6 @@ function crearListCard(lista) {
     });
 
     return clone.firstElementChild;
-}
-
-// ==========================================================================
-//   DETALLE DE UNA LISTA (vista /mis-listas/{slug o token})
-// ==========================================================================
-
-// Genera el mismo tipo de slug que ya usamos para /juegos/{nombre}
-function generarSlugLista(titulo) {
-    return (titulo || '').replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_');
-}
-
-// Se llama al hacer click en una card: decide la URL (publica=slug, privada=token de sesion)
-async function abrirListaDetalle(listaOId) {
-    let lista = listaOId;
-
-    // AUTOSANADO: Si nos llega un ID de texto o un Evento en vez del objeto de la lista, lo arreglamos
-    if (typeof listaOId === 'string' || (listaOId && listaOId.type === 'click')) {
-        // Extraemos el ID real (ya sea string puro o sacándolo del dataset del elemento clicado)
-        const idReal = typeof listaOId === 'string' ? listaOId : listaOId.currentTarget.dataset.listId;
-
-        const { data, error } = await supabase
-            .from('listas_maestra')
-            .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
-            .eq('id', idReal)
-            .maybeSingle();
-
-        if (error || !data) {
-            showToast('error', 'Error', 'No se pudo cargar la información de la lista.');
-            return;
-        }
-        lista = data; // Problema arreglado, ya tenemos el objeto completo
-    }
-
-    let segmento;
-
-    if (lista.is_public) {
-        segmento = generarSlugLista(lista.titulo);
-    } else {
-        // Token nuevo cada vez, solo vive en esta pestaña/sesion (sessionStorage)
-        segmento = crypto.randomUUID();
-        const tokens = JSON.parse(sessionStorage.getItem('tokensListasPrivadas') || '{}');
-        tokens[segmento] = lista.id;
-        sessionStorage.setItem('tokensListasPrivadas', JSON.stringify(tokens));
-    }
-
-    cambiarVista('lista-detalle', true, null, { param: lista, urlPath: `/mis-listas/${segmento}` });
-}
-
-// Resuelve un segmento de URL (token privado o slug publico) contra Supabase
-async function resolverListaPorSegmento(segmento) {
-    const tokens = JSON.parse(sessionStorage.getItem('tokensListasPrivadas') || '{}');
-    const listaIdPorToken = tokens[segmento];
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (listaIdPorToken) {
-        const { data, error } = await supabase
-            .from('listas_maestra')
-            .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
-            .eq('id', listaIdPorToken)
-            .maybeSingle();
-
-        if (error || !data) return null;
-        if (data.is_public) return data;
-        if (!session) return null;
-        if (data.owner_id === session.user.id) return data;
-
-        const { data: miembro } = await supabase
-            .from('listas_miembros')
-            .select('id')
-            .eq('lista_id', data.id)
-            .eq('user_id', session.user.id)
-            .eq('estado', 'accepted')
-            .maybeSingle();
-
-        return miembro ? data : null;
-    }
-
-    // No es un token nuestro: lo tratamos como slug de una lista publica
-    const { data: publicas, error } = await supabase
-        .from('listas_maestra')
-        .select('id, titulo, descripcion, is_public, tag_tipo, owner_id')
-        .eq('is_public', true);
-
-    if (error || !publicas) return null;
-    return publicas.find(l => generarSlugLista(l.titulo) === segmento) || null;
-}
-
-// Carga (si hace falta) y pinta la vista de detalle de lista
-async function cargarYPintarListaDetalle(param) {
-    const contenedor = document.getElementById('lista-detalle-contenido');
-    const nombreEl = document.getElementById('lista-detalle-nombre');
-    if (contenedor) contenedor.innerHTML = '<div class="watchlist-loading"><i class="fas fa-circle-notch fa-spin"></i></div>';
-
-    let lista = null;
-    if (param && typeof param === 'object') {
-        lista = param; // ya la teniamos (venimos de un click en la card)
-    } else if (typeof param === 'string') {
-        lista = await resolverListaPorSegmento(param); // venimos de URL directa/recarga
-    }
-
-    if (!lista) {
-        showToast('error', 'Lista no encontrada', 'No existe esa lista o no tienes acceso a ella.');
-        await cambiarVista('mis-listas', true);
-        return;
-    }
-
-    listaDetalleActual = lista;
-    if (nombreEl) nombreEl.textContent = lista.titulo;
-    if (contenedor) contenedor.innerHTML = ''; // vacio -> el CSS :empty ya pinta el placeholder
 }
 
 // ==========================================================================
