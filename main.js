@@ -11435,6 +11435,19 @@ async function cargarDetalleLista(nombreLista) {
         }
 
         configurarFiltrosLista(lista.tag_tipo);
+
+        // Generar tarjetas en el grid único
+        const grid = document.getElementById('lista-items-grid');
+        if (grid && items) {
+            grid.innerHTML = '';
+            items.forEach(item => {
+                // Crear tarjeta según el tipo (movie, tv, game)
+                const card = crearTarjetaListaDetalle(item);
+                grid.appendChild(card);
+            });
+        }
+
+        // Inicializar el filtro de estilos
         initListaEstiloFiltro();
 
     } catch (err) {
@@ -11442,6 +11455,108 @@ async function cargarDetalleLista(nombreLista) {
         if (tituloEl) tituloEl.textContent = 'Error';
         if (mensajeEl) mensajeEl.textContent = 'Ocurrió un error al cargar la lista.';
         showToast('error', 'Error', 'No se pudo cargar la lista.');
+    }
+}
+
+/**
+ * Crea una tarjeta para el detalle de lista
+ */
+function crearTarjetaListaDetalle(item) {
+    const div = document.createElement('div');
+    div.className = 'list-card-style-1'; // Base, luego el grid aplica el estilo
+    div.setAttribute('onclick', `abrirModalMedia('${item.media_id}', '${item.media_tipo}')`);
+
+    // Determinar icono según tipo
+    const iconMap = {
+        'movie': 'fa-film',
+        'tv': 'fa-tv',
+        'game': 'fa-gamepad'
+    };
+    const typeLabel = {
+        'movie': 'Película',
+        'tv': 'Serie',
+        'game': 'Juego'
+    };
+    const icon = iconMap[item.media_tipo] || 'fa-film';
+    const label = typeLabel[item.media_tipo] || 'Contenido';
+
+    // Imagen placeholder (se reemplazará con la real cuando se cargue)
+    div.innerHTML = `
+        <div class="list-card-image">
+            <img src="" alt="Cargando..." loading="lazy" 
+                 data-media-id="${item.media_id}" 
+                 data-media-tipo="${item.media_tipo}">
+            <div class="list-card-overlay">
+                <span class="list-card-type"><i class="fas ${icon}"></i> ${label}</span>
+            </div>
+        </div>
+        <div class="list-card-title">Cargando...</div>
+        <div class="list-card-year"></div>
+        <div class="list-card-sub"></div>
+        <div class="list-card-info"></div>
+    `;
+
+    // Cargar datos del media (título, imagen, año, rating)
+    cargarDatosTarjetaLista(div, item.media_id, item.media_tipo);
+
+    return div;
+}
+
+/**
+ * Carga los datos de una tarjeta de lista desde la API
+ */
+async function cargarDatosTarjetaLista(cardElement, mediaId, tipo) {
+    try {
+        const url = tipo === 'game'
+            ? `/api/igdb?query=${mediaId}&lang=${currentLang}`
+            : `/api/tmdb?id=${mediaId}&tipo=${tipo}&lang=${currentLang}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        let titulo = 'Sin título';
+        let poster = '';
+        let año = '';
+        let rating = '';
+
+        if (tipo === 'game') {
+            const juego = data.juegos?.[0] || data[0];
+            if (juego) {
+                titulo = juego.name || 'Sin título';
+                poster = juego.cover?.url?.replace('t_thumb', 't_cover_big').replace('//', 'https://') || '';
+                año = juego.first_release_date ? new Date(juego.first_release_date * 1000).getFullYear() : '';
+                rating = juego.rating ? (juego.rating / 10).toFixed(1) : '';
+            }
+        } else {
+            const media = data;
+            if (media) {
+                titulo = media.titulo || 'Sin título';
+                poster = media.poster || '';
+                año = media.fecha ? new Date(media.fecha).getFullYear() : '';
+                rating = media.nota || '';
+            }
+        }
+
+        // Actualizar elementos de la tarjeta
+        const img = cardElement.querySelector('.list-card-image img');
+        if (img) img.src = poster;
+
+        const titleEl = cardElement.querySelector('.list-card-title');
+        if (titleEl) titleEl.textContent = titulo;
+
+        const yearEl = cardElement.querySelector('.list-card-year');
+        if (yearEl) yearEl.textContent = año;
+
+        const subEl = cardElement.querySelector('.list-card-sub');
+        if (subEl) subEl.textContent = año ? `${año} · ⭐ ${rating}` : '';
+
+        const infoEl = cardElement.querySelector('.list-card-info');
+        if (infoEl && rating) {
+            infoEl.innerHTML = `${año} · ⭐ ${rating}`;
+        }
+
+    } catch (error) {
+        console.error('Error cargando datos de tarjeta:', error);
     }
 }
 
@@ -13069,51 +13184,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Inicializa el filtro de estilo de tarjeta en la vista de detalle de lista.
- * - Solo permite un estilo activo a la vez (comportamiento radio button).
- * - Muestra/oculta los contenedores de cada estilo.
- * - Añade placeholders con icono para tarjetas sin imagen.
+ * - Usa radio buttons (solo uno activo a la vez)
+ * - Cambia la clase del grid para aplicar el estilo correspondiente
+ * - Añade placeholders con icono para tarjetas sin imagen
  */
 function initListaEstiloFiltro() {
     const sidebar = document.getElementById('lista-filter-sidebar');
     if (!sidebar) return;
 
-    // Buscar los checkboxes dentro del accordion "ESTILO DE TARJETA"
-    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
-    if (styleCheckboxes.length === 0) return;
+    // Buscar los radio buttons dentro del accordion "ESTILO DE TARJETA"
+    const styleRadios = sidebar.querySelectorAll('.accordion-item .custom-check input[type="radio"]');
+    if (styleRadios.length === 0) return;
 
-    // Mapeo de valor del checkbox -> clase del contenedor de estilo
-    const estiloMap = {
-        'estilo1': '.list-card-style-1',
-        'estilo2': '.list-card-style-2',
-        'estilo3': '.list-card-style-3',
-        'estilo4': '.list-card-style-4',
-        'estilo5': '.list-card-style-5'
+    const grid = document.getElementById('lista-items-grid');
+    if (!grid) return;
+
+    // Mapeo de estilo a clase CSS que se añade al grid
+    const estiloClaseMap = {
+        'estilo1': 'style-estandar',
+        'estilo2': 'style-detallado',
+        'estilo3': 'style-listado',
+        'estilo4': 'style-cuadricula',
+        'estilo5': 'style-mosaico'
+    };
+
+    // Mapeo de estilo a número de columnas
+    const estiloColumnasMap = {
+        'estilo1': 5,
+        'estilo2': 5,
+        'estilo3': 1,
+        'estilo4': 5,
+        'estilo5': 5
     };
 
     /**
      * Aplica placeholders a las imágenes que fallen
-     * Soporta: .list-card-image (estilos 1,2,4) y .list-card-thumb (estilos 3,5)
      */
     function aplicarPlaceholders() {
-        const content = document.querySelector('.lista-detalle-content');
-        if (!content) return;
-
-        // Buscar TODAS las imágenes dentro de tarjetas de lista
-        // Usamos dos selectores: .list-card-image img (estilos 1,2,4) y .list-card-thumb img (estilos 3,5)
-        const images = content.querySelectorAll('.list-card-image img, .list-card-thumb img');
+        const images = grid.querySelectorAll('.list-card-image img, .list-card-thumb img');
 
         images.forEach(img => {
-            // Si la imagen ya tiene un manejador onerror, no lo sobreescribimos
             if (img.hasAttribute('data-placeholder-applied')) return;
 
-            // Aplicar manejador de error
             img.onerror = function () {
-                // Determinar el tipo de contenido por la clase del contenedor padre
-                const card = this.closest('[class*="list-card-style-"]');
+                const card = this.closest('[class*="list-card-"]');
                 let iconClass = 'fa-film';
                 let texto = 'PORTADA NO DISPONIBLE';
 
-                // Buscar si hay un overlay con el tipo (estilos 1,2,4)
+                // Detectar tipo por overlay
                 const overlay = card?.querySelector('.list-card-overlay');
                 if (overlay) {
                     const typeText = overlay.textContent.trim();
@@ -13129,7 +13247,7 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Si no hay overlay, intentar adivinar por el onclick
+                // Detectar por onclick
                 if (!overlay) {
                     const onclickAttr = card?.getAttribute('onclick') || '';
                     if (onclickAttr.includes("'movie'")) {
@@ -13144,29 +13262,9 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Para el estilo 3 (Listado), también podemos buscar el texto del subtítulo
-                if (!overlay) {
-                    const subEl = card?.querySelector('.list-card-sub');
-                    if (subEl) {
-                        const subText = subEl.textContent.trim();
-                        if (subText.includes('Película')) {
-                            iconClass = 'fa-film';
-                            texto = 'PORTADA NO DISPONIBLE';
-                        } else if (subText.includes('Serie')) {
-                            iconClass = 'fa-tv';
-                            texto = 'PORTADA NO DISPONIBLE';
-                        } else if (subText.includes('Juego')) {
-                            iconClass = 'fa-gamepad';
-                            texto = 'PORTADA NO DISPONIBLE';
-                        }
-                    }
-                }
-
-                // Determinar si es estilo 3 (Listado) para usar un placeholder más pequeño
-                const isListStyle = card?.classList.contains('list-card-style-3');
-                const isMosaicStyle = card?.classList.contains('list-card-style-5');
-
-                // Estilo diferente para tarjetas de listado (más compacto)
+                // Tamaños adaptativos según el estilo
+                const isListStyle = grid.classList.contains('style-listado');
+                const isMosaicStyle = grid.classList.contains('style-mosaico');
                 let fontSizeIcon = '3rem';
                 let fontSizeText = '0.8rem';
                 let padding = '0';
@@ -13180,7 +13278,6 @@ function initListaEstiloFiltro() {
                     fontSizeText = '0.7rem';
                 }
 
-                // Crear el placeholder con Font Awesome
                 this.parentElement.innerHTML = `
                     <div class="no-cover" style="
                         width: 100%;
@@ -13199,91 +13296,74 @@ function initListaEstiloFiltro() {
                 `;
             };
 
-            // Marcar como procesada
             img.setAttribute('data-placeholder-applied', 'true');
         });
     }
 
     /**
-     * Aplica el estilo seleccionado: muestra solo el grid correspondiente
+     * Cambia el estilo del grid
      */
-    function aplicarEstilo(estiloSeleccionado) {
-        const content = document.querySelector('.lista-detalle-content');
-        if (!content) return;
+    function aplicarEstilo(estilo) {
+        if (!estilo || !estiloClaseMap[estilo]) return;
 
-        // Buscar TODOS los grids de tarjetas dentro del contenido
-        const grids = content.querySelectorAll('.lista-cards-grid');
-
-        grids.forEach(grid => {
-            // Ocultar todos por defecto
-            grid.style.display = 'none';
-
-            // Verificar si este grid contiene el estilo seleccionado
-            const hasStyle = grid.querySelector(estiloMap[estiloSeleccionado]);
-            if (hasStyle) {
-                grid.style.display = 'grid';
-                // Aplicar placeholders a las imágenes de este grid
-                setTimeout(aplicarPlaceholders, 50);
-            }
+        // Limpiar todas las clases de estilo
+        Object.values(estiloClaseMap).forEach(cls => {
+            grid.classList.remove(cls);
         });
+
+        // Añadir la clase del estilo seleccionado
+        grid.classList.add(estiloClaseMap[estilo]);
+
+        // Cambiar número de columnas
+        const columnas = estiloColumnasMap[estilo] || 5;
+        grid.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+
+        // Guardar estilo actual
+        grid.dataset.currentStyle = estilo;
+
+        // Aplicar placeholders
+        setTimeout(aplicarPlaceholders, 50);
     }
 
     /**
-     * Maneja el cambio de checkbox: desmarca los demás y aplica el estilo
+     * Maneja el cambio de radio button
      */
     function handleStyleChange(e) {
-        const changed = e.target;
-        const isChecked = changed.checked;
+        const radio = e.target;
+        if (!radio.checked) return;
 
-        // Si se ha DESmarcado, lo volvemos a marcar (no permitimos desactivar todos)
-        if (!isChecked) {
-            changed.checked = true;
-            return;
-        }
-
-        // Desmarcar todos los demás checkboxes
-        styleCheckboxes.forEach(cb => {
-            if (cb !== changed) {
-                cb.checked = false;
-            }
-        });
-
-        // Aplicar el estilo seleccionado
-        const valor = changed.value;
-        if (estiloMap[valor]) {
+        const valor = radio.value;
+        if (estiloClaseMap[valor]) {
             aplicarEstilo(valor);
         }
     }
 
     // --- Configurar estado inicial ---
-    // Por defecto, activar "estilo1" (Estándar)
-    let defaultSet = false;
-    styleCheckboxes.forEach(cb => {
-        if (cb.value === 'estilo1') {
-            cb.checked = true;
-            defaultSet = true;
-        } else {
-            cb.checked = false;
+    // Buscar el radio marcado por defecto
+    let defaultStyle = 'estilo1';
+    styleRadios.forEach(radio => {
+        if (radio.checked) {
+            defaultStyle = radio.value;
         }
     });
 
-    // Si por algún casual no existe "estilo1", activar el primero
-    if (!defaultSet && styleCheckboxes.length > 0) {
-        styleCheckboxes[0].checked = true;
-        aplicarEstilo(styleCheckboxes[0].value);
-    } else {
-        aplicarEstilo('estilo1');
-    }
+    // Aplicar estilo inicial
+    aplicarEstilo(defaultStyle);
 
     // --- Asignar event listeners ---
-    styleCheckboxes.forEach(cb => {
-        cb.removeEventListener('change', handleStyleChange);
-        cb.addEventListener('change', handleStyleChange);
+    styleRadios.forEach(radio => {
+        radio.removeEventListener('change', handleStyleChange);
+        radio.addEventListener('change', handleStyleChange);
     });
 
-    // También aplicar placeholders cuando se cargue completamente la vista
-    // (por si las imágenes se cargan después)
+    // También aplicar placeholders cuando se cargue completamente
     setTimeout(aplicarPlaceholders, 300);
+
+    // Observar cambios en el grid para re-aplicar placeholders
+    const observer = new MutationObserver(() => {
+        setTimeout(aplicarPlaceholders, 100);
+    });
+    observer.observe(grid, { childList: true, subtree: true });
 }
 
 // ==========================================
