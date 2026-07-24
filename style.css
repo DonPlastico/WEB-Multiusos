@@ -7208,7 +7208,7 @@ cast-carousel::-webkit-scrollbar {
     animation: slideDown 0.3s ease;
 }
 
-/* Custom Check - IDÉNTICO AL RESTO */
+/* Checkboxes - IDÉNTICOS */
 #lista-filter-sidebar .custom-check {
     display: flex;
     align-items: center;
@@ -7254,7 +7254,7 @@ cast-carousel::-webkit-scrollbar {
     color: white;
 }
 
-/* Radio buttons (círculos) */
+/* Radio buttons - IDÉNTICOS */
 #lista-filter-sidebar .custom-check .box[style*="border-radius: 50%"] {
     border-radius: 50% !important;
 }
