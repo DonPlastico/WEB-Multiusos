@@ -13500,6 +13500,7 @@ async function enriquecerItemsListaCompleto(items) {
                         // ======================================================
                         // INTENTO 1: Buscar por ID en IGDB
                         // ======================================================
+                        let igdb404 = false;
                         try {
                             const res = await fetch(`/api/igdb?id=${mediaIdStr}&lang=${currentLang}`);
                             if (res.ok) {
@@ -13507,17 +13508,17 @@ async function enriquecerItemsListaCompleto(items) {
                                 const juegos = result.juegos || result || [];
                                 juegoData = juegos[0] || null;
                             } else if (res.status === 404) {
-                                // Si IGDB devuelve 404, el juego no existe en IGDB
-                                console.warn(`⚠️ [IGDB] ID ${mediaIdStr} no encontrado (404)`);
+                                igdb404 = true;
+                                console.warn(`⚠️ [IGDB] ID ${mediaIdStr} no encontrado (404) - intentando Steam...`);
                             }
                         } catch (e) {
                             console.warn(`⚠️ [IGDB] Error buscando ${mediaIdStr}:`, e);
                         }
 
                         // ======================================================
-                        // INTENTO 2: Si falló en IGDB, buscar en Steam por el ID
+                        // INTENTO 2: Si IGDB devolvió 404, buscar en Steam
                         // ======================================================
-                        if (!juegoData) {
+                        if (!juegoData && igdb404) {
                             try {
                                 const res = await fetch(`/api/steam?query=${mediaIdStr}&lang=${currentLang}`);
                                 if (res.ok) {
@@ -13527,19 +13528,27 @@ async function enriquecerItemsListaCompleto(items) {
                             } catch (e) {
                                 console.warn(`⚠️ [Steam] Fallback error para ${mediaIdStr}:`, e);
                             }
+
+                            // Si Steam devolvió datos, formateamos para que tenga la pinta de IGDB
+                            if (juegoData) {
+                                // Steam ya devuelve en formato IGDB gracias a steam.js
+                                // Pero puede que no tenga first_release_date
+                                juegoData.first_release_date = juegoData.first_release_date || null;
+                                juegoData.rating = juegoData.rating || 0;
+                                juegoData._source = 'steam';
+                            }
                         }
 
                         // ======================================================
-                        // INTENTO 3: Si Steam no encuentra, buscar en IGDB por nombre
-                        // (usando el ID como texto de búsqueda - puede encontrar juegos con ese número en el nombre)
+                        // INTENTO 3: Si Steam no encontró, buscar en IGDB por query (texto)
                         // ======================================================
-                        if (!juegoData) {
+                        if (!juegoData && !igdb404) {
                             try {
                                 const res = await fetch(`/api/igdb?query=${mediaIdStr}&lang=${currentLang}`);
                                 if (res.ok) {
                                     const result = await res.json();
                                     const juegos = result.juegos || result || [];
-                                    // Buscar cualquier juego que tenga el ID en el nombre o el ID coincida
+                                    // Buscar coincidencia exacta por ID o por nombre que contenga el ID
                                     juegoData = juegos.find(j => String(j.id) === mediaIdStr) || juegos[0] || null;
                                 }
                             } catch (e) {
@@ -13548,13 +13557,21 @@ async function enriquecerItemsListaCompleto(items) {
                         }
 
                         if (juegoData) {
-                            // Verificar si el juego tiene portada, si no, usar placeholder
-                            let imagen = juegoData.cover?.url ? juegoData.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+                            let imagen = '';
 
-                            // Si no tiene portada, intentar usar la de Steam (si existe)
-                            if (!imagen && juegoData._source === 'steam') {
+                            // Si es de Steam, usar la imagen de Steam
+                            if (juegoData._source === 'steam') {
                                 const steamId = juegoData.id?.toString().replace('steam_', '') || mediaIdStr;
                                 imagen = `https://steamcdn-a.akamaihd.net/apps/${steamId}/library_600x900_2x.jpg`;
+                            } else {
+                                // Si es de IGDB, usar la portada de IGDB
+                                imagen = juegoData.cover?.url ? juegoData.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+
+                                // Si no tiene portada en IGDB, intentar con Steam
+                                if (!imagen) {
+                                    const steamId = juegoData.id?.toString().replace('steam_', '') || mediaIdStr;
+                                    imagen = `https://steamcdn-a.akamaihd.net/apps/${steamId}/library_600x900_2x.jpg`;
+                                }
                             }
 
                             enrichedItem = {
@@ -13563,7 +13580,7 @@ async function enriquecerItemsListaCompleto(items) {
                                 titulo: juegoData.name || `Juego #${mediaIdStr}`,
                                 year: juegoData.first_release_date ? new Date(juegoData.first_release_date * 1000).getFullYear() : '----',
                                 rating: juegoData.rating ? (juegoData.rating / 10).toFixed(1) : '0.0',
-                                imagen: imagen || '',
+                                imagen: imagen,
                             };
                         }
                     }
