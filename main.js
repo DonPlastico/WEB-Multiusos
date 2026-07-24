@@ -13074,12 +13074,21 @@ document.addEventListener('DOMContentLoaded', () => {
  * - Añade placeholders con icono para tarjetas sin imagen.
  */
 function initListaEstiloFiltro() {
+    console.log('🟢 [initListaEstiloFiltro] Iniciando...');
     const sidebar = document.getElementById('lista-filter-sidebar');
-    if (!sidebar) return;
+    if (!sidebar) {
+        console.warn('⚠️ [initListaEstiloFiltro] Sidebar no encontrada');
+        return;
+    }
+    console.log('✅ [initListaEstiloFiltro] Sidebar encontrada');
 
     // Buscar los checkboxes dentro del accordion "ESTILO DE TARJETA"
     const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
-    if (styleCheckboxes.length === 0) return;
+    if (styleCheckboxes.length === 0) {
+        console.warn('⚠️ [initListaEstiloFiltro] No se encontraron checkboxes de estilo');
+        return;
+    }
+    console.log(`✅ [initListaEstiloFiltro] ${styleCheckboxes.length} checkboxes encontrados`);
 
     // Mapeo de valor del checkbox -> clase del contenedor de estilo
     const estiloMap = {
@@ -13095,28 +13104,35 @@ function initListaEstiloFiltro() {
      * Soporta: .list-card-image (estilos 1,2,4) y .list-card-thumb (estilos 3,5)
      */
     function aplicarPlaceholders() {
+        console.log('🖼️ [aplicarPlaceholders] Ejecutando...');
         const content = document.querySelector('.lista-detalle-content');
-        if (!content) return;
+        if (!content) {
+            console.warn('⚠️ [aplicarPlaceholders] Contenido no encontrado');
+            return;
+        }
 
         // Buscar TODAS las imágenes dentro de tarjetas de lista
-        // Usamos dos selectores: .list-card-image img (estilos 1,2,4) y .list-card-thumb img (estilos 3,5)
         const images = content.querySelectorAll('.list-card-image img, .list-card-thumb img');
+        console.log(`🖼️ [aplicarPlaceholders] ${images.length} imágenes encontradas`);
 
-        images.forEach(img => {
-            // Si la imagen ya tiene un manejador onerror, no lo sobreescribimos
-            if (img.hasAttribute('data-placeholder-applied')) return;
+        images.forEach((img, idx) => {
+            if (img.hasAttribute('data-placeholder-applied')) {
+                console.log(`🔄 [aplicarPlaceholders] Imagen ${idx} ya procesada, saltando`);
+                return;
+            }
 
-            // Aplicar manejador de error
+            console.log(`🎯 [aplicarPlaceholders] Procesando imagen ${idx}:`, img.src);
+
             img.onerror = function () {
-                // Determinar el tipo de contenido por la clase del contenedor padre
+                console.log(`❌ [onerror] Imagen falló al cargar: ${this.src}`);
                 const card = this.closest('[class*="list-card-style-"]');
                 let iconClass = 'fa-film';
                 let texto = 'PORTADA NO DISPONIBLE';
 
-                // Buscar si hay un overlay con el tipo (estilos 1,2,4)
                 const overlay = card?.querySelector('.list-card-overlay');
                 if (overlay) {
                     const typeText = overlay.textContent.trim();
+                    console.log(`📌 [onerror] Overlay encontrado: "${typeText}"`);
                     if (typeText.includes('Película')) {
                         iconClass = 'fa-film';
                         texto = 'PORTADA NO DISPONIBLE';
@@ -13129,9 +13145,9 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Si no hay overlay, intentar adivinar por el onclick
                 if (!overlay) {
                     const onclickAttr = card?.getAttribute('onclick') || '';
+                    console.log(`📌 [onerror] onclick encontrado: "${onclickAttr}"`);
                     if (onclickAttr.includes("'movie'")) {
                         iconClass = 'fa-film';
                         texto = 'PORTADA NO DISPONIBLE';
@@ -13144,11 +13160,11 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Para el estilo 3 (Listado), también podemos buscar el texto del subtítulo
                 if (!overlay) {
                     const subEl = card?.querySelector('.list-card-sub');
                     if (subEl) {
                         const subText = subEl.textContent.trim();
+                        console.log(`📌 [onerror] Subtexto encontrado: "${subText}"`);
                         if (subText.includes('Película')) {
                             iconClass = 'fa-film';
                             texto = 'PORTADA NO DISPONIBLE';
@@ -13162,11 +13178,9 @@ function initListaEstiloFiltro() {
                     }
                 }
 
-                // Determinar si es estilo 3 (Listado) para usar un placeholder más pequeño
                 const isListStyle = card?.classList.contains('list-card-style-3');
                 const isMosaicStyle = card?.classList.contains('list-card-style-5');
 
-                // Estilo diferente para tarjetas de listado (más compacto)
                 let fontSizeIcon = '3rem';
                 let fontSizeText = '0.8rem';
                 let padding = '0';
@@ -13180,7 +13194,7 @@ function initListaEstiloFiltro() {
                     fontSizeText = '0.7rem';
                 }
 
-                // Crear el placeholder con Font Awesome
+                console.log(`🎨 [onerror] Creando placeholder con icono ${iconClass}, texto "${texto}"`);
                 this.parentElement.innerHTML = `
                     <div class="no-cover" style="
                         width: 100%;
@@ -13199,8 +13213,8 @@ function initListaEstiloFiltro() {
                 `;
             };
 
-            // Marcar como procesada
             img.setAttribute('data-placeholder-applied', 'true');
+            console.log(`✅ [aplicarPlaceholders] Imagen ${idx} marcada como procesada`);
         });
     }
 
@@ -13208,22 +13222,25 @@ function initListaEstiloFiltro() {
      * Aplica el estilo seleccionado: muestra solo el grid correspondiente
      */
     function aplicarEstilo(estiloSeleccionado) {
+        console.log(`🎨 [aplicarEstilo] Aplicando estilo: ${estiloSeleccionado}`);
         const content = document.querySelector('.lista-detalle-content');
-        if (!content) return;
+        if (!content) {
+            console.warn('⚠️ [aplicarEstilo] Contenido no encontrado');
+            return;
+        }
 
-        // Buscar TODOS los grids de tarjetas dentro del contenido
         const grids = content.querySelectorAll('.lista-cards-grid');
+        console.log(`📐 [aplicarEstilo] ${grids.length} grids encontrados`);
 
-        grids.forEach(grid => {
-            // Ocultar todos por defecto
+        grids.forEach((grid, idx) => {
             grid.style.display = 'none';
-
-            // Verificar si este grid contiene el estilo seleccionado
             const hasStyle = grid.querySelector(estiloMap[estiloSeleccionado]);
             if (hasStyle) {
+                console.log(`✅ [aplicarEstilo] Grid ${idx} tiene el estilo ${estiloSeleccionado}, mostrando`);
                 grid.style.display = 'grid';
-                // Aplicar placeholders a las imágenes de este grid
                 setTimeout(aplicarPlaceholders, 50);
+            } else {
+                console.log(`⏭️ [aplicarEstilo] Grid ${idx} NO tiene el estilo ${estiloSeleccionado}, ocultando`);
             }
         });
     }
@@ -13232,58 +13249,63 @@ function initListaEstiloFiltro() {
      * Maneja el cambio de checkbox: desmarca los demás y aplica el estilo
      */
     function handleStyleChange(e) {
+        console.log('🔄 [handleStyleChange] Evento change detectado');
         const changed = e.target;
         const isChecked = changed.checked;
+        console.log(`📌 [handleStyleChange] Checkbox: ${changed.value}, checked: ${isChecked}`);
 
-        // Si se ha DESmarcado, lo volvemos a marcar (no permitimos desactivar todos)
         if (!isChecked) {
+            console.log('🔄 [handleStyleChange] Desmarcado, volviendo a marcar');
             changed.checked = true;
             return;
         }
 
-        // Desmarcar todos los demás checkboxes
         styleCheckboxes.forEach(cb => {
             if (cb !== changed) {
                 cb.checked = false;
+                console.log(`🔽 [handleStyleChange] Desmarcando: ${cb.value}`);
             }
         });
 
-        // Aplicar el estilo seleccionado
         const valor = changed.value;
+        console.log(`🎯 [handleStyleChange] Estilo seleccionado: ${valor}`);
         if (estiloMap[valor]) {
             aplicarEstilo(valor);
         }
     }
 
     // --- Configurar estado inicial ---
-    // Por defecto, activar "estilo1" (Estándar)
+    console.log('⚙️ [initListaEstiloFiltro] Configurando estado inicial');
     let defaultSet = false;
     styleCheckboxes.forEach(cb => {
         if (cb.value === 'estilo1') {
             cb.checked = true;
             defaultSet = true;
+            console.log('✅ [initListaEstiloFiltro] Estilo1 marcado como default');
         } else {
             cb.checked = false;
         }
     });
 
-    // Si por algún casual no existe "estilo1", activar el primero
     if (!defaultSet && styleCheckboxes.length > 0) {
+        console.log(`⚠️ [initListaEstiloFiltro] No se encontró estilo1, activando ${styleCheckboxes[0].value}`);
         styleCheckboxes[0].checked = true;
         aplicarEstilo(styleCheckboxes[0].value);
     } else {
+        console.log('✅ [initListaEstiloFiltro] Aplicando estilo1');
         aplicarEstilo('estilo1');
     }
 
     // --- Asignar event listeners ---
+    console.log('🎯 [initListaEstiloFiltro] Asignando event listeners');
     styleCheckboxes.forEach(cb => {
         cb.removeEventListener('change', handleStyleChange);
         cb.addEventListener('change', handleStyleChange);
+        console.log(`✅ [initListaEstiloFiltro] Listener asignado a ${cb.value}`);
     });
 
-    // También aplicar placeholders cuando se cargue completamente la vista
-    // (por si las imágenes se cargan después)
     setTimeout(aplicarPlaceholders, 300);
+    console.log('✅ [initListaEstiloFiltro] Inicialización completada');
 }
 
 // ==========================================================================
@@ -13295,60 +13317,66 @@ function initListaEstiloFiltro() {
  * @param {string} estilo - 'estilo1', 'estilo2', 'estilo3', 'estilo4', 'estilo5'
  */
 function aplicarEstiloLista(estilo) {
+    console.log(`🔄 [aplicarEstiloLista] Aplicando estilo: ${estilo}`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
-        console.warn('⚠️ Grid de lista detalle no encontrado');
+        console.warn('⚠️ [aplicarEstiloLista] Grid no encontrado');
         return;
     }
+    console.log(`✅ [aplicarEstiloLista] Grid encontrado, ${grid.children.length} hijos`);
 
     // 1. Guardar los datos de las tarjetas actuales
     const tarjetasData = [];
-    grid.querySelectorAll('[class*="list-card-style-"]').forEach(card => {
-        // Leer los atributos data-* que pusimos en el HTML
-        tarjetasData.push({
+    grid.querySelectorAll('[class*="list-card-style-"]').forEach((card, idx) => {
+        const data = {
             id: card.dataset.id || '0',
             tipo: card.dataset.tipo || 'movie',
             titulo: card.dataset.titulo || 'Sin título',
             year: card.dataset.year || '----',
             rating: card.dataset.rating || '0.0',
             imagen: card.dataset.imagen || '',
-        });
+        };
+        tarjetasData.push(data);
+        console.log(`📦 [aplicarEstiloLista] Tarjeta ${idx}: ${data.titulo} (${data.tipo})`);
     });
 
-    // 2. Si no hay tarjetas, salir
     if (tarjetasData.length === 0) {
-        console.warn('⚠️ No hay tarjetas en el grid');
+        console.warn('⚠️ [aplicarEstiloLista] No hay tarjetas en el grid');
         return;
     }
+    console.log(`✅ [aplicarEstiloLista] ${tarjetasData.length} tarjetas guardadas`);
 
     // 3. Limpiar el grid
     grid.innerHTML = '';
+    console.log('🧹 [aplicarEstiloLista] Grid limpiado');
 
     // 4. Reconstruir cada tarjeta con el nuevo estilo
-    tarjetasData.forEach((data) => {
+    tarjetasData.forEach((data, idx) => {
         const nuevaCard = crearTarjetaConEstilo(estilo, data);
         grid.appendChild(nuevaCard);
+        console.log(`🔄 [aplicarEstiloLista] Tarjeta ${idx} reconstruida con estilo ${estilo}`);
     });
 
     // 5. Actualizar el estilo del grid (columnas)
     actualizarGridColumns(estilo);
+    console.log(`📐 [aplicarEstiloLista] Columnas actualizadas para ${estilo}`);
 
     // 6. Guardar preferencia en localStorage
     localStorage.setItem('pref_estilo_lista', estilo);
+    console.log(`💾 [aplicarEstiloLista] Preferencia guardada: ${estilo}`);
+
+    console.log(`✅ [aplicarEstiloLista] Finalizado, ${grid.children.length} tarjetas en el grid`);
 }
 
 /**
  * Crea una tarjeta HTML con el estilo especificado
  */
 function crearTarjetaConEstilo(estilo, data) {
+    console.log(`🏗️ [crearTarjetaConEstilo] Creando tarjeta para "${data.titulo}" con estilo ${estilo}`);
     const card = document.createElement('div');
-    // Asignamos la clase principal del estilo
-    card.className = `list-card-${estilo}`;
-    // También añadimos la clase específica por si el CSS usa .list-card-style-1
     const numeroEstilo = estilo.replace('estilo', '');
-    card.classList.add(`list-card-style-${numeroEstilo}`);
+    card.className = `list-card-${estilo} list-card-style-${numeroEstilo}`;
 
-    // Restauramos los data-* para futuros cambios
     card.dataset.id = data.id;
     card.dataset.tipo = data.tipo;
     card.dataset.titulo = data.titulo;
@@ -13356,10 +13384,13 @@ function crearTarjetaConEstilo(estilo, data) {
     card.dataset.rating = data.rating;
     card.dataset.imagen = data.imagen;
 
-    // Evento click (abrir modal)
-    card.onclick = () => abrirModalMedia(data.id, data.tipo);
+    console.log(`📌 [crearTarjetaConEstilo] Datos: ID=${data.id}, Tipo=${data.tipo}, Título=${data.titulo}`);
 
-    // Icono según tipo
+    card.onclick = () => {
+        console.log(`🖱️ [click] Abriendo modal para ${data.titulo} (${data.tipo})`);
+        abrirModalMedia(data.id, data.tipo);
+    };
+
     const iconMap = {
         'movie': 'fa-film',
         'tv': 'fa-tv',
@@ -13368,15 +13399,14 @@ function crearTarjetaConEstilo(estilo, data) {
     const icono = iconMap[data.tipo] || 'fa-film';
     const tipoTexto = data.tipo === 'movie' ? 'Película' : data.tipo === 'tv' ? 'Serie' : 'Juego';
 
-    // Generar estrellas según rating (de 0 a 10 -> 0 a 5 estrellas)
     const ratingNum = parseFloat(data.rating) || 0;
     const estrellas = generarEstrellas(ratingNum);
+    console.log(`⭐ [crearTarjetaConEstilo] Rating: ${ratingNum}, estrellas generadas`);
 
-    // --- CONSTRUIR HTML SEGÚN ESTILO ---
     let html = '';
 
     switch (estilo) {
-        case 'estilo1': // Estándar
+        case 'estilo1':
             html = `
                 <div class="list-card-image">
                     <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
@@ -13386,12 +13416,11 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo2': // Estándar Detallado (MEJORADO)
+        case 'estilo2':
             html = `
                 <div class="list-card-image">
                     <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
                     <div class="list-card-glow"></div>
-                    <!-- Badge del tipo en la esquina superior izquierda -->
                     <div class="list-card-type-badge" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:4px 12px;border-radius:20px;font-size:0.6rem;color:var(--neon-white);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:6px;z-index:2;">
                         <i class="fas ${icono}" style="font-size:0.55rem;"></i>
                         ${tipoTexto}
@@ -13408,7 +13437,7 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo3': // Listado
+        case 'estilo3':
             html = `
                 <div class="list-card-list-item">
                     <div class="list-card-thumb">
@@ -13422,7 +13451,7 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo4': // Cuadrícula
+        case 'estilo4':
             html = `
                 <div class="list-card-image">
                     <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
@@ -13434,7 +13463,7 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo5': // Mosaico
+        case 'estilo5':
             html = `
                 <div class="list-card-mosaic">
                     <div class="list-card-image">
@@ -13446,10 +13475,12 @@ function crearTarjetaConEstilo(estilo, data) {
             break;
 
         default:
+            console.warn(`⚠️ [crearTarjetaConEstilo] Estilo no soportado: ${estilo}`);
             html = `<div>Error: estilo no soportado</div>`;
     }
 
     card.innerHTML = html;
+    console.log(`✅ [crearTarjetaConEstilo] Tarjeta creada para "${data.titulo}"`);
     return card;
 }
 
@@ -13457,7 +13488,8 @@ function crearTarjetaConEstilo(estilo, data) {
  * Genera el HTML de estrellas según una nota (0-10)
  */
 function generarEstrellas(nota) {
-    const notaSobre5 = nota / 2; // 0-10 -> 0-5
+    console.log(`⭐ [generarEstrellas] Nota: ${nota}`);
+    const notaSobre5 = nota / 2;
     let html = '';
 
     for (let i = 1; i <= 5; i++) {
@@ -13469,6 +13501,7 @@ function generarEstrellas(nota) {
             html += '<i class="far fa-star" style="color:var(--text-muted);font-size:0.65rem;"></i>';
         }
     }
+    console.log(`✅ [generarEstrellas] HTML generado: ${html}`);
     return html;
 }
 
@@ -13476,90 +13509,105 @@ function generarEstrellas(nota) {
  * Cambia el número de columnas del grid según el estilo
  */
 function actualizarGridColumns(estilo) {
+    console.log(`📐 [actualizarGridColumns] Actualizando columnas para ${estilo}`);
     const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) return;
+    if (!grid) {
+        console.warn('⚠️ [actualizarGridColumns] Grid no encontrado');
+        return;
+    }
 
-    // Eliminar todas las clases de columnas previas
     grid.className = 'lista-cards-grid';
 
-    // Añadir la clase correspondiente
     switch (estilo) {
         case 'estilo1':
         case 'estilo2':
         case 'estilo4':
         case 'estilo5':
             grid.classList.add('cards-grid-5');
+            console.log('✅ [actualizarGridColumns] Grid 5 columnas');
             break;
         case 'estilo3':
             grid.classList.add('cards-grid-1');
+            console.log('✅ [actualizarGridColumns] Grid 1 columna');
             break;
         default:
             grid.classList.add('cards-grid-5');
+            console.log('⚠️ [actualizarGridColumns] Default a 5 columnas');
     }
 }
 
 // --- CONFIGURAR EVENTOS DEL FILTRO DE ESTILO ---
 function configurarFiltroEstiloLista() {
+    console.log('🟢 [configurarFiltroEstiloLista] Iniciando...');
     const sidebar = document.getElementById('lista-filter-sidebar');
     if (!sidebar) {
-        console.warn('⚠️ Sidebar de filtros no encontrada');
+        console.warn('⚠️ [configurarFiltroEstiloLista] Sidebar no encontrada');
         return;
     }
+    console.log('✅ [configurarFiltroEstiloLista] Sidebar encontrada');
 
-    // Buscar los checkboxes de estilo (dentro del accordion de ESTILO DE TARJETA)
     const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
-
     if (styleCheckboxes.length === 0) {
-        console.warn('⚠️ No se encontraron checkboxes de estilo');
+        console.warn('⚠️ [configurarFiltroEstiloLista] No se encontraron checkboxes de estilo');
         return;
     }
+    console.log(`✅ [configurarFiltroEstiloLista] ${styleCheckboxes.length} checkboxes encontrados`);
 
-    // Eliminar listeners antiguos (para evitar duplicados)
     styleCheckboxes.forEach(cb => {
         cb.removeEventListener('change', handleStyleChange);
         cb.addEventListener('change', handleStyleChange);
+        console.log(`✅ [configurarFiltroEstiloLista] Listener asignado a ${cb.value}`);
     });
 
-    // --- Cargar preferencia guardada ---
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    console.log(`💾 [configurarFiltroEstiloLista] Estilo guardado: ${estiloGuardado}`);
 
-    // Marcar el checkbox correspondiente
     styleCheckboxes.forEach(cb => {
         if (cb.value === estiloGuardado) {
             cb.checked = true;
+            console.log(`✅ [configurarFiltroEstiloLista] Marcado: ${cb.value}`);
         } else {
             cb.checked = false;
         }
     });
 
-    // Aplicar el estilo guardado (con un pequeño retraso para que el DOM esté listo)
     setTimeout(() => {
+        console.log(`⏰ [configurarFiltroEstiloLista] Aplicando estilo guardado: ${estiloGuardado}`);
         aplicarEstiloLista(estiloGuardado);
     }, 100);
+
+    console.log('✅ [configurarFiltroEstiloLista] Configuración completada');
 }
 
 // --- Manejador de cambio de estilo ---
 function handleStyleChange(e) {
+    console.log('🔄 [handleStyleChange] Evento change detectado');
     const changed = e.target;
     const isChecked = changed.checked;
+    console.log(`📌 [handleStyleChange] Checkbox: ${changed.value}, checked: ${isChecked}`);
 
-    // Si se DESmarca, lo volvemos a marcar (no permitimos desactivar todos)
     if (!isChecked) {
+        console.log('🔄 [handleStyleChange] Desmarcado, volviendo a marcar');
         changed.checked = true;
         return;
     }
 
-    // Desmarcar todos los demás checkboxes del mismo grupo
     const sidebar = document.getElementById('lista-filter-sidebar');
-    if (!sidebar) return;
+    if (!sidebar) {
+        console.warn('⚠️ [handleStyleChange] Sidebar no encontrada');
+        return;
+    }
 
     const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
     styleCheckboxes.forEach(cb => {
-        if (cb !== changed) cb.checked = false;
+        if (cb !== changed) {
+            cb.checked = false;
+            console.log(`🔽 [handleStyleChange] Desmarcando: ${cb.value}`);
+        }
     });
 
-    // Aplicar el estilo seleccionado
-    const estilo = changed.value; // 'estilo1', 'estilo2', ...
+    const estilo = changed.value;
+    console.log(`🎯 [handleStyleChange] Aplicando estilo: ${estilo}`);
     aplicarEstiloLista(estilo);
 }
 
@@ -13567,40 +13615,46 @@ function handleStyleChange(e) {
 //   MODIFICAR cargarDetalleLista PARA INCLUIR EL FILTRO DE ESTILO
 // ==========================================================================
 
-// Guardar referencia a la función original
+console.log('📦 [GLOBAL] Guardando referencia a cargarDetalleLista original');
 const _originalCargarDetalleLista = window.cargarDetalleLista || cargarDetalleLista;
 
-// Sobrescribir cargarDetalleLista
 window.cargarDetalleLista = async function (nombreLista) {
-    // Llamar a la función original (si existe)
+    console.log(`🔍 [cargarDetalleLista] Llamado con: "${nombreLista}"`);
+
     if (typeof _originalCargarDetalleLista === 'function') {
+        console.log('✅ [cargarDetalleLista] Ejecutando función original');
         await _originalCargarDetalleLista(nombreLista);
     } else {
-        // Si no existe la función original (por si está definida después), la ejecutamos manualmente
-        // Esto es un fallback por si tu cargarDetalleLista no está definida globalmente
-        console.warn('⚠️ cargarDetalleLista original no encontrada, usando fallback');
+        console.warn('⚠️ [cargarDetalleLista] Función original no encontrada');
     }
 
-    // Configurar el filtro de estilo DESPUÉS de cargar los datos
-    // Usamos setTimeout para dar tiempo a que el DOM se actualice
+    console.log('🔄 [cargarDetalleLista] Configurando filtro de estilo...');
     setTimeout(() => {
+        console.log('⏰ [cargarDetalleLista] Ejecutando configurarFiltroEstiloLista...');
         configurarFiltroEstiloLista();
     }, 200);
+
+    console.log('✅ [cargarDetalleLista] Completado');
 };
 
-// También ejecutar cuando se carga la vista por primera vez (por si el enrutador llama directamente)
+// También ejecutar cuando se carga la vista por primera vez
 document.addEventListener('DOMContentLoaded', () => {
-    // Si estamos en la vista de detalle, configurar el filtro
+    console.log('📄 [DOMContentLoaded] Documento cargado');
     if (vistaActualGlobal === 'lista-detalle') {
-        setTimeout(configurarFiltroEstiloLista, 300);
+        console.log('🎯 [DOMContentLoaded] Vista actual es lista-detalle, configurando filtro');
+        setTimeout(() => {
+            console.log('⏰ [DOMContentLoaded] Ejecutando configurarFiltroEstiloLista...');
+            configurarFiltroEstiloLista();
+        }, 300);
+    } else {
+        console.log(`ℹ️ [DOMContentLoaded] Vista actual: ${vistaActualGlobal}, no es lista-detalle`);
     }
 });
 
 // ==========================================================================
-//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA) - VERSIÓN ROBUSTA
+//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA)
 // ==========================================================================
 
-// Variables de estado para la carga de items
 let listaItemsOffset = 0;
 const LISTA_ITEMS_LIMIT = 50;
 let listaItemsCargando = false;
@@ -13611,49 +13665,69 @@ let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
 
+console.log('📦 [GLOBAL] Variables de estado inicializadas:', {
+    listaItemsOffset,
+    LISTA_ITEMS_LIMIT,
+    listaItemsCargando,
+    listaItemsTotal,
+    listaIdActual,
+    listaTipoActual
+});
+
 /**
  * Carga los items de una lista desde Supabase con paginación
  */
 async function cargarItemsLista(listaId, resetear = true) {
-    console.log('🔍 cargarItemsLista llamado con:', { listaId, resetear });
+    console.log(`🔍 [cargarItemsLista] Llamado con: listaId=${listaId}, resetear=${resetear}`);
 
     if (!listaId) {
-        console.error('❌ No se proporcionó ID de lista');
+        console.error('❌ [cargarItemsLista] No se proporcionó ID de lista');
         return;
     }
 
     if (resetear) {
-        console.log('🔄 Resetear estado');
+        console.log('🔄 [cargarItemsLista] Resetear estado');
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
-        if (grid) grid.innerHTML = '';
+        if (grid) {
+            grid.innerHTML = '';
+            console.log('🧹 [cargarItemsLista] Grid limpiado');
+        }
 
         document.getElementById('lista-detalle-loader').style.display = 'none';
         document.getElementById('lista-detalle-end').style.display = 'none';
 
         const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) mensaje.textContent = 'Cargando elementos...';
+        if (mensaje) {
+            mensaje.textContent = 'Cargando elementos...';
+            console.log('📝 [cargarItemsLista] Mensaje actualizado');
+        }
     }
 
     if (listaItemsCargando) {
-        console.log('⏳ Ya está cargando, saliendo...');
+        console.log('⏳ [cargarItemsLista] Ya está cargando, saliendo...');
         return;
     }
     listaItemsCargando = true;
+    console.log('🔒 [cargarItemsLista] Estado de carga: true');
 
     const loader = document.getElementById('lista-detalle-loader');
     loader.style.display = 'block';
+    console.log('⏳ [cargarItemsLista] Loader mostrado');
 
     try {
+        console.log('🔑 [cargarItemsLista] Obteniendo sesión de Supabase...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('No hay sesión activa');
         }
+        console.log(`✅ [cargarItemsLista] Sesión obtenida: ${session.user.email}`);
 
+        console.log(`📊 [cargarItemsLista] Consultando lista ${listaId}...`);
         const { data: listaInfo, error: errLista } = await supabase
             .from('listas_maestra')
             .select('owner_id, tag_tipo')
@@ -13661,12 +13735,15 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
+        console.log(`✅ [cargarItemsLista] Lista info: owner=${listaInfo.owner_id}, tipo=${listaInfo.tag_tipo}`);
+
         if (listaInfo.owner_id !== session.user.id) {
             throw new Error('No tienes permisos para ver esta lista');
         }
 
         listaTipoActual = listaInfo.tag_tipo;
 
+        console.log(`📊 [cargarItemsLista] Consultando items offset=${listaItemsOffset}, limit=${LISTA_ITEMS_LIMIT}`);
         const { data: items, error, count } = await supabase
             .from('listas_items')
             .select('media_id, media_tipo, added_at')
@@ -13677,8 +13754,10 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (error) throw error;
 
         listaItemsTotal = count || 0;
+        console.log(`✅ [cargarItemsLista] Items obtenidos: ${items?.length || 0}, Total: ${listaItemsTotal}`);
 
         if (!items || items.length === 0) {
+            console.log('📭 [cargarItemsLista] No hay items en esta lista');
             if (resetear) {
                 const grid = document.getElementById('lista-detalle-grid');
                 if (grid) {
@@ -13689,16 +13768,17 @@ async function cargarItemsLista(listaId, resetear = true) {
                             <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
                         </div>
                     `;
+                    console.log('📝 [cargarItemsLista] Mensaje de lista vacía mostrado');
                 }
                 const mensaje = document.getElementById('lista-detalle-mensaje');
                 if (mensaje) mensaje.textContent = '0 elementos en esta lista';
             }
             loader.style.display = 'none';
             listaItemsCargando = false;
+            console.log('🔓 [cargarItemsLista] Estado de carga: false');
             return;
         }
 
-        // --- CONVERTIR items a objetos con datos básicos ---
         const itemsBasicos = items.map(item => ({
             id: item.media_id,
             tipo: item.media_tipo,
@@ -13710,49 +13790,55 @@ async function cargarItemsLista(listaId, resetear = true) {
             _media_id: item.media_id,
             _media_tipo: item.media_tipo
         }));
+        console.log(`✅ [cargarItemsLista] ${itemsBasicos.length} items básicos creados`);
 
         if (resetear) {
             listaItemsActuales = itemsBasicos;
+            console.log('🔄 [cargarItemsLista] Lista actualizada (reset)');
         } else {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
+            console.log(`🔄 [cargarItemsLista] Lista actualizada (append): ${listaItemsActuales.length} total`);
         }
 
-        // --- RENDERIZAR INMEDIATAMENTE (con placeholders) ---
         renderizarItemsLista(itemsBasicos, resetear);
+        console.log('🎨 [cargarItemsLista] Items renderizados');
 
-        // --- ACTUALIZAR MENSAJE CON EL TOTAL ---
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) {
             const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
                 listaTipoActual === 'movie' ? 'Películas' :
                     listaTipoActual === 'tv' ? 'Series' : 'Elementos';
             mensaje.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
+            console.log(`📝 [cargarItemsLista] Mensaje actualizado: ${mensaje.textContent}`);
         }
 
-        // --- ENRIQUECER DATOS EN SEGUNDO PLANO ---
-        // Esto no bloquea la UI, las tarjetas se actualizarán cuando los datos lleguen
+        console.log('🚀 [cargarItemsLista] Iniciando enriquecimiento en segundo plano...');
         enriquecerItemsLista(itemsBasicos, resetear);
 
-        // --- VERIFICAR SI HAY MÁS ELEMENTOS ---
         const hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
+        console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
 
         if (hayMas) {
             loader.style.display = 'block';
             document.getElementById('lista-detalle-end').style.display = 'none';
+            console.log('📡 [cargarItemsLista] Configurando observador...');
             configurarObservadorLista();
         } else {
             loader.style.display = 'none';
             document.getElementById('lista-detalle-end').style.display = 'block';
+            console.log('🏁 [cargarItemsLista] No hay más elementos');
             if (listaObservador) {
                 listaObservador.disconnect();
                 listaObservador = null;
+                console.log('🔌 [cargarItemsLista] Observador desconectado');
             }
         }
 
         listaItemsOffset += items.length;
+        console.log(`📈 [cargarItemsLista] Nuevo offset: ${listaItemsOffset}`);
 
     } catch (error) {
-        console.error('❌ Error cargando items de lista:', error);
+        console.error('❌ [cargarItemsLista] Error:', error);
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) mensaje.textContent = 'Error: ' + error.message;
 
@@ -13767,10 +13853,12 @@ async function cargarItemsLista(listaId, resetear = true) {
                     </button>
                 </div>
             `;
+            console.log('📝 [cargarItemsLista] Mensaje de error mostrado');
         }
     } finally {
         listaItemsCargando = false;
         loader.style.display = 'none';
+        console.log('🔓 [cargarItemsLista] Estado de carga: false, loader oculto');
     }
 }
 
@@ -13778,29 +13866,47 @@ async function cargarItemsLista(listaId, resetear = true) {
  * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
  */
 async function enriquecerItemsLista(items, resetear) {
+    console.log(`🚀 [enriquecerItemsLista] Iniciando enriquecimiento de ${items.length} items`);
     const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) return;
+    if (!grid) {
+        console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
+        return;
+    }
 
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    console.log(`💾 [enriquecerItemsLista] Estilo guardado: ${estiloGuardado}`);
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         const key = `${item._media_id}_${item._media_tipo}`;
+        console.log(`🔄 [enriquecerItemsLista] Procesando item ${i + 1}/${items.length}: ${key}`);
 
-        // Si ya está enriquecido, saltar
-        if (listaItemsEnriquecidos[key]) continue;
+        if (listaItemsEnriquecidos[key]) {
+            console.log(`⏭️ [enriquecerItemsLista] Item ${key} ya enriquecido, saltando`);
+            continue;
+        }
 
         try {
             let data = null;
 
             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                console.log(`🌐 [enriquecerItemsLista] Fetching TMDB para ${item._media_id}`);
                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-                if (res.ok) data = await res.json();
+                if (res.ok) {
+                    data = await res.json();
+                    console.log(`✅ [enriquecerItemsLista] TMDB OK: ${data.titulo || 'sin título'}`);
+                } else {
+                    console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
+                }
             } else if (item._media_tipo === 'game') {
+                console.log(`🌐 [enriquecerItemsLista] Fetching IGDB para ${item._media_id}`);
                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
                 if (res.ok) {
                     const result = await res.json();
                     data = result.juegos?.[0] || result[0] || null;
+                    console.log(`✅ [enriquecerItemsLista] IGDB OK: ${data?.titulo || data?.name || 'sin título'}`);
+                } else {
+                    console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
                 }
             }
 
@@ -13818,60 +13924,70 @@ async function enriquecerItemsLista(items, resetear) {
                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
                     enrichedItem.rating = data.nota || '0.0';
                     enrichedItem.imagen = data.poster || '';
+                    console.log(`📊 [enriquecerItemsLista] Movie/TV: año=${enrichedItem.year}, rating=${enrichedItem.rating}`);
                 } else if (item._media_tipo === 'game') {
                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+                    console.log(`📊 [enriquecerItemsLista] Game: año=${enrichedItem.year}, rating=${enrichedItem.rating}`);
                 }
 
                 listaItemsEnriquecidos[key] = enrichedItem;
+                console.log(`✅ [enriquecerItemsLista] Item ${key} enriquecido: "${enrichedItem.titulo}"`);
 
-                // Actualizar la tarjeta en el DOM
                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4, .list-card-estilo5');
                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
 
                 if (cards[cardIndex]) {
                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
                     cards[cardIndex].replaceWith(newCard);
+                    console.log(`🔄 [enriquecerItemsLista] Tarjeta ${cardIndex} actualizada`);
+                } else {
+                    console.warn(`⚠️ [enriquecerItemsLista] Tarjeta ${cardIndex} no encontrada`);
                 }
+            } else {
+                console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
             }
         } catch (e) {
-            console.warn(`⚠️ Error enriqueciendo item ${item._media_id}:`, e);
+            console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
         }
 
-        // Pequeña pausa para no saturar la API
         await new Promise(resolve => setTimeout(resolve, 100));
     }
+
+    console.log('✅ [enriquecerItemsLista] Enriquecimiento completado');
 }
 
 /**
  * Renderiza los items en el grid con el estilo actual
  */
 function renderizarItemsLista(items, resetear) {
+    console.log(`🎨 [renderizarItemsLista] Renderizando ${items.length} items, resetear=${resetear}`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
-        console.error('❌ Grid no encontrado');
+        console.error('❌ [renderizarItemsLista] Grid no encontrado');
         return;
     }
 
-    console.log(`🎨 renderizarItemsLista: ${items.length} items, resetear: ${resetear}`);
-
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    console.log(`💾 [renderizarItemsLista] Estilo guardado: ${estiloGuardado}`);
 
     if (resetear) {
         grid.innerHTML = '';
+        console.log('🧹 [renderizarItemsLista] Grid limpiado (reset)');
     }
 
     items.forEach((item, index) => {
-        // Si el item ya está enriquecido, usamos los datos enriquecidos
         const key = `${item._media_id || item.id}_${item._media_tipo || item.tipo}`;
         const enriched = listaItemsEnriquecidos[key];
+        console.log(`🏗️ [renderizarItemsLista] Item ${index}: ${key}, enriquecido=${!!enriched}`);
 
         let card;
         if (enriched) {
             card = crearTarjetaConEstilo(estiloGuardado, enriched);
+            console.log(`✅ [renderizarItemsLista] Item ${index} renderizado con datos enriquecidos`);
         } else if (item.placeholder) {
-            // Placeholder
+            console.log(`⏳ [renderizarItemsLista] Item ${index} renderizado como placeholder`);
             card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
             card.style.opacity = '0.5';
@@ -13889,30 +14005,38 @@ function renderizarItemsLista(items, resetear) {
             `;
         } else {
             card = crearTarjetaConEstilo(estiloGuardado, item);
+            console.log(`✅ [renderizarItemsLista] Item ${index} renderizado con datos básicos`);
         }
 
         grid.appendChild(card);
     });
 
     actualizarGridColumns(estiloGuardado);
-    console.log(`✅ Renderizado completado, ${grid.children.length} tarjetas en el grid`);
+    console.log(`✅ [renderizarItemsLista] Renderizado completado, ${grid.children.length} tarjetas en el grid`);
 }
 
 /**
  * Configura el observador de scroll para cargar más elementos
  */
 function configurarObservadorLista() {
+    console.log('📡 [configurarObservadorLista] Configurando observador...');
     if (listaObservador) {
         listaObservador.disconnect();
         listaObservador = null;
+        console.log('🔌 [configurarObservadorLista] Observador anterior desconectado');
     }
 
     const loader = document.getElementById('lista-detalle-loader');
-    if (!loader) return;
+    if (!loader) {
+        console.warn('⚠️ [configurarObservadorLista] Loader no encontrado');
+        return;
+    }
+    console.log('✅ [configurarObservadorLista] Loader encontrado');
 
     listaObservador = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !listaItemsCargando) {
+                console.log('📡 [IntersectionObserver] Cargando más elementos...');
                 cargarItemsLista(listaIdActual, false);
             }
         });
@@ -13922,29 +14046,35 @@ function configurarObservadorLista() {
     });
 
     listaObservador.observe(loader);
+    console.log('✅ [configurarObservadorLista] Observador configurado y observando');
 }
 
 /**
  * Sobrescribe la función cargarDetalleLista para usar la carga dinámica
  */
+console.log('📦 [GLOBAL] Guardando referencia a cargarDetalleLista original (2)');
 const _originalCargarDetalleLista2 = window.cargarDetalleLista || cargarDetalleLista;
 
 window.cargarDetalleLista = async function (nombreLista) {
-    console.log('🔍 cargarDetalleLista llamado con:', nombreLista);
+    console.log(`🔍 [cargarDetalleLista2] Llamado con: "${nombreLista}"`);
 
     if (typeof _originalCargarDetalleLista2 === 'function') {
+        console.log('✅ [cargarDetalleLista2] Ejecutando función original');
         await _originalCargarDetalleLista2(nombreLista);
     }
 
     const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
-    console.log('📝 Título decodificado:', tituloDecodificado);
+    console.log(`📝 [cargarDetalleLista2] Título decodificado: "${tituloDecodificado}"`);
 
     try {
+        console.log('🔑 [cargarDetalleLista2] Obteniendo sesión de Supabase...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('No hay sesión activa');
         }
+        console.log(`✅ [cargarDetalleLista2] Sesión obtenida: ${session.user.email}`);
 
+        console.log(`📊 [cargarDetalleLista2] Buscando lista: "${tituloDecodificado}"`);
         const { data: lista, error } = await supabase
             .from('listas_maestra')
             .select('id')
@@ -13955,23 +14085,32 @@ window.cargarDetalleLista = async function (nombreLista) {
         if (error || !lista) {
             throw new Error('Lista no encontrada o no tienes permisos');
         }
-        console.log('✅ Lista encontrada, ID:', lista.id);
+        console.log(`✅ [cargarDetalleLista2] Lista encontrada, ID: ${lista.id}`);
 
         const tituloEl = document.getElementById('lista-detalle-nombre');
-        if (tituloEl) tituloEl.textContent = tituloDecodificado;
+        if (tituloEl) {
+            tituloEl.textContent = tituloDecodificado;
+            console.log(`📝 [cargarDetalleLista2] Título actualizado en DOM`);
+        }
 
+        console.log('🚀 [cargarDetalleLista2] Cargando items...');
         await cargarItemsLista(lista.id, true);
 
         setTimeout(() => {
+            console.log('⏰ [cargarDetalleLista2] Configurando filtro de estilo...');
             configurarFiltroEstiloLista();
         }, 200);
 
     } catch (error) {
-        console.error('❌ Error cargando detalle de lista:', error);
+        console.error('❌ [cargarDetalleLista2] Error:', error);
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) mensaje.textContent = 'Error: ' + error.message;
     }
+
+    console.log('✅ [cargarDetalleLista2] Completado');
 };
+
+console.log('✅ [GLOBAL] Todos los scripts cargados correctamente');
 
 // ==========================================================================
 //   LIMPIAR FILTROS DE LISTA
