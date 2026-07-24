@@ -13343,28 +13343,15 @@ async function cargarItemsLista(listaId, resetear = true) {
             mensaje.textContent = `Obteniendo datos de ${itemsBasicos.length} elementos...`;
         }
 
-        // Mostrar loader en el grid (ocultando el grid)
+        // Mostrar loader SOLO en la primera carga (resetear = true)
         const grid = document.getElementById('lista-detalle-grid');
         if (resetear && grid) {
             grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
-                    <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
-                </div>
-            `;
-        } else if (grid) {
-            // Para cargas posteriores, NO ocultamos el grid, solo añadimos un loader al final
-            const existingLoader = grid.querySelector('.loader-more-items');
-            if (existingLoader) existingLoader.remove();
-
-            const loaderMore = document.createElement('div');
-            loaderMore.className = 'loader-more-items';
-            loaderMore.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 30px 0; color: var(--text-muted);';
-            loaderMore.innerHTML = `
-                <i class="fas fa-circle-notch fa-spin" style="font-size: 1.5rem; display: block; margin-bottom: 8px; color: var(--primary);"></i>
-                <span style="font-size: 0.9rem;">Cargando ${itemsBasicos.length} elementos...</span>
-            `;
-            grid.appendChild(loaderMore);
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
+            <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
+        </div>
+    `;
         }
 
         // Enriquecer TODOS los items (esperar a que termine)
