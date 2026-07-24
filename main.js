@@ -4627,7 +4627,7 @@ function openCustomizationModal(type) {
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://placehold.co/600x300/14141c/6366f1?text=BANNER+${i}'">
                 </div>
             `;
         }
@@ -4658,7 +4658,7 @@ function openCustomizationModal(type) {
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://placehold.co/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
@@ -4786,7 +4786,7 @@ async function cargarDisenoPerfil(email) {
         }
         // Caso 3: Banner es un número predefinido (1-5)
         else {
-            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerId}.webp')`;
+            bannerEl.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Banners/${bannerId}.webp')`;
             bannerEl.style.backgroundSize = 'cover';
             bannerEl.style.backgroundPosition = 'center';
         }
@@ -4802,7 +4802,7 @@ async function cargarDisenoPerfil(email) {
         avatarHtml = `<img src="${avatarId}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     } else {
         // Avatar predefinido de la galeria
-        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarId}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        avatarHtml = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarId}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
     }
 
     // Cambiar el icono del botón de la navbar (el que esta en el menu de usuario)
@@ -4997,7 +4997,7 @@ async function buscarAmigos() {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="Resultados" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
@@ -6478,7 +6478,7 @@ async function cargarPerfilPublico(usernameTarget) {
             } else if (avatarDB.startsWith('http')) {
                 avatarElement.insertAdjacentHTML('beforeend', `<img src="${avatarDB}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             } else {
-                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
+                avatarElement.insertAdjacentHTML('beforeend', `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`);
             }
         }
 
@@ -6494,7 +6494,7 @@ async function cargarPerfilPublico(usernameTarget) {
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             } else {
-                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Banners/${bannerDB}.webp')`;
+                bannerElement.style.backgroundImage = `url('https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Banners/${bannerDB}.webp')`;
                 bannerElement.style.backgroundSize = 'cover';
                 bannerElement.style.backgroundPosition = 'center';
             }
@@ -7735,7 +7735,7 @@ window.cargarAlertas = async function () {
 
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             areaNotifs.innerHTML += `
                 <div class="notif-card">
@@ -7899,7 +7899,7 @@ async function cargarDatosSociales() {
             const avatarDB = perfil.avatar ? perfil.avatar.replace(/'/g, "") : 'default';
             let avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="Avatar" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             // Botón de Dejar de Seguir (solo si estamos viendo nuestro propio perfil y es la lista de "siguiendo")
             let actionBtnHtml = '';
@@ -10313,7 +10313,7 @@ async function guardarAvatarCustom() {
         try {
             // Generar nombre unico para el archivo
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_avatar_${uniqueHash}.webp`;
+            const fileName = `custom_avatar_${uniqueHash}.png`;
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -10390,7 +10390,7 @@ async function guardarBannerCustom() {
     cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_banner_${uniqueHash}.webp`;
+            const fileName = `custom_banner_${uniqueHash}.png`;
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
@@ -11716,7 +11716,7 @@ async function buscarUsuariosParaLista(query) {
             const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
             const avatarHtml = (avatarDB === 'default' || avatarDB === 'custom')
                 ? '<i class="fas fa-user-astronaut" style="color: var(--primary);"></i>'
-                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
+                : `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\' style=\\'color: var(--primary);\\'></i>'">`;
 
             const userCard = document.createElement('div');
             userCard.className = 'friend-user-card';
@@ -11777,7 +11777,7 @@ function pintarMiembrosInvitados() {
         const avatarDB = user.avatar ? user.avatar.replace(/'/g, "") : 'default';
         const avatarWrap = clone.querySelector('.list-member-chip-avatar');
         if (avatarDB !== 'default' && avatarDB !== 'custom') {
-            avatarWrap.innerHTML = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\'></i>'">`;
+            avatarWrap.innerHTML = `<img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatarDB}.webp" alt="${user.username}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user-astronaut\\'></i>'">`;
         }
 
         clone.querySelector('.list-member-chip-name').textContent = user.username;
