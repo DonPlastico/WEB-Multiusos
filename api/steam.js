@@ -1,9 +1,6 @@
 // ============================================================
 //   API STEAM - FALLBACK PARA JUEGOS
 // ============================================================
-// Endpoint de respaldo cuando IGDB no encuentra un juego.
-// Busca en la tienda de Steam y devuelve los resultados
-// en el mismo formato que IGDB.
 
 export default async function handler(req, res) {
     const { query } = req;
@@ -20,40 +17,107 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1. Buscar en Steam Store
-        const steamRes = await fetch(
-            `https://store.steampowered.com/api/storesearch?term=${encodeURIComponent(busqueda)}&cc=ES&l=spanish`
-        );
+        // ============================================================
+        // INTENTO 1: Si el query es un número, buscar por ID en Steam
+        // ============================================================
+        const esNumero = /^\d+$/.test(busqueda);
+        let juegoData = null;
 
-        if (!steamRes.ok) {
-            throw new Error('Error en Steam API');
+        if (esNumero) {
+            try {
+                // Intentar obtener el juego directamente por ID
+                const appId = parseInt(busqueda);
+                const appRes = await fetch(
+                    `https://store.steampowered.com/api/appdetails?appids=${appId}&cc=ES&l=spanish`
+                );
+
+                if (appRes.ok) {
+                    const appData = await appRes.json();
+                    const appInfo = appData[appId.toString()];
+
+                    if (appInfo && appInfo.success) {
+                        const data = appInfo.data;
+                        // Transformar al formato IGDB
+                        juegoData = {
+                            id: `steam_${appId}`,
+                            name: data.name || `Juego #${appId}`,
+                            cover: {
+                                url: `https://steamcdn-a.akamaihd.net/apps/${appId}/library_600x900_2x.jpg`
+                            },
+                            first_release_date: data.release_date?.date ?
+                                Math.floor(new Date(data.release_date.date).getTime() / 1000) : null,
+                            platforms: [{ name: 'PC' }],
+                            category: 0,
+                            itad: {
+                                precio: null,
+                                stores: 'steam',
+                                url: `https://store.steampowered.com/app/${appId}/`
+                            },
+                            _source: 'steam'
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn(`⚠️ [Steam] Error buscando por ID ${busqueda}:`, e);
+            }
         }
 
-        const steamData = await steamRes.json();
+        // ============================================================
+        // INTENTO 2: Si no se encontró por ID, buscar por texto
+        // ============================================================
+        if (!juegoData) {
+            const steamRes = await fetch(
+                `https://store.steampowered.com/api/storesearch?term=${encodeURIComponent(busqueda)}&cc=ES&l=spanish`
+            );
 
-        // 2. Transformar resultados al formato que usa tu web (igual que IGDB)
-        const juegosSteam = steamData.items.map(item => ({
-            id: `steam_${item.id}`,
-            name: item.name,
-            cover: {
-                url: `https://steamcdn-a.akamaihd.net/apps/${item.id}/library_600x900_2x.jpg`
-            },
-            first_release_date: null,
-            platforms: [{ name: 'PC' }],
-            category: 0,
-            itad: {
-                precio: null,
-                stores: 'steam',
-                url: `https://store.steampowered.com/app/${item.id}/`
-            },
-            _source: 'steam' // Marcamos que viene de Steam (por si acaso)
-        }));
+            if (steamRes.ok) {
+                const steamData = await steamRes.json();
+                if (steamData.items && steamData.items.length > 0) {
+                    // Transformar al formato IGDB
+                    const items = steamData.items.map(item => ({
+                        id: `steam_${item.id}`,
+                        name: item.name,
+                        cover: {
+                            url: `https://steamcdn-a.akamaihd.net/apps/${item.id}/library_600x900_2x.jpg`
+                        },
+                        first_release_date: null,
+                        platforms: [{ name: 'PC' }],
+                        category: 0,
+                        itad: {
+                            precio: null,
+                            stores: 'steam',
+                            url: `https://store.steampowered.com/app/${item.id}/`
+                        },
+                        _source: 'steam'
+                    }));
 
-        // DEVOLVER EN EL MISMO FORMATO QUE IGDB
-        // Asi el frontend no tiene que hacer nada especial
-        res.status(200).json({
-            juegos: juegosSteam,
-            total: juegosSteam.length,
+                    return res.status(200).json({
+                        juegos: items,
+                        total: items.length,
+                        offset: 0,
+                        limit: 50,
+                        hasMore: false
+                    });
+                }
+            }
+        }
+
+        // ============================================================
+        // Devolver lo que se encontró (o vacío)
+        // ============================================================
+        if (juegoData) {
+            return res.status(200).json({
+                juegos: [juegoData],
+                total: 1,
+                offset: 0,
+                limit: 50,
+                hasMore: false
+            });
+        }
+
+        return res.status(200).json({
+            juegos: [],
+            total: 0,
             offset: 0,
             limit: 50,
             hasMore: false
