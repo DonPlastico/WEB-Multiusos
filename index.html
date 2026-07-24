@@ -47,7 +47,7 @@
     <!-- ============================================================ -->
     <!--   ICONOS Y FAVICONS                                         -->
     <!-- ============================================================ -->
-    <link rel="icon" href="img/Logo.webp" type="image/webp" alt="DP-SYS Logo - Nexus de entretenimiento">
+    <link rel="icon" href="/img/Logo.webp" type="image/webp" alt="DP-SYS Logo - Nexus de entretenimiento">
     <link rel="apple-touch-icon" href="/img/Logo.webp"> <!-- Icono para iOS cuando añades a pantalla de inicio -->
 
     <!-- ============================================================ -->
@@ -1965,14 +1965,301 @@
                     <i class="fas fa-list"></i> LISTA: <span id="lista-detalle-nombre">Cargando...</span>
                 </h1>
 
-                <!-- Contenido vacío por ahora -->
-                <div class="glass-panel" style="padding: 60px 40px; text-align: center; margin-top: 20px;">
-                    <i class="fas fa-box-open"
-                        style="font-size: 3rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 20px;"></i>
-                    <p style="color: var(--text-muted); font-size: 1.1rem;">
-                        <span id="lista-detalle-mensaje">Contenido de la lista próximamente...</span>
-                    </p>
+                <!-- ESTILO 1: Minimalista con borde neón -->
+                <h3 style="color: var(--text-muted); margin: 30px 0 15px; font-size: 0.9rem; letter-spacing: 2px;">
+                    ESTILO 1 · NEÓN</h3>
+                <div class="lista-cards-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+                    <div class="list-card-style-1" onclick="abrirModalMedia('123', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                loading="lazy">
+                            <div class="list-card-overlay">
+                                <span class="list-card-type"><i class="fas fa-film"></i> Película</span>
+                            </div>
+                        </div>
+                        <div class="list-card-title">Dune: Part Two</div>
+                    </div>
+
+                    <div class="list-card-style-1" onclick="abrirModalMedia('456', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                alt="The Last of Us" loading="lazy">
+                            <div class="list-card-overlay">
+                                <span class="list-card-type"><i class="fas fa-tv"></i> Serie</span>
+                            </div>
+                        </div>
+                        <div class="list-card-title">The Last of Us</div>
+                    </div>
+
+                    <div class="list-card-style-1" onclick="abrirModalMedia('789', 'game')">
+                        <div class="list-card-image">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg" alt="Elden Ring"
+                                loading="lazy">
+                            <div class="list-card-overlay">
+                                <span class="list-card-type"><i class="fas fa-gamepad"></i> Juego</span>
+                            </div>
+                        </div>
+                        <div class="list-card-title">Elden Ring</div>
+                    </div>
+
+                    <div class="list-card-style-1" onclick="abrirModalMedia('101', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg" alt="Oppenheimer"
+                                loading="lazy">
+                            <div class="list-card-overlay">
+                                <span class="list-card-type"><i class="fas fa-film"></i> Película</span>
+                            </div>
+                        </div>
+                        <div class="list-card-title">Oppenheimer</div>
+                    </div>
+
+                    <div class="list-card-style-1" onclick="abrirModalMedia('102', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg" alt="Fallout"
+                                loading="lazy">
+                            <div class="list-card-overlay">
+                                <span class="list-card-type"><i class="fas fa-tv"></i> Serie</span>
+                            </div>
+                        </div>
+                        <div class="list-card-title">Fallout</div>
+                    </div>
                 </div>
+
+                <!-- ESTILO 2: Glassmorphism con brillo -->
+                <h3 style="color: var(--text-muted); margin: 30px 0 15px; font-size: 0.9rem; letter-spacing: 2px;">
+                    ESTILO 2 · GLASS</h3>
+                <div class="lista-cards-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+                    <div class="list-card-style-2" onclick="abrirModalMedia('123', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                loading="lazy">
+                            <div class="list-card-glow"></div>
+                        </div>
+                        <div class="list-card-title">Dune: Part Two</div>
+                        <div class="list-card-year">2024</div>
+                    </div>
+
+                    <div class="list-card-style-2" onclick="abrirModalMedia('456', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                alt="The Last of Us" loading="lazy">
+                            <div class="list-card-glow"></div>
+                        </div>
+                        <div class="list-card-title">The Last of Us</div>
+                        <div class="list-card-year">2023</div>
+                    </div>
+
+                    <div class="list-card-style-2" onclick="abrirModalMedia('789', 'game')">
+                        <div class="list-card-image">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg" alt="Elden Ring"
+                                loading="lazy">
+                            <div class="list-card-glow"></div>
+                        </div>
+                        <div class="list-card-title">Elden Ring</div>
+                        <div class="list-card-year">2022</div>
+                    </div>
+
+                    <div class="list-card-style-2" onclick="abrirModalMedia('101', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg" alt="Oppenheimer"
+                                loading="lazy">
+                            <div class="list-card-glow"></div>
+                        </div>
+                        <div class="list-card-title">Oppenheimer</div>
+                        <div class="list-card-year">2023</div>
+                    </div>
+
+                    <div class="list-card-style-2" onclick="abrirModalMedia('102', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg" alt="Fallout"
+                                loading="lazy">
+                            <div class="list-card-glow"></div>
+                        </div>
+                        <div class="list-card-title">Fallout</div>
+                        <div class="list-card-year">2024</div>
+                    </div>
+                </div>
+
+                <!-- ESTILO 3: Polaroid -->
+                <h3 style="color: var(--text-muted); margin: 30px 0 15px; font-size: 0.9rem; letter-spacing: 2px;">
+                    ESTILO 3 · POLAROID</h3>
+                <div class="lista-cards-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+                    <div class="list-card-style-3" onclick="abrirModalMedia('123', 'movie')">
+                        <div class="list-card-polaroid">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                    loading="lazy">
+                            </div>
+                            <div class="list-card-title">Dune: Part Two</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-3" onclick="abrirModalMedia('456', 'tv')">
+                        <div class="list-card-polaroid">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                    alt="The Last of Us" loading="lazy">
+                            </div>
+                            <div class="list-card-title">The Last of Us</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-3" onclick="abrirModalMedia('789', 'game')">
+                        <div class="list-card-polaroid">
+                            <div class="list-card-image">
+                                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                    alt="Elden Ring" loading="lazy">
+                            </div>
+                            <div class="list-card-title">Elden Ring</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-3" onclick="abrirModalMedia('101', 'movie')">
+                        <div class="list-card-polaroid">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                    alt="Oppenheimer" loading="lazy">
+                            </div>
+                            <div class="list-card-title">Oppenheimer</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-3" onclick="abrirModalMedia('102', 'tv')">
+                        <div class="list-card-polaroid">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg" alt="Fallout"
+                                    loading="lazy">
+                            </div>
+                            <div class="list-card-title">Fallout</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ESTILO 4: Cinemascope -->
+                <h3 style="color: var(--text-muted); margin: 30px 0 15px; font-size: 0.9rem; letter-spacing: 2px;">
+                    ESTILO 4 · CINEMASCOPE</h3>
+                <div class="lista-cards-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+                    <div class="list-card-style-4" onclick="abrirModalMedia('123', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                loading="lazy">
+                            <div class="list-card-info">
+                                <div class="list-card-title">Dune: Part Two</div>
+                                <div class="list-card-sub">2024 · ⭐ 8.5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-4" onclick="abrirModalMedia('456', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                alt="The Last of Us" loading="lazy">
+                            <div class="list-card-info">
+                                <div class="list-card-title">The Last of Us</div>
+                                <div class="list-card-sub">2023 · ⭐ 8.8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-4" onclick="abrirModalMedia('789', 'game')">
+                        <div class="list-card-image">
+                            <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg" alt="Elden Ring"
+                                loading="lazy">
+                            <div class="list-card-info">
+                                <div class="list-card-title">Elden Ring</div>
+                                <div class="list-card-sub">2022 · ⭐ 9.5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-4" onclick="abrirModalMedia('101', 'movie')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg" alt="Oppenheimer"
+                                loading="lazy">
+                            <div class="list-card-info">
+                                <div class="list-card-title">Oppenheimer</div>
+                                <div class="list-card-sub">2023 · ⭐ 8.4</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-4" onclick="abrirModalMedia('102', 'tv')">
+                        <div class="list-card-image">
+                            <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg" alt="Fallout"
+                                loading="lazy">
+                            <div class="list-card-info">
+                                <div class="list-card-title">Fallout</div>
+                                <div class="list-card-sub">2024 · ⭐ 8.2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ESTILO 5: Neon Frame -->
+                <h3 style="color: var(--text-muted); margin: 30px 0 15px; font-size: 0.9rem; letter-spacing: 2px;">
+                    ESTILO 5 · NEON FRAME</h3>
+                <div class="lista-cards-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+
+                    <div class="list-card-style-5" onclick="abrirModalMedia('123', 'movie')">
+                        <div class="list-card-neon-frame">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/8cdWjvZQUkUEXzMJs7GwtF1xUOG.jpg" alt="Dune"
+                                    loading="lazy">
+                            </div>
+                            <div class="list-card-title">Dune: Part Two</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-5" onclick="abrirModalMedia('456', 'tv')">
+                        <div class="list-card-neon-frame">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
+                                    alt="The Last of Us" loading="lazy">
+                            </div>
+                            <div class="list-card-title">The Last of Us</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-5" onclick="abrirModalMedia('789', 'game')">
+                        <div class="list-card-neon-frame">
+                            <div class="list-card-image">
+                                <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg"
+                                    alt="Elden Ring" loading="lazy">
+                            </div>
+                            <div class="list-card-title">Elden Ring</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-5" onclick="abrirModalMedia('101', 'movie')">
+                        <div class="list-card-neon-frame">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+                                    alt="Oppenheimer" loading="lazy">
+                            </div>
+                            <div class="list-card-title">Oppenheimer</div>
+                        </div>
+                    </div>
+
+                    <div class="list-card-style-5" onclick="abrirModalMedia('102', 'tv')">
+                        <div class="list-card-neon-frame">
+                            <div class="list-card-image">
+                                <img src="https://image.tmdb.org/t/p/w500/3V4kL3930LIhU1dP4di2mU0Vp2K.jpg" alt="Fallout"
+                                    loading="lazy">
+                            </div>
+                            <div class="list-card-title">Fallout</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
