@@ -6739,6 +6739,54 @@ cast-carousel::-webkit-scrollbar {
    TARJETAS DE LISTA - 5 ESTILOS
    ========================================================================== */
 
+/* ===== CABECERA DE ESTILO ===== */
+.lista-estilo-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 20px;
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    border-left: 4px solid var(--primary);
+}
+
+.lista-estilo-badge {
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+}
+
+.lista-estilo-nombre {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--neon-white);
+}
+
+.lista-estilo-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* ===== GRID ===== */
+.lista-cards-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.cards-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.cards-grid-1 {
+    grid-template-columns: 1fr;
+}
+
 /* ===== ESTILO 1: Minimalista con borde neón ===== */
 .list-card-style-1 {
     background: var(--bg-card);
@@ -6797,7 +6845,7 @@ cast-carousel::-webkit-scrollbar {
     padding: 12px 14px;
     font-family: var(--font-cyber);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
@@ -6851,7 +6899,7 @@ cast-carousel::-webkit-scrollbar {
     padding: 12px 14px 2px;
     font-family: var(--font-cyber);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--neon-white);
     white-space: nowrap;
     overflow: hidden;
@@ -6866,53 +6914,67 @@ cast-carousel::-webkit-scrollbar {
     text-align: center;
 }
 
-/* ===== ESTILO 3: Polaroid ===== */
+/* ===== ESTILO 3: Formato LISTA ===== */
 .list-card-style-3 {
     cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px;
+    transition: all 0.2s ease;
 }
 
 .list-card-style-3:hover {
-    transform: translateY(-8px) rotate(-2deg);
+    transform: translateX(8px);
 }
 
-.list-card-style-3 .list-card-polaroid {
+.list-card-style-3 .list-card-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
     background: var(--bg-card);
-    padding: 10px 10px 16px;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
 }
 
-.list-card-style-3:hover .list-card-polaroid {
-    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.3);
+.list-card-style-3:hover .list-card-list-item {
     border-color: var(--primary);
+    background: var(--bg-hover);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
 }
 
-.list-card-style-3 .list-card-image {
-    aspect-ratio: 2/3;
+.list-card-style-3 .list-card-thumb {
+    flex-shrink: 0;
+    width: 56px;
+    height: 76px;
+    border-radius: 6px;
     overflow: hidden;
-    border-radius: 4px;
+    background: var(--bg-secondary);
 }
 
-.list-card-style-3 .list-card-image img {
+.list-card-style-3 .list-card-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+.list-card-style-3 .list-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .list-card-style-3 .list-card-title {
-    padding: 10px 4px 0;
     font-family: var(--font-cyber);
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
+    font-size: 0.95rem;
     color: var(--text-main);
-    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.list-card-style-3 .list-card-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
 }
 
 /* ===== ESTILO 4: Cinemascope ===== */
@@ -6971,47 +7033,33 @@ cast-carousel::-webkit-scrollbar {
     margin-top: 2px;
 }
 
-/* ===== ESTILO 5: Neon Frame ===== */
+/* ===== ESTILO 5: Mosaico (cuadrado) ===== */
 .list-card-style-5 {
     cursor: pointer;
     transition: all 0.3s ease;
-    padding: 3px;
-    background: var(--gradient-primary);
-    border-radius: 16px;
-    position: relative;
-}
-
-.list-card-style-5::before {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border-radius: 16px;
-    padding: 3px;
-    background: var(--gradient-primary);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-
-.list-card-style-5:hover::before {
-    opacity: 1;
 }
 
 .list-card-style-5:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-6px);
 }
 
-.list-card-style-5 .list-card-neon-frame {
+.list-card-style-5 .list-card-mosaic {
     background: var(--bg-card);
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.list-card-style-5:hover .list-card-mosaic {
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
 }
 
 .list-card-style-5 .list-card-image {
-    aspect-ratio: 2/3;
+    aspect-ratio: 1/1;
     overflow: hidden;
+    background: var(--bg-secondary);
 }
 
 .list-card-style-5 .list-card-image img {
@@ -7026,16 +7074,50 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .list-card-style-5 .list-card-title {
-    padding: 12px 14px;
+    padding: 10px 12px;
     font-family: var(--font-cyber);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-main);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background: var(--bg-card);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .cards-grid-5 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .cards-grid-5 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .cards-grid-5 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .lista-estilo-header {
+        flex-wrap: wrap;
+    }
+
+    .lista-estilo-desc {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .cards-grid-5 {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
 }
 
 
