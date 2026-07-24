@@ -10313,7 +10313,7 @@ async function guardarAvatarCustom() {
         try {
             // Generar nombre unico para el archivo
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_avatar_${uniqueHash}.png`;
+            const fileName = `custom_avatar_${uniqueHash}.webp`;
 
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -10390,7 +10390,7 @@ async function guardarBannerCustom() {
     cropperBanner.getCroppedCanvas({ width: 1200, height: 675 }).toBlob(async (blob) => {
         try {
             const uniqueHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            const fileName = `custom_banner_${uniqueHash}.png`;
+            const fileName = `custom_banner_${uniqueHash}.webp`;
             const { data: { user } } = await supabase.auth.getUser();
 
             if (!user) {
