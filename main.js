@@ -12121,7 +12121,6 @@ async function procesarImportTVTime(file) {
     const zipData = await readZipFile(file);
 
     // LOG: Mostrar qué archivos se encontraron en el ZIP (para depuracion)
-    console.log('📦 Archivos encontrados en el ZIP:', Object.keys(zipData));
     actualizarProgreso(10, `Encontrados ${Object.keys(zipData).length} archivos en el ZIP...`);
 
     // Archivos relevantes de TV Time (BUSCANDO CON EXACTITUD)
@@ -12136,11 +12135,8 @@ async function procesarImportTVTime(file) {
     for (const [nombre, contenido] of Object.entries(zipData)) {
         const nombreLimpio = nombre.split('/').pop().trim();
 
-        console.log('📄 Archivo encontrado:', nombreLimpio, 'Tamaño:', contenido.length);
-
         if (archivosImportantes[nombreLimpio] !== undefined) {
             archivosImportantes[nombreLimpio] = contenido;
-            console.log(`✅ Archivo encontrado: ${nombreLimpio} (${contenido.length} caracteres)`);
         }
     }
 
@@ -12157,11 +12153,9 @@ async function procesarImportTVTime(file) {
 
     // LOG: Mostrar primeras líneas del CSV para depuración
     const primerasLineas = csvContent.split('\n').slice(0, 5).join('\n');
-    console.log('📄 Primeras líneas del CSV:', primerasLineas);
 
     const seriesTVTime = parseCSV(csvContent);
 
-    console.log(`📊 Series encontradas en CSV: ${seriesTVTime.length}`);
     actualizarProgreso(25, `Encontradas ${seriesTVTime.length} series en el archivo...`);
 
     const episodiosVistos = parseCSV(archivosImportantes['seen_episode_latest.csv'] || '');
@@ -12177,7 +12171,6 @@ async function procesarImportTVTime(file) {
     if (totalSeries === 0) {
         console.warn('⚠️ No se encontraron series en el CSV. Verifica el formato del archivo.');
         const primerasLineasCompletas = csvContent.split('\n').slice(0, 10).join('\n');
-        console.log('📄 Contenido del CSV (primeras 10 líneas):', primerasLineasCompletas);
         throw new Error('El archivo user_tv_show_data.csv está vacío o tiene un formato incorrecto.');
     }
 
@@ -12197,7 +12190,6 @@ async function procesarImportTVTime(file) {
 
             // LOG: Mostrar progreso cada 200 series (para no saturar la consola)
             if (procesadas % 200 === 0) {
-                console.log(`🔄 Procesando serie ${procesadas}/${totalSeries}: ${titulo}`);
             }
 
             // Buscar en TMDB por título
@@ -12209,18 +12201,12 @@ async function procesarImportTVTime(file) {
                 const tituloLimpio = titulo.replace(/\s*\([^)]*\)\s*$/, '').trim();
                 if (tituloLimpio !== titulo && tituloLimpio.length > 0) {
                     tmdbData = await buscarEnTMDB(tituloLimpio, 'tv');
-                    if (tmdbData) {
-                        console.log(`✅ Encontrada tras limpiar título: "${titulo}" → "${tituloLimpio}"`);
-                    }
                 }
             }
 
             // Si sigue sin encontrarse, reintentar activando el filtro +18
             if (!tmdbData) {
                 tmdbData = await buscarEnTMDB(titulo, 'tv', true);
-                if (tmdbData) {
-                    console.log(`✅ Encontrada activando filtro +18: "${titulo}"`);
-                }
             }
 
             if (!tmdbData) {
@@ -12326,8 +12312,6 @@ async function procesarImportTVTime(file) {
         }
     }
 
-    console.log(`✅ Series procesadas: ${seriesProcesadas.length}`);
-
     // ============================================================
     // GUARDAR EN LISTA "SERIES" (DEFAULT)
     // ============================================================
@@ -12349,7 +12333,6 @@ async function procesarImportTVTime(file) {
 
         if (listaSeriesExistente) {
             listaSeriesId = listaSeriesExistente.id;
-            console.log(`✅ Lista "${nombreListaSeries}" encontrada (ID: ${listaSeriesId})`);
             // Limpiar items anteriores para evitar duplicados
             await supabase
                 .from('listas_items')
@@ -12357,7 +12340,6 @@ async function procesarImportTVTime(file) {
                 .eq('lista_id', listaSeriesId);
         } else {
             // Crear la lista "SERIES"
-            console.log(`🆕 Creando lista "${nombreListaSeries}"...`);
             const { data: nuevaLista, error: errorLista } = await supabase
                 .from('listas_maestra')
                 .insert({
@@ -12372,7 +12354,6 @@ async function procesarImportTVTime(file) {
 
             if (errorLista) throw errorLista;
             listaSeriesId = nuevaLista.id;
-            console.log(`✅ Lista "${nombreListaSeries}" creada (ID: ${listaSeriesId})`);
         }
 
         // 2. Preparar los items para la lista de series
@@ -12951,13 +12932,11 @@ document.addEventListener('DOMContentLoaded', () => {
  * @param {string} estilo - 'estilo1', 'estilo2', 'estilo3', 'estilo4'
  */
 function aplicarEstiloLista(estilo) {
-    console.log(`🔄 [aplicarEstiloLista] Aplicando estilo: ${estilo}`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
         console.warn('⚠️ [aplicarEstiloLista] Grid no encontrado');
         return;
     }
-    console.log(`✅ [aplicarEstiloLista] Grid encontrado, ${grid.children.length} hijos`);
 
     // 1. Guardar los datos de las tarjetas actuales
     const tarjetasData = [];
@@ -12971,14 +12950,12 @@ function aplicarEstiloLista(estilo) {
             imagen: card.dataset.imagen || '',
         };
         tarjetasData.push(data);
-        console.log(`📦 [aplicarEstiloLista] Tarjeta ${idx}: ${data.titulo} (${data.tipo})`);
     });
 
     if (tarjetasData.length === 0) {
         console.warn('⚠️ [aplicarEstiloLista] No hay tarjetas en el grid');
         return;
     }
-    console.log(`✅ [aplicarEstiloLista] ${tarjetasData.length} tarjetas guardadas`);
 
     // 3. Limpiar el grid
     grid.innerHTML = '';
@@ -12987,25 +12964,19 @@ function aplicarEstiloLista(estilo) {
     tarjetasData.forEach((data, idx) => {
         const nuevaCard = crearTarjetaConEstilo(estilo, data);
         grid.appendChild(nuevaCard);
-        console.log(`🔄 [aplicarEstiloLista] Tarjeta ${idx} reconstruida con estilo ${estilo}`);
     });
 
     // 5. Actualizar el estilo del grid (columnas)
     actualizarGridColumns(estilo);
-    console.log(`📐 [aplicarEstiloLista] Columnas actualizadas para ${estilo}`);
 
     // 6. Guardar preferencia en localStorage
     localStorage.setItem('pref_estilo_lista', estilo);
-    console.log(`💾 [aplicarEstiloLista] Preferencia guardada: ${estilo}`);
-
-    console.log(`✅ [aplicarEstiloLista] Finalizado, ${grid.children.length} tarjetas en el grid`);
 }
 
 /**
  * Crea una tarjeta HTML con el estilo especificado
  */
 function crearTarjetaConEstilo(estilo, data) {
-    console.log(`🏗️ [crearTarjetaConEstilo] Creando tarjeta para "${data.titulo}" con estilo ${estilo}`);
     const card = document.createElement('div');
     const numeroEstilo = estilo.replace('estilo', '');
     card.className = `list-card-${estilo} list-card-style-${numeroEstilo}`;
@@ -13018,7 +12989,6 @@ function crearTarjetaConEstilo(estilo, data) {
     card.dataset.imagen = data.imagen;
 
     card.onclick = () => {
-        console.log(`🖱️ [click] Abriendo modal para ${data.titulo} (${data.tipo})`);
         abrirModalMedia(data.id, data.tipo);
     };
 
@@ -13099,7 +13069,6 @@ function crearTarjetaConEstilo(estilo, data) {
     }
 
     card.innerHTML = html;
-    console.log(`✅ [crearTarjetaConEstilo] Tarjeta creada para "${data.titulo}"`);
     return card;
 }
 
@@ -13126,7 +13095,6 @@ function generarEstrellas(nota) {
  * Cambia el número de columnas del grid según el estilo
  */
 function actualizarGridColumns(estilo) {
-    console.log(`📐 [actualizarGridColumns] Actualizando columnas para ${estilo}`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
         console.warn('⚠️ [actualizarGridColumns] Grid no encontrado');
@@ -13162,24 +13130,20 @@ function configurarFiltroEstiloLista() {
         console.warn('⚠️ [configurarFiltroEstiloLista] No se encontraron checkboxes de estilo');
         return;
     }
-    console.log(`✅ [configurarFiltroEstiloLista] ${styleCheckboxes.length} checkboxes encontrados`);
 
     // Eliminar listeners antiguos y añadir nuevos
     styleCheckboxes.forEach(cb => {
         cb.removeEventListener('change', handleStyleChange);
         cb.addEventListener('change', handleStyleChange);
-        console.log(`✅ [configurarFiltroEstiloLista] Listener asignado a ${cb.value}`);
     });
 
     // Cargar preferencia guardada
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-    console.log(`💾 [configurarFiltroEstiloLista] Estilo guardado: ${estiloGuardado}`);
 
     // Marcar el checkbox correspondiente
     styleCheckboxes.forEach(cb => {
         if (cb.value === estiloGuardado) {
             cb.checked = true;
-            console.log(`✅ [configurarFiltroEstiloLista] Marcado: ${cb.value}`);
         } else {
             cb.checked = false;
         }
@@ -13189,7 +13153,6 @@ function configurarFiltroEstiloLista() {
     setTimeout(() => {
         const grid = document.getElementById('lista-detalle-grid');
         if (grid && grid.children.length > 0) {
-            console.log(`⏰ [configurarFiltroEstiloLista] Aplicando estilo guardado: ${estiloGuardado}`);
             aplicarEstiloLista(estiloGuardado);
         }
     }, 300);
@@ -13199,7 +13162,6 @@ function configurarFiltroEstiloLista() {
 function handleStyleChange(e) {
     const changed = e.target;
     const isChecked = changed.checked;
-    console.log(`📌 [handleStyleChange] Checkbox: ${changed.value}, checked: ${isChecked}`);
 
     if (!isChecked) {
         changed.checked = true;
@@ -13216,12 +13178,10 @@ function handleStyleChange(e) {
     styleCheckboxes.forEach(cb => {
         if (cb !== changed) {
             cb.checked = false;
-            console.log(`🔽 [handleStyleChange] Desmarcando: ${cb.value}`);
         }
     });
 
     const estilo = changed.value;
-    console.log(`🎯 [handleStyleChange] Aplicando estilo: ${estilo}`);
     aplicarEstiloLista(estilo);
 }
 
@@ -13231,8 +13191,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             configurarFiltroEstiloLista();
         }, 300);
-    } else {
-        console.log(`ℹ️ [DOMContentLoaded] Vista actual: ${vistaActualGlobal}, no es lista-detalle`);
     }
 });
 
@@ -13250,20 +13208,10 @@ let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
 
-console.log('📦 [GLOBAL] Variables de estado inicializadas:', {
-    listaItemsOffset,
-    LISTA_ITEMS_LIMIT,
-    listaItemsCargando,
-    listaItemsTotal,
-    listaIdActual,
-    listaTipoActual
-});
-
 /**
  * Carga los items de una lista desde Supabase con paginación
  */
 async function cargarItemsLista(listaId, resetear = true) {
-    console.log(`🔍 [cargarItemsLista] Llamado con: listaId=${listaId}, resetear=${resetear}`);
 
     if (!listaId) {
         console.error('❌ [cargarItemsLista] No se proporcionó ID de lista');
@@ -13303,9 +13251,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (!session) {
             throw new Error('No hay sesión activa');
         }
-        console.log(`✅ [cargarItemsLista] Sesión obtenida: ${session.user.email}`);
 
-        console.log(`📊 [cargarItemsLista] Consultando lista ${listaId}...`);
         const { data: listaInfo, error: errLista } = await supabase
             .from('listas_maestra')
             .select('owner_id, tag_tipo')
@@ -13313,7 +13259,6 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
-        console.log(`✅ [cargarItemsLista] Lista info: owner=${listaInfo.owner_id}, tipo=${listaInfo.tag_tipo}`);
 
         if (listaInfo.owner_id !== session.user.id) {
             throw new Error('No tienes permisos para ver esta lista');
@@ -13334,13 +13279,11 @@ async function cargarItemsLista(listaId, resetear = true) {
             listaItemsTotal = 0;
         } else {
             listaItemsTotal = totalCount || 0;
-            console.log(`✅ [cargarItemsLista] TOTAL DE ITEMS: ${listaItemsTotal}`);
         }
 
         // ================================================================
         //  OBTENER ITEMS CON PAGINACIÓN
         // ================================================================
-        console.log(`📊 [cargarItemsLista] Obteniendo items offset=${listaItemsOffset}, limit=${LISTA_ITEMS_LIMIT}`);
         const { data: items, error: itemsError } = await supabase
             .from('listas_items')
             .select('media_id, media_tipo, added_at')
@@ -13349,8 +13292,6 @@ async function cargarItemsLista(listaId, resetear = true) {
             .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
 
         if (itemsError) throw itemsError;
-
-        console.log(`✅ [cargarItemsLista] Items obtenidos: ${items?.length || 0}`);
 
         if (!items || items.length === 0) {
             if (resetear) {
@@ -13383,13 +13324,11 @@ async function cargarItemsLista(listaId, resetear = true) {
             _media_id: item.media_id,
             _media_tipo: item.media_tipo
         }));
-        console.log(`✅ [cargarItemsLista] ${itemsBasicos.length} items básicos creados`);
 
         if (resetear) {
             listaItemsActuales = itemsBasicos;
         } else {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
-            console.log(`🔄 [cargarItemsLista] Lista actualizada (append): ${listaItemsActuales.length} total`);
         }
 
         renderizarItemsLista(itemsBasicos, resetear);
@@ -13400,13 +13339,11 @@ async function cargarItemsLista(listaId, resetear = true) {
                 listaTipoActual === 'movie' ? 'Películas' :
                     listaTipoActual === 'tv' ? 'Series' : 'Elementos';
             mensaje.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
-            console.log(`📝 [cargarItemsLista] Mensaje actualizado: ${mensaje.textContent}`);
         }
 
         enriquecerItemsLista(itemsBasicos, resetear);
 
         let hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
-        console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
 
         if (hayMas) {
             loader.style.display = 'block';
@@ -13425,13 +13362,11 @@ async function cargarItemsLista(listaId, resetear = true) {
         //  ACTUALIZAR OFFSET DESPUÉS DE CARGAR
         // ================================================================
         listaItemsOffset += items.length;
-        console.log(`📈 [cargarItemsLista] Nuevo offset: ${listaItemsOffset}`);
 
         // ================================================================
         //  VERIFICAR SI HAY MÁS ELEMENTOS (USANDO EL NUEVO OFFSET)
         // ================================================================
         hayMas = listaItemsOffset < listaItemsTotal;
-        console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
 
         if (hayMas) {
             loader.style.display = 'block';
@@ -13473,7 +13408,6 @@ async function cargarItemsLista(listaId, resetear = true) {
  * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
  */
 async function enriquecerItemsLista(items, resetear) {
-    console.log(`🚀 [enriquecerItemsLista] Iniciando enriquecimiento de ${items.length} items`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
@@ -13481,15 +13415,12 @@ async function enriquecerItemsLista(items, resetear) {
     }
 
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-    console.log(`💾 [enriquecerItemsLista] Estilo guardado: ${estiloGuardado}`);
 
     for (let i = 0; i < items.length; i++) {
         const item = items[i];
         const key = `${item._media_id}_${item._media_tipo}`;
-        console.log(`🔄 [enriquecerItemsLista] Procesando item ${i + 1}/${items.length}: ${key}`);
 
         if (listaItemsEnriquecidos[key]) {
-            console.log(`⏭️ [enriquecerItemsLista] Item ${key} ya enriquecido, saltando`);
             continue;
         }
 
@@ -13497,21 +13428,17 @@ async function enriquecerItemsLista(items, resetear) {
             let data = null;
 
             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                console.log(`🌐 [enriquecerItemsLista] Fetching TMDB para ${item._media_id}`);
                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
                 if (res.ok) {
                     data = await res.json();
-                    console.log(`✅ [enriquecerItemsLista] TMDB OK: ${data.titulo || 'sin título'}`);
                 } else {
                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
                 }
             } else if (item._media_tipo === 'game') {
-                console.log(`🌐 [enriquecerItemsLista] Fetching IGDB para ${item._media_id}`);
                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
                 if (res.ok) {
                     const result = await res.json();
                     data = result.juegos?.[0] || result[0] || null;
-                    console.log(`✅ [enriquecerItemsLista] IGDB OK: ${data?.titulo || data?.name || 'sin título'}`);
                 } else {
                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
                 }
@@ -13531,16 +13458,13 @@ async function enriquecerItemsLista(items, resetear) {
                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
                     enrichedItem.rating = data.nota || '0.0';
                     enrichedItem.imagen = data.poster || '';
-                    console.log(`📊 [enriquecerItemsLista] Movie/TV: año=${enrichedItem.year}, rating=${enrichedItem.rating}`);
                 } else if (item._media_tipo === 'game') {
                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-                    console.log(`📊 [enriquecerItemsLista] Game: año=${enrichedItem.year}, rating=${enrichedItem.rating}`);
                 }
 
                 listaItemsEnriquecidos[key] = enrichedItem;
-                console.log(`✅ [enriquecerItemsLista] Item ${key} enriquecido: "${enrichedItem.titulo}"`);
 
                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
@@ -13548,9 +13472,6 @@ async function enriquecerItemsLista(items, resetear) {
                 if (cards[cardIndex]) {
                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
                     cards[cardIndex].replaceWith(newCard);
-                    console.log(`🔄 [enriquecerItemsLista] Tarjeta ${cardIndex} actualizada`);
-                } else {
-                    console.warn(`⚠️ [enriquecerItemsLista] Tarjeta ${cardIndex} no encontrada`);
                 }
             } else {
                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
@@ -13567,7 +13488,6 @@ async function enriquecerItemsLista(items, resetear) {
  * Renderiza los items en el grid con el estilo actual
  */
 function renderizarItemsLista(items, resetear) {
-    console.log(`🎨 [renderizarItemsLista] Renderizando ${items.length} items, resetear=${resetear}`);
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
         console.error('❌ [renderizarItemsLista] Grid no encontrado');
@@ -13575,7 +13495,6 @@ function renderizarItemsLista(items, resetear) {
     }
 
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-    console.log(`💾 [renderizarItemsLista] Estilo guardado: ${estiloGuardado}`);
 
     if (resetear) {
         grid.innerHTML = '';
@@ -13588,7 +13507,6 @@ function renderizarItemsLista(items, resetear) {
         let card;
         if (enriched) {
             card = crearTarjetaConEstilo(estiloGuardado, enriched);
-            console.log(`✅ [renderizarItemsLista] Item ${index} renderizado con datos enriquecidos`);
         } else if (item.placeholder) {
             card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
@@ -13607,14 +13525,12 @@ function renderizarItemsLista(items, resetear) {
             `;
         } else {
             card = crearTarjetaConEstilo(estiloGuardado, item);
-            console.log(`✅ [renderizarItemsLista] Item ${index} renderizado con datos básicos`);
         }
 
         grid.appendChild(card);
     });
 
     actualizarGridColumns(estiloGuardado);
-    console.log(`✅ [renderizarItemsLista] Renderizado completado, ${grid.children.length} tarjetas en el grid`);
 }
 
 /**
@@ -13636,7 +13552,6 @@ function configurarObservadorLista() {
     listaObservador = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !listaItemsCargando) {
-                console.log(`📡 [IntersectionObserver] Cargando más elementos... offset actual: ${listaItemsOffset}`);
                 cargarItemsLista(listaIdActual, false);
             }
         });
@@ -13658,7 +13573,6 @@ window.cargarDetalleLista = async function (nombreLista) {
     }
 
     const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
-    console.log(`📝 [cargarDetalleLista] Título decodificado: "${tituloDecodificado}"`);
 
     // Actualizar título en el DOM inmediatamente
     const tituloEl = document.getElementById('lista-detalle-nombre');
@@ -13670,10 +13584,8 @@ window.cargarDetalleLista = async function (nombreLista) {
         if (!session) {
             throw new Error('No hay sesión activa');
         }
-        console.log(`✅ [cargarDetalleLista] Sesión obtenida: ${session.user.email}`);
 
         // 2. Buscar la lista por título
-        console.log(`🔍 [cargarDetalleLista] Buscando lista "${tituloDecodificado}"...`);
         const { data: lista, error } = await supabase
             .from('listas_maestra')
             .select('id, titulo, tag_tipo')
