@@ -6675,7 +6675,65 @@ cast-carousel::-webkit-scrollbar {
     top: -45px;
 }
 
+/* ==========================================================================
+   VISTA DETALLE DE LISTA
+   ========================================================================== */
 
+#lista-detalle .lists-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+#lista-detalle .section-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#lista-detalle .section-title i {
+    color: var(--primary);
+    font-size: 1.8rem;
+}
+
+#lista-detalle .section-title span {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Contenido vacío con estilo glass */
+#lista-detalle .glass-panel {
+    padding: 60px 40px;
+    text-align: center;
+    margin-top: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+}
+
+#lista-detalle .glass-panel i {
+    font-size: 3rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    margin-bottom: 20px;
+    display: block;
+}
+
+#lista-detalle .glass-panel p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+#lista-detalle .auth-btn {
+    margin-top: 20px;
+}
 
 
 

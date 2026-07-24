@@ -549,6 +549,7 @@ const mapaRutas = {
     'profile': '/perfil',
     'edit-profile': '/editar-perfil',
     'mis-listas': '/mis-listas',
+    'lista-detalle': '/mis-listas',
     'admin-panel': '/admin',
     'login': '/login',
     'register': '/registro',
@@ -663,6 +664,9 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         inicializarEditProfile();
     } else if (target === 'mis-listas') {
         inicializarMisListas();
+    } else if (target === 'lista-detalle') {
+        const nombreLista = window._listaUrlNombre || 'lista';
+        await cargarDetalleLista(nombreLista);
     }
 
     // --- ACTUALIZAR META TAGS AL FINAL ---
@@ -761,7 +765,12 @@ function arrancarEnrutador() {
         vistaInicial = 'series';
     } else if (rutaActual.startsWith('/admin')) {
         vistaInicial = 'admin-panel';
-    } else if (rutaActual.startsWith('/mis-listas')) {
+    } else if (rutaActual.startsWith('/mis-listas/')) {
+        // URL de detalle de lista: /mis-listas/nombre-de-lista
+        vistaInicial = 'lista-detalle';
+        // Guardamos el nombre de la lista para luego cargarla
+        window._listaUrlNombre = rutaActual.split('/').pop();
+    } else if (rutaActual === '/mis-listas' || rutaActual === '/mis-listas/') {
         vistaInicial = 'mis-listas';
     } else if (rutaActual.startsWith('/editar-perfil')) {
         vistaInicial = 'edit-profile';
@@ -810,6 +819,8 @@ function arrancarEnrutador() {
             cargarTendenciasPeliculasInicial();
         } else if (vistaInicial === 'series') {
             cargarTendenciasSeriesInicial();
+        } else if (vistaInicial === 'lista-detalle' && window._listaUrlNombre) {
+            cargarDetalleLista(window._listaUrlNombre);
         }
     }, 300);
 
@@ -11336,6 +11347,99 @@ async function inicializarMisListas() {
     await cargarListas(listasTabActual);
 }
 
+// ==========================================================================
+//   DETALLE DE LISTA (Página individual)
+// ==========================================================================
+
+/**
+ * Carga los datos de una lista y los muestra en la vista de detalle
+ * @param {string} nombreLista - El nombre de la lista (slug) desde la URL
+ */
+async function cargarDetalleLista(nombreLista) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        // Si no hay sesión, redirigir a login
+        cambiarVista('login');
+        return;
+    }
+
+    const userId = session.user.id;
+
+    // Limpiar estado de carga anterior
+    const tituloEl = document.getElementById('lista-detalle-nombre');
+    const mensajeEl = document.getElementById('lista-detalle-mensaje');
+    if (tituloEl) tituloEl.textContent = 'Cargando...';
+    if (mensajeEl) mensajeEl.textContent = 'Conectando con el Nexus...';
+
+    try {
+        // 1. Buscar la lista por su título (slug) y owner
+        // Decodificar el nombre de la URL (reemplazar guiones bajos por espacios)
+        const tituloBusqueda = decodeURIComponent(nombreLista).replace(/_/g, ' ');
+
+        const { data: lista, error } = await supabase
+            .from('listas_maestra')
+            .select('id, titulo, descripcion, is_public, tag_tipo, owner_id, created_at')
+            .eq('titulo', tituloBusqueda)
+            .single();
+
+        if (error || !lista) {
+            // Si no existe, mostrar mensaje de error
+            if (tituloEl) tituloEl.textContent = 'Lista no encontrada';
+            if (mensajeEl) mensajeEl.textContent = 'La lista que buscas no existe o fue eliminada.';
+            return;
+        }
+
+        // 2. VERIFICAR PERMISOS: Solo el owner puede ver su lista
+        if (lista.owner_id !== userId) {
+            if (tituloEl) tituloEl.textContent = 'Acceso denegado';
+            if (mensajeEl) mensajeEl.textContent = 'No tienes permisos para ver esta lista. Solo el propietario puede acceder.';
+            showToast('error', 'Acceso denegado', 'No eres el propietario de esta lista.');
+            return;
+        }
+
+        // 3. Cargar los items de la lista
+        const { data: items, error: itemsError } = await supabase
+            .from('listas_items')
+            .select('media_id, media_tipo, added_at')
+            .eq('lista_id', lista.id)
+            .order('added_at', { ascending: false });
+
+        if (itemsError) throw itemsError;
+
+        // 4. Actualizar UI con los datos de la lista
+        if (tituloEl) tituloEl.textContent = lista.titulo;
+
+        // Actualizar el mensaje con el número de elementos
+        const count = items?.length || 0;
+        if (mensajeEl) {
+            const tipoLabel = lista.tag_tipo === 'game' ? 'Juegos' :
+                lista.tag_tipo === 'movie' ? 'Películas' :
+                    lista.tag_tipo === 'tv' ? 'Series' : 'Elementos';
+            mensajeEl.textContent = `${count} ${tipoLabel} en esta lista.`;
+        }
+
+        // 5. Guardar los items en una variable global para futuras acciones
+        window._listaItemsActual = items || [];
+
+        // 6. Actualizar el botón de volver
+        const btnVolver = document.getElementById('btn-volver-mis-listas');
+        if (btnVolver) {
+            btnVolver.onclick = () => {
+                cambiarVista('mis-listas');
+            };
+        }
+
+        // Aquí en el futuro se pintarán las tarjetas de los items
+        // Por ahora solo mostramos el mensaje
+
+    } catch (err) {
+        console.error('Error cargando detalle de lista:', err);
+        if (tituloEl) tituloEl.textContent = 'Error';
+        if (mensajeEl) mensajeEl.textContent = 'Ocurrió un error al cargar la lista.';
+        showToast('error', 'Error', 'No se pudo cargar la lista.');
+    }
+}
+
 // enlaza las pestañas (mias/compartidas/siguiendo) y los filtros de tipo
 function bindEventosListasUI() {
     // Pestañas principales: Mis listas | Compartidas conmigo | Siguiendo
@@ -11545,6 +11649,16 @@ function crearListCard(lista) {
     } else {
         btnLeave.style.display = 'flex';
     }
+
+    // Al hacer clic en la tarjeta, navegar al detalle
+    cardEl.addEventListener('click', () => {
+        // Generar slug del título (reemplazar espacios por guiones bajos)
+        const slug = lista.titulo.replace(/ /g, '_');
+        // Guardar en variable global para el enrutador
+        window._listaUrlNombre = slug;
+        // Cambiar a la vista de detalle
+        cambiarVista('lista-detalle', true);
+    });
 
     // por ahora solo evitamos que el click en los botones abra la lista (placeholder)
     // En el futuro estos botones tendran funcionalidad real
