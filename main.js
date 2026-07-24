@@ -13438,47 +13438,125 @@ async function enriquecerItemsListaCompleto(items) {
 
             try {
                 let data = null;
+                let enrichedItem = null;
 
+                // ==========================================================
+                // 1. OBTENER DATOS SEGÚN EL TIPO
+                // ==========================================================
                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                    // PELÍCULAS Y SERIES → TMDB
                     const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
                     if (res.ok) {
                         data = await res.json();
                     } else {
-                        console.warn(`⚠️ [enriquecerItemsListaCompleto] TMDB error: ${res.status} para ${item._media_id}`);
+                        console.warn(`⚠️ [TMDB] Error ${res.status} para ${item._media_id}`);
                     }
+
+                    if (data) {
+                        enrichedItem = {
+                            id: item._media_id,
+                            tipo: item._media_tipo,
+                            titulo: data.titulo || `ID: ${item._media_id}`,
+                            year: data.fecha ? new Date(data.fecha).getFullYear() : '----',
+                            rating: data.nota || '0.0',
+                            imagen: data.poster || '',
+                        };
+                    }
+
                 } else if (item._media_tipo === 'game') {
-                    const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
-                    if (res.ok) {
-                        const result = await res.json();
-                        data = result.juegos?.[0] || result[0] || null;
+                    // ======================================================
+                    // JUEGOS → IGDB + STEAM (FALLBACK)
+                    // ======================================================
+                    const mediaIdStr = String(item._media_id);
+                    let juegoData = null;
+
+                    // DETECTAR SI ES ID DE STEAM (empieza con "steam_")
+                    if (mediaIdStr.startsWith('steam_')) {
+                        // Es un juego de Steam → usar API de Steam
+                        const steamId = mediaIdStr.replace('steam_', '');
+                        try {
+                            const res = await fetch(`/api/steam?query=${steamId}&lang=${currentLang}`);
+                            if (res.ok) {
+                                const result = await res.json();
+                                juegoData = result.juegos?.[0] || result[0] || null;
+                            }
+                        } catch (e) {
+                            console.warn(`⚠️ [Steam] Error buscando ${mediaIdStr}:`, e);
+                        }
+
+                        if (juegoData) {
+                            const steamIdNum = mediaIdStr.replace('steam_', '');
+                            enrichedItem = {
+                                id: item._media_id,
+                                tipo: item._media_tipo,
+                                titulo: juegoData.name || `Juego #${mediaIdStr}`,
+                                year: '----',
+                                rating: '0.0',
+                                imagen: `https://steamcdn-a.akamaihd.net/apps/${steamIdNum}/library_600x900_2x.jpg`,
+                            };
+                        }
+
                     } else {
-                        console.warn(`⚠️ [enriquecerItemsListaCompleto] IGDB error: ${res.status} para ${item._media_id}`);
+                        // Es un ID de IGDB → buscar en IGDB
+                        try {
+                            // Buscar por el ID numérico en IGDB
+                            const res = await fetch(`/api/igdb?query=${mediaIdStr}&lang=${currentLang}`);
+                            if (res.ok) {
+                                const result = await res.json();
+                                const juegos = result.juegos || result || [];
+                                // Buscar coincidencia exacta por ID
+                                juegoData = juegos.find(j => String(j.id) === mediaIdStr) || juegos[0] || null;
+                            }
+                        } catch (e) {
+                            console.warn(`⚠️ [IGDB] Error buscando ${mediaIdStr}:`, e);
+                        }
+
+                        // Si no se encontró en IGDB, intentar en Steam como fallback
+                        if (!juegoData) {
+                            try {
+                                const res = await fetch(`/api/steam?query=${mediaIdStr}&lang=${currentLang}`);
+                                if (res.ok) {
+                                    const result = await res.json();
+                                    juegoData = result.juegos?.[0] || result[0] || null;
+                                }
+                            } catch (e) {
+                                console.warn(`⚠️ [Steam] Fallback error para ${mediaIdStr}:`, e);
+                            }
+                        }
+
+                        if (juegoData) {
+                            enrichedItem = {
+                                id: item._media_id,
+                                tipo: item._media_tipo,
+                                titulo: juegoData.name || `Juego #${mediaIdStr}`,
+                                year: juegoData.first_release_date ? new Date(juegoData.first_release_date * 1000).getFullYear() : '----',
+                                rating: juegoData.rating ? (juegoData.rating / 10).toFixed(1) : '0.0',
+                                imagen: juegoData.cover?.url ? juegoData.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '',
+                            };
+                        }
+                    }
+
+                    // Si no se encontró ningún dato, crear placeholder
+                    if (!enrichedItem) {
+                        enrichedItem = {
+                            id: item._media_id,
+                            tipo: item._media_tipo,
+                            titulo: `🎮 Juego #${mediaIdStr}`,
+                            year: '----',
+                            rating: '0.0',
+                            imagen: '',
+                        };
+                        console.warn(`⚠️ [enriquecerItemsListaCompleto] No se pudo enriquecer ${key}`);
                     }
                 }
 
-                if (data) {
-                    let enrichedItem = {
-                        id: item._media_id,
-                        tipo: item._media_tipo,
-                        titulo: data.titulo || data.name || `ID: ${item._media_id}`,
-                        year: '----',
-                        rating: '0.0',
-                        imagen: '',
-                    };
-
-                    if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                        enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
-                        enrichedItem.rating = data.nota || '0.0';
-                        enrichedItem.imagen = data.poster || '';
-                    } else if (item._media_tipo === 'game') {
-                        enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
-                        enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
-                        enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-                    }
-
+                // ==========================================================
+                // 2. GUARDAR EL ITEM ENRIQUECIDO
+                // ==========================================================
+                if (enrichedItem) {
                     listaItemsEnriquecidos[key] = enrichedItem;
                 } else {
-                    // Si no se pudo enriquecer, guardamos un item con datos mínimos
+                    // Fallback: datos mínimos
                     listaItemsEnriquecidos[key] = {
                         id: item._media_id,
                         tipo: item._media_tipo,
@@ -13487,8 +13565,9 @@ async function enriquecerItemsListaCompleto(items) {
                         rating: '0.0',
                         imagen: '',
                     };
-                    console.warn(`⚠️ [enriquecerItemsListaCompleto] No se pudo enriquecer ${key}`);
+                    console.warn(`⚠️ [enriquecerItemsListaCompleto] Fallback para ${key}`);
                 }
+
             } catch (e) {
                 console.error(`❌ [enriquecerItemsListaCompleto] Error enriqueciendo ${key}:`, e);
                 // Guardamos el item con datos mínimos para no romper la UI
