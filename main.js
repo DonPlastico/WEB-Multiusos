@@ -13360,18 +13360,37 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         listaTipoActual = listaInfo.tag_tipo;
 
-        console.log(`📊 [cargarItemsLista] Consultando items offset=${listaItemsOffset}, limit=${LISTA_ITEMS_LIMIT}`);
-        const { data: items, error, count } = await supabase
+        // ================================================================
+        //  CONTAR TOTAL DE ITEMS (SIN range)
+        // ================================================================
+        console.log(`📊 [cargarItemsLista] Contando items totales...`);
+        const { count: totalCount, error: countError } = await supabase
+            .from('listas_items')
+            .select('id', { count: 'exact', head: true })
+            .eq('lista_id', listaId);
+
+        if (countError) {
+            console.error('❌ Error contando items:', countError);
+            listaItemsTotal = 0;
+        } else {
+            listaItemsTotal = totalCount || 0;
+            console.log(`✅ [cargarItemsLista] TOTAL DE ITEMS: ${listaItemsTotal}`);
+        }
+
+        // ================================================================
+        //  OBTENER ITEMS CON PAGINACIÓN
+        // ================================================================
+        console.log(`📊 [cargarItemsLista] Obteniendo items offset=${listaItemsOffset}, limit=${LISTA_ITEMS_LIMIT}`);
+        const { data: items, error: itemsError } = await supabase
             .from('listas_items')
             .select('media_id, media_tipo, added_at')
             .eq('lista_id', listaId)
             .order('added_at', { ascending: false })
             .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
 
-        if (error) throw error;
+        if (itemsError) throw itemsError;
 
-        listaItemsTotal = count || 0;
-        console.log(`✅ [cargarItemsLista] Items obtenidos: ${items?.length || 0}, Total: ${listaItemsTotal}`);
+        console.log(`✅ [cargarItemsLista] Items obtenidos: ${items?.length || 0}`);
 
         if (!items || items.length === 0) {
             console.log('📭 [cargarItemsLista] No hay items en esta lista');
