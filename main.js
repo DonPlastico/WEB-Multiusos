@@ -13207,6 +13207,7 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
+let listaEnriquecimientoCompleto = false;
 
 /**
  * Carga los items de una lista desde Supabase con paginación
@@ -13222,6 +13223,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
+        listaEnriquecimientoCompleto = false;
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
@@ -13267,7 +13269,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         listaTipoActual = listaInfo.tag_tipo;
 
         // ================================================================
-        //  CONTAR TOTAL DE ITEMS (SIN range)
+        //  CONTAR TOTAL DE ITEMS
         // ================================================================
         const { count: totalCount, error: countError } = await supabase
             .from('listas_items')
@@ -13313,6 +13315,9 @@ async function cargarItemsLista(listaId, resetear = true) {
             return;
         }
 
+        // ================================================================
+        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS (sin datos de TMDB/IGDB aún)
+        // ================================================================
         const itemsBasicos = items.map(item => ({
             id: item.media_id,
             tipo: item.media_tipo,
@@ -13331,42 +13336,48 @@ async function cargarItemsLista(listaId, resetear = true) {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
         }
 
-        renderizarItemsLista(itemsBasicos, resetear);
-
+        // ================================================================
+        //  ENRIQUECER TODOS LOS ITEMS (esperar a que terminen)
+        // ================================================================
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) {
+            mensaje.textContent = `Obteniendo datos de ${itemsBasicos.length} elementos...`;
+        }
+
+        // Mostrar loader en el grid (ocultando el grid)
+        const grid = document.getElementById('lista-detalle-grid');
+        if (grid) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
+                    <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
+                </div>
+            `;
+        }
+
+        // Enriquecer TODOS los items (esperar a que termine)
+        await enriquecerItemsListaCompleto(itemsBasicos);
+
+        // ================================================================
+        //  UNA VEZ ENRIQUECIDOS, RENDERIZAR TODOS DE GOLPE
+        // ================================================================
+        const mensajeFinal = document.getElementById('lista-detalle-mensaje');
+        if (mensajeFinal) {
             const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
                 listaTipoActual === 'movie' ? 'Películas' :
                     listaTipoActual === 'tv' ? 'Series' : 'Elementos';
-            mensaje.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
+            mensajeFinal.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
         }
 
-        enriquecerItemsLista(itemsBasicos, resetear);
-
-        let hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
-
-        if (hayMas) {
-            loader.style.display = 'block';
-            document.getElementById('lista-detalle-end').style.display = 'none';
-            configurarObservadorLista();
-        } else {
-            loader.style.display = 'none';
-            document.getElementById('lista-detalle-end').style.display = 'block';
-            if (listaObservador) {
-                listaObservador.disconnect();
-                listaObservador = null;
-            }
-        }
+        // Renderizar TODOS los items de una sola vez
+        renderizarItemsListaEnriquecidos(itemsBasicos, resetear);
 
         // ================================================================
-        //  ACTUALIZAR OFFSET DESPUÉS DE CARGAR
+        //  ACTUALIZAR OFFSET Y CONFIGURAR OBSERVADOR
         // ================================================================
         listaItemsOffset += items.length;
 
-        // ================================================================
-        //  VERIFICAR SI HAY MÁS ELEMENTOS (USANDO EL NUEVO OFFSET)
-        // ================================================================
-        hayMas = listaItemsOffset < listaItemsTotal;
+        const hayMas = listaItemsOffset < listaItemsTotal;
 
         if (hayMas) {
             loader.style.display = 'block';
@@ -13401,6 +13412,90 @@ async function cargarItemsLista(listaId, resetear = true) {
     } finally {
         listaItemsCargando = false;
         loader.style.display = 'none';
+    }
+}
+
+async function enriquecerItemsListaCompleto(items) {
+    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+
+    // Recorremos todos los items en paralelo (con límite de 5 concurrentes para no saturar)
+    const batchSize = 5;
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        await Promise.all(batch.map(async (item) => {
+            const key = `${item._media_id}_${item._media_tipo}`;
+
+            // Si ya está enriquecido, lo saltamos
+            if (listaItemsEnriquecidos[key]) {
+                return;
+            }
+
+            try {
+                let data = null;
+
+                if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                    const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
+                    if (res.ok) {
+                        data = await res.json();
+                    } else {
+                        console.warn(`⚠️ [enriquecerItemsListaCompleto] TMDB error: ${res.status} para ${item._media_id}`);
+                    }
+                } else if (item._media_tipo === 'game') {
+                    const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
+                    if (res.ok) {
+                        const result = await res.json();
+                        data = result.juegos?.[0] || result[0] || null;
+                    } else {
+                        console.warn(`⚠️ [enriquecerItemsListaCompleto] IGDB error: ${res.status} para ${item._media_id}`);
+                    }
+                }
+
+                if (data) {
+                    let enrichedItem = {
+                        id: item._media_id,
+                        tipo: item._media_tipo,
+                        titulo: data.titulo || data.name || `ID: ${item._media_id}`,
+                        year: '----',
+                        rating: '0.0',
+                        imagen: '',
+                    };
+
+                    if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                        enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
+                        enrichedItem.rating = data.nota || '0.0';
+                        enrichedItem.imagen = data.poster || '';
+                    } else if (item._media_tipo === 'game') {
+                        enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
+                        enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
+                        enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+                    }
+
+                    listaItemsEnriquecidos[key] = enrichedItem;
+                } else {
+                    // Si no se pudo enriquecer, guardamos un item con datos mínimos
+                    listaItemsEnriquecidos[key] = {
+                        id: item._media_id,
+                        tipo: item._media_tipo,
+                        titulo: `ID: ${item._media_id}`,
+                        year: '----',
+                        rating: '0.0',
+                        imagen: '',
+                    };
+                    console.warn(`⚠️ [enriquecerItemsListaCompleto] No se pudo enriquecer ${key}`);
+                }
+            } catch (e) {
+                console.error(`❌ [enriquecerItemsListaCompleto] Error enriqueciendo ${key}:`, e);
+                // Guardamos el item con datos mínimos para no romper la UI
+                listaItemsEnriquecidos[key] = {
+                    id: item._media_id,
+                    tipo: item._media_tipo,
+                    titulo: `ID: ${item._media_id}`,
+                    year: '----',
+                    rating: '0.0',
+                    imagen: '',
+                };
+            }
+        }));
     }
 }
 
@@ -13484,13 +13579,10 @@ async function enriquecerItemsLista(items, resetear) {
     }
 }
 
-/**
- * Renderiza los items en el grid con el estilo actual
- */
-function renderizarItemsLista(items, resetear) {
+function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
-        console.error('❌ [renderizarItemsLista] Grid no encontrado');
+        console.error('❌ [renderizarItemsListaEnriquecidos] Grid no encontrado');
         return;
     }
 
@@ -13500,14 +13592,18 @@ function renderizarItemsLista(items, resetear) {
         grid.innerHTML = '';
     }
 
-    items.forEach((item, index) => {
+    // Construir TODAS las tarjetas de una vez
+    const fragment = document.createDocumentFragment();
+
+    items.forEach((item) => {
         const key = `${item._media_id || item.id}_${item._media_tipo || item.tipo}`;
         const enriched = listaItemsEnriquecidos[key];
 
         let card;
         if (enriched) {
             card = crearTarjetaConEstilo(estiloGuardado, enriched);
-        } else if (item.placeholder) {
+        } else {
+            // Fallback: si por alguna razón no está enriquecido, mostramos placeholder
             card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
             card.style.opacity = '0.5';
@@ -13518,19 +13614,28 @@ function renderizarItemsLista(items, resetear) {
                 <div class="list-card-image">
                     <div class="no-cover" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);">
                         <i class="fas ${icono}" style="font-size:3rem;color:var(--text-muted);margin-bottom:6px;"></i>
-                        <span style="font-size:0.7rem;color:var(--text-muted);text-align:center;">Cargando datos...</span>
+                        <span style="font-size:0.7rem;color:var(--text-muted);text-align:center;">Datos no disponibles</span>
                     </div>
                 </div>
-                <div class="list-card-title" style="text-align:center;font-size:0.8rem;color:var(--text-muted);">${item.titulo}</div>
+                <div class="list-card-title" style="text-align:center;font-size:0.8rem;color:var(--text-muted);">${item.titulo || 'Sin título'}</div>
             `;
-        } else {
-            card = crearTarjetaConEstilo(estiloGuardado, item);
         }
 
-        grid.appendChild(card);
+        fragment.appendChild(card);
     });
 
+    grid.appendChild(fragment);
     actualizarGridColumns(estiloGuardado);
+}
+
+/**
+ * Renderiza los items en el grid con el estilo actual
+ */
+function renderizarItemsLista(items, resetear) {
+    // Esta función ya no se usa en el nuevo flujo, pero la mantenemos para no romper nada.
+    // Ahora usamos renderizarItemsListaEnriquecidos()
+    console.warn('⚠️ [renderizarItemsLista] Esta función está obsoleta. Usa renderizarItemsListaEnriquecidos()');
+    renderizarItemsListaEnriquecidos(items, resetear);
 }
 
 /**
@@ -13548,7 +13653,6 @@ function configurarObservadorLista() {
         return;
     }
 
-    // IMPORTANTE: Usar una función que capture el estado actual
     listaObservador = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !listaItemsCargando) {
