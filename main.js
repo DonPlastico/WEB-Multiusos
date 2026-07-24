@@ -13245,7 +13245,13 @@ async function cargarItemsLista(listaId, resetear = true) {
     listaItemsCargando = true;
 
     const loader = document.getElementById('lista-detalle-loader');
-    loader.style.display = 'block';
+    // SOLO mostrar el loader de scroll infinito si NO es la primera carga
+    // En la primera carga, se oculta hasta que se sepa si hay más páginas
+    if (!resetear) {
+        loader.style.display = 'block';
+    } else {
+        loader.style.display = 'none';
+    }
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
