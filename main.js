@@ -4182,10 +4182,15 @@ importInput.addEventListener('change', async (e) => {
     try {
         await procesarImportTVTime(file);
     } catch (error) {
-        console.error('Error en importación:', error);
-        showToast('error', 'Error de importación', error.message || 'No se pudo importar los datos.');
+        if (error.esCancelacion) {
+            showToast('info', 'Importación cancelada', 'Has cancelado la importación de datos.');
+        } else {
+            console.error('Error en importación:', error);
+            showToast('error', 'Error de importación', error.message || 'No se pudo importar los datos.');
+        }
     } finally {
-        importInput.value = ''; // Resetear input para que pueda volver a seleccionar el mismo archivo
+        importInput.value = '';
+        cerrarModalProgreso(); // <-- también cerramos al cancelar
     }
 });
 
@@ -4203,8 +4208,14 @@ document.getElementById('btn-export-data')?.addEventListener('click', async () =
         mostrarModalProgreso('Exportando datos', 'Preparando archivo...');
         await exportarDatosUsuario();
     } catch (error) {
-        console.error('Error en exportación:', error);
-        showToast('error', 'Error de exportación', error.message || 'No se pudo exportar los datos.');
+        if (error.esCancelacion) {
+            showToast('info', 'Exportación cancelada', 'Has cancelado la exportación de datos.');
+        } else {
+            console.error('Error en exportación:', error);
+            showToast('error', 'Error de exportación', error.message || 'No se pudo exportar los datos.');
+        }
+    } finally {
+        cerrarModalProgreso();
     }
 });
 
@@ -11914,6 +11925,19 @@ configurarToggleGrid('btn-lists-toggle-view', 'lists-grid', 'pref_view_lists', '
 // Variable global para el modal de progreso (se crea una sola vez)
 let modalProgreso = null;
 
+// Flag global: indica si el usuario ha pedido cancelar el proceso actual
+let progresoCancelado = false;
+
+// Comprueba si se ha cancelado; si es así, lanza un error especial
+// que los bucles de importación/exportación detectan para detenerse limpiamente
+function verificarCancelacion() {
+    if (progresoCancelado) {
+        const err = new Error('CANCELADO');
+        err.esCancelacion = true;
+        throw err;
+    }
+}
+
 // Funcion que muestra el modal de progreso con barra y detalles
 function mostrarModalProgreso(titulo, mensaje) {
     // Si ya existe, lo actualizamos (no creamos uno nuevo)
@@ -11976,19 +12000,52 @@ function mostrarModalProgreso(titulo, mensaje) {
                     border-top: 1px solid var(--border-color);
                     padding-top: 12px;
                 "></div>
+                <button id="progress-cancel-btn" style="
+                    margin-top: 20px;
+                    padding: 10px 24px;
+                    background: transparent;
+                    border: 1px solid var(--border-color);
+                    color: var(--text-muted);
+                    border-radius: 8px;
+                    font-family: var(--font-cyber);
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                ">Cancelar</button>
             </div>
         `;
 
         document.body.appendChild(modalProgreso);
+
+        // Listener del botón cancelar (se registra UNA sola vez, al crear el modal)
+        document.getElementById('progress-cancel-btn').addEventListener('click', () => {
+            progresoCancelado = true;
+            const btn = document.getElementById('progress-cancel-btn');
+            btn.disabled = true;
+            btn.textContent = 'Cancelando...';
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            const msg = document.getElementById('progress-message');
+            if (msg) msg.textContent = 'Cancelando, espera un momento...';
+        });
     }
 
     // Mostramos el modal y actualizamos los textos
+    progresoCancelado = false;
     modalProgreso.style.display = 'flex';
     document.getElementById('progress-title').textContent = titulo;
     document.getElementById('progress-message').textContent = mensaje;
     document.getElementById('progress-bar-fill').style.width = '0%';
     document.getElementById('progress-percent').textContent = '0%';
     document.getElementById('progress-details').innerHTML = '';
+    const cancelBtn = document.getElementById('progress-cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.disabled = false;
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.style.opacity = '1';
+        cancelBtn.style.cursor = 'pointer';
+    }
 }
 
 // Funcion para actualizar el progreso (porcentaje y detalle)
@@ -12102,6 +12159,7 @@ async function procesarImportTVTime(file) {
 
     // Procesar cada serie de TV Time
     for (const serie of seriesTVTime) {
+        verificarCancelacion();
         try {
             // Extraer datos básicos
             const titulo = serie.tv_show_name;
@@ -12440,6 +12498,7 @@ async function exportarDatosUsuario() {
 
     // Películas - obtenemos detalles de TMDB para cada una
     for (const peli of (peliculas || [])) {
+        verificarCancelacion();
         try {
             const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`);
             if (res.ok) {
@@ -12466,6 +12525,7 @@ async function exportarDatosUsuario() {
 
     // Series - obtenemos detalles de TMDB para cada una
     for (const serie of (series || [])) {
+        verificarCancelacion();
         try {
             const res = await fetch(`/api/tmdb?id=${serie.media_id}&tipo=tv&lang=${currentLang}`);
             if (res.ok) {
