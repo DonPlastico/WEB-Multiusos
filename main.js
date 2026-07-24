@@ -13368,6 +13368,10 @@ function crearTarjetaConEstilo(estilo, data) {
     const icono = iconMap[data.tipo] || 'fa-film';
     const tipoTexto = data.tipo === 'movie' ? 'Película' : data.tipo === 'tv' ? 'Serie' : 'Juego';
 
+    // Generar estrellas según rating (de 0 a 10 -> 0 a 5 estrellas)
+    const ratingNum = parseFloat(data.rating) || 0;
+    const estrellas = generarEstrellas(ratingNum);
+
     // --- CONSTRUIR HTML SEGÚN ESTILO ---
     let html = '';
 
@@ -13382,14 +13386,25 @@ function crearTarjetaConEstilo(estilo, data) {
             `;
             break;
 
-        case 'estilo2': // Estándar Detallado
+        case 'estilo2': // Estándar Detallado (MEJORADO)
             html = `
                 <div class="list-card-image">
                     <img src="${data.imagen}" alt="${data.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-cover\\' style=\\'width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);\\'><i class=\\'fas ${icono}\\' style=\\'font-size:3rem;color:var(--text-muted);margin-bottom:6px;\\'></i><span style=\\'font-size:0.8rem;color:var(--text-muted);text-align:center;\\'>PORTADA NO DISPONIBLE</span></div>'">
                     <div class="list-card-glow"></div>
+                    <!-- Badge del tipo en la esquina superior izquierda -->
+                    <div class="list-card-type-badge" style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:4px 12px;border-radius:20px;font-size:0.6rem;color:var(--neon-white);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:6px;z-index:2;">
+                        <i class="fas ${icono}" style="font-size:0.55rem;"></i>
+                        ${tipoTexto}
+                    </div>
                 </div>
                 <div class="list-card-title">${data.titulo}</div>
-                <div class="list-card-year">${data.year}</div>
+                <div class="list-card-year" style="display:flex;align-items:center;justify-content:center;gap:12px;padding:0 14px 8px;font-size:0.7rem;color:var(--text-muted);flex-wrap:wrap;">
+                    <span><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>${data.year}</span>
+                    <span style="display:flex;align-items:center;gap:4px;">
+                        ${estrellas}
+                        <span style="margin-left:2px;font-weight:600;color:var(--neon-white);">${data.rating}</span>
+                    </span>
+                </div>
             `;
             break;
 
@@ -13436,6 +13451,25 @@ function crearTarjetaConEstilo(estilo, data) {
 
     card.innerHTML = html;
     return card;
+}
+
+/**
+ * Genera el HTML de estrellas según una nota (0-10)
+ */
+function generarEstrellas(nota) {
+    const notaSobre5 = nota / 2; // 0-10 -> 0-5
+    let html = '';
+    
+    for (let i = 1; i <= 5; i++) {
+        if (notaSobre5 >= i) {
+            html += '<i class="fas fa-star" style="color:gold;font-size:0.65rem;"></i>';
+        } else if (notaSobre5 >= i - 0.5) {
+            html += '<i class="fas fa-star-half-alt" style="color:gold;font-size:0.65rem;"></i>';
+        } else {
+            html += '<i class="far fa-star" style="color:var(--text-muted);font-size:0.65rem;"></i>';
+        }
+    }
+    return html;
 }
 
 /**

@@ -7157,8 +7157,6 @@ cast-carousel::-webkit-scrollbar {
 .list-card-estilo2 .list-card-image,
 .list-card-style-2 .list-card-image {
     position: relative;
-    aspect-ratio: 2/3;
-    overflow: hidden;
 }
 
 .list-card-estilo2 .list-card-image img,
@@ -7201,6 +7199,40 @@ cast-carousel::-webkit-scrollbar {
     font-size: 0.7rem;
     color: var(--text-muted);
     text-align: center;
+}
+
+.list-card-estilo2 .list-card-type-badge,
+.list-card-style-2 .list-card-type-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    color: var(--neon-white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 2;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.list-card-estilo2 .list-card-type-badge i,
+.list-card-style-2 .list-card-type-badge i {
+    font-size: 0.55rem;
+}
+
+/* Estrellas en el año */
+.list-card-estilo2 .list-card-year i.fa-star,
+.list-card-estilo2 .list-card-year i.fa-star-half-alt,
+.list-card-style-2 .list-card-year i.fa-star,
+.list-card-style-2 .list-card-year i.fa-star-half-alt {
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
 
 /* Estilo 3 - Listado */
