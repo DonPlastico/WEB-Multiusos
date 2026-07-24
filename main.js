@@ -13439,7 +13439,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         console.log('🚀 [cargarItemsLista] Iniciando enriquecimiento en segundo plano...');
         enriquecerItemsLista(itemsBasicos, resetear);
 
-        const hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
+        let hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
         console.log(`📊 [cargarItemsLista] ¿Hay más? ${hayMas} (offset=${listaItemsOffset}, total=${listaItemsTotal})`);
 
         if (hayMas) {
