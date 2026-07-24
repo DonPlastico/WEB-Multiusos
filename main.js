@@ -13614,6 +13614,8 @@ let listaObservador = null;
  * Carga los items de una lista desde Supabase con paginación
  */
 async function cargarItemsLista(listaId, resetear = true) {
+    console.log('🔍 cargarItemsLista llamado con:', { listaId, resetear });
+
     if (!listaId) {
         console.error('❌ No se proporcionó ID de lista');
         return;
@@ -13621,6 +13623,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
     // Si estamos reseteando, reiniciamos el estado
     if (resetear) {
+        console.log('🔄 Resetear estado');
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaIdActual = listaId;
@@ -13635,7 +13638,10 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (mensaje) mensaje.textContent = 'Cargando elementos...';
     }
 
-    if (listaItemsCargando) return;
+    if (listaItemsCargando) {
+        console.log('⏳ Ya está cargando, saliendo...');
+        return;
+    }
     listaItemsCargando = true;
 
     // Mostrar loader
@@ -13647,6 +13653,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         if (!session) {
             throw new Error('No hay sesión activa');
         }
+        console.log('✅ Sesión activa:', session.user.id);
 
         // Verificar permisos: solo el owner puede ver su lista
         const { data: listaInfo, error: errLista } = await supabase
@@ -13656,6 +13663,8 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
+        console.log('📋 Info de lista:', listaInfo);
+
         if (listaInfo.owner_id !== session.user.id) {
             throw new Error('No tienes permisos para ver esta lista');
         }
@@ -13663,6 +13672,8 @@ async function cargarItemsLista(listaId, resetear = true) {
         listaTipoActual = listaInfo.tag_tipo;
 
         // Obtener items de la lista con paginación
+        console.log(`📥 Obteniendo items desde offset ${listaItemsOffset}, limit ${LISTA_ITEMS_LIMIT}`);
+
         const { data: items, error, count } = await supabase
             .from('listas_items')
             .select('media_id, media_tipo, added_at', { count: 'exact' })
@@ -13671,12 +13682,14 @@ async function cargarItemsLista(listaId, resetear = true) {
             .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
 
         if (error) throw error;
+        console.log(`📦 Items recibidos: ${items?.length || 0}, Total: ${count}`);
 
         // Guardar el total para saber si hay más
         listaItemsTotal = count || 0;
 
         // Si no hay items, mostrar mensaje
         if (!items || items.length === 0) {
+            console.log('⚠️ No hay items en esta lista');
             if (resetear) {
                 const grid = document.getElementById('lista-detalle-grid');
                 if (grid) {
@@ -13697,6 +13710,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         }
 
         // Convertir items a objetos con los datos necesarios
+        console.log('🔄 Procesando items para obtener datos enriquecidos...');
         const itemsConData = await Promise.all(items.map(async (item) => {
             // Intentar obtener datos del media desde TMDB o IGDB
             let data = null;
@@ -13707,6 +13721,8 @@ async function cargarItemsLista(listaId, resetear = true) {
                     const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.media_tipo}&lang=${currentLang}`);
                     if (res.ok) {
                         data = await res.json();
+                    } else {
+                        console.warn(`⚠️ TMDB no encontró ${item.media_tipo} con ID ${item.media_id}`);
                     }
                 } catch (e) {
                     console.warn(`⚠️ Error obteniendo datos de TMDB para ${item.media_id}:`, e);
@@ -13718,6 +13734,8 @@ async function cargarItemsLista(listaId, resetear = true) {
                     if (res.ok) {
                         const result = await res.json();
                         data = result.juegos?.[0] || result[0] || null;
+                    } else {
+                        console.warn(`⚠️ IGDB no encontró juego con ID ${item.media_id}`);
                     }
                 } catch (e) {
                     console.warn(`⚠️ Error obteniendo datos de IGDB para ${item.media_id}:`, e);
@@ -13726,6 +13744,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
             // Si no se encontraron datos, crear un objeto mínimo
             if (!data) {
+                console.warn(`⚠️ No se encontraron datos para ${item.media_tipo} ID ${item.media_id}, usando placeholder`);
                 return {
                     id: item.media_id,
                     tipo: item.media_tipo,
@@ -13769,6 +13788,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         // Filtrar items nulos
         const itemsValidos = itemsConData.filter(item => item !== null);
+        console.log(`✅ Items válidos procesados: ${itemsValidos.length}`);
 
         // Almacenar en la lista actual
         if (resetear) {
@@ -13778,7 +13798,9 @@ async function cargarItemsLista(listaId, resetear = true) {
         }
 
         // Renderizar items en el grid
+        console.log('🎨 Renderizando items en el grid...');
         renderizarItemsLista(itemsValidos, resetear);
+        console.log('✅ Renderizado completado');
 
         // Actualizar mensaje con el total
         const mensaje = document.getElementById('lista-detalle-mensaje');
@@ -13791,6 +13813,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         // Verificar si hay más elementos para cargar
         const hayMas = listaItemsOffset + LISTA_ITEMS_LIMIT < listaItemsTotal;
+        console.log(`📊 Hay más: ${hayMas} (offset: ${listaItemsOffset}, total: ${listaItemsTotal})`);
 
         if (hayMas) {
             loader.style.display = 'block';
@@ -13811,6 +13834,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         // Actualizar el offset para la próxima carga
         listaItemsOffset += items.length;
+        console.log(`📌 Offset actualizado a: ${listaItemsOffset}`);
 
     } catch (error) {
         console.error('❌ Error cargando items de lista:', error);
@@ -13840,20 +13864,28 @@ async function cargarItemsLista(listaId, resetear = true) {
  */
 function renderizarItemsLista(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) return;
+    if (!grid) {
+        console.error('❌ Grid no encontrado');
+        return;
+    }
+
+    console.log(`🎨 renderizarItemsLista: ${items.length} items, resetear: ${resetear}`);
 
     // Obtener el estilo seleccionado
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    console.log(`🎨 Estilo seleccionado: ${estiloGuardado}`);
 
     // Si estamos reseteando, limpiar el grid
     if (resetear) {
         grid.innerHTML = '';
+        console.log('🧹 Grid limpiado');
     }
 
     // Renderizar cada item
-    items.forEach((item) => {
+    items.forEach((item, index) => {
         // Si es un placeholder, creamos una tarjeta especial
         if (item.placeholder) {
+            console.log(`📦 Item placeholder ${index}: ${item.titulo}`);
             const card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
             card.style.opacity = '0.5';
@@ -13872,12 +13904,14 @@ function renderizarItemsLista(items, resetear) {
         }
 
         // Usar la función existente para crear la tarjeta
+        console.log(`🎨 Creando tarjeta ${index}: ${item.titulo} (${item.tipo})`);
         const card = crearTarjetaConEstilo(estiloGuardado, item);
         grid.appendChild(card);
     });
 
     // Actualizar las columnas del grid según el estilo
     actualizarGridColumns(estiloGuardado);
+    console.log(`✅ Renderizado completado, ${grid.children.length} tarjetas en el grid`);
 }
 
 /**
@@ -13915,6 +13949,8 @@ function configurarObservadorLista() {
 const _originalCargarDetalleLista2 = window.cargarDetalleLista || cargarDetalleLista;
 
 window.cargarDetalleLista = async function (nombreLista) {
+    console.log('🔍 cargarDetalleLista llamado con:', nombreLista);
+
     // Llamar a la función original (para mantener la compatibilidad)
     if (typeof _originalCargarDetalleLista2 === 'function') {
         await _originalCargarDetalleLista2(nombreLista);
@@ -13922,6 +13958,7 @@ window.cargarDetalleLista = async function (nombreLista) {
 
     // Decodificar el nombre de la lista
     const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
+    console.log('📝 Título decodificado:', tituloDecodificado);
 
     // Obtener el ID de la lista desde Supabase
     try {
@@ -13929,6 +13966,7 @@ window.cargarDetalleLista = async function (nombreLista) {
         if (!session) {
             throw new Error('No hay sesión activa');
         }
+        console.log('✅ Sesión activa:', session.user.id);
 
         const { data: lista, error } = await supabase
             .from('listas_maestra')
@@ -13938,8 +13976,10 @@ window.cargarDetalleLista = async function (nombreLista) {
             .single();
 
         if (error || !lista) {
+            console.error('❌ Error buscando lista:', error);
             throw new Error('Lista no encontrada o no tienes permisos');
         }
+        console.log('✅ Lista encontrada, ID:', lista.id);
 
         // Configurar el título
         const tituloEl = document.getElementById('lista-detalle-nombre');
