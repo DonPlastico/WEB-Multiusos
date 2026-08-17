@@ -7088,24 +7088,26 @@ function crearTarjetaRecomendacion(item) {
                 </div>
                 <div class="watchlist-ep-name">Porque te gusta ${generoMatch}</div>
             </div>
-            <button class="watchlist-check-btn" title="Ver Detalles">
+            <!-- El title ahora dice Guardar en lista -->
+            <button class="watchlist-check-btn" title="Guardar en lista">
                 <i class="fa-solid fa-plus"></i>
             </button>
         </div>
     `;
 
-    // Evento para abrir el modal cuando el usuario hace click en la tarjeta
+    // Evento para abrir el modal cuando el usuario hace click en CUALQUIER parte de la tarjeta
     card.addEventListener('click', (e) => {
         if (e.target.closest('.watchlist-check-btn')) return;
         abrirModalMedia(item.id, item.tipo);
     });
 
-    // Evento para el boton de ver detalles (abre el modal tambien)
+    // CAMBIADO: Evento exclusivo para el boton "+" para abrir las listas
     const btnDetail = card.querySelector('.watchlist-check-btn');
     if (btnDetail) {
         btnDetail.addEventListener('click', (e) => {
             e.stopPropagation();
-            abrirModalMedia(item.id, item.tipo);
+            // ¡AQUÍ ESTÁ LA MAGIA! Llamamos al menú de listas en vez del modal de detalles
+            abrirMenuAddToList(e, item.id, item.tipo);
         });
     }
 
