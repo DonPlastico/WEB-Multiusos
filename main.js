@@ -6757,17 +6757,21 @@ async function cargarRecomendaciones(userId) {
 
     if (!container) return;
 
+    // 1. FORZAR VISIBILIDAD DEL LOADING DESDE EL PRIMER MILISEGUNDO
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
     if (btnRefresh) btnRefresh.style.display = 'none';
+
+    // Vaciamos el contenedor y metemos el loading dentro para que no desaparezca
     container.innerHTML = '';
+    if (loading) container.appendChild(loading);
 
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER TODO EL HISTORIAL (Bucle de paginación para historiales infinitos)
+        // 2. OBTENER TODO EL HISTORIAL (Bucle de paginación para historiales infinitos)
         let historialRaw = [];
         let keepFetching = true;
         let currentOffset = 0;
@@ -6787,7 +6791,6 @@ async function cargarRecomendaciones(userId) {
             if (data && data.length > 0) {
                 historialRaw.push(...data);
                 currentOffset += fetchLimit;
-                // Si nos devuelve menos de 1000, significa que ya hemos llegado al final
                 if (data.length < fetchLimit) keepFetching = false;
             } else {
                 keepFetching = false;
@@ -6800,11 +6803,12 @@ async function cargarRecomendaciones(userId) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
                 if (p) p.textContent = 'Marca al menos una película o serie como vista para recibir recomendaciones.';
+                container.appendChild(empty);
             }
             return;
         }
 
-        // 2. AGRUPAR EPISODIOS DE SERIES COMO 1 SOLA OBRA
+        // 3. AGRUPAR EPISODIOS DE SERIES COMO 1 SOLA OBRA Y CREAR EL ESCUDO GLOBAL
         const historialUnico = [];
         const idsVistosGlobal = new Set();
 
@@ -6812,34 +6816,32 @@ async function cargarRecomendaciones(userId) {
             let baseId = item.media_id.toString();
             let baseTipo = item.tipo;
 
-            // Si es un episodio, extraemos la ID de la serie
             if (item.tipo === 'tv_episode') {
                 baseId = baseId.split('_')[0];
                 baseTipo = 'tv';
             }
 
-            // Agregamos a la lista de "recientes" solo una vez por obra
             if (!idsVistosGlobal.has(baseId)) {
                 historialUnico.push({ id: baseId, tipo: baseTipo });
             }
 
-            // EL ESCUDO: Guardamos absolutamente TODO lo que has visto en tu vida
             idsVistosGlobal.add(baseId);
         });
 
-        // 3. SELECCIONAR LA SEMILLA (Obras recientes para basar las recomendaciones)
         const ultimos40 = historialUnico.slice(0, 40);
         const pelisRecientes = ultimos40.filter(item => item.tipo === 'movie');
         const seriesRecientes = ultimos40.filter(item => item.tipo === 'tv');
 
-        // Escogemos hasta 8 pelis y 8 series aleatorias de esas recientes
         const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
         const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
             if (loading) loading.style.display = 'none';
-            if (empty) empty.style.display = 'flex';
+            if (empty) {
+                empty.style.display = 'flex';
+                container.appendChild(empty);
+            }
             return;
         }
 
@@ -6852,26 +6854,22 @@ async function cargarRecomendaciones(userId) {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                // Sacamos el nombre real de lo que viste
                 const resNombre = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal });
                 if (!resNombre.ok) { clearTimeout(timeoutId); continue; }
                 const dataNombre = await resNombre.json();
 
-                // Pedimos hasta 20 similares para tener mucho margen de descarte si tienes muchas vistas
                 const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=20&lang=${currentLang}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
                 if (!resSimilares.ok) continue;
                 const similares = await resSimilares.json();
 
-                // Barajamos las opciones sugeridas por la IA
                 const similaresBarajados = similares.sort(() => 0.5 - Math.random());
 
-                // BUSCAMOS LA PRIMERA QUE NO HAYAS VISTO
                 for (const rec of similaresBarajados) {
                     const uniqueKey = `${item.tipo}_${rec.id}`;
 
-                    // ESCUDO EN ACCIÓN: ¿Está en tu historial global (idsVistosGlobal)? Si es así, la salta y prueba con otra.
+                    // Filtramos por lo visto globalmente y evitamos duplicados en pantalla
                     if (!idsVistosGlobal.has(rec.id.toString()) && !idsAñadidosMenu.has(uniqueKey)) {
                         idsAñadidosMenu.add(uniqueKey);
                         tarjetasGeneradas.push(crearTarjetaRecomendacion({
@@ -6880,7 +6878,7 @@ async function cargarRecomendaciones(userId) {
                             obraOrigen: dataNombre.titulo,
                             puntuacion: 87 + (Math.random() * 11)
                         }));
-                        break; // Encontró una que NO has visto, rompe el bucle y pasa a la siguiente obra origen.
+                        break;
                     }
                 }
 
@@ -6889,7 +6887,7 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // 5. BARAJAMOS Y MOSTRAMOS CANTIDAD ALEATORIA (8 a 15)
+        // 5. APAGAR EL LOADING SOLO CUANDO TODO ESTÉ LISTO PARA PINTAR
         if (loading) loading.style.display = 'none';
 
         if (tarjetasGeneradas.length === 0) {
@@ -6897,17 +6895,17 @@ async function cargarRecomendaciones(userId) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
                 if (p) p.textContent = 'No se encontraron nuevas recomendaciones. ¡Ve más cosas!';
+                container.appendChild(empty);
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
-            // Barajamos el mix final
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
 
-            // Elegimos un número aleatorio entre 8 y 15
             const cantidadAleatoria = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
-
-            // Recortamos la lista a esa cantidad
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
+
+            // Limpiamos el contenedor (adiós loading) e inyectamos las tarjetas de golpe
+            container.innerHTML = '';
             tarjetasFinales.forEach(card => container.appendChild(card));
 
             if (empty) empty.style.display = 'none';
@@ -6921,6 +6919,8 @@ async function cargarRecomendaciones(userId) {
             empty.style.display = 'flex';
             const p = empty.querySelector('p');
             if (p) p.textContent = 'Error cargando recomendaciones: ' + error.message;
+            container.innerHTML = '';
+            container.appendChild(empty);
         }
     }
 }
