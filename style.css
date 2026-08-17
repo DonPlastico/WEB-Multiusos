@@ -445,7 +445,7 @@ input[type=number]::-webkit-outer-spin-button {
 .cyber-container {
     z-index: 2;
     margin: 0 auto;
-    padding: 100px 100px 75px 100px;
+    padding: 100px 100px 65px 100px;
     position: relative;
 }
 
@@ -5594,7 +5594,7 @@ cast-carousel::-webkit-scrollbar {
     display: flex;
     align-items: center;
     border-bottom: 2px solid var(--border-color);
-    margin-bottom: 16px;
+    margin-bottom: 10px;
 }
 
 #btn-watchlist-toggle-grid {
@@ -5686,7 +5686,7 @@ cast-carousel::-webkit-scrollbar {
 
 .watchlist-list {
     flex-direction: column;
-    gap: 12px;
+    gap: 7.5px;
     padding: 5px 5px 0 0;
     display: flex;
     max-height: 850px !important;

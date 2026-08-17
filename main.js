@@ -6903,7 +6903,7 @@ async function cargarRecomendaciones(userId) {
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
 
             // Rango exacto de 7 a 16 (incluyendo el 16)
-            const cantidadAleatoria = Math.floor(Math.random() * (16 - 7 + 1)) + 7;
+            const cantidadAleatoria = Math.floor(Math.random() * (15 - 3 + 1)) + 3;
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
 
             container.innerHTML = '';
