@@ -10582,20 +10582,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
             if (userId) {
-                // MOSTRAR EL LOADING AL INSTANTE AL HACER CLIC EN REFRESCAR
                 const container = document.getElementById('recommendations-list');
-                const loading = document.getElementById('rec-loading');
 
-                if (container && loading) {
-                    loading.style.display = 'flex';
-                    container.innerHTML = '';
-                    container.appendChild(loading);
+                if (container) {
+                    // PINTAMOS UN LOADER VISIBLE DIRECTAMENTE DESDE JS
+                    container.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; width: 100%;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 12px;"></i>
+                            <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; font-size: 0.85rem;">BUSCANDO RECOMENDACIONES...</span>
+                        </div>
+                    `;
                     container.style.display = 'flex';
                     container.style.flexDirection = 'column';
                     container.style.gap = '12px';
                 }
 
-                // Pedimos nuevas recomendaciones
+                // Pedimos nuevas recomendaciones a la función principal
                 await cargarRecomendaciones(userId);
             }
 
