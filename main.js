@@ -10576,21 +10576,19 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRefreshRecs.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            // Hacemos que el icono gire
+            // Hacemos que el icono del botón gire
             const icon = this.querySelector('i');
             if (icon) icon.classList.add('fa-spin');
 
             const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
             if (userId) {
-                // Vaciamos el contenedor visualmente para dar feedback inmediato
-                const container = document.getElementById('recommendations-list');
-                if (container) container.innerHTML = '';
-
-                // Pedimos nuevas recomendaciones
+                // LLAMAMOS DIRECTAMENTE A LA FUNCIÓN
+                // Dejamos que cargarRecomendaciones() maneje el container y dibuje el loading por sí misma, 
+                // evitando borrar elementos a mano que rompan la interfaz.
                 await cargarRecomendaciones(userId);
             }
 
-            // Paramos el giro cuando acabe
+            // Paramos el giro del icono cuando acabe
             if (icon) icon.classList.remove('fa-spin');
         });
     }
