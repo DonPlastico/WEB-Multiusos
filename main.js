@@ -14177,7 +14177,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         console.log(
-            '%cESTÁS ENTRANDO EN UNA ZONA RESTRINGIDA DEL NEXUS.\nCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
+            '%cCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
             'color: #ededee; font-size: 14px; background: #14141c; padding: 15px; border: 1px solid #6366f1; border-radius: 8px; font-family: monospace; line-height: 1.5;'
         );
 
