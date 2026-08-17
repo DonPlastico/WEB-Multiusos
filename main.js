@@ -6780,37 +6780,32 @@ async function cargarRecomendaciones(userId) {
         }
 
         // 2. AGRUPAR EPISODIOS Y LIMPIAR DUPLICADOS
-        // Así, si has visto 24 episodios de una serie hoy, cuenta como 1 sola serie reciente.
         const historialUnico = [];
-        const idsVistosGlobal = new Set(); // Guardamos TODO lo que ha visto para no recomendarlo luego
+        const idsVistosGlobal = new Set();
 
         historialRaw.forEach(item => {
             let baseId = item.media_id;
             let baseTipo = item.tipo;
 
-            // Si es un episodio (ej: 12345_T1_E1), sacamos la ID de la serie original (12345)
             if (item.tipo === 'tv_episode') {
                 baseId = item.media_id.split('_')[0];
                 baseTipo = 'tv';
             }
 
-            // Lo añadimos al historial único solo si es la primera vez que lo vemos (es decir, el más reciente)
             if (!idsVistosGlobal.has(baseId)) {
                 historialUnico.push({ id: baseId, tipo: baseTipo });
             }
 
-            // Pero lo guardamos siempre en el Set global para que NUNCA se te recomiende algo que ya viste
             idsVistosGlobal.add(baseId);
         });
 
-        // 3. COGER LOS 27 ÚLTIMOS TÍTULOS (Películas y Series únicas)
+        // 3. COGER LOS 27 ÚLTIMOS TÍTULOS
         const ultimos27 = historialUnico.slice(0, 27);
 
-        // Separamos en películas y series
         const pelisRecientes = ultimos27.filter(item => item.tipo === 'movie');
         const seriesRecientes = ultimos27.filter(item => item.tipo === 'tv');
 
-        // 4. SELECCIÓN 50/50: 3 Pelis al azar y 3 Series al azar (de entre tus últimas 27)
+        // 4. SELECCIÓN 50/50: 3 Pelis al azar y 3 Series al azar
         const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
         const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
 
@@ -6823,7 +6818,7 @@ async function cargarRecomendaciones(userId) {
         }
 
         let tarjetasGeneradas = [];
-        const idsAñadidosMenu = new Set(); // Para no duplicar resultados en la pantalla
+        const idsAñadidosMenu = new Set();
 
         // 5. PROCESAR CADA ELEMENTO PARA BUSCAR RECOMENDACIONES
         for (const item of poolVisionados) {
@@ -6844,22 +6839,31 @@ async function cargarRecomendaciones(userId) {
                 const sinopsis = data.sinopsis || '';
                 const esKdrama = titulo.includes('K-Drama') || titulo.includes('Corea') || titulo.includes('Korean') || sinopsis.includes('coreano') || sinopsis.includes('K-drama');
 
-                if (esKdrama) generosTexto = 'Romance, Drama, Comedia';
+                // Forzamos el romance para los kdramas para no sacar Reacher
+                if (esKdrama) generosTexto = 'Romance, Drama';
                 if (!generosTexto || generosTexto === 'N/A') continue;
 
                 const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
                 if (generosList.length === 0) continue;
 
-                // Elegimos un género al azar del elemento que vio
-                const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
+                // === EL FILTRO INTELIGENTE DE GÉNEROS ===
+                // Eliminamos géneros "comodín" que destrozan las recomendaciones
+                const generosBasura = ['drama', 'comedia', 'comedy', 'acción', 'action', 'animación', 'animation'];
 
-                // BUSCAMOS 1 PELI Y 1 SERIE POR CADA COSA QUE HA VISTO
+                let generoPrincipal = generosList.find(g => !generosBasura.includes(g.toLowerCase()));
+
+                // Si la obra es única y exclusivamente "Drama" o "Acción" (sin nada más), usamos ese por defecto
+                if (!generoPrincipal) {
+                    generoPrincipal = generosList[0];
+                }
+
+                // Pedimos limit 10 para tener variedad de opciones y que filtre mejor
                 const [resMovie, resTv] = await Promise.all([
                     (async () => {
                         try {
                             const c = new AbortController();
                             const t = setTimeout(() => c.abort(), 5000);
-                            const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
+                            const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, { signal: c.signal });
                             clearTimeout(t);
                             return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
                         } catch (_) { return []; }
@@ -6868,39 +6872,35 @@ async function cargarRecomendaciones(userId) {
                         try {
                             const c = new AbortController();
                             const t = setTimeout(() => c.abort(), 5000);
-                            const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
+                            const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, { signal: c.signal });
                             clearTimeout(t);
                             return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
                         } catch (_) { return []; }
                     })()
                 ]);
 
-                // Procesamos la película recomendada
                 resMovie.forEach(rec => {
                     const uniqueKey = `movie_${rec.id}`;
-                    // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
                     if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
 
                     idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
                         ...rec,
                         tipo: 'movie',
-                        obraOrigen: data.titulo, // Pasamos el título de la obra que generó esto
+                        obraOrigen: data.titulo,
                         puntuacion: 85 + (Math.random() * 12)
                     }));
                 });
 
-                // Procesamos la serie recomendada
                 resTv.forEach(rec => {
                     const uniqueKey = `tv_${rec.id}`;
-                    // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
                     if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
 
                     idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
                         ...rec,
                         tipo: 'tv',
-                        obraOrigen: data.titulo, // Pasamos el título de la obra que generó esto
+                        obraOrigen: data.titulo,
                         puntuacion: 85 + (Math.random() * 12)
                     }));
                 });
@@ -6921,7 +6921,6 @@ async function cargarRecomendaciones(userId) {
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
-            // Se barajan (intercalando pelis y series)
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
             const tarjetasFinales = tarjetasGeneradas.slice(0, 8);
             tarjetasFinales.forEach(card => container.appendChild(card));
