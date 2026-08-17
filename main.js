@@ -4484,11 +4484,13 @@ async function verificarSesion() {
             .eq('email', session.user.email)
             .maybeSingle();
 
-        // Si es admin, mostramos el boton de admin en la navbar
+        // Si es admin, mostramos el boton de admin en la navbar y le damos el PASE VIP
         if (datosRol?.rol === 'admin') {
             btnAdmin.style.display = 'inline-flex';
+            window.isNexusAdmin = true;
         } else {
             btnAdmin.style.display = 'none';
+            window.isNexusAdmin = false;
         }
 
         // Cargar color del usuario (el color destacado que eligio en su perfil)
@@ -14154,37 +14156,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. DIBUJAR ASCII ART EN LA CONSOLA
-    // Usamos setTimeout para asegurarnos de que se imprima lo último
+    // Usamos setTimeout para dar tiempo a verificarSesion() de consultar a Supabase
     setTimeout(() => {
-        // Limpiamos la consola de errores previos (opcional, da un efecto más limpio)
         console.clear();
 
-        // El mensaje de "ALTO AHÍ" en grande y rojo
+        // Si la variable global es true, significa que eres ADMIN
+        if (window.isNexusAdmin) {
+            console.log(
+                '%c¡BIENVENIDO DE VUELTA, CREADOR!',
+                'color: #10b981; font-size: 30px; font-weight: 900; text-shadow: 0 0 10px #10b981; font-family: sans-serif;'
+            );
+            console.log('%cProtocolos de seguridad desactivados. Tienes acceso root y control total sobre el código del Nexus.', 'color: #ededee; font-size: 14px; font-style: italic;');
+            return; // Cortamos la ejecución aquí, no mostramos la alerta roja
+        }
+
+        // --- SI NO ES ADMIN, MOSTRAMOS LA ALERTA ROJA ---
         console.log(
             '%c¡ALTO AHÍ!',
             'color: #ef4444; font-size: 50px; font-weight: 900; text-shadow: 2px 2px 0 #000, 0 0 20px #ef4444; font-family: sans-serif;'
         );
 
-        // El texto de advertencia con estilo de consola Hacker
         console.log(
             '%cESTÁS ENTRANDO EN UNA ZONA RESTRINGIDA DEL NEXUS.\nCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
             'color: #ededee; font-size: 14px; background: #14141c; padding: 15px; border: 1px solid #6366f1; border-radius: 8px; font-family: monospace; line-height: 1.5;'
         );
 
-        // El ASCII Art de DP-SYS y DonPlastico
         const asciiArt = `
- ██████╗ ██████╗         ███████╗██╗   ██╗███████╗
- ██╔══██╗██╔══██╗        ██╔════╝╚██╗ ██╔╝██╔════╝
- ██║  ██║██████╔╝  █████╗███████╗ ╚████╔╝ ███████╗
- ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
- ██████╔╝██║             ███████║   ██║   ███████║
- ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
-        
-   © DERECHOS DE AUTOR RESERVADOS - DonPlastico
-   SISTEMA DE GESTIÓN MULTIMEDIA V1.0
+            ██████╗ ██████╗         ███████╗██╗   ██╗███████╗
+            ██╔══██╗██╔══██╗        ██╔════╝╚██╗ ██╔╝██╔════╝
+            ██║  ██║██████╔╝  █████╗███████╗ ╚████╔╝ ███████╗
+            ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
+            ██████╔╝██║             ███████║   ██║   ███████║
+            ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
+                    
+            © DERECHOS DE AUTOR RESERVADOS - DonPlastico
+            SISTEMA DE GESTIÓN MULTIMEDIA V1.0
         `;
 
-        // Lo pintamos de color Teal (secundario)
         console.log(
             `%c${asciiArt}`,
             'color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 14px; text-shadow: 0 0 5px rgba(45, 212, 191, 0.5);'
@@ -14194,10 +14202,13 @@ document.addEventListener('DOMContentLoaded', () => {
             '%cSi eres un desarrollador y quieres colaborar, cierra esta ventana y contáctame.',
             'color: #8888a0; font-size: 12px; font-style: italic; margin-top: 20px;'
         );
-    }, 1000);
+    }, 2000); // 2 segundos de gracia
 
     // 2. BLOQUEO DE TECLAS DE DESARROLLADOR Y CÓDIGO FUENTE
     document.addEventListener('keydown', (e) => {
+        // ¡LA MAGIA!: Si eres Admin, esta línea hace que el código ignore todos los bloqueos de abajo
+        if (window.isNexusAdmin) return;
+
         // Bloquear F12
         if (e.key === 'F12' || e.keyCode === 123) {
             e.preventDefault();
@@ -14228,12 +14239,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 3. BLOQUEAR CLIC DERECHO (Menú contextual)
-    // Descomenta la línea de abajo si también quieres bloquear el clic derecho del ratón en toda la web
     document.addEventListener('contextmenu', (e) => {
+        // Bypass para el administrador
+        if (window.isNexusAdmin) return;
+
         // Excepción: Permitimos el clic derecho en nuestras tarjetas para que funcione el menú de "Añadir a lista" o el "Ojo"
         if (e.target.closest('.game-card') || e.target.closest('#btn-watch-toggle')) {
             return true;
         }
+
         e.preventDefault();
         return false;
     });
