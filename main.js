@@ -6796,13 +6796,14 @@ async function cargarRecomendaciones(userId) {
             idsVistosGlobal.add(baseId);
         });
 
-        const ultimos27 = historialUnico.slice(0, 27);
-        const pelisRecientes = ultimos27.filter(item => item.tipo === 'movie');
-        const seriesRecientes = ultimos27.filter(item => item.tipo === 'tv');
+        // Aumentamos a 30 para tener un pool mayor de donde escoger
+        const ultimos30 = historialUnico.slice(0, 30);
+        const pelisRecientes = ultimos30.filter(item => item.tipo === 'movie');
+        const seriesRecientes = ultimos30.filter(item => item.tipo === 'tv');
 
-        // 3. SELECCIÓN EQUILIBRADA (3 Pelis y 3 Series al azar de tu historial)
-        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
-        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
+        // 3. SELECCIÓN AMPLIADA: 5 Pelis y 5 Series al azar (Para asegurar variedad total)
+        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 5);
+        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 5);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
@@ -6814,39 +6815,42 @@ async function cargarRecomendaciones(userId) {
         let tarjetasGeneradas = [];
         const idsAñadidosMenu = new Set();
 
-        // 4. USAR EL CEREBRO DE TMDB PARA BUSCAR GEMELOS EXACTOS
+        // 4. USAR EL CEREBRO DE TMDB PERO SACANDO SOLO 1 RECOMENDACIÓN POR OBRA
         for (const item of poolVisionados) {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                // A) Sacamos el nombre real de lo que viste para el texto "Porque has visto..."
+                // A) Sacamos el nombre real de lo que viste
                 const resNombre = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal });
                 if (!resNombre.ok) { clearTimeout(timeoutId); continue; }
                 const dataNombre = await resNombre.json();
 
-                // B) Pedimos a la IA de TMDB obras hermanas/similares (similar=true)
-                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=4&lang=${currentLang}`, { signal: controller.signal });
+                // B) Pedimos 10 similares para tener variedad
+                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=10&lang=${currentLang}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
                 if (!resSimilares.ok) continue;
                 const similares = await resSimilares.json();
 
-                // C) Empaquetamos las recomendaciones
-                similares.forEach(rec => {
+                // C) BARAJAMOS los resultados y nos quedamos SOLO CON EL PRIMERO que sea válido
+                const similaresBarajados = similares.sort(() => 0.5 - Math.random());
+
+                for (const rec of similaresBarajados) {
                     const uniqueKey = `${item.tipo}_${rec.id}`;
 
-                    // Bloqueamos lo que ya has visto en el pasado y los repetidos en pantalla
-                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
-
-                    idsAñadidosMenu.add(uniqueKey);
-                    tarjetasGeneradas.push(crearTarjetaRecomendacion({
-                        ...rec,
-                        tipo: item.tipo, // Series recomiendan Series, Pelis recomiendan Pelis. Impecable.
-                        obraOrigen: dataNombre.titulo,
-                        puntuacion: 87 + (Math.random() * 11) // Entre 87% y 98%
-                    }));
-                });
+                    // Bloqueamos lo que ya has visto y evitamos duplicados en pantalla
+                    if (!idsVistosGlobal.has(rec.id.toString()) && !idsAñadidosMenu.has(uniqueKey)) {
+                        idsAñadidosMenu.add(uniqueKey);
+                        tarjetasGeneradas.push(crearTarjetaRecomendacion({
+                            ...rec,
+                            tipo: item.tipo,
+                            obraOrigen: dataNombre.titulo,
+                            puntuacion: 87 + (Math.random() * 11)
+                        }));
+                        break; // Encontramos 1 válida, paramos y pasamos a la siguiente obra de origen.
+                    }
+                }
 
             } catch (e) {
                 console.warn(`❌ Error procesando recomendaciones para ${item.id}:`, e);
@@ -6864,6 +6868,7 @@ async function cargarRecomendaciones(userId) {
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
+            // Barajamos el mix final de 10 tarjetas (5 pelis, 5 series únicas) y cogemos 8
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
             const tarjetasFinales = tarjetasGeneradas.slice(0, 8);
             tarjetasFinales.forEach(card => container.appendChild(card));
