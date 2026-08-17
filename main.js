@@ -6780,9 +6780,8 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // 2. SEPARAR: Películas y Series
-        const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
-        const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
+        // 2. SEPARAR Y UNIFICAR HISTORIAL
+        const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie').map(p => p.media_id);
 
         const { data: episodiosVistos } = await supabase
             .from('user_media')
@@ -6791,201 +6790,111 @@ async function cargarRecomendaciones(userId) {
             .eq('tipo', 'tv_episode')
             .eq('visto', true);
 
-        const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
+        const seriesDesdeEpisodios = (episodiosVistos || []).map(ep => ep.media_id.split('_')[0]);
+        const seriesMarcadas = todosVistos.filter(item => item.tipo === 'tv').map(s => s.media_id);
 
-        // 4. PELÍCULAS: Seleccionamos aleatoriamente de sus últimos visionados
-        const peliculasConFecha = peliculasVistas.map(p => ({
-            media_id: p.media_id,
-            tipo: 'movie',
-            fecha_vista: p.fecha_vista
-        }));
+        // Juntamos todos los IDs únicos (tanto pelis como series)
+        const historialMixto = [
+            ...peliculasVistas.map(id => ({ id, tipo: 'movie' })),
+            ...[...new Set([...seriesMarcadas, ...seriesDesdeEpisodios])].map(id => ({ id, tipo: 'tv' }))
+        ];
 
-        peliculasConFecha.sort((a, b) => new Date(b.fecha_vista) - new Date(a.fecha_vista));
-
-        // ALEATORIEDAD: Cogemos el "pool" de sus últimas 20 pelis, y elegimos 5 al azar para dar variedad
-        const poolPeliculas = peliculasConFecha.slice(0, 20);
-        const ultimasPeliculas = poolPeliculas.sort(() => 0.5 - Math.random()).slice(0, 5);
-
-        let recuentoRecomendaciones = 0;
-
-        // 5. PROCESAR PELÍCULAS
-        if (ultimasPeliculas.length > 0) {
+        if (historialMixto.length === 0) {
             if (loading) loading.style.display = 'none';
-
-            for (const peli of ultimasPeliculas) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                    const res = await fetch(`/api/tmdb?id=${peli.media_id}&tipo=movie&lang=${currentLang}`, {
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (!res.ok) continue;
-                    const data = await res.json();
-
-                    let generosTexto = data.generos || '';
-                    if (!generosTexto || generosTexto === 'N/A') continue;
-
-                    const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
-                    if (generosList.length === 0) continue;
-
-                    // ALEATORIEDAD: Elegimos un género al azar de esa película
-                    const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
-
-                    try {
-                        const controllerRec = new AbortController();
-                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
-
-                        // Pedimos un límite mayor (10) para poder escoger al azar
-                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, {
-                            signal: controllerRec.signal
-                        });
-                        clearTimeout(timeoutRec);
-
-                        if (resRec.ok) {
-                            const recs = await resRec.json();
-                            // Elegimos 2 recomendaciones al azar de esa respuesta
-                            const randomRecs = recs.sort(() => 0.5 - Math.random()).slice(0, 2);
-
-                            randomRecs.forEach(item => {
-                                const idStr = item.id.toString();
-                                if (idStr === peli.media_id) return;
-                                if (container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`)) return;
-
-                                const card = crearTarjetaRecomendacion({
-                                    ...item,
-                                    tipo: 'movie',
-                                    generoCoincidencia: generoPrincipal,
-                                    puntuacion: 90 - (Math.random() * 10)
-                                });
-                                container.appendChild(card);
-                                recuentoRecomendaciones++;
-                            });
-                        }
-                    } catch (e) {
-                        console.warn('⏱️ Timeout en recomendación de película:', generoPrincipal);
-                    }
-                } catch (e) {
-                    console.warn('❌ Error con película', peli.media_id, e);
-                }
-            }
-        } else {
-            if (loading) loading.style.display = 'none';
-        }
-
-        // 6. SERIES EN PROGRESO O COMPLETADAS
-        // Extraemos IDs tanto de series marcadas con el ojo principal, como de episodios sueltos
-        const seriesDesdeEpisodios = Array.from(episodiosSet).map(epId => epId.split('_')[0]);
-        const idsSeriesUnicas = [...new Set([...seriesConEpisodios.map(s => s.media_id), ...seriesDesdeEpisodios])];
-
-        if (idsSeriesUnicas.length === 0) {
-            if (loading) loading.style.display = 'none';
-            if (container.children.length === 0 && empty) {
-                empty.style.display = 'flex';
-                const p = empty.querySelector('p');
-                if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
-            }
-            if (container.children.length > 0 && btnRefresh) {
-                btnRefresh.style.display = 'flex';
-            }
+            if (empty) empty.style.display = 'flex';
             return;
         }
 
-        // ALEATORIEDAD: Cogemos hasta 8 series aleatorias de su lista
-        const poolSeries = idsSeriesUnicas.sort(() => 0.5 - Math.random()).slice(0, 8);
-        const CHUNK_SERIES = 4;
+        // 3. ALEATORIEDAD DEL HISTORIAL: Elegimos 6 elementos al azar de lo que ha visto
+        const poolVisionados = historialMixto.sort(() => 0.5 - Math.random()).slice(0, 6);
 
-        for (let i = 0; i < poolSeries.length; i += CHUNK_SERIES) {
-            const lote = poolSeries.slice(i, i + CHUNK_SERIES);
+        // Aquí guardaremos las tarjetas antes de inyectarlas para poder barajarlas
+        let tarjetasGeneradas = [];
+        const idsAñadidos = new Set(); // Para evitar duplicados en la pantalla
 
-            await Promise.all(lote.map(async (serieId) => {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+        // 4. PROCESAR CADA ELEMENTO PARA BUSCAR RECOMENDACIONES
+        for (const item of poolVisionados) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                    const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
+                const res = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
 
-                    if (!res.ok) return;
-                    const data = await res.json();
+                if (!res.ok) continue;
+                const data = await res.json();
 
-                    // ¡ELIMINADA LA RESTRICCIÓN DEL 100%!
-                    // Ahora con que el usuario haya mostrado interés (marcando un episodio o la serie), sirve para recomendar.
+                let generosTexto = data.generos || '';
+                const titulo = data.titulo || '';
+                const sinopsis = data.sinopsis || '';
+                const esKdrama = titulo.includes('K-Drama') || titulo.includes('Corea') || titulo.includes('Korean') || sinopsis.includes('coreano') || sinopsis.includes('K-drama');
 
-                    let generosTexto = data.generos || '';
-                    const titulo = data.titulo || '';
-                    const sinopsis = data.sinopsis || '';
-                    const esKdrama = titulo.includes('K-Drama') || titulo.includes('Corea') || titulo.includes('Korean') || sinopsis.includes('coreano') || sinopsis.includes('K-drama');
+                if (esKdrama) generosTexto = 'Romance, Drama, Comedia';
+                if (!generosTexto || generosTexto === 'N/A') continue;
 
-                    if (esKdrama) generosTexto = 'Romance, Drama, Comedia';
-                    if (!generosTexto || generosTexto === 'N/A') return;
+                const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
+                if (generosList.length === 0) continue;
 
-                    const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
-                    if (generosList.length === 0) return;
+                // Elegimos un género al azar del elemento que vio
+                const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
 
-                    // ALEATORIEDAD: Elegimos un género al azar de la serie
-                    const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
+                // BUSCAMOS 1 PELI Y 1 SERIE POR CADA COSA QUE HA VISTO (Equilibrio perfecto)
+                const [resMovie, resTv] = await Promise.all([
+                    (async () => {
+                        try {
+                            const c = new AbortController();
+                            const t = setTimeout(() => c.abort(), 5000);
+                            const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
+                            clearTimeout(t);
+                            return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
+                        } catch (_) { return []; }
+                    })(),
+                    (async () => {
+                        try {
+                            const c = new AbortController();
+                            const t = setTimeout(() => c.abort(), 5000);
+                            const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
+                            clearTimeout(t);
+                            return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
+                        } catch (_) { return []; }
+                    })()
+                ]);
 
-                    const [resMovie, resTv] = await Promise.all([
-                        (async () => {
-                            try {
-                                const c = new AbortController();
-                                const t = setTimeout(() => c.abort(), 5000);
-                                // Pedir 5 para tener variedad y coger 1 al azar
-                                const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
-                                clearTimeout(t);
-                                return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
-                            } catch (_) { return []; }
-                        })(),
-                        (async () => {
-                            try {
-                                const c = new AbortController();
-                                const t = setTimeout(() => c.abort(), 5000);
-                                const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
-                                clearTimeout(t);
-                                return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
-                            } catch (_) { return []; }
-                        })()
-                    ]);
+                // Procesamos la película recomendada
+                resMovie.forEach(rec => {
+                    const uniqueKey = `movie_${rec.id}`;
+                    if (rec.id.toString() === item.id && item.tipo === 'movie') return; // No auto-recomendar
+                    if (idsAñadidos.has(uniqueKey)) return; // No duplicar
 
-                    resMovie.forEach(item => {
-                        const idStr = item.id.toString();
-                        if (idStr === serieId) return;
-                        if (container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`)) return;
-                        const card = crearTarjetaRecomendacion({
-                            ...item, tipo: 'movie', generoCoincidencia: generoPrincipal,
-                            puntuacion: 88 - (Math.random() * 10)
-                        });
-                        container.appendChild(card);
-                        recuentoRecomendaciones++;
-                    });
+                    idsAñadidos.add(uniqueKey);
+                    tarjetasGeneradas.push(crearTarjetaRecomendacion({
+                        ...rec, tipo: 'movie', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
+                    }));
+                });
 
-                    resTv.forEach(item => {
-                        const idStr = item.id.toString();
-                        if (idStr === serieId) return;
-                        if (container.querySelector(`[data-id="${idStr}"][data-tipo="tv"]`)) return;
-                        const card = crearTarjetaRecomendacion({
-                            ...item, tipo: 'tv', generoCoincidencia: generoPrincipal,
-                            puntuacion: 85 - (Math.random() * 10)
-                        });
-                        container.appendChild(card);
-                        recuentoRecomendaciones++;
-                    });
+                // Procesamos la serie recomendada
+                resTv.forEach(rec => {
+                    const uniqueKey = `tv_${rec.id}`;
+                    if (rec.id.toString() === item.id && item.tipo === 'tv') return; // No auto-recomendar
+                    if (idsAñadidos.has(uniqueKey)) return; // No duplicar
 
-                } catch (e) {
-                    console.warn('❌ Error verificando serie', serieId, e);
-                }
-            }));
+                    idsAñadidos.add(uniqueKey);
+                    tarjetasGeneradas.push(crearTarjetaRecomendacion({
+                        ...rec, tipo: 'tv', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
+                    }));
+                });
+
+            } catch (e) {
+                console.warn(`❌ Error procesando historial ${item.tipo} ${item.id}:`, e);
+            }
         }
 
-        // 7. FINAL: Ocultar loading y mostrar estado final
+        // 5. ¡EL TOQUE MÁGICO! BARAJAMOS TODAS LAS TARJETAS Y MOSTRAMOS MAX 8
         if (loading) loading.style.display = 'none';
 
-        if (container.children.length === 0) {
+        if (tarjetasGeneradas.length === 0) {
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
@@ -6993,6 +6902,15 @@ async function cargarRecomendaciones(userId) {
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
+            // Barajar el array (mezclar pelis y series)
+            tarjetasGeneradas.sort(() => 0.5 - Math.random());
+
+            // Coger solo las 8 primeras
+            const tarjetasFinales = tarjetasGeneradas.slice(0, 8);
+
+            // Inyectarlas al HTML
+            tarjetasFinales.forEach(card => container.appendChild(card));
+
             if (empty) empty.style.display = 'none';
             if (btnRefresh) btnRefresh.style.display = 'flex';
         }
