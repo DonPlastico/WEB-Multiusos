@@ -14125,7 +14125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Lógica para desplegar / ocultar los detalles
-    let detailsVisible = true;
+    let detailsVisible = false;
     btnMoreInfo?.addEventListener('click', () => {
         detailsVisible = !detailsVisible;
         if (detailsVisible) {
