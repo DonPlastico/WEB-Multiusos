@@ -6737,26 +6737,19 @@ async function cargarPerfilPublico(usernameTarget) {
     }
 }
 
-// ==========================================================================
-//   RECOMENDACIONES DINÁMICAS (BASADAS EN ÚLTIMOS 7 VISIONADOS)
-// ==========================================================================
-
 // Funcion que genera recomendaciones personalizadas basadas en lo que el usuario ha visto
 async function cargarRecomendaciones(userId) {
     const container = document.getElementById('recommendations-list');
     const loading = document.getElementById('rec-loading');
     const empty = document.getElementById('rec-empty');
-    const emptyMsg = document.getElementById('rec-empty-message');
+    const btnRefresh = document.getElementById('btn-refresh-recommendations');
 
-    if (!container) {
-        console.warn('⚠️ No se encontró el contenedor de recomendaciones');
-        return;
-    }
+    if (!container) return;
 
-    // Mostrar loading mientras se cargan los datos
+    // Mostrar loading mientras se cargan los datos y ocultar botón de refresh temporalmente
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
-    if (emptyMsg) emptyMsg.style.display = 'none';
+    if (btnRefresh) btnRefresh.style.display = 'none';
     container.innerHTML = '';
 
     // Forzar gap entre las tarjetas de recomendacion
@@ -6766,7 +6759,6 @@ async function cargarRecomendaciones(userId) {
 
     try {
         // 1. OBTENER TODOS LOS VISIONADOS
-        // Pedimos a Supabase todas las peliculas y series que el usuario ha marcado como vistas
         const { data: todosVistos, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista, veces_vista')
@@ -6785,7 +6777,6 @@ async function cargarRecomendaciones(userId) {
                 const p = empty.querySelector('p');
                 if (p) p.textContent = 'Marca al menos una película o serie como vista para recibir recomendaciones.';
             }
-            if (emptyMsg) emptyMsg.style.display = 'none';
             return;
         }
 
@@ -6793,7 +6784,6 @@ async function cargarRecomendaciones(userId) {
         const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie');
         const seriesConEpisodios = todosVistos.filter(item => item.tipo === 'tv');
 
-        // 3. OBTENER EPISODIOS VISTOS (para saber que episodios ha visto de cada serie)
         const { data: episodiosVistos } = await supabase
             .from('user_media')
             .select('media_id')
@@ -6803,7 +6793,7 @@ async function cargarRecomendaciones(userId) {
 
         const episodiosSet = new Set(episodiosVistos?.map(e => e.media_id) || []);
 
-        // 4. PELÍCULAS: Últimas 5 vistas
+        // 4. PELÍCULAS: Seleccionamos aleatoriamente de sus últimos visionados
         const peliculasConFecha = peliculasVistas.map(p => ({
             media_id: p.media_id,
             tipo: 'movie',
@@ -6811,22 +6801,19 @@ async function cargarRecomendaciones(userId) {
         }));
 
         peliculasConFecha.sort((a, b) => new Date(b.fecha_vista) - new Date(a.fecha_vista));
-        const ultimasPeliculas = peliculasConFecha.slice(0, 5);
+
+        // ALEATORIEDAD: Cogemos el "pool" de sus últimas 20 pelis, y elegimos 5 al azar para dar variedad
+        const poolPeliculas = peliculasConFecha.slice(0, 20);
+        const ultimasPeliculas = poolPeliculas.sort(() => 0.5 - Math.random()).slice(0, 5);
 
         let recuentoRecomendaciones = 0;
 
-        // 5. PROCESAR PELÍCULAS (con timeout para evitar bloqueos)
-        // Por cada pelicula vista, sacamos su genero principal y buscamos contenido similar
+        // 5. PROCESAR PELÍCULAS
         if (ultimasPeliculas.length > 0) {
             if (loading) loading.style.display = 'none';
-            if (emptyMsg) {
-                emptyMsg.style.display = 'inline-flex';
-                emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Cargando recomendaciones...`;
-            }
 
             for (const peli of ultimasPeliculas) {
                 try {
-                    // Timeout de 5 segundos para evitar bloqueos (por si la API de TMDB va lenta)
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -6835,41 +6822,37 @@ async function cargarRecomendaciones(userId) {
                     });
                     clearTimeout(timeoutId);
 
-                    if (!res.ok) {
-                        console.warn(`⚠️ Error en TMDB para película ${peli.media_id}: ${res.status}`);
-                        continue;
-                    }
+                    if (!res.ok) continue;
                     const data = await res.json();
 
                     let generosTexto = data.generos || '';
-                    if (generosTexto === 'N/A' || generosTexto === '' || !generosTexto) {
-                        console.warn(`⚠️ Película ${peli.media_id} sin géneros`);
-                        continue;
-                    }
+                    if (!generosTexto || generosTexto === 'N/A') continue;
 
                     const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
                     if (generosList.length === 0) continue;
 
-                    // Cogemos el primer genero de la lista y buscamos recomendaciones
-                    const generoPrincipal = generosList[0];
+                    // ALEATORIEDAD: Elegimos un género al azar de esa película
+                    const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
+
                     try {
                         const controllerRec = new AbortController();
                         const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
 
-                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=2&lang=${currentLang}`, {
+                        // Pedimos un límite mayor (10) para poder escoger al azar
+                        const resRec = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, {
                             signal: controllerRec.signal
                         });
                         clearTimeout(timeoutRec);
 
                         if (resRec.ok) {
                             const recs = await resRec.json();
-                            recs.forEach(item => {
+                            // Elegimos 2 recomendaciones al azar de esa respuesta
+                            const randomRecs = recs.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+                            randomRecs.forEach(item => {
                                 const idStr = item.id.toString();
-                                // Evitamos recomendar la misma pelicula que ya vimos
                                 if (idStr === peli.media_id) return;
-                                // Evitamos duplicados en el contenedor
-                                const existing = container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`);
-                                if (existing) return;
+                                if (container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`)) return;
 
                                 const card = crearTarjetaRecomendacion({
                                     ...item,
@@ -6880,48 +6863,40 @@ async function cargarRecomendaciones(userId) {
                                 container.appendChild(card);
                                 recuentoRecomendaciones++;
                             });
-                        } else {
-                            console.warn(`⚠️ Error en recomendaciones para ${generoPrincipal}: ${resRec.status}`);
                         }
                     } catch (e) {
                         console.warn('⏱️ Timeout en recomendación de película:', generoPrincipal);
                     }
-
                 } catch (e) {
                     console.warn('❌ Error con película', peli.media_id, e);
                 }
-            }
-
-            if (emptyMsg) {
-                emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> Basado en tus películas vistas (cargando series...)`;
             }
         } else {
             if (loading) loading.style.display = 'none';
         }
 
-        // 6. SERIES COMPLETADAS (con timeout)
-        // Ahora procesamos las series que el usuario ha completado al 100%
+        // 6. SERIES COMPLETADAS
         const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
 
-        // Si no hay series, mostramos mensaje y salimos
         if (idsSeriesUnicas.length === 0) {
             if (loading) loading.style.display = 'none';
-            if (container.children.length === 0) {
-                if (empty) {
-                    empty.style.display = 'flex';
-                    const p = empty.querySelector('p');
-                    if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
-                }
-                if (emptyMsg) emptyMsg.style.display = 'none';
+            if (container.children.length === 0 && empty) {
+                empty.style.display = 'flex';
+                const p = empty.querySelector('p');
+                if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
+            }
+            if (container.children.length > 0 && btnRefresh) {
+                btnRefresh.style.display = 'flex';
             }
             return;
         }
 
-        // Por cada serie que el usuario ha visto, verificamos si la ha completado
-        // (EN PARALELO por lotes de 4, para no tardar 1 serie tras otra)
+        // ALEATORIEDAD: Cogemos hasta 8 series aleatorias de su lista
+        const poolSeries = idsSeriesUnicas.sort(() => 0.5 - Math.random()).slice(0, 8);
         const CHUNK_SERIES = 4;
-        for (let i = 0; i < idsSeriesUnicas.length; i += CHUNK_SERIES) {
-            const lote = idsSeriesUnicas.slice(i, i + CHUNK_SERIES);
+
+        for (let i = 0; i < poolSeries.length; i += CHUNK_SERIES) {
+            const lote = poolSeries.slice(i, i + CHUNK_SERIES);
 
             await Promise.all(lote.map(async (serieId) => {
                 try {
@@ -6955,37 +6930,35 @@ async function cargarRecomendaciones(userId) {
                     let generosTexto = data.generos || '';
                     const titulo = data.titulo || '';
                     const sinopsis = data.sinopsis || '';
-                    const esKdrama = titulo.includes('K-Drama') ||
-                        titulo.includes('Corea') ||
-                        titulo.includes('Korean') ||
-                        sinopsis.includes('coreano') ||
-                        sinopsis.includes('K-drama');
+                    const esKdrama = titulo.includes('K-Drama') || titulo.includes('Corea') || titulo.includes('Korean') || sinopsis.includes('coreano') || sinopsis.includes('K-drama');
 
                     if (esKdrama) generosTexto = 'Romance, Drama, Comedia';
-                    if (generosTexto === 'N/A' || !generosTexto) return;
+                    if (!generosTexto || generosTexto === 'N/A') return;
 
                     const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
                     if (generosList.length === 0) return;
 
-                    const generoPrincipal = generosList[0];
+                    // ALEATORIEDAD: Elegimos un género al azar de la serie
+                    const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
 
                     const [resMovie, resTv] = await Promise.all([
                         (async () => {
                             try {
                                 const c = new AbortController();
                                 const t = setTimeout(() => c.abort(), 5000);
-                                const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, { signal: c.signal });
+                                // Pedir 5 para tener variedad y coger 1 al azar
+                                const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
                                 clearTimeout(t);
-                                return r.ok ? await r.json() : [];
+                                return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
                             } catch (_) { return []; }
                         })(),
                         (async () => {
                             try {
                                 const c = new AbortController();
                                 const t = setTimeout(() => c.abort(), 5000);
-                                const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, { signal: c.signal });
+                                const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=5&lang=${currentLang}`, { signal: c.signal });
                                 clearTimeout(t);
-                                return r.ok ? await r.json() : [];
+                                return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
                             } catch (_) { return []; }
                         })()
                     ]);
@@ -7014,10 +6987,6 @@ async function cargarRecomendaciones(userId) {
                         recuentoRecomendaciones++;
                     });
 
-                    if (emptyMsg) {
-                        emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${recuentoRecomendaciones} recomendaciones basadas en ${generoPrincipal}`;
-                    }
-
                 } catch (e) {
                     console.warn('❌ Error verificando serie', serieId, e);
                 }
@@ -7033,13 +7002,10 @@ async function cargarRecomendaciones(userId) {
                 const p = empty.querySelector('p');
                 if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
             }
-            if (emptyMsg) emptyMsg.style.display = 'none';
+            if (btnRefresh) btnRefresh.style.display = 'none'; // Si no hay nada, escondemos el botón
         } else {
-            if (emptyMsg) {
-                const count = container.children.length;
-                emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${count} recomendaciones basadas en tus últimos visionados`;
-            }
             if (empty) empty.style.display = 'none';
+            if (btnRefresh) btnRefresh.style.display = 'flex'; // ¡Mostramos el botón!
         }
 
     } catch (error) {
@@ -10691,6 +10657,35 @@ window.recargarRecomendaciones = async function () {
     await cargarRecomendaciones(userId);
     showToast('success', 'Recomendaciones', 'Lista actualizada con tus últimos visionados.');
 };
+
+// ==========================================================================
+//   BOTÓN REFRESCAR RECOMENDACIONES
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const btnRefreshRecs = document.getElementById('btn-refresh-recommendations');
+    if (btnRefreshRecs) {
+        btnRefreshRecs.addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            // Hacemos que el icono gire
+            const icon = this.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+
+            const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
+            if (userId) {
+                // Vaciamos el contenedor visualmente para dar feedback inmediato
+                const container = document.getElementById('recommendations-list');
+                if (container) container.innerHTML = '';
+
+                // Pedimos nuevas recomendaciones
+                await cargarRecomendaciones(userId);
+            }
+
+            // Paramos el giro cuando acabe
+            if (icon) icon.classList.remove('fa-spin');
+        });
+    }
+});
 
 // ==========================================================================
 //   TENDENCIAS EN PELÍCULAS (USANDO trend-card)

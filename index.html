@@ -1611,10 +1611,11 @@
                     <div id="recommendations-section" class="recommendations-section">
                         <div class="watchlist-tabs">
                             <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
-                            <span id="rec-empty-message"
-                                style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-left: auto;">
-                                <i class="fas fa-info-circle"></i> Basado en tus últimos 7 vistos
-                            </span>
+                            <!-- BOTÓN DE REFRESCAR -->
+                            <button id="btn-refresh-recommendations" class="watchlist-btn-icon"
+                                title="Cargar nuevas recomendaciones" style="display: none; margin-left: auto;">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
                         </div>
 
                         <div id="recommendations-list" class="watchlist-list">
