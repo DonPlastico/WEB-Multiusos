@@ -2941,8 +2941,13 @@
     <div id="cookie-top-alert" class="cookie-top-alert" style="display: none;">
         <div class="cookie-top-content">
             <i class="fas fa-exclamation-triangle"></i>
-            <span><strong>ADVERTENCIA:</strong> Has rechazado las cookies. Algunas funciones críticas del Nexus
-                (sesiones, temas, guardado local) estarán deshabilitadas.</span>
+            <div class="cookie-top-text-wrapper">
+                <span class="cookie-top-title"><strong>MODO RESTRINGIDO ACTIVO:</strong> Has rechazado el almacenamiento
+                    local.</span>
+                <span class="cookie-top-desc">Funciones críticas como mantener tu sesión iniciada, recordar tu
+                    idioma/tema, y guardar filtros de búsqueda están deshabilitadas. Tu experiencia en el Nexus será
+                    limitada.</span>
+            </div>
         </div>
         <button id="btn-reopen-cookies" class="auth-btn secondary cookie-reopen-btn">
             <i class="fas fa-cookie-bite"></i> GESTIONAR
@@ -2950,37 +2955,69 @@
     </div>
 
     <!-- ============================================================ -->
-    <!--   SISTEMA DE COOKIES                                         -->
+    <!--   SISTEMA DE COOKIES / LOCAL STORAGE                         -->
     <!-- ============================================================ -->
     <div id="cookie-banner" class="cookie-banner-container">
         <div class="cookie-content">
             <div class="cookie-text-section">
                 <div class="cookie-header">
                     <span class="cookie-emoji">🍪</span>
-                    <p class="cookie-text">
-                        Usamos cookies estrictamente necesarias para que la web funcione: tu sesión de acceso y
-                        almacenamiento local. No hay cookies de publicidad ni analítica.
-                    </p>
+                    <div class="cookie-header-text">
+                        <p class="cookie-text">
+                            <strong>Control de Datos en el Nexus</strong>
+                        </p>
+                        <p class="cookie-text" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
+                            Utilizamos almacenamiento local estricto para que la web funcione. <strong>No usamos cookies
+                                rastreadoras, no incluimos publicidad de terceros, ni vendemos tus datos.</strong>
+                        </p>
+                    </div>
                 </div>
                 <button id="cookie-more-info" class="cookie-more-btn">Ocultar detalles ▲</button>
 
                 <div id="cookie-details" class="cookie-details">
+
+                    <!-- Pros y Contras en 2 columnas -->
+                    <div class="cookie-pros-cons">
+                        <div class="cookie-column accept-col">
+                            <span class="cookie-col-title"><i class="fas fa-check-circle"></i> Si aceptas</span>
+                            <ul>
+                                <li>Mantiene tu sesión de usuario abierta.</li>
+                                <li>Recuerda tus preferencias de Interfaz (Modo Claro/Oscuro e Idioma).</li>
+                                <li>Guarda el historial de filtros de búsqueda.</li>
+                                <li>Permite el guardado rápido en listas.</li>
+                            </ul>
+                        </div>
+                        <div class="cookie-column reject-col">
+                            <span class="cookie-col-title"><i class="fas fa-times-circle"></i> Si rechazas</span>
+                            <ul>
+                                <li>Cerrará tu sesión automáticamente al recargar.</li>
+                                <li>Restablecerá tu idioma y tema por defecto constantemente.</li>
+                                <li>Perderás los filtros activos al cambiar de página.</li>
+                                <li>Aparecerá la alerta superior de forma permanente.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="cookie-divider"></div>
+
+                    <!-- Datos Técnicos Reales -->
+                    <span class="cookie-tech-title">Uso técnico estrictamente necesario:</span>
                     <div class="cookie-detail-item">
-                        <span class="cookie-name">sb_access_token (Supabase)</span>
-                        <span class="cookie-badge">Necesaria</span>
+                        <span class="cookie-name">sb_access_token / sb_refresh_token</span>
+                        <span class="cookie-badge">Autenticación (Supabase)</span>
                     </div>
                     <div class="cookie-detail-item">
                         <span class="cookie-name">dp_sys_theme / dp_sys_lang</span>
-                        <span class="cookie-badge">Necesaria</span>
+                        <span class="cookie-badge">Preferencias de Interfaz</span>
                     </div>
                     <div class="cookie-detail-item">
-                        <span class="cookie-name">nexus_user_id</span>
-                        <span class="cookie-badge">Necesaria</span>
+                        <span class="cookie-name">dp_sys_filters_v2 / nexus_user_id</span>
+                        <span class="cookie-badge">Memoria Operativa</span>
                     </div>
                 </div>
             </div>
             <div class="cookie-action-section">
-                <button id="cookie-accept" class="auth-btn primary btn-pink">ACEPTAR</button>
+                <button id="cookie-accept" class="auth-btn primary btn-pink">ACEPTAR TODO</button>
                 <button id="cookie-reject" class="auth-btn secondary">RECHAZAR</button>
             </div>
         </div>

@@ -7372,11 +7372,7 @@ cast-carousel::-webkit-scrollbar {
     margin-top: 2px;
 }
 
-/* ==========================================================================
-   SISTEMA DE COOKIES Y ALERTA SUPERIOR
-   ========================================================================== */
-
-/* --- ALERTA SUPERIOR PERMANENTE --- */
+/* --- ALERTA SUPERIOR PERMANENTE (Actualizado para 2 líneas) --- */
 .cookie-top-alert {
     position: fixed;
     top: 0;
@@ -7390,30 +7386,49 @@ cast-carousel::-webkit-scrollbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 24px;
+    padding: 10px 24px;
     box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
     animation: slideDownAlert 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .cookie-top-content {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 15px;
     color: var(--neon-white);
-    font-size: 0.85rem;
 }
 
 .cookie-top-content i {
     color: var(--error);
-    font-size: 1.1rem;
+    font-size: 1.4rem;
+    margin-top: 2px;
+}
+
+.cookie-top-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cookie-top-title {
+    font-size: 0.9rem;
+    color: var(--error);
+    letter-spacing: 0.5px;
+}
+
+.cookie-top-desc {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
 }
 
 .cookie-reopen-btn {
-    padding: 6px 12px !important;
-    font-size: 0.75rem !important;
+    padding: 8px 16px !important;
+    font-size: 0.8rem !important;
     border-color: var(--error) !important;
     color: var(--error) !important;
     background: rgba(239, 68, 68, 0.1) !important;
+    flex-shrink: 0;
 }
 
 .cookie-reopen-btn:hover {
@@ -7429,19 +7444,19 @@ cast-carousel::-webkit-scrollbar {
     left: 50%;
     transform: translateX(-50%) translateY(150%);
     width: 90%;
-    max-width: 800px;
+    max-width: 850px;
+    /* Un pelín más ancho para acomodar las 2 columnas */
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    box-shadow: var(--shadow-lg), 0 0 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.6);
     z-index: 10001;
-    /* Debe estar por encima de todo */
     opacity: 0;
     visibility: hidden;
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, visibility 0.5s ease;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 20px 24px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 24px 28px;
 }
 
 .cookie-banner-container.show {
@@ -7453,7 +7468,7 @@ cast-carousel::-webkit-scrollbar {
 .cookie-content {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 30px;
 }
 
@@ -7471,14 +7486,19 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .cookie-emoji {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     line-height: 1.1;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
+.cookie-header-text {
+    display: flex;
+    flex-direction: column;
+}
+
 .cookie-text {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    color: var(--text-main);
+    font-size: 0.95rem;
     line-height: 1.5;
     margin: 0;
 }
@@ -7492,9 +7512,9 @@ cast-carousel::-webkit-scrollbar {
     font-weight: 700;
     cursor: pointer;
     text-align: left;
-    padding: 2px 8px;
+    padding: 4px 10px;
     border-radius: 4px;
-    margin-left: 41px;
+    margin-left: 45px;
     transition: all 0.2s;
     width: fit-content;
 }
@@ -7506,13 +7526,81 @@ cast-carousel::-webkit-scrollbar {
 
 .cookie-details {
     margin-top: 10px;
-    margin-left: 41px;
-    border-top: 1px solid var(--border-color);
-    padding-top: 15px;
+    margin-left: 45px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     animation: fadeIn 0.4s ease;
+}
+
+/* Columnas de Pros y Contras */
+.cookie-pros-cons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+.cookie-column {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px 15px;
+}
+
+.cookie-col-title {
+    font-family: var(--font-cyber);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.accept-col .cookie-col-title {
+    color: var(--success);
+}
+
+.reject-col .cookie-col-title {
+    color: var(--error);
+}
+
+.cookie-column ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cookie-column ul li {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+.cookie-column ul li::before {
+    content: "•";
+    color: var(--text-muted);
+}
+
+.cookie-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+.cookie-tech-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
 .cookie-detail-item {
@@ -7520,6 +7608,9 @@ cast-carousel::-webkit-scrollbar {
     justify-content: space-between;
     align-items: center;
     font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 6px 12px;
+    border-radius: 6px;
 }
 
 .cookie-name {
@@ -7532,29 +7623,31 @@ cast-carousel::-webkit-scrollbar {
     background: rgba(16, 185, 129, 0.05);
     border: 1px solid rgba(16, 185, 129, 0.3);
     color: rgba(16, 185, 129, 0.8);
-    padding: 3px 12px;
-    border-radius: 12px;
-    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .cookie-action-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     padding-top: 5px;
+    width: 180px;
+    /* Ancho fijo para los botones */
 }
 
 .cookie-action-section .auth-btn {
-    padding: 12px 28px;
+    padding: 14px 20px;
     font-size: 0.9rem;
     white-space: nowrap;
     width: 100%;
     justify-content: center;
 }
 
-/* Botón Aceptar Rosa estilo imagen */
 .btn-pink {
     background: #f43f5e !important;
     color: white !important;
@@ -8688,10 +8781,9 @@ cast-carousel::-webkit-scrollbar {
         display: flex !important;
     }
 
+    /* Dentro de @media (max-width: 768px) */
     .cookie-content {
         flex-direction: column;
-        align-items: stretch;
-        gap: 20px;
     }
 
     .cookie-action-section {
@@ -8704,20 +8796,18 @@ cast-carousel::-webkit-scrollbar {
         margin-left: 0;
     }
 
-    .cookie-header {
-        align-items: center;
+    .cookie-pros-cons {
+        flex-direction: column;
+        gap: 10px;
     }
 
     /* Dentro de @media (max-width: 600px) */
     .cookie-top-content {
-        flex-direction: column;
         align-items: flex-start;
-        gap: 6px;
     }
 
     .cookie-top-alert {
         flex-direction: column;
-        gap: 10px;
         align-items: flex-end;
     }
 
