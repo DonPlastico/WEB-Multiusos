@@ -6875,8 +6875,10 @@ async function cargarRecomendaciones(userId) {
             if (loading) loading.style.display = 'none';
         }
 
-        // 6. SERIES COMPLETADAS
-        const idsSeriesUnicas = [...new Set(seriesConEpisodios.map(s => s.media_id))];
+        // 6. SERIES EN PROGRESO O COMPLETADAS
+        // Extraemos IDs tanto de series marcadas con el ojo principal, como de episodios sueltos
+        const seriesDesdeEpisodios = Array.from(episodiosSet).map(epId => epId.split('_')[0]);
+        const idsSeriesUnicas = [...new Set([...seriesConEpisodios.map(s => s.media_id), ...seriesDesdeEpisodios])];
 
         if (idsSeriesUnicas.length === 0) {
             if (loading) loading.style.display = 'none';
@@ -6911,21 +6913,8 @@ async function cargarRecomendaciones(userId) {
                     if (!res.ok) return;
                     const data = await res.json();
 
-                    if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) return;
-
-                    const temporadasReales = data.temporadas_info.filter(s => s.season_number > 0);
-                    const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
-                    if (totalEpisodios === 0) return;
-
-                    let vistosSerie = 0;
-                    for (const temp of temporadasReales) {
-                        for (let ep = 1; ep <= temp.episode_count; ep++) {
-                            const mediaId = `${serieId}_T${temp.season_number}_E${ep}`;
-                            if (episodiosSet.has(mediaId)) vistosSerie++;
-                        }
-                    }
-
-                    if (vistosSerie < totalEpisodios || totalEpisodios === 0) return;
+                    // ¡ELIMINADA LA RESTRICCIÓN DEL 100%!
+                    // Ahora con que el usuario haya mostrado interés (marcando un episodio o la serie), sirve para recomendar.
 
                     let generosTexto = data.generos || '';
                     const titulo = data.titulo || '';
@@ -7002,10 +6991,10 @@ async function cargarRecomendaciones(userId) {
                 const p = empty.querySelector('p');
                 if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
             }
-            if (btnRefresh) btnRefresh.style.display = 'none'; // Si no hay nada, escondemos el botón
+            if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
             if (empty) empty.style.display = 'none';
-            if (btnRefresh) btnRefresh.style.display = 'flex'; // ¡Mostramos el botón!
+            if (btnRefresh) btnRefresh.style.display = 'flex';
         }
 
     } catch (error) {
