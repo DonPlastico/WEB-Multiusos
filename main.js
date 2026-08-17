@@ -10577,21 +10577,32 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRefreshRecs.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            // Hacemos que el icono gire
+            // Hacemos que el icono del botón gire
             const icon = this.querySelector('i');
             if (icon) icon.classList.add('fa-spin');
 
             const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
             if (userId) {
-                // Vaciamos el contenedor visualmente para dar feedback inmediato
                 const container = document.getElementById('recommendations-list');
-                if (container) container.innerHTML = '';
 
-                // Pedimos nuevas recomendaciones
+                if (container) {
+                    // PINTAMOS UN LOADER VISIBLE DIRECTAMENTE DESDE JS
+                    container.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; width: 100%;">
+                            <i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 12px;"></i>
+                            <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; font-size: 0.85rem;">BUSCANDO RECOMENDACIONES...</span>
+                        </div>
+                    `;
+                    container.style.display = 'flex';
+                    container.style.flexDirection = 'column';
+                    container.style.gap = '12px';
+                }
+
+                // Pedimos nuevas recomendaciones a la función principal
                 await cargarRecomendaciones(userId);
             }
 
-            // Paramos el giro cuando acabe
+            // Paramos el giro del icono cuando acabe
             if (icon) icon.classList.remove('fa-spin');
         });
     }
