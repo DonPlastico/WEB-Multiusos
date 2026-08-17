@@ -6796,14 +6796,14 @@ async function cargarRecomendaciones(userId) {
             idsVistosGlobal.add(baseId);
         });
 
-        // Aumentamos a 30 para tener un pool mayor de donde escoger
-        const ultimos30 = historialUnico.slice(0, 30);
-        const pelisRecientes = ultimos30.filter(item => item.tipo === 'movie');
-        const seriesRecientes = ultimos30.filter(item => item.tipo === 'tv');
+        // Aumentamos el "colador" a 40 para tener mucho margen de donde escoger
+        const ultimos40 = historialUnico.slice(0, 40);
+        const pelisRecientes = ultimos40.filter(item => item.tipo === 'movie');
+        const seriesRecientes = ultimos40.filter(item => item.tipo === 'tv');
 
-        // 3. SELECCIÓN AMPLIADA: 5 Pelis y 5 Series al azar (Para asegurar variedad total)
-        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 5);
-        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 5);
+        // 3. SELECCIÓN AMPLIADA: Hasta 8 Pelis y 8 Series al azar (Para poder mostrar hasta 15 o 16)
+        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
+        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
@@ -6848,7 +6848,7 @@ async function cargarRecomendaciones(userId) {
                             obraOrigen: dataNombre.titulo,
                             puntuacion: 87 + (Math.random() * 11)
                         }));
-                        break; // Encontramos 1 válida, paramos y pasamos a la siguiente obra de origen.
+                        break; // ¡LA MAGIA ESTÁ AQUÍ! Encontramos 1 válida, paramos y pasamos a la siguiente obra.
                     }
                 }
 
@@ -6857,7 +6857,7 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // 5. BARAJAMOS Y MOSTRAMOS MAX 8 EN PANTALLA
+        // 5. BARAJAMOS Y MOSTRAMOS CANTIDAD ALEATORIA (8 a 15)
         if (loading) loading.style.display = 'none';
 
         if (tarjetasGeneradas.length === 0) {
@@ -6868,9 +6868,14 @@ async function cargarRecomendaciones(userId) {
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
-            // Barajamos el mix final de 10 tarjetas (5 pelis, 5 series únicas) y cogemos 8
+            // Barajamos el mix final
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
-            const tarjetasFinales = tarjetasGeneradas.slice(0, 8);
+
+            // Elegimos un número aleatorio entre 8 y 15
+            const cantidadAleatoria = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+
+            // Recortamos la lista a esa cantidad
+            const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
             tarjetasFinales.forEach(card => container.appendChild(card));
 
             if (empty) empty.style.display = 'none';
