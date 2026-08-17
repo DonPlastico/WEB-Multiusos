@@ -1973,6 +1973,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
 
         // Eliminamos el boton de cargar mas si existe
         document.getElementById('btn-cargar-mas')?.remove();
+        document.querySelectorAll('.fin-juegos').forEach(el => el.remove());
     } else {
         // Si no estamos reseteando, es que estamos cargando mas juegos
         // Mostramos un spinner en el boton de cargar mas
@@ -2021,6 +2022,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         if (resetear) gridJuegos.innerHTML = '';
         // Eliminamos el boton de cargar mas si existe
         document.getElementById('btn-cargar-mas')?.remove();
+        document.querySelectorAll('.fin-juegos').forEach(el => el.remove());
 
         // Si IGDB no encontró resultados y hay búsqueda, probar en Steam
         // Esto es un fallback para cuando IGDB no tiene el juego
