@@ -6949,8 +6949,10 @@ async function cargarRecomendaciones(userId) {
 function crearTarjetaRecomendacion(item) {
     const poster = item.poster || '';
     const titulo = item.titulo || t('common.untitled');
-    // Si tenemos la obra de origen, mostramos el texto personalizado. Si no, un texto genérico.
+
+    // El texto que explica el motivo de la recomendación
     const motivoTexto = item.obraOrigen ? `Porque has visto <strong>${item.obraOrigen}</strong>` : 'Recomendado para ti';
+
     const puntuacion = Math.round(item.puntuacion || 85);
     const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
     const esPelicula = item.tipo === 'movie';
@@ -6975,8 +6977,10 @@ function crearTarjetaRecomendacion(item) {
                 <div class="watchlist-ep-title">
                     <span class="watchlist-ep-code">${titulo}</span>
                 </div>
+                <!-- CORREGIDO: Ahora inyectamos la variable motivoTexto en lugar del género -->
                 <div class="watchlist-ep-name">${motivoTexto}</div>
             </div>
+            <!-- El title ahora dice Guardar en lista -->
             <button class="watchlist-check-btn" title="Guardar en lista">
                 <i class="fa-solid fa-plus"></i>
             </button>
