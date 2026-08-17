@@ -2771,12 +2771,12 @@ function guardarFiltros() {
     };
 
     // Guardamos en localStorage
-    localStorage.setItem('dp_sys_filters_v2', JSON.stringify(filtrosState));
+    localStorage.setItem('dp_sys_filters', JSON.stringify(filtrosState));
 }
 
 // Esta funcion restaura los filtros guardados en localStorage y los aplica al DOM
 function restaurarFiltrosDOM() {
-    const guardados = localStorage.getItem('dp_sys_filters_v2');
+    const guardados = localStorage.getItem('dp_sys_filters');
     if (!guardados) return;
 
     try {
@@ -14145,6 +14145,97 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.marginTop = alertHeight + 'px';
             if (filterSidebar) filterSidebar.style.top = `calc(100px + ${alertHeight}px)`;
         }
+    });
+});
+
+// ==========================================================================
+//   SISTEMA DE SEGURIDAD DEL NEXUS (ANTI-FISGONES Y ASCII ART)
+// ==========================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. DIBUJAR ASCII ART EN LA CONSOLA
+    // Usamos setTimeout para asegurarnos de que se imprima lo último
+    setTimeout(() => {
+        // Limpiamos la consola de errores previos (opcional, da un efecto más limpio)
+        console.clear();
+
+        // El mensaje de "ALTO AHÍ" en grande y rojo
+        console.log(
+            '%c¡ALTO AHÍ!',
+            'color: #ef4444; font-size: 50px; font-weight: 900; text-shadow: 2px 2px 0 #000, 0 0 20px #ef4444; font-family: sans-serif;'
+        );
+
+        // El texto de advertencia con estilo de consola Hacker
+        console.log(
+            '%cESTÁS ENTRANDO EN UNA ZONA RESTRINGIDA DEL NEXUS.\nCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
+            'color: #ededee; font-size: 14px; background: #14141c; padding: 15px; border: 1px solid #6366f1; border-radius: 8px; font-family: monospace; line-height: 1.5;'
+        );
+
+        // El ASCII Art de DP-SYS y DonPlastico
+        const asciiArt = `
+ ██████╗ ██████╗         ███████╗██╗   ██╗███████╗
+ ██╔══██╗██╔══██╗        ██╔════╝╚██╗ ██╔╝██╔════╝
+ ██║  ██║██████╔╝  █████╗███████╗ ╚████╔╝ ███████╗
+ ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
+ ██████╔╝██║             ███████║   ██║   ███████║
+ ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
+        
+   © DERECHOS DE AUTOR RESERVADOS - DonPlastico
+   SISTEMA DE GESTIÓN MULTIMEDIA V1.0
+        `;
+
+        // Lo pintamos de color Teal (secundario)
+        console.log(
+            `%c${asciiArt}`,
+            'color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 14px; text-shadow: 0 0 5px rgba(45, 212, 191, 0.5);'
+        );
+
+        console.log(
+            '%cSi eres un desarrollador y quieres colaborar, cierra esta ventana y contáctame.',
+            'color: #8888a0; font-size: 12px; font-style: italic; margin-top: 20px;'
+        );
+    }, 1000);
+
+    // 2. BLOQUEO DE TECLAS DE DESARROLLADOR Y CÓDIGO FUENTE
+    document.addEventListener('keydown', (e) => {
+        // Bloquear F12
+        if (e.key === 'F12' || e.keyCode === 123) {
+            e.preventDefault();
+            showToast('error', 'Acceso Denegado', 'Funciones de desarrollador bloqueadas por seguridad.');
+            return false;
+        }
+
+        // Bloquear Ctrl + Shift + I (Abrir inspector)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+            showToast('error', 'Acceso Denegado', 'Inspección de elementos no autorizada.');
+            return false;
+        }
+
+        // Bloquear Ctrl + Shift + J (Abrir consola directamente)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+            e.preventDefault();
+            showToast('error', 'Acceso Denegado', 'Acceso a la consola rechazado.');
+            return false;
+        }
+
+        // Bloquear Ctrl + Shift + C o Ctrl + U (Ver código fuente)
+        if ((e.ctrlKey && (e.key === 'U' || e.key === 'u')) || (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c'))) {
+            e.preventDefault();
+            showToast('error', 'Acceso Denegado', 'Lectura de código fuente restringida.');
+            return false;
+        }
+    });
+
+    // 3. BLOQUEAR CLIC DERECHO (Menú contextual)
+    // Descomenta la línea de abajo si también quieres bloquear el clic derecho del ratón en toda la web
+    document.addEventListener('contextmenu', (e) => {
+        // Excepción: Permitimos el clic derecho en nuestras tarjetas para que funcione el menú de "Añadir a lista" o el "Ojo"
+        if (e.target.closest('.game-card') || e.target.closest('#btn-watch-toggle')) {
+            return true;
+        }
+        e.preventDefault();
+        return false;
     });
 });
 
