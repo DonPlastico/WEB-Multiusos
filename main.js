@@ -6756,18 +6756,34 @@ async function cargarRecomendaciones(userId) {
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER VISIONADOS ORDENADOS POR FECHA
-        const { data: historialRaw, error } = await supabase
-            .from('user_media')
-            .select('media_id, tipo, fecha_vista')
-            .eq('user_id', userId)
-            .eq('visto', true)
-            .order('fecha_vista', { ascending: false })
-            .limit(200);
+        // 1. OBTENER TODO EL HISTORIAL (Bucle de paginación para historiales infinitos)
+        let historialRaw = [];
+        let keepFetching = true;
+        let currentOffset = 0;
+        const fetchLimit = 1000;
 
-        if (error) throw error;
+        while (keepFetching) {
+            const { data, error } = await supabase
+                .from('user_media')
+                .select('media_id, tipo, fecha_vista')
+                .eq('user_id', userId)
+                .eq('visto', true)
+                .order('fecha_vista', { ascending: false })
+                .range(currentOffset, currentOffset + fetchLimit - 1);
 
-        if (!historialRaw || historialRaw.length === 0) {
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                historialRaw.push(...data);
+                currentOffset += fetchLimit;
+                // Si nos devuelve menos de 1000, significa que ya hemos llegado al final
+                if (data.length < fetchLimit) keepFetching = false;
+            } else {
+                keepFetching = false;
+            }
+        }
+
+        if (historialRaw.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) {
                 empty.style.display = 'flex';
@@ -6782,26 +6798,30 @@ async function cargarRecomendaciones(userId) {
         const idsVistosGlobal = new Set();
 
         historialRaw.forEach(item => {
-            let baseId = item.media_id;
+            let baseId = item.media_id.toString();
             let baseTipo = item.tipo;
 
+            // Si es un episodio, extraemos la ID de la serie
             if (item.tipo === 'tv_episode') {
-                baseId = item.media_id.split('_')[0];
+                baseId = baseId.split('_')[0];
                 baseTipo = 'tv';
             }
 
+            // Agregamos a la lista de "recientes" solo una vez por obra
             if (!idsVistosGlobal.has(baseId)) {
                 historialUnico.push({ id: baseId, tipo: baseTipo });
             }
+
+            // EL ESCUDO: Guardamos absolutamente TODO lo que has visto en tu vida
             idsVistosGlobal.add(baseId);
         });
 
-        // Aumentamos el "colador" a 40 para tener mucho margen de donde escoger
+        // 3. SELECCIONAR LA SEMILLA (Obras recientes para basar las recomendaciones)
         const ultimos40 = historialUnico.slice(0, 40);
         const pelisRecientes = ultimos40.filter(item => item.tipo === 'movie');
         const seriesRecientes = ultimos40.filter(item => item.tipo === 'tv');
 
-        // 3. SELECCIÓN AMPLIADA: Hasta 8 Pelis y 8 Series al azar (Para poder mostrar hasta 15 o 16)
+        // Escogemos hasta 8 pelis y 8 series aleatorias de esas recientes
         const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
         const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
@@ -6815,31 +6835,32 @@ async function cargarRecomendaciones(userId) {
         let tarjetasGeneradas = [];
         const idsAñadidosMenu = new Set();
 
-        // 4. USAR EL CEREBRO DE TMDB PERO SACANDO SOLO 1 RECOMENDACIÓN POR OBRA
+        // 4. USAR EL CEREBRO DE TMDB Y FILTRAR CON EL ESCUDO
         for (const item of poolVisionados) {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                // A) Sacamos el nombre real de lo que viste
+                // Sacamos el nombre real de lo que viste
                 const resNombre = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal });
                 if (!resNombre.ok) { clearTimeout(timeoutId); continue; }
                 const dataNombre = await resNombre.json();
 
-                // B) Pedimos 10 similares para tener variedad
-                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=10&lang=${currentLang}`, { signal: controller.signal });
+                // Pedimos hasta 20 similares para tener mucho margen de descarte si tienes muchas vistas
+                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=20&lang=${currentLang}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
                 if (!resSimilares.ok) continue;
                 const similares = await resSimilares.json();
 
-                // C) BARAJAMOS los resultados y nos quedamos SOLO CON EL PRIMERO que sea válido
+                // Barajamos las opciones sugeridas por la IA
                 const similaresBarajados = similares.sort(() => 0.5 - Math.random());
 
+                // BUSCAMOS LA PRIMERA QUE NO HAYAS VISTO
                 for (const rec of similaresBarajados) {
                     const uniqueKey = `${item.tipo}_${rec.id}`;
 
-                    // Bloqueamos lo que ya has visto y evitamos duplicados en pantalla
+                    // ESCUDO EN ACCIÓN: ¿Está en tu historial global (idsVistosGlobal)? Si es así, la salta y prueba con otra.
                     if (!idsVistosGlobal.has(rec.id.toString()) && !idsAñadidosMenu.has(uniqueKey)) {
                         idsAñadidosMenu.add(uniqueKey);
                         tarjetasGeneradas.push(crearTarjetaRecomendacion({
@@ -6848,7 +6869,7 @@ async function cargarRecomendaciones(userId) {
                             obraOrigen: dataNombre.titulo,
                             puntuacion: 87 + (Math.random() * 11)
                         }));
-                        break; // ¡LA MAGIA ESTÁ AQUÍ! Encontramos 1 válida, paramos y pasamos a la siguiente obra.
+                        break; // Encontró una que NO has visto, rompe el bucle y pasa a la siguiente obra origen.
                     }
                 }
 
