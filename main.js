@@ -6833,8 +6833,8 @@ async function cargarRecomendaciones(userId) {
         const pelisRecientes = ultimos40.filter(item => item.tipo === 'movie');
         const seriesRecientes = ultimos40.filter(item => item.tipo === 'tv');
 
-        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
-        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 8);
+        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 7);
+        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 7);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
@@ -6900,7 +6900,7 @@ async function cargarRecomendaciones(userId) {
         } else {
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
 
-            const cantidadAleatoria = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+            const cantidadAleatoria = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
 
             container.innerHTML = '';
