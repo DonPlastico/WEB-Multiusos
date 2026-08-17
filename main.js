@@ -6829,12 +6829,14 @@ async function cargarRecomendaciones(userId) {
             idsVistosGlobal.add(baseId);
         });
 
-        const ultimos40 = historialUnico.slice(0, 40);
-        const pelisRecientes = ultimos40.filter(item => item.tipo === 'movie');
-        const seriesRecientes = ultimos40.filter(item => item.tipo === 'tv');
+        // Aumentamos a 60 para tener mucha más materia prima disponible
+        const ultimos60 = historialUnico.slice(0, 60);
+        const pelisRecientes = ultimos60.filter(item => item.tipo === 'movie');
+        const seriesRecientes = ultimos60.filter(item => item.tipo === 'tv');
 
-        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 7);
-        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 7);
+        // Seleccionamos hasta 12 pelis y 12 series aleatorias para garantizar que sobren opciones
+        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 12);
+        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 12);
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
@@ -6887,7 +6889,7 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // 5. PINTAR RESULTADOS FINALES (El innerHTML borra el loading y pone las cards)
+        // 5. PINTAR RESULTADOS FINALES CON CANTIDAD ALEATORIA REAL (7 a 16)
         if (tarjetasGeneradas.length === 0) {
             container.innerHTML = '';
             if (empty) {
@@ -6900,7 +6902,8 @@ async function cargarRecomendaciones(userId) {
         } else {
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
 
-            const cantidadAleatoria = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
+            // Rango exacto de 7 a 16 (incluyendo el 16)
+            const cantidadAleatoria = Math.floor(Math.random() * (16 - 7 + 1)) + 7;
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
 
             container.innerHTML = '';
@@ -6917,6 +6920,7 @@ async function cargarRecomendaciones(userId) {
             empty.style.display = 'flex';
             const p = empty.querySelector('p');
             if (p) p.textContent = 'Error cargando recomendaciones: ' + error.message;
+            container.innerHTML = '';
             container.appendChild(empty);
         }
     }
