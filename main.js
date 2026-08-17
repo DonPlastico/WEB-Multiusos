@@ -11047,6 +11047,172 @@ function crearTarjetaTrendSerie(serie, posicion) {
     return card;
 }
 
+// ==========================================================================
+//   LO MÁS POPULAR (MEZCLA JUEGOS + PELÍCULAS + SERIES POR PERIODO)
+// ==========================================================================
+
+let popularCargando = false;
+let popularPeriod = 'month';
+const cachePopular = {}; // { month: [...], year: [...], all: [...] }
+
+// Calcula dateMin/dateMax en formato YYYY-MM-DD para TMDB según el periodo
+function calcularRangoFechasPopular(period) {
+    const hoy = new Date();
+    const dateMax = hoy.toISOString().split('T')[0];
+    let dateMin = null;
+
+    if (period === 'month') {
+        const inicio = new Date(hoy);
+        inicio.setMonth(hoy.getMonth() - 1);
+        dateMin = inicio.toISOString().split('T')[0];
+    } else if (period === 'year') {
+        const inicio = new Date(hoy);
+        inicio.setFullYear(hoy.getFullYear() - 1);
+        dateMin = inicio.toISOString().split('T')[0];
+    }
+    // period === 'all' -> sin rango de fechas (dateMin queda null)
+
+    return { dateMin, dateMax };
+}
+
+async function cargarPopular(period = 'month', resetear = true) {
+    await translationsReadyPromise;
+    if (popularCargando) return;
+    popularCargando = true;
+
+    const container = document.getElementById('popular-all');
+    if (!container) {
+        popularCargando = false;
+        return;
+    }
+
+    // 1. CACHÉ EN MEMORIA (instantáneo si ya se cargó este periodo antes)
+    if (resetear && cachePopular[period]) {
+        container.innerHTML = '';
+        cachePopular[period].forEach(({ tipo, data }, index) => {
+            const card = crearTarjetaPopular(data, tipo, index + 1);
+            if (card) container.appendChild(card);
+        });
+        popularPeriod = period;
+        setTimeout(() => { container.scrollLeft = 0; }, 50);
+        popularCargando = false;
+        return;
+    }
+
+    if (resetear) {
+        container.innerHTML = `
+            <div class="trends-loading">
+                <i class="fas fa-circle-notch fa-spin"></i>
+                <span>Cargando lo más popular...</span>
+            </div>
+        `;
+    }
+
+    try {
+        const { dateMin, dateMax } = calcularRangoFechasPopular(period);
+
+        // ==== JUEGOS (IGDB) ====
+        let urlJuegos = `/api/igdb?offset=0&limit=7&sort=popularity.desc&lang=${currentLang}`;
+        if (period === 'month') urlJuegos += `&period=month`;
+        else if (period === 'year') urlJuegos += `&period=year`;
+        // 'all' -> sin filtro de fecha, IGDB devuelve lo más popular de siempre
+
+        // ==== PELÍCULAS Y SERIES (TMDB discover, ya ordena por popularidad) ====
+        let urlPelis = `/api/tmdb?tipo=movie&lang=${currentLang}&_=${Date.now()}`;
+        let urlSeries = `/api/tmdb?tipo=tv&lang=${currentLang}&_=${Date.now()}`;
+        if (dateMin) {
+            urlPelis += `&dateMin=${dateMin}&dateMax=${dateMax}`;
+            urlSeries += `&dateMin=${dateMin}&dateMax=${dateMax}`;
+        }
+
+        const [resJuegos, resPelis, resSeries] = await Promise.all([
+            fetch(urlJuegos).catch(() => ({ ok: false })),
+            fetch(urlPelis).catch(() => ({ ok: false })),
+            fetch(urlSeries).catch(() => ({ ok: false }))
+        ]);
+
+        const dataJuegosRaw = resJuegos.ok ? await resJuegos.json() : [];
+        const dataPelis = resPelis.ok ? await resPelis.json() : [];
+        const dataSeries = resSeries.ok ? await resSeries.json() : [];
+
+        // igdb.js devuelve { juegos: [...] }, tmdb.js devuelve un array plano
+        const juegosArray = Array.isArray(dataJuegosRaw?.juegos) ? dataJuegosRaw.juegos : (Array.isArray(dataJuegosRaw) ? dataJuegosRaw : []);
+
+        const juegos = juegosArray.slice(0, 7);
+        const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 7) : [];
+        const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 7) : [];
+
+        if (juegos.length === 0 && pelis.length === 0 && series.length === 0) {
+            container.innerHTML = `
+                <div class="trends-empty">
+                    <i class="fas fa-star"></i>
+                    <span>No se encontró contenido popular para este periodo.</span>
+                </div>
+            `;
+            popularCargando = false;
+            return;
+        }
+
+        // Intercalamos: juego1, peli1, serie1, juego2, peli2, serie2...
+        const mezclados = [];
+        for (let i = 0; i < 7; i++) {
+            if (juegos[i]) mezclados.push({ tipo: 'game', data: juegos[i] });
+            if (pelis[i]) mezclados.push({ tipo: 'movie', data: pelis[i] });
+            if (series[i]) mezclados.push({ tipo: 'tv', data: series[i] });
+        }
+
+        // GUARDAMOS EN CACHÉ
+        if (resetear) {
+            cachePopular[period] = mezclados;
+        }
+
+        container.innerHTML = '';
+        mezclados.forEach((item, index) => {
+            const card = crearTarjetaPopular(item.data, item.tipo, index + 1);
+            if (card) container.appendChild(card);
+        });
+
+        popularPeriod = period;
+        setTimeout(() => { container.scrollLeft = 0; }, 100);
+
+    } catch (error) {
+        console.error('Error cargando lo más popular:', error);
+        container.innerHTML = `
+            <div class="trends-empty">
+                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                <span>Error cargando lo más popular.</span>
+                <button onclick="cargarPopular('${period}', true)"
+                        style="margin-top: 10px; background: var(--primary); border: none; color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                    <i class="fas fa-redo"></i> ${t('common.retry')}
+                </button>
+            </div>
+        `;
+    }
+    popularCargando = false;
+}
+
+// Delega en las tarjetas ya existentes según el tipo, para que el click
+// abra el mismo modal que en Tendencias (juegos/pelis/series)
+function crearTarjetaPopular(item, tipo, posicion) {
+    if (tipo === 'game') return crearTarjetaTrend(item, posicion);
+    if (tipo === 'movie') return crearTarjetaTrendPelicula(item, posicion);
+    if (tipo === 'tv') return crearTarjetaTrendSerie(item, posicion);
+    return null;
+}
+
+// Carga inicial (se llama junto al resto de tendencias del home)
+let popularCargado = false;
+function cargarPopularInicial() {
+    const container = document.getElementById('popular-all');
+    if (!container) return;
+    if (popularCargado) return;
+    cargarPopular('month', true);
+    popularCargado = true;
+}
+
+// Exponemos globalmente por si algún onclick inline lo necesita
+window.cargarPopular = cargarPopular;
+
 // Cargar tendencias de series al inicio
 function cargarTendenciasSeriesInicial() {
     const container = document.getElementById('trend-series');
