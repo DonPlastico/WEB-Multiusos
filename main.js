@@ -3997,13 +3997,13 @@ userMenu.innerHTML = `
     <div class="dropdown-divider"></div>
     
     <button class="theme-option" id="btn-import-tvtime">
-        <i class="fas fa-file-import" style="color: var(--success);"></i>
-        <span style="color: var(--success);">Importar TV Time</span>
+        <i class="fas fa-file-import"></i>
+        <span>Importar TV Time</span>
     </button>
     
     <button class="theme-option" id="btn-export-data">
-        <i class="fas fa-file-export" style="color: var(--primary);"></i>
-        <span style="color: var(--primary);">Exportar mis datos</span>
+        <i class="fas fa-file-export"></i>
+        <span>Exportar mis datos</span>
     </button>
     
     <div class="dropdown-divider"></div>
