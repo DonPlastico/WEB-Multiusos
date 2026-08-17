@@ -14048,6 +14048,47 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
     }
 });
 
+// ==========================================================================
+//   SISTEMA DE COOKIES
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const cookieBanner = document.getElementById('cookie-banner');
+    const btnAccept = document.getElementById('cookie-accept');
+    const btnMoreInfo = document.getElementById('cookie-more-info');
+    const cookieDetails = document.getElementById('cookie-details');
+
+    if (!cookieBanner) return;
+
+    // Comprobamos si el usuario ya aceptó las cookies previamente
+    const cookiesAccepted = localStorage.getItem('dp_sys_cookies_accepted');
+
+    // Si no las ha aceptado, mostramos el banner con un pequeño delay para que la animación se vea suave
+    if (!cookiesAccepted) {
+        setTimeout(() => {
+            cookieBanner.classList.add('show');
+        }, 1200);
+    }
+
+    // Lógica para guardar la aceptación y ocultar el banner
+    btnAccept?.addEventListener('click', () => {
+        localStorage.setItem('dp_sys_cookies_accepted', 'true');
+        cookieBanner.classList.remove('show');
+    });
+
+    // Lógica para desplegar / ocultar los detalles de las cookies
+    let detailsVisible = false;
+    btnMoreInfo?.addEventListener('click', () => {
+        detailsVisible = !detailsVisible;
+        if (detailsVisible) {
+            cookieDetails.style.display = 'flex';
+            btnMoreInfo.innerHTML = 'Ocultar detalles ▲';
+        } else {
+            cookieDetails.style.display = 'none';
+            btnMoreInfo.innerHTML = 'Más información ▼';
+        }
+    });
+});
+
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
 // ==========================================
