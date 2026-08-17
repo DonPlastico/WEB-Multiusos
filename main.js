@@ -5597,7 +5597,8 @@ function renderGaleriaMediaJuego(juego) {
             thumb.setAttribute('data-video-id', item.id);
             thumb.setAttribute('data-label', item.label);
             thumb.innerHTML = `
-                <img src="${item.thumbnail}" alt="${item.label}" loading="lazy">
+                <!-- Le metemos el onerror por si el vídeo del juego ya no existe en YouTube -->
+                <img src="${item.thumbnail}" alt="${item.label}" loading="lazy" onerror="this.src='https://placehold.co/320x180/1a1a24/6b6b7a?text=VIDEO+NO+DISPONIBLE'">
                 <div class="thumb-play-icon-overlay">
                     <i class="fas fa-play"></i>
                 </div>
@@ -6069,7 +6070,17 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             // Si tenemos ID de trailer de YouTube, lo usamos
             urlTrailer = `https://www.youtube.com/watch?v=${data.trailer_id}`;
             document.getElementById('media-detail-trailer-duration').textContent = t('details_extra.official');
-            document.getElementById('media-detail-trailer-img').src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
+
+            // Cogemos la imagen del trailer
+            const trailerImg = document.getElementById('media-detail-trailer-img');
+            trailerImg.src = `https://img.youtube.com/vi/${data.trailer_id}/mqdefault.jpg`;
+
+            // PLAN B: Si el vídeo fue borrado de YouTube (Da error 404), ponemos el banner de la película
+            trailerImg.onerror = function () {
+                this.src = data.backdrop || data.poster;
+                this.onerror = null; // Quitamos el evento para no hacer un bucle infinito
+            };
+
         } else {
             // Si no, hacemos una busqueda en YouTube con el titulo + "Trailer español"
             const tituloLimpio = data.titulo.replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, '+');
