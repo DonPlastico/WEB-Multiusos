@@ -2936,6 +2936,20 @@
     </main>
 
     <!-- ============================================================ -->
+    <!--   ALERTA SUPERIOR FIJA (SI SE RECHAZAN COOKIES)              -->
+    <!-- ============================================================ -->
+    <div id="cookie-top-alert" class="cookie-top-alert" style="display: none;">
+        <div class="cookie-top-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span><strong>ADVERTENCIA:</strong> Has rechazado las cookies. Algunas funciones críticas del Nexus
+                (sesiones, temas, guardado local) estarán deshabilitadas.</span>
+        </div>
+        <button id="btn-reopen-cookies" class="auth-btn secondary cookie-reopen-btn">
+            <i class="fas fa-cookie-bite"></i> GESTIONAR
+        </button>
+    </div>
+
+    <!-- ============================================================ -->
     <!--   SISTEMA DE COOKIES                                         -->
     <!-- ============================================================ -->
     <div id="cookie-banner" class="cookie-banner-container">
@@ -2948,9 +2962,9 @@
                         almacenamiento local. No hay cookies de publicidad ni analítica.
                     </p>
                 </div>
-                <button id="cookie-more-info" class="cookie-more-btn">Más información ▼</button>
+                <button id="cookie-more-info" class="cookie-more-btn">Ocultar detalles ▲</button>
 
-                <div id="cookie-details" class="cookie-details" style="display: none;">
+                <div id="cookie-details" class="cookie-details">
                     <div class="cookie-detail-item">
                         <span class="cookie-name">sb_access_token (Supabase)</span>
                         <span class="cookie-badge">Necesaria</span>
@@ -2966,7 +2980,8 @@
                 </div>
             </div>
             <div class="cookie-action-section">
-                <button id="cookie-accept" class="auth-btn primary">Aceptar</button>
+                <button id="cookie-reject" class="auth-btn secondary">RECHAZAR</button>
+                <button id="cookie-accept" class="auth-btn primary btn-pink">ACEPTAR</button>
             </div>
         </div>
     </div>

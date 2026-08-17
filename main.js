@@ -14053,30 +14053,63 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     const cookieBanner = document.getElementById('cookie-banner');
+    const cookieTopAlert = document.getElementById('cookie-top-alert');
+
     const btnAccept = document.getElementById('cookie-accept');
+    const btnReject = document.getElementById('cookie-reject');
+    const btnReopen = document.getElementById('btn-reopen-cookies');
     const btnMoreInfo = document.getElementById('cookie-more-info');
     const cookieDetails = document.getElementById('cookie-details');
 
     if (!cookieBanner) return;
 
-    // Comprobamos si el usuario ya aceptó las cookies previamente
-    const cookiesAccepted = localStorage.getItem('dp_sys_cookies_accepted');
+    // Leemos el estado actual. Puede ser 'accepted', 'rejected' o null.
+    const cookieStatus = localStorage.getItem('dp_sys_cookies_status');
 
-    // Si no las ha aceptado, mostramos el banner con un pequeño delay para que la animación se vea suave
-    if (!cookiesAccepted) {
-        setTimeout(() => {
-            cookieBanner.classList.add('show');
-        }, 1200);
-    }
+    // Función para manejar la vista según el estado
+    const applyCookieStatus = (status) => {
+        if (status === 'accepted') {
+            cookieBanner.classList.remove('show');
+            cookieTopAlert.style.display = 'none';
+            // Para asegurar que no solapa con el navbar, quitamos margen al body
+            document.body.style.marginTop = '0';
 
-    // Lógica para guardar la aceptación y ocultar el banner
+        } else if (status === 'rejected') {
+            cookieBanner.classList.remove('show');
+            cookieTopAlert.style.display = 'flex';
+            // Empujamos el body hacia abajo para que la alerta no tape el navbar
+            document.body.style.marginTop = cookieTopAlert.offsetHeight + 'px';
+
+        } else {
+            // Estado inicial o forzado (banner abierto)
+            cookieTopAlert.style.display = 'none';
+            document.body.style.marginTop = '0';
+            setTimeout(() => cookieBanner.classList.add('show'), 500);
+        }
+    };
+
+    // Aplicamos el estado inicial al cargar
+    applyCookieStatus(cookieStatus);
+
+    // Botón ACEPTAR
     btnAccept?.addEventListener('click', () => {
-        localStorage.setItem('dp_sys_cookies_accepted', 'true');
-        cookieBanner.classList.remove('show');
+        localStorage.setItem('dp_sys_cookies_status', 'accepted');
+        applyCookieStatus('accepted');
     });
 
-    // Lógica para desplegar / ocultar los detalles de las cookies
-    let detailsVisible = false;
+    // Botón RECHAZAR
+    btnReject?.addEventListener('click', () => {
+        localStorage.setItem('dp_sys_cookies_status', 'rejected');
+        applyCookieStatus('rejected');
+    });
+
+    // Botón GESTIONAR (Reabrir desde la alerta)
+    btnReopen?.addEventListener('click', () => {
+        applyCookieStatus('reopen');
+    });
+
+    // Lógica para desplegar / ocultar los detalles
+    let detailsVisible = true; // Empieza visible como en tu imagen
     btnMoreInfo?.addEventListener('click', () => {
         detailsVisible = !detailsVisible;
         if (detailsVisible) {
@@ -14085,6 +14118,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             cookieDetails.style.display = 'none';
             btnMoreInfo.innerHTML = 'Más información ▼';
+        }
+    });
+
+    // Si la alerta superior cambia de tamaño, ajustamos el margen
+    window.addEventListener('resize', () => {
+        if (cookieTopAlert.style.display !== 'none') {
+            document.body.style.marginTop = cookieTopAlert.offsetHeight + 'px';
         }
     });
 });
