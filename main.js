@@ -2134,7 +2134,7 @@ async function cargarJuegosIGDB(busqueda = '', resetear = true, filtros = null) 
         } else if (juegosConPortada.length > 0 && !hasMore) {
             // Si no hay mas juegos, mostramos un mensaje de fin
             const finDiv = document.createElement('div');
-            finDiv.id = 'fin-juegos';
+            finDiv.className = 'fin-juegos';
             finDiv.style = "grid-column: 1 / -1; text-align: center; margin: 2rem 0; padding: 20px; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border);";
             finDiv.innerHTML = `<i class="fas fa-flag-checkered" style="margin-right: 8px;"></i> ${t('games.no_more_results') || 'No hay más juegos para cargar'}`;
             gridJuegos.after(finDiv);
