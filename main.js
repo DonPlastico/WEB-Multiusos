@@ -6897,146 +6897,110 @@ async function cargarRecomendaciones(userId) {
         }
 
         // Por cada serie que el usuario ha visto, verificamos si la ha completado
-        for (const serieId of idsSeriesUnicas) {
-            try {
+        // (EN PARALELO por lotes de 4, para no tardar 1 serie tras otra)
+        const CHUNK_SERIES = 4;
+        for (let i = 0; i < idsSeriesUnicas.length; i += CHUNK_SERIES) {
+            const lote = idsSeriesUnicas.slice(i, i + CHUNK_SERIES);
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
+            await Promise.all(lote.map(async (serieId) => {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                // Usar tipo=tv para obtener temporadas_info
-                const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
+                    const res = await fetch(`/api/tmdb?id=${serieId}&tipo=tv&lang=${currentLang}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
 
-                if (!res.ok) {
-                    console.warn(`⚠️ Error en TMDB para serie ${serieId}: ${res.status}`);
-                    continue;
-                }
-                const data = await res.json();
+                    if (!res.ok) return;
+                    const data = await res.json();
 
-                // VERIFICAR QUE EXISTE temporadas_info
-                if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) {
-                    console.warn(`⚠️ Serie ${serieId} no tiene temporadas_info`);
-                    continue;
-                }
+                    if (!data.temporadas_info || !Array.isArray(data.temporadas_info)) return;
 
-                // Filtramos temporadas especiales (season_number 0)
-                const temporadasReales = data.temporadas_info.filter(s => s.season_number > 0);
-                const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+                    const temporadasReales = data.temporadas_info.filter(s => s.season_number > 0);
+                    const totalEpisodios = temporadasReales.reduce((acc, s) => acc + s.episode_count, 0);
+                    if (totalEpisodios === 0) return;
 
-                if (totalEpisodios === 0) {
-                    console.warn(`⚠️ Serie ${serieId} sin episodios`);
-                    continue;
-                }
-
-                // Contamos cuantos episodios de esta serie ha visto el usuario
-                let vistosSerie = 0;
-                for (const temp of temporadasReales) {
-                    for (let ep = 1; ep <= temp.episode_count; ep++) {
-                        const mediaId = `${serieId}_T${temp.season_number}_E${ep}`;
-                        if (episodiosSet.has(mediaId)) vistosSerie++;
+                    let vistosSerie = 0;
+                    for (const temp of temporadasReales) {
+                        for (let ep = 1; ep <= temp.episode_count; ep++) {
+                            const mediaId = `${serieId}_T${temp.season_number}_E${ep}`;
+                            if (episodiosSet.has(mediaId)) vistosSerie++;
+                        }
                     }
-                }
 
-                // SI ESTÁ COMPLETADA (100%)
-                if (vistosSerie >= totalEpisodios && totalEpisodios > 0) {
+                    if (vistosSerie < totalEpisodios || totalEpisodios === 0) return;
+
                     let generosTexto = data.generos || '';
-
                     const titulo = data.titulo || '';
                     const sinopsis = data.sinopsis || '';
-                    // Detectamos si es un K-Drama para forzar generos de romance/drama
                     const esKdrama = titulo.includes('K-Drama') ||
                         titulo.includes('Corea') ||
                         titulo.includes('Korean') ||
                         sinopsis.includes('coreano') ||
                         sinopsis.includes('K-drama');
 
-                    if (esKdrama) {
-                        generosTexto = 'Romance, Drama, Comedia';
-                    }
-
-                    if (generosTexto === 'N/A' || generosTexto === '' || !generosTexto) {
-                        console.warn(`⚠️ Serie ${serieId} sin géneros`);
-                        continue;
-                    }
+                    if (esKdrama) generosTexto = 'Romance, Drama, Comedia';
+                    if (generosTexto === 'N/A' || !generosTexto) return;
 
                     const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
-                    if (generosList.length === 0) continue;
+                    if (generosList.length === 0) return;
 
                     const generoPrincipal = generosList[0];
-                    // Recomendamos 1 película basada en el genero de la serie
-                    try {
-                        const controllerRec = new AbortController();
-                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
 
-                        const resMovie = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, {
-                            signal: controllerRec.signal
+                    const [resMovie, resTv] = await Promise.all([
+                        (async () => {
+                            try {
+                                const c = new AbortController();
+                                const t = setTimeout(() => c.abort(), 5000);
+                                const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, { signal: c.signal });
+                                clearTimeout(t);
+                                return r.ok ? await r.json() : [];
+                            } catch (_) { return []; }
+                        })(),
+                        (async () => {
+                            try {
+                                const c = new AbortController();
+                                const t = setTimeout(() => c.abort(), 5000);
+                                const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, { signal: c.signal });
+                                clearTimeout(t);
+                                return r.ok ? await r.json() : [];
+                            } catch (_) { return []; }
+                        })()
+                    ]);
+
+                    resMovie.forEach(item => {
+                        const idStr = item.id.toString();
+                        if (idStr === serieId) return;
+                        if (container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`)) return;
+                        const card = crearTarjetaRecomendacion({
+                            ...item, tipo: 'movie', generoCoincidencia: generoPrincipal,
+                            puntuacion: 88 - (Math.random() * 10)
                         });
-                        clearTimeout(timeoutRec);
+                        container.appendChild(card);
+                        recuentoRecomendaciones++;
+                    });
 
-                        if (resMovie.ok) {
-                            const movies = await resMovie.json();
-                            movies.forEach(item => {
-                                const idStr = item.id.toString();
-                                if (idStr === serieId) return;
-                                const existing = container.querySelector(`[data-id="${idStr}"][data-tipo="movie"]`);
-                                if (existing) return;
-
-                                const card = crearTarjetaRecomendacion({
-                                    ...item,
-                                    tipo: 'movie',
-                                    generoCoincidencia: generoPrincipal,
-                                    puntuacion: 88 - (Math.random() * 10)
-                                });
-                                container.appendChild(card);
-                                recuentoRecomendaciones++;
-                            });
-                        }
-                    } catch (e) {
-                        console.warn(`⏱️ Timeout en recomendación de película para serie ${serieId}`);
-                    }
-
-                    // Recomendamos 1 serie basada en el mismo genero
-                    try {
-                        const controllerRec = new AbortController();
-                        const timeoutRec = setTimeout(() => controllerRec.abort(), 5000);
-
-                        const resTv = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=1&lang=${currentLang}`, {
-                            signal: controllerRec.signal
+                    resTv.forEach(item => {
+                        const idStr = item.id.toString();
+                        if (idStr === serieId) return;
+                        if (container.querySelector(`[data-id="${idStr}"][data-tipo="tv"]`)) return;
+                        const card = crearTarjetaRecomendacion({
+                            ...item, tipo: 'tv', generoCoincidencia: generoPrincipal,
+                            puntuacion: 85 - (Math.random() * 10)
                         });
-                        clearTimeout(timeoutRec);
-
-                        if (resTv.ok) {
-                            const series = await resTv.json();
-                            series.forEach(item => {
-                                const idStr = item.id.toString();
-                                if (idStr === serieId) return;
-                                const existing = container.querySelector(`[data-id="${idStr}"][data-tipo="tv"]`);
-                                if (existing) return;
-
-                                const card = crearTarjetaRecomendacion({
-                                    ...item,
-                                    tipo: 'tv',
-                                    generoCoincidencia: generoPrincipal,
-                                    puntuacion: 85 - (Math.random() * 10)
-                                });
-                                container.appendChild(card);
-                                recuentoRecomendaciones++;
-                            });
-                        }
-                    } catch (e) {
-                        console.warn(`⏱️ Timeout en recomendación de serie para ${serieId}`);
-                    }
+                        container.appendChild(card);
+                        recuentoRecomendaciones++;
+                    });
 
                     if (emptyMsg) {
                         emptyMsg.innerHTML = `<i class="fas fa-sparkles" style="margin-right: 4px;"></i> ${recuentoRecomendaciones} recomendaciones basadas en ${generoPrincipal}`;
                     }
-                }
 
-            } catch (e) {
-                console.warn('❌ Error verificando serie', serieId, e);
-            }
+                } catch (e) {
+                    console.warn('❌ Error verificando serie', serieId, e);
+                }
+            }));
         }
 
         // 7. FINAL: Ocultar loading y mostrar estado final

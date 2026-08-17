@@ -188,10 +188,17 @@ export default async function handler(req, res) {
             const genero = query.genero;
             const limit = parseInt(query.limit) || 6;
 
-            // Primero obtenemos la lista de generos para encontrar el ID
-            const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
-            const genreRes = await fetch(genreUrl, { headers });
-            const genreData = await genreRes.json();
+            // Primero obtenemos la lista de generos para encontrar el ID (con caché 24h)
+            const genreCacheKey = `tmdbGenres_${tipo}_${tmdbLang}`;
+            let genreData = global[genreCacheKey]?.data;
+            const genreExpirado = !global[genreCacheKey] || global[genreCacheKey].expires_at < Date.now();
+
+            if (!genreData || genreExpirado) {
+                const genreUrl = `${baseUrl}/genre/${tipo}/list?language=${tmdbLang}`;
+                const genreRes = await fetch(genreUrl, { headers });
+                genreData = await genreRes.json();
+                global[genreCacheKey] = { data: genreData, expires_at: Date.now() + (24 * 60 * 60 * 1000) };
+            }
 
             let genreId = null;
             const generoLower = genero.toLowerCase().trim();
