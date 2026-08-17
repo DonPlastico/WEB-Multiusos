@@ -6798,7 +6798,7 @@ async function cargarRecomendaciones(userId) {
             if (!idsVistosGlobal.has(baseId)) {
                 historialUnico.push({ id: baseId, tipo: baseTipo });
             }
-            
+
             // Pero lo guardamos siempre en el Set global para que NUNCA se te recomiende algo que ya viste
             idsVistosGlobal.add(baseId);
         });
@@ -6879,11 +6879,14 @@ async function cargarRecomendaciones(userId) {
                 resMovie.forEach(rec => {
                     const uniqueKey = `movie_${rec.id}`;
                     // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
-                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return; 
-                    
+                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
+
                     idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
-                        ...rec, tipo: 'movie', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
+                        ...rec,
+                        tipo: 'movie',
+                        obraOrigen: data.titulo, // Pasamos el título de la obra que generó esto
+                        puntuacion: 85 + (Math.random() * 12)
                     }));
                 });
 
@@ -6891,11 +6894,14 @@ async function cargarRecomendaciones(userId) {
                 resTv.forEach(rec => {
                     const uniqueKey = `tv_${rec.id}`;
                     // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
-                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return; 
-                    
+                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
+
                     idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
-                        ...rec, tipo: 'tv', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
+                        ...rec,
+                        tipo: 'tv',
+                        obraOrigen: data.titulo, // Pasamos el título de la obra que generó esto
+                        puntuacion: 85 + (Math.random() * 12)
                     }));
                 });
 
@@ -6921,7 +6927,7 @@ async function cargarRecomendaciones(userId) {
             tarjetasFinales.forEach(card => container.appendChild(card));
 
             if (empty) empty.style.display = 'none';
-            if (btnRefresh) btnRefresh.style.display = 'flex'; 
+            if (btnRefresh) btnRefresh.style.display = 'flex';
         }
 
     } catch (error) {
@@ -6943,7 +6949,8 @@ async function cargarRecomendaciones(userId) {
 function crearTarjetaRecomendacion(item) {
     const poster = item.poster || '';
     const titulo = item.titulo || t('common.untitled');
-    const generoMatch = item.generoCoincidencia || 'recomendado';
+    // Si tenemos la obra de origen, mostramos el texto personalizado. Si no, un texto genérico.
+    const motivoTexto = item.obraOrigen ? `Porque has visto <strong>${item.obraOrigen}</strong>` : 'Recomendado para ti';
     const puntuacion = Math.round(item.puntuacion || 85);
     const tipoLabel = item.tipo === 'movie' ? '🎬 PELÍCULA' : '📺 SERIE';
     const esPelicula = item.tipo === 'movie';
@@ -6968,9 +6975,8 @@ function crearTarjetaRecomendacion(item) {
                 <div class="watchlist-ep-title">
                     <span class="watchlist-ep-code">${titulo}</span>
                 </div>
-                <div class="watchlist-ep-name">Porque te gusta ${generoMatch}</div>
+                <div class="watchlist-ep-name">${motivoTexto}</div>
             </div>
-            <!-- El title ahora dice Guardar en lista -->
             <button class="watchlist-check-btn" title="Guardar en lista">
                 <i class="fa-solid fa-plus"></i>
             </button>
@@ -6983,12 +6989,11 @@ function crearTarjetaRecomendacion(item) {
         abrirModalMedia(item.id, item.tipo);
     });
 
-    // CAMBIADO: Evento exclusivo para el boton "+" para abrir las listas
+    // Evento exclusivo para el boton "+" para abrir las listas
     const btnDetail = card.querySelector('.watchlist-check-btn');
     if (btnDetail) {
         btnDetail.addEventListener('click', (e) => {
             e.stopPropagation();
-            // ¡AQUÍ ESTÁ LA MAGIA! Llamamos al menú de listas en vez del modal de detalles
             abrirMenuAddToList(e, item.id, item.tipo);
         });
     }
