@@ -6758,19 +6758,18 @@ async function cargarRecomendaciones(userId) {
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER TODOS LOS VISIONADOS
-        const { data: todosVistos, error } = await supabase
+        // 1. OBTENER VISIONADOS ORDENADOS POR FECHA (Traemos bastantes por si hay muchos episodios sueltos)
+        const { data: historialRaw, error } = await supabase
             .from('user_media')
-            .select('media_id, tipo, fecha_vista, veces_vista')
+            .select('media_id, tipo, fecha_vista')
             .eq('user_id', userId)
             .eq('visto', true)
-            .in('tipo', ['movie', 'tv'])
-            .order('fecha_vista', { ascending: false });
+            .order('fecha_vista', { ascending: false })
+            .limit(200);
 
         if (error) throw error;
 
-        // Si no ha visto nada, mostramos un mensaje vacio
-        if (!todosVistos || todosVistos.length === 0) {
+        if (!historialRaw || historialRaw.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) {
                 empty.style.display = 'flex';
@@ -6780,39 +6779,53 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // 2. SEPARAR Y UNIFICAR HISTORIAL
-        const peliculasVistas = todosVistos.filter(item => item.tipo === 'movie').map(p => p.media_id);
+        // 2. AGRUPAR EPISODIOS Y LIMPIAR DUPLICADOS
+        // Así, si has visto 24 episodios de una serie hoy, cuenta como 1 sola serie reciente.
+        const historialUnico = [];
+        const idsVistosGlobal = new Set(); // Guardamos TODO lo que ha visto para no recomendarlo luego
 
-        const { data: episodiosVistos } = await supabase
-            .from('user_media')
-            .select('media_id')
-            .eq('user_id', userId)
-            .eq('tipo', 'tv_episode')
-            .eq('visto', true);
+        historialRaw.forEach(item => {
+            let baseId = item.media_id;
+            let baseTipo = item.tipo;
 
-        const seriesDesdeEpisodios = (episodiosVistos || []).map(ep => ep.media_id.split('_')[0]);
-        const seriesMarcadas = todosVistos.filter(item => item.tipo === 'tv').map(s => s.media_id);
+            // Si es un episodio (ej: 12345_T1_E1), sacamos la ID de la serie original (12345)
+            if (item.tipo === 'tv_episode') {
+                baseId = item.media_id.split('_')[0];
+                baseTipo = 'tv';
+            }
 
-        // Juntamos todos los IDs únicos (tanto pelis como series)
-        const historialMixto = [
-            ...peliculasVistas.map(id => ({ id, tipo: 'movie' })),
-            ...[...new Set([...seriesMarcadas, ...seriesDesdeEpisodios])].map(id => ({ id, tipo: 'tv' }))
-        ];
+            // Lo añadimos al historial único solo si es la primera vez que lo vemos (es decir, el más reciente)
+            if (!idsVistosGlobal.has(baseId)) {
+                historialUnico.push({ id: baseId, tipo: baseTipo });
+            }
+            
+            // Pero lo guardamos siempre en el Set global para que NUNCA se te recomiende algo que ya viste
+            idsVistosGlobal.add(baseId);
+        });
 
-        if (historialMixto.length === 0) {
+        // 3. COGER LOS 27 ÚLTIMOS TÍTULOS (Películas y Series únicas)
+        const ultimos27 = historialUnico.slice(0, 27);
+
+        // Separamos en películas y series
+        const pelisRecientes = ultimos27.filter(item => item.tipo === 'movie');
+        const seriesRecientes = ultimos27.filter(item => item.tipo === 'tv');
+
+        // 4. SELECCIÓN 50/50: 3 Pelis al azar y 3 Series al azar (de entre tus últimas 27)
+        const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+        const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
+
+        if (poolVisionados.length === 0) {
             if (loading) loading.style.display = 'none';
             if (empty) empty.style.display = 'flex';
             return;
         }
 
-        // 3. ALEATORIEDAD DEL HISTORIAL: Elegimos 6 elementos al azar de lo que ha visto
-        const poolVisionados = historialMixto.sort(() => 0.5 - Math.random()).slice(0, 6);
-
-        // Aquí guardaremos las tarjetas antes de inyectarlas para poder barajarlas
         let tarjetasGeneradas = [];
-        const idsAñadidos = new Set(); // Para evitar duplicados en la pantalla
+        const idsAñadidosMenu = new Set(); // Para no duplicar resultados en la pantalla
 
-        // 4. PROCESAR CADA ELEMENTO PARA BUSCAR RECOMENDACIONES
+        // 5. PROCESAR CADA ELEMENTO PARA BUSCAR RECOMENDACIONES
         for (const item of poolVisionados) {
             try {
                 const controller = new AbortController();
@@ -6840,7 +6853,7 @@ async function cargarRecomendaciones(userId) {
                 // Elegimos un género al azar del elemento que vio
                 const generoPrincipal = generosList[Math.floor(Math.random() * generosList.length)];
 
-                // BUSCAMOS 1 PELI Y 1 SERIE POR CADA COSA QUE HA VISTO (Equilibrio perfecto)
+                // BUSCAMOS 1 PELI Y 1 SERIE POR CADA COSA QUE HA VISTO
                 const [resMovie, resTv] = await Promise.all([
                     (async () => {
                         try {
@@ -6865,10 +6878,10 @@ async function cargarRecomendaciones(userId) {
                 // Procesamos la película recomendada
                 resMovie.forEach(rec => {
                     const uniqueKey = `movie_${rec.id}`;
-                    if (rec.id.toString() === item.id && item.tipo === 'movie') return; // No auto-recomendar
-                    if (idsAñadidos.has(uniqueKey)) return; // No duplicar
-
-                    idsAñadidos.add(uniqueKey);
+                    // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
+                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return; 
+                    
+                    idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
                         ...rec, tipo: 'movie', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
                     }));
@@ -6877,10 +6890,10 @@ async function cargarRecomendaciones(userId) {
                 // Procesamos la serie recomendada
                 resTv.forEach(rec => {
                     const uniqueKey = `tv_${rec.id}`;
-                    if (rec.id.toString() === item.id && item.tipo === 'tv') return; // No auto-recomendar
-                    if (idsAñadidos.has(uniqueKey)) return; // No duplicar
-
-                    idsAñadidos.add(uniqueKey);
+                    // Evitamos lo que ya vio (idsVistosGlobal) y los duplicados en pantalla
+                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return; 
+                    
+                    idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
                         ...rec, tipo: 'tv', generoCoincidencia: generoPrincipal, puntuacion: 85 + (Math.random() * 12)
                     }));
@@ -6891,28 +6904,24 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // 5. ¡EL TOQUE MÁGICO! BARAJAMOS TODAS LAS TARJETAS Y MOSTRAMOS MAX 8
+        // 6. BARAJAMOS Y MOSTRAMOS MAX 8
         if (loading) loading.style.display = 'none';
 
         if (tarjetasGeneradas.length === 0) {
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
-                if (p) p.textContent = 'No se encontraron recomendaciones. Sigue marcando contenido como visto.';
+                if (p) p.textContent = 'No se encontraron nuevas recomendaciones. ¡Ve más cosas!';
             }
             if (btnRefresh) btnRefresh.style.display = 'none';
         } else {
-            // Barajar el array (mezclar pelis y series)
+            // Se barajan (intercalando pelis y series)
             tarjetasGeneradas.sort(() => 0.5 - Math.random());
-
-            // Coger solo las 8 primeras
             const tarjetasFinales = tarjetasGeneradas.slice(0, 8);
-
-            // Inyectarlas al HTML
             tarjetasFinales.forEach(card => container.appendChild(card));
 
             if (empty) empty.style.display = 'none';
-            if (btnRefresh) btnRefresh.style.display = 'flex';
+            if (btnRefresh) btnRefresh.style.display = 'flex'; 
         }
 
     } catch (error) {
