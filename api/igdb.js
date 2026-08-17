@@ -174,7 +174,6 @@ export default async function handler(req, res) {
                     screenshots.url, videos.video_id, videos.name;
                 search "${busqueda}";
                 ${whereQuery}
-                ${sortQuery}
                 limit ${limit};
                 offset ${offset};
             `;
