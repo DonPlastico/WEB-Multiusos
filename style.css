@@ -173,7 +173,7 @@ body {
     font-family: var(--font-cyber);
     overflow-x: hidden;
     /* Evita scroll horizontal */
-    transition: background-color 0.3s ease, color 0.2s ease;
+    transition: background-color 0.3s ease, color 0.2s ease, margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html,
@@ -221,6 +221,7 @@ input[type=number]::-webkit-outer-spin-button {
     width: 100%;
     top: 0;
     z-index: 100;
+    transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
 }
 
 .logo {

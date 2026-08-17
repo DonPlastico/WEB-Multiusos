@@ -14054,6 +14054,8 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
 document.addEventListener('DOMContentLoaded', () => {
     const cookieBanner = document.getElementById('cookie-banner');
     const cookieTopAlert = document.getElementById('cookie-top-alert');
+    const navBar = document.querySelector('.cyber-nav'); // Pillamos el header superior
+    const filterSidebar = document.querySelector('.filter-sidebar'); // Pillamos los filtros laterales por si existen
 
     const btnAccept = document.getElementById('cookie-accept');
     const btnReject = document.getElementById('cookie-reject');
@@ -14071,19 +14073,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (status === 'accepted') {
             cookieBanner.classList.remove('show');
             cookieTopAlert.style.display = 'none';
-            // Para asegurar que no solapa con el navbar, quitamos margen al body
+
+            // Restauramos todo a su sitio original suavemente
+            if (navBar) navBar.style.top = '0';
             document.body.style.marginTop = '0';
+            if (filterSidebar) filterSidebar.style.top = '100px';
 
         } else if (status === 'rejected') {
             cookieBanner.classList.remove('show');
             cookieTopAlert.style.display = 'flex';
-            // Empujamos el body hacia abajo para que la alerta no tape el navbar
-            document.body.style.marginTop = cookieTopAlert.offsetHeight + 'px';
+
+            // Calculamos lo que mide la alerta roja dinámicamente
+            const alertHeight = cookieTopAlert.offsetHeight;
+
+            // Empujamos el navbar, el body y la barra lateral hacia abajo
+            if (navBar) navBar.style.top = alertHeight + 'px';
+            document.body.style.marginTop = alertHeight + 'px';
+
+            // Si estamos en la vista de juegos/pelis, bajamos también el sidebar sticky
+            if (filterSidebar) filterSidebar.style.top = `calc(100px + ${alertHeight}px)`;
 
         } else {
             // Estado inicial o forzado (banner abierto)
             cookieTopAlert.style.display = 'none';
+            if (navBar) navBar.style.top = '0';
             document.body.style.marginTop = '0';
+            if (filterSidebar) filterSidebar.style.top = '100px';
+
             setTimeout(() => cookieBanner.classList.add('show'), 500);
         }
     };
@@ -14103,13 +14119,13 @@ document.addEventListener('DOMContentLoaded', () => {
         applyCookieStatus('rejected');
     });
 
-    // Botón GESTIONAR (Reabrir desde la alerta)
+    // Botón GESTIONAR (Reabrir desde la alerta roja)
     btnReopen?.addEventListener('click', () => {
         applyCookieStatus('reopen');
     });
 
     // Lógica para desplegar / ocultar los detalles
-    let detailsVisible = true; // Empieza visible como en tu imagen
+    let detailsVisible = true;
     btnMoreInfo?.addEventListener('click', () => {
         detailsVisible = !detailsVisible;
         if (detailsVisible) {
@@ -14121,10 +14137,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Si la alerta superior cambia de tamaño, ajustamos el margen
+    // Si la alerta superior cambia de tamaño (ej. giras el móvil), reajustamos el margen
     window.addEventListener('resize', () => {
         if (cookieTopAlert.style.display !== 'none') {
-            document.body.style.marginTop = cookieTopAlert.offsetHeight + 'px';
+            const alertHeight = cookieTopAlert.offsetHeight;
+            if (navBar) navBar.style.top = alertHeight + 'px';
+            document.body.style.marginTop = alertHeight + 'px';
+            if (filterSidebar) filterSidebar.style.top = `calc(100px + ${alertHeight}px)`;
         }
     });
 });
