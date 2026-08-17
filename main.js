@@ -1356,16 +1356,16 @@ function applyTranslations() {
         'profile-stats-followers': 'profile.followers',
         'profile-stats-messages': 'profile.messages',
         'profile-stats': 'profile.stats_title',
-        'profile-series': 'profile.series_title',
-        'profile-movies': 'profile.movies_title',
-        'stat-series-episodes': 'profile.series_episodes',
-        'stat-series-months': 'profile.months',
-        'stat-series-days': 'profile.days',
-        'stat-series-hours': 'profile.hours',
-        'stat-movies-count': 'profile.movies_count',
-        'stat-movies-months': 'profile.months',
-        'stat-movies-days': 'profile.days',
-        'stat-movies-hours': 'profile.hours',
+        'lbl-header-series': 'profile.series_title',
+        'lbl-header-movies': 'profile.movies_title',
+        'lbl-header-episodes': 'profile.series_episodes',
+        'lbl-header-movies-count': 'profile.movies_count',
+        'lbl-series-months': 'profile.months',
+        'lbl-series-days': 'profile.days',
+        'lbl-series-hours': 'profile.hours',
+        'lbl-movies-months': 'profile.months',
+        'lbl-movies-days': 'profile.days',
+        'lbl-movies-hours': 'profile.hours',
         'edit-profile-title': 'profile.edit_title',
         'edit-profile-username': 'profile.edit_username',
         'edit-profile-firstname': 'profile.edit_firstname',
@@ -6586,12 +6586,26 @@ async function cargarPerfilPublico(usernameTarget) {
                 const stats = JSON.parse(statsGuardadas);
                 pintarEstadisticas(stats.totalEpisodios, stats.tiempoSeries, stats.totalPelis, stats.tiempoPelis);
             } else {
-                // Si no hay cache, ponemos placeholders de carga
+                // Si no hay cache, en lugar de poner "..." forzamos a que todos se queden en "0"
                 const elEpisodes = document.getElementById('stat-series-episodes');
-                if (elEpisodes) elEpisodes.textContent = "...";
+                if (elEpisodes) elEpisodes.textContent = "0";
 
                 const elMoviesCount = document.getElementById('stat-movies-count');
-                if (elMoviesCount) elMoviesCount.textContent = "...";
+                if (elMoviesCount) elMoviesCount.textContent = "0";
+
+                const elMonthsSer = document.getElementById('stat-series-months');
+                if (elMonthsSer) elMonthsSer.textContent = "0";
+                const elDaysSer = document.getElementById('stat-series-days');
+                if (elDaysSer) elDaysSer.textContent = "0";
+                const elHoursSer = document.getElementById('stat-series-hours');
+                if (elHoursSer) elHoursSer.textContent = "0";
+
+                const elMonthsPel = document.getElementById('stat-movies-months');
+                if (elMonthsPel) elMonthsPel.textContent = "0";
+                const elDaysPel = document.getElementById('stat-movies-days');
+                if (elDaysPel) elDaysPel.textContent = "0";
+                const elHoursPel = document.getElementById('stat-movies-hours');
+                if (elHoursPel) elHoursPel.textContent = "0";
             }
 
             // Calculamos las estadisticas reales en segundo plano
