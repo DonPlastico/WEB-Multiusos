@@ -647,6 +647,7 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         cargarTendenciasPeliculasInicial();
         cargarTendenciasSeriesInicial();
         cargarUltimosTrailers();
+        cargarPopularInicial();
     } else if (target === 'games' && !juegosCargados) {
         aplicarFiltros();
         juegosCargados = true;
@@ -2654,6 +2655,9 @@ function initTrendTabs() {
                 }
                 else if (tipoTendencia === 'trend-series') {
                     cargarTendenciasSeries(period, true);
+                }
+                else if (tipoTendencia === 'popular-all') {
+                    cargarPopular(period, true);
                 }
 
                 // Hacemos un fade-in cuando los datos esten cargados

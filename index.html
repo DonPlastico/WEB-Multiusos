@@ -349,10 +349,25 @@
                 </div>
             </div>
 
-            <!-- SECCION LO MAS POPULAR (placeholder, proximamente) -->
+            <!-- ============================================================ -->
+            <!--   SECCIÓN LO MÁS POPULAR                                     -->
+            <!-- ============================================================ -->
             <div class="trends-container">
-                <h2 class="section-title" id="popular-title">Lo Más Popular</h2>
-                <div class="horizontal-scroll glass-panel" id="popular-all"><img src="img/prox.webp" alt="proximamente">
+                <div class="trends-header">
+                    <h2 class="section-title" id="popular-title">
+                        <i class="fas fa-star" style="color: gold;"></i> Lo Más Popular
+                    </h2>
+                    <div class="trends-tabs" id="popular-tabs">
+                        <button class="trend-tab active" data-period="month">Mes</button>
+                        <button class="trend-tab" data-period="year">Año</button>
+                        <button class="trend-tab" data-period="all">Siempre</button>
+                    </div>
+                </div>
+                <div class="horizontal-scroll glass-panel" id="popular-all">
+                    <div class="trends-loading" id="popular-loading">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>Cargando lo más popular...</span>
+                    </div>
                 </div>
             </div>
         </section>

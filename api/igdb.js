@@ -155,12 +155,21 @@ export default async function handler(req, res) {
             whereClauses.push(`total_rating_count > 0`);
         }
 
+        // Cuando ordenamos por popularidad (ej. "Lo Más Popular" con period=month/year),
+        // filtramos igualmente juegos sin ninguna valoracion para no mezclar basura
+        if (sortField === 'popularity.desc' && !whereClauses.some(w => w.includes('total_rating_count'))) {
+            whereClauses.push(`total_rating_count > 0`);
+        }
+
         const whereQuery = whereClauses.length > 0 ? `where ${whereClauses.join(' & ')};` : '';
 
         let sortQuery = 'sort first_release_date desc;';
         if (sortField === 'rating.desc') sortQuery = 'sort total_rating desc;';
         else if (sortField === 'rating.asc') sortQuery = 'sort total_rating asc;';
-        else if (sortField === 'popularity.desc') sortQuery = 'sort popularity desc;';
+        // IGDB v4 no tiene el campo "popularity" en /games (esta en un endpoint aparte).
+        // Usamos total_rating_count como proxy real de popularidad: cuanta mas gente
+        // ha valorado el juego, mas popular es.
+        else if (sortField === 'popularity.desc') sortQuery = 'sort total_rating_count desc;';
         else if (sortField === 'first_release_date.desc') sortQuery = 'sort first_release_date desc;';
         else if (sortField === 'first_release_date.asc') sortQuery = 'sort first_release_date asc;';
 
