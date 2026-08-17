@@ -11102,7 +11102,8 @@ async function cargarUltimosTrailers() {
         const dataSeries = resSeries.ok ? await resSeries.json() : [];
 
         // Asegurar que sean arrays y tener exactamente 5 de cada uno
-        const juegos = Array.isArray(dataJuegos) ? dataJuegos.slice(0, 5) : [];
+        const juegosArray = Array.isArray(dataJuegos?.juegos) ? dataJuegos.juegos : (Array.isArray(dataJuegos) ? dataJuegos : []);
+        const juegos = juegosArray.slice(0, 5);
         const pelis = Array.isArray(dataPelis) ? dataPelis.slice(0, 5) : [];
         const series = Array.isArray(dataSeries) ? dataSeries.slice(0, 5) : [];
 
@@ -11181,9 +11182,9 @@ function crearTarjetaPlaceholderTrailer(tipo) {
             <span style="font-size: 0.7rem; color: var(--text-muted);">${texto}</span>
         </div>
         <div class="game-info">
-            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">t('trends_extra.coming_soon')</h3>
+            <h3 class="game-title" style="color: var(--text-muted); font-size: 0.8rem; text-align: center;">${t('trends_extra.coming_soon')}</h3>
             <button class="auth-btn secondary" style="width: 100%; padding: 6px 12px; font-size: 0.7rem; letter-spacing: 1px; border-radius: 6px; margin-top: 8px; opacity: 0.3; cursor: not-allowed;" disabled>
-                <i class="fab fa-youtube"></i> t('trends_extra.no_trailer')
+                <i class="fab fa-youtube"></i> ${t('trends_extra.no_trailer')}
             </button>
         </div>
     `;
