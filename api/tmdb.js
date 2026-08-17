@@ -53,6 +53,42 @@ export default async function handler(req, res) {
         }
 
         // =============================================
+        // 1.5. NUEVO MOTOR DE RECOMENDACIONES EXACTAS
+        // =============================================
+        if (id && query.similar === 'true') {
+            // Primero intentamos buscar recomendaciones curadas por el algoritmo
+            let recUrl = `${baseUrl}/${tipo}/${id}/recommendations?language=${tmdbLang}&page=1`;
+            let recRes = await fetch(recUrl, { headers });
+            let recData = await recRes.json();
+
+            // Si la obra es muy rara y no tiene, usamos el algoritmo de "similares por tags"
+            if (!recData.results || recData.results.length === 0) {
+                let simUrl = `${baseUrl}/${tipo}/${id}/similar?language=${tmdbLang}&page=1`;
+                let simRes = await fetch(simUrl, { headers });
+                recData = await simRes.json();
+            }
+
+            if (!recData.results || recData.results.length === 0) {
+                return res.status(200).json([]);
+            }
+
+            const limit = parseInt(query.limit) || 10;
+            const results = recData.results.slice(0, limit).map(item => {
+                const isMovie = tipo === 'movie';
+                return {
+                    id: item.id,
+                    adult: item.adult || false,
+                    titulo: isMovie ? item.title : item.name,
+                    poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
+                    fecha: isMovie ? item.release_date : item.first_air_date,
+                    nota: item.vote_average ? item.vote_average.toFixed(1) : '0.0',
+                    tipo: tipo
+                };
+            });
+            return res.status(200).json(results);
+        }
+
+        // =============================================
         // 2. DETALLES (por ID)
         // =============================================
         if (id) {

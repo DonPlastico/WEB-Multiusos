@@ -6737,7 +6737,7 @@ async function cargarPerfilPublico(usernameTarget) {
     }
 }
 
-// Funcion que genera recomendaciones personalizadas basadas en lo que el usuario ha visto
+// Funcion que genera recomendaciones personalizadas exactas (Cerebro TMDB)
 async function cargarRecomendaciones(userId) {
     const container = document.getElementById('recommendations-list');
     const loading = document.getElementById('rec-loading');
@@ -6746,19 +6746,17 @@ async function cargarRecomendaciones(userId) {
 
     if (!container) return;
 
-    // Mostrar loading mientras se cargan los datos y ocultar botón de refresh temporalmente
     if (loading) loading.style.display = 'flex';
     if (empty) empty.style.display = 'none';
     if (btnRefresh) btnRefresh.style.display = 'none';
     container.innerHTML = '';
 
-    // Forzar gap entre las tarjetas de recomendacion
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
 
     try {
-        // 1. OBTENER VISIONADOS ORDENADOS POR FECHA (Traemos bastantes por si hay muchos episodios sueltos)
+        // 1. OBTENER VISIONADOS ORDENADOS POR FECHA
         const { data: historialRaw, error } = await supabase
             .from('user_media')
             .select('media_id, tipo, fecha_vista')
@@ -6779,7 +6777,7 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // 2. AGRUPAR EPISODIOS Y LIMPIAR DUPLICADOS
+        // 2. AGRUPAR EPISODIOS DE SERIES COMO 1 SOLA OBRA
         const historialUnico = [];
         const idsVistosGlobal = new Set();
 
@@ -6795,20 +6793,16 @@ async function cargarRecomendaciones(userId) {
             if (!idsVistosGlobal.has(baseId)) {
                 historialUnico.push({ id: baseId, tipo: baseTipo });
             }
-
             idsVistosGlobal.add(baseId);
         });
 
-        // 3. COGER LOS 27 ÚLTIMOS TÍTULOS
         const ultimos27 = historialUnico.slice(0, 27);
-
         const pelisRecientes = ultimos27.filter(item => item.tipo === 'movie');
         const seriesRecientes = ultimos27.filter(item => item.tipo === 'tv');
 
-        // 4. SELECCIÓN 50/50: 3 Pelis al azar y 3 Series al azar
+        // 3. SELECCIÓN EQUILIBRADA (3 Pelis y 3 Series al azar de tu historial)
         const pelisAleatorias = pelisRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
         const seriesAleatorias = seriesRecientes.sort(() => 0.5 - Math.random()).slice(0, 3);
-
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
@@ -6820,97 +6814,46 @@ async function cargarRecomendaciones(userId) {
         let tarjetasGeneradas = [];
         const idsAñadidosMenu = new Set();
 
-        // 5. PROCESAR CADA ELEMENTO PARA BUSCAR RECOMENDACIONES
+        // 4. USAR EL CEREBRO DE TMDB PARA BUSCAR GEMELOS EXACTOS
         for (const item of poolVisionados) {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                const res = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, {
-                    signal: controller.signal
-                });
+                // A) Sacamos el nombre real de lo que viste para el texto "Porque has visto..."
+                const resNombre = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal });
+                if (!resNombre.ok) { clearTimeout(timeoutId); continue; }
+                const dataNombre = await resNombre.json();
+
+                // B) Pedimos a la IA de TMDB obras hermanas/similares (similar=true)
+                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=4&lang=${currentLang}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!res.ok) continue;
-                const data = await res.json();
+                if (!resSimilares.ok) continue;
+                const similares = await resSimilares.json();
 
-                let generosTexto = data.generos || '';
-                const titulo = data.titulo || '';
-                const sinopsis = data.sinopsis || '';
-                const esKdrama = titulo.includes('K-Drama') || titulo.includes('Corea') || titulo.includes('Korean') || sinopsis.includes('coreano') || sinopsis.includes('K-drama');
+                // C) Empaquetamos las recomendaciones
+                similares.forEach(rec => {
+                    const uniqueKey = `${item.tipo}_${rec.id}`;
 
-                // Forzamos el romance para los kdramas para no sacar Reacher
-                if (esKdrama) generosTexto = 'Romance, Drama';
-                if (!generosTexto || generosTexto === 'N/A') continue;
-
-                const generosList = generosTexto.split(',').map(g => g.trim()).filter(g => g && g !== 'N/A');
-                if (generosList.length === 0) continue;
-
-                // === EL FILTRO INTELIGENTE DE GÉNEROS ===
-                // Eliminamos géneros "comodín" que destrozan las recomendaciones
-                const generosBasura = ['drama', 'comedia', 'comedy', 'acción', 'action', 'animación', 'animation'];
-
-                let generoPrincipal = generosList.find(g => !generosBasura.includes(g.toLowerCase()));
-
-                // Si la obra es única y exclusivamente "Drama" o "Acción" (sin nada más), usamos ese por defecto
-                if (!generoPrincipal) {
-                    generoPrincipal = generosList[0];
-                }
-
-                // Pedimos limit 10 para tener variedad de opciones y que filtre mejor
-                const [resMovie, resTv] = await Promise.all([
-                    (async () => {
-                        try {
-                            const c = new AbortController();
-                            const t = setTimeout(() => c.abort(), 5000);
-                            const r = await fetch(`/api/tmdb?tipo=movie&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, { signal: c.signal });
-                            clearTimeout(t);
-                            return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
-                        } catch (_) { return []; }
-                    })(),
-                    (async () => {
-                        try {
-                            const c = new AbortController();
-                            const t = setTimeout(() => c.abort(), 5000);
-                            const r = await fetch(`/api/tmdb?tipo=tv&genero=${encodeURIComponent(generoPrincipal)}&limit=10&lang=${currentLang}`, { signal: c.signal });
-                            clearTimeout(t);
-                            return r.ok ? (await r.json()).sort(() => 0.5 - Math.random()).slice(0, 1) : [];
-                        } catch (_) { return []; }
-                    })()
-                ]);
-
-                resMovie.forEach(rec => {
-                    const uniqueKey = `movie_${rec.id}`;
+                    // Bloqueamos lo que ya has visto en el pasado y los repetidos en pantalla
                     if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
 
                     idsAñadidosMenu.add(uniqueKey);
                     tarjetasGeneradas.push(crearTarjetaRecomendacion({
                         ...rec,
-                        tipo: 'movie',
-                        obraOrigen: data.titulo,
-                        puntuacion: 85 + (Math.random() * 12)
-                    }));
-                });
-
-                resTv.forEach(rec => {
-                    const uniqueKey = `tv_${rec.id}`;
-                    if (idsVistosGlobal.has(rec.id.toString()) || idsAñadidosMenu.has(uniqueKey)) return;
-
-                    idsAñadidosMenu.add(uniqueKey);
-                    tarjetasGeneradas.push(crearTarjetaRecomendacion({
-                        ...rec,
-                        tipo: 'tv',
-                        obraOrigen: data.titulo,
-                        puntuacion: 85 + (Math.random() * 12)
+                        tipo: item.tipo, // Series recomiendan Series, Pelis recomiendan Pelis. Impecable.
+                        obraOrigen: dataNombre.titulo,
+                        puntuacion: 87 + (Math.random() * 11) // Entre 87% y 98%
                     }));
                 });
 
             } catch (e) {
-                console.warn(`❌ Error procesando historial ${item.tipo} ${item.id}:`, e);
+                console.warn(`❌ Error procesando recomendaciones para ${item.id}:`, e);
             }
         }
 
-        // 6. BARAJAMOS Y MOSTRAMOS MAX 8
+        // 5. BARAJAMOS Y MOSTRAMOS MAX 8 EN PANTALLA
         if (loading) loading.style.display = 'none';
 
         if (tarjetasGeneradas.length === 0) {
