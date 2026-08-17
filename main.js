@@ -6762,6 +6762,7 @@ async function cargarRecomendaciones(userId) {
     if (empty) empty.style.display = 'none';
     if (btnRefresh) btnRefresh.style.display = 'none';
 
+    // Vaciamos el contenedor y metemos el loading dentro para que no desaparezca
     container.innerHTML = '';
     if (loading) container.appendChild(loading);
 
@@ -6770,7 +6771,7 @@ async function cargarRecomendaciones(userId) {
     container.style.gap = '12px';
 
     try {
-        // 2. OBTENER TODO EL HISTORIAL (Bucle de paginación)
+        // 2. OBTENER TODO EL HISTORIAL (Bucle de paginación para historiales infinitos)
         let historialRaw = [];
         let keepFetching = true;
         let currentOffset = 0;
@@ -6807,7 +6808,7 @@ async function cargarRecomendaciones(userId) {
             return;
         }
 
-        // 3. AGRUPAR EPISODIOS Y CREAR EL ESCUDO GLOBAL
+        // 3. AGRUPAR EPISODIOS DE SERIES COMO 1 SOLA OBRA Y CREAR EL ESCUDO GLOBAL
         const historialUnico = [];
         const idsVistosGlobal = new Set();
 
@@ -6847,29 +6848,28 @@ async function cargarRecomendaciones(userId) {
         let tarjetasGeneradas = [];
         const idsAñadidosMenu = new Set();
 
-        // 4. OPTIMIZACIÓN: PROCESAR EN PARALELO CON PROMISE.ALL
-        const promesasRecomendaciones = poolVisionados.map(async (item) => {
+        // 4. USAR EL CEREBRO DE TMDB Y FILTRAR CON EL ESCUDO
+        for (const item of poolVisionados) {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-                const [resNombre, resSimilares] = await Promise.all([
-                    fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal }),
-                    fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=20&lang=${currentLang}`, { signal: controller.signal })
-                ]);
+                const resNombre = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&lang=${currentLang}`, { signal: controller.signal });
+                if (!resNombre.ok) { clearTimeout(timeoutId); continue; }
+                const dataNombre = await resNombre.json();
 
+                const resSimilares = await fetch(`/api/tmdb?id=${item.id}&tipo=${item.tipo}&similar=true&limit=20&lang=${currentLang}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!resNombre.ok || !resSimilares.ok) return;
-
-                const dataNombre = await resNombre.json();
-                const similares = await resSimilures.json(); // Cuidado con errores tipográficos si aplica, mantén tu lógica original
+                if (!resSimilares.ok) continue;
+                const similares = await resSimilares.json();
 
                 const similaresBarajados = similares.sort(() => 0.5 - Math.random());
 
                 for (const rec of similaresBarajados) {
                     const uniqueKey = `${item.tipo}_${rec.id}`;
 
+                    // Filtramos por lo visto globalmente y evitamos duplicados en pantalla
                     if (!idsVistosGlobal.has(rec.id.toString()) && !idsAñadidosMenu.has(uniqueKey)) {
                         idsAñadidosMenu.add(uniqueKey);
                         tarjetasGeneradas.push(crearTarjetaRecomendacion({
@@ -6881,15 +6881,13 @@ async function cargarRecomendaciones(userId) {
                         break;
                     }
                 }
+
             } catch (e) {
                 console.warn(`❌ Error procesando recomendaciones para ${item.id}:`, e);
             }
-        });
+        }
 
-        // Esperamos a que todas las peticiones de TMDB terminen a la vez
-        await Promise.all(promesasRecomendaciones);
-
-        // 5. APAGAR EL LOADING Y PINTAR
+        // 5. APAGAR EL LOADING SOLO CUANDO TODO ESTÉ LISTO PARA PINTAR
         if (loading) loading.style.display = 'none';
 
         if (tarjetasGeneradas.length === 0) {
@@ -6906,6 +6904,7 @@ async function cargarRecomendaciones(userId) {
             const cantidadAleatoria = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
 
+            // Limpiamos el contenedor (adiós loading) e inyectamos las tarjetas de golpe
             container.innerHTML = '';
             tarjetasFinales.forEach(card => container.appendChild(card));
 
@@ -10577,32 +10576,21 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRefreshRecs.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            // Hacemos que el icono del botón gire
+            // Hacemos que el icono gire
             const icon = this.querySelector('i');
             if (icon) icon.classList.add('fa-spin');
 
             const userId = window._nexus_user_id || localStorage.getItem('nexus_user_id');
             if (userId) {
+                // Vaciamos el contenedor visualmente para dar feedback inmediato
                 const container = document.getElementById('recommendations-list');
+                if (container) container.innerHTML = '';
 
-                if (container) {
-                    // PINTAMOS UN LOADER VISIBLE DIRECTAMENTE DESDE JS
-                    container.innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; width: 100%;">
-                            <i class="fas fa-circle-notch fa-spin" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 12px;"></i>
-                            <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; font-size: 0.85rem;">BUSCANDO RECOMENDACIONES...</span>
-                        </div>
-                    `;
-                    container.style.display = 'flex';
-                    container.style.flexDirection = 'column';
-                    container.style.gap = '12px';
-                }
-
-                // Pedimos nuevas recomendaciones a la función principal
+                // Pedimos nuevas recomendaciones
                 await cargarRecomendaciones(userId);
             }
 
-            // Paramos el giro del icono cuando acabe
+            // Paramos el giro cuando acabe
             if (icon) icon.classList.remove('fa-spin');
         });
     }
