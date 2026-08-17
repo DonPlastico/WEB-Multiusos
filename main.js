@@ -6751,20 +6751,21 @@ async function cargarPerfilPublico(usernameTarget) {
 // Funcion que genera recomendaciones personalizadas exactas (Cerebro TMDB)
 async function cargarRecomendaciones(userId) {
     const container = document.getElementById('recommendations-list');
-    const loading = document.getElementById('rec-loading');
     const empty = document.getElementById('rec-empty');
     const btnRefresh = document.getElementById('btn-refresh-recommendations');
 
     if (!container) return;
 
-    // 1. FORZAR VISIBILIDAD DEL LOADING DESDE EL PRIMER MILISEGUNDO
-    if (loading) loading.style.display = 'flex';
+    // 1. PINTAR EL LOADING AL INSTANTE DIRECTAMENTE DESDE JS
+    container.innerHTML = `
+        <div id="rec-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 0; width: 100%;">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 12px;"></i>
+            <span style="color: var(--text-muted); letter-spacing: 2px; font-weight: 600; font-size: 0.9rem;">GENERANDO RECOMENDACIONES...</span>
+        </div>
+    `;
+
     if (empty) empty.style.display = 'none';
     if (btnRefresh) btnRefresh.style.display = 'none';
-
-    // Vaciamos el contenedor y metemos el loading dentro para que no desaparezca
-    container.innerHTML = '';
-    if (loading) container.appendChild(loading);
 
     container.style.display = 'flex';
     container.style.flexDirection = 'column';
@@ -6798,7 +6799,7 @@ async function cargarRecomendaciones(userId) {
         }
 
         if (historialRaw.length === 0) {
-            if (loading) loading.style.display = 'none';
+            container.innerHTML = '';
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
@@ -6837,7 +6838,7 @@ async function cargarRecomendaciones(userId) {
         const poolVisionados = [...pelisAleatorias, ...seriesAleatorias];
 
         if (poolVisionados.length === 0) {
-            if (loading) loading.style.display = 'none';
+            container.innerHTML = '';
             if (empty) {
                 empty.style.display = 'flex';
                 container.appendChild(empty);
@@ -6869,7 +6870,6 @@ async function cargarRecomendaciones(userId) {
                 for (const rec of similaresBarajados) {
                     const uniqueKey = `${item.tipo}_${rec.id}`;
 
-                    // Filtramos por lo visto globalmente y evitamos duplicados en pantalla
                     if (!idsVistosGlobal.has(rec.id.toString()) && !idsAñadidosMenu.has(uniqueKey)) {
                         idsAñadidosMenu.add(uniqueKey);
                         tarjetasGeneradas.push(crearTarjetaRecomendacion({
@@ -6887,10 +6887,9 @@ async function cargarRecomendaciones(userId) {
             }
         }
 
-        // 5. APAGAR EL LOADING SOLO CUANDO TODO ESTÉ LISTO PARA PINTAR
-        if (loading) loading.style.display = 'none';
-
+        // 5. PINTAR RESULTADOS FINALES (El innerHTML borra el loading y pone las cards)
         if (tarjetasGeneradas.length === 0) {
+            container.innerHTML = '';
             if (empty) {
                 empty.style.display = 'flex';
                 const p = empty.querySelector('p');
@@ -6904,7 +6903,6 @@ async function cargarRecomendaciones(userId) {
             const cantidadAleatoria = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
             const tarjetasFinales = tarjetasGeneradas.slice(0, cantidadAleatoria);
 
-            // Limpiamos el contenedor (adiós loading) e inyectamos las tarjetas de golpe
             container.innerHTML = '';
             tarjetasFinales.forEach(card => container.appendChild(card));
 
@@ -6914,12 +6912,11 @@ async function cargarRecomendaciones(userId) {
 
     } catch (error) {
         console.error('❌ Error cargando recomendaciones:', error);
-        if (loading) loading.style.display = 'none';
+        container.innerHTML = '';
         if (empty) {
             empty.style.display = 'flex';
             const p = empty.querySelector('p');
             if (p) p.textContent = 'Error cargando recomendaciones: ' + error.message;
-            container.innerHTML = '';
             container.appendChild(empty);
         }
     }
