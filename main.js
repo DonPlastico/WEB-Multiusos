@@ -816,6 +816,7 @@ function arrancarEnrutador() {
             cargarTendenciasPeliculasInicial();
             cargarTendenciasSeriesInicial();
             cargarUltimosTrailers();
+            cargarPopularInicial();
         } else if (vistaInicial === 'games') {
             cargarTendenciasInicial();
         } else if (vistaInicial === 'movies') {
