@@ -135,6 +135,23 @@ export default async function handler(req, res) {
                 }))
                 .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
 
+            // ========== CRÉDITOS DETALLADOS POR DEPARTAMENTO (estilo IMDb) ==========
+            // A diferencia de "filmografia" (solo para las tarjetas 6x4), aqui necesitamos
+            // el departamento y el rol exacto de cada credito, y no filtramos por poster
+            // (en la lista tipo IMDb tambien aparecen titulos sin cartel, como los "—")
+            const creditosDetallados = creditosUnicos.map(c => {
+                const esActuacion = c.character !== undefined; // los de "cast" tienen 'character', los de "crew" no
+                return {
+                    id: c.id,
+                    tipo: c.media_type, // 'movie' o 'tv'
+                    titulo: c.title || c.name || 'Sin título',
+                    poster: c.poster_path ? `https://image.tmdb.org/t/p/w92${c.poster_path}` : null,
+                    fecha: c.release_date || c.first_air_date || '',
+                    department: esActuacion ? 'Interpretación' : (c.department || 'Otros'),
+                    rol: esActuacion ? (c.character || '') : (c.job || '')
+                };
+            }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+
             // ========== REDES SOCIALES / ENLACES EXTERNOS ==========
             const ext = dataPersona.external_ids || {};
             const redes = {
@@ -164,7 +181,8 @@ export default async function handler(req, res) {
                     ? `https://image.tmdb.org/t/p/w500${dataPersona.profile_path}`
                     : null,
                 redes: redes,
-                filmografia: filmografia
+                filmografia: filmografia,
+                creditos_detallados: creditosDetallados
             });
         }
 

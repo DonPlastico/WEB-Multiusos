@@ -971,6 +971,172 @@ input[type=number]::-webkit-outer-spin-button {
     white-space: pre-line;
 }
 
+/* ===== LISTADO DETALLADO DE CRÉDITOS (ESTILO IMDb, A MI ESTILO) ===== */
+.listado-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.listado-filtros {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.listado-filtro-select {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.listado-filtro-select:hover {
+    border-color: var(--primary);
+}
+
+.listado-filtro-fecha-wrap {
+    position: relative;
+}
+
+.listado-fecha-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    width: 180px;
+    z-index: 50;
+    box-shadow: var(--shadow-lg);
+}
+
+.listado-fecha-dropdown.show {
+    display: block;
+}
+
+.listado-fecha-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.listado-fecha-input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-main);
+    padding: 6px 8px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.listado-fecha-aplicar {
+    width: 100%;
+    margin-top: 12px;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    padding: 8px 0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.listado-fecha-aplicar:hover {
+    background: var(--primary-hover);
+}
+
+.listado-detallado {
+    margin-top: 16px;
+}
+
+.listado-dept-group {
+    margin-bottom: 24px;
+}
+
+.listado-dept-title {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 700;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.listado-dept-rows {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.listado-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.listado-row:last-child {
+    border-bottom: none;
+}
+
+.listado-row:hover {
+    background: var(--bg-hover);
+}
+
+.listado-row-year {
+    flex: 0 0 42px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.listado-row-dot {
+    flex: 0 0 auto;
+    font-size: 0.4rem;
+    color: var(--primary);
+}
+
+.listado-row-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.listado-row-title {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.listado-row-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 /* ==========================================================================
    BUSCADOR Y JUEGOS
    ========================================================================== */
@@ -9072,6 +9238,21 @@ cast-carousel::-webkit-scrollbar {
 
     .filmo-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+
+    .listado-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .listado-filtros {
+        width: 100%;
+    }
+
+    .listado-filtro-select {
+        flex: 1;
+        justify-content: center;
     }
 }
 

@@ -6579,6 +6579,13 @@ let filmografiaActual = [];
 let filmografiaPaginaActual = 1;
 const FILMOGRAFIA_POR_PAGINA = 24; // 6 columnas x 4 filas
 
+// Estado del listado detallado (estilo IMDb)
+let creditosDetalladosActual = [];
+let filtroListadoTipo = 'todo';       // 'todo' | 'movie' | 'tv'
+let filtroListadoAnioDesde = '';
+let filtroListadoAnioHasta = '';
+let filtroListadoDepartamento = 'todo';
+
 // Renderiza la cuadrícula 6x4 de filmografía + controles de paginación
 function renderizarFilmografia(pagina = 1) {
     const totalPaginas = Math.max(1, Math.ceil(filmografiaActual.length / FILMOGRAFIA_POR_PAGINA));
@@ -6613,6 +6620,90 @@ function renderizarFilmografia(pagina = 1) {
     if (pagInput) pagInput.value = `${filmografiaPaginaActual} / ${totalPaginas}`;
     if (btnPrev) btnPrev.disabled = filmografiaPaginaActual <= 1;
     if (btnNext) btnNext.disabled = filmografiaPaginaActual >= totalPaginas;
+}
+
+// Rellena el dropdown de Departamento SOLO con los departamentos que esta persona realmente tiene
+function poblarFiltroDepartamento(creditos) {
+    const select = document.getElementById('person-listado-filtro-departamento');
+    if (!select) return;
+
+    const departamentos = [...new Set(creditos.map(c => c.department))].sort();
+
+    select.innerHTML = `<option value="todo">Departamento: Todo</option>` +
+        departamentos.map(d => `<option value="${d}">${d}</option>`).join('');
+}
+
+// Aplica los 3 filtros (tipo, rango de años, departamento) y repinta el listado agrupado
+function renderizarListadoDetallado() {
+    const contenedor = document.getElementById('person-listado-detallado');
+    if (!contenedor) return;
+
+    let items = [...creditosDetalladosActual];
+
+    // Filtro 1: Tipo (peliculas / series)
+    if (filtroListadoTipo !== 'todo') {
+        items = items.filter(c => c.tipo === filtroListadoTipo);
+    }
+
+    // Filtro 2: rango de años (usando solo el string de fecha "YYYY-MM-DD")
+    if (filtroListadoAnioDesde) {
+        items = items.filter(c => c.fecha && c.fecha.slice(0, 4) >= filtroListadoAnioDesde);
+    }
+    if (filtroListadoAnioHasta) {
+        items = items.filter(c => c.fecha && c.fecha.slice(0, 4) <= filtroListadoAnioHasta);
+    }
+
+    // Filtro 3: departamento
+    if (filtroListadoDepartamento !== 'todo') {
+        items = items.filter(c => c.department === filtroListadoDepartamento);
+    }
+
+    if (items.length === 0) {
+        contenedor.innerHTML = `<div style="color:var(--text-muted); padding:20px; text-align:center;">No hay resultados con estos filtros.</div>`;
+        return;
+    }
+
+    // Agrupamos por departamento (Interpretación primero si existe, luego el resto alfabético)
+    const grupos = {};
+    items.forEach(c => {
+        if (!grupos[c.department]) grupos[c.department] = [];
+        grupos[c.department].push(c);
+    });
+
+    const ordenDepartamentos = Object.keys(grupos).sort((a, b) => {
+        if (a === 'Interpretación') return -1;
+        if (b === 'Interpretación') return 1;
+        return a.localeCompare(b);
+    });
+
+    let html = '';
+    ordenDepartamentos.forEach(dep => {
+        // Dentro de cada departamento: los que no tienen fecha van primero (proximamente/sin anunciar)
+        const filas = grupos[dep].sort((a, b) => (b.fecha || 'zzzz').localeCompare(a.fecha || 'zzzz'));
+
+        html += `
+            <div class="listado-dept-group">
+                <h4 class="listado-dept-title">${dep}</h4>
+                <div class="listado-dept-rows">
+                    ${filas.map(item => {
+            const anio = item.fecha ? item.fecha.slice(0, 4) : '—';
+            return `
+                            <div class="listado-row" data-id="${item.id}" data-tipo="${item.tipo}">
+                                <span class="listado-row-year">${anio}</span>
+                                <span class="listado-row-dot"><i class="fas fa-circle"></i></span>
+                                <div class="listado-row-info">
+                                    <span class="listado-row-title">${item.titulo}</span>
+                                    ${item.rol ? `<span class="listado-row-role">${dep === 'Interpretación' ? 'como' : ''} ${item.rol}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    contenedor.innerHTML = html;
 }
 
 // Renderiza el HTML de la vista de persona
@@ -6710,6 +6801,38 @@ function renderizarPersona(data) {
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
+
+                <div class="listado-header">
+                    <h3 class="person-bio-title" style="margin:0;">Créditos completos</h3>
+
+                    <div class="listado-filtros">
+                        <select id="person-listado-filtro-tipo" class="listado-filtro-select">
+                            <option value="todo">Todo</option>
+                            <option value="movie">Películas</option>
+                            <option value="tv">Series</option>
+                        </select>
+
+                        <div class="listado-filtro-fecha-wrap">
+                            <button type="button" class="listado-filtro-select" id="listado-filtro-fecha-btn">
+                                <span id="listado-filtro-fecha-label">Fecha: Todo</span>
+                                <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:6px;"></i>
+                            </button>
+                            <div class="listado-fecha-dropdown" id="listado-fecha-dropdown">
+                                <label class="listado-fecha-label">Desde (año)</label>
+                                <input type="number" id="listado-anio-desde" class="listado-fecha-input" placeholder="Ej: 2010">
+                                <label class="listado-fecha-label" style="margin-top:8px;">Hasta (año)</label>
+                                <input type="number" id="listado-anio-hasta" class="listado-fecha-input" placeholder="Ej: 2026">
+                                <button type="button" class="listado-fecha-aplicar" id="listado-fecha-aplicar">Aplicar</button>
+                            </div>
+                        </div>
+
+                        <select id="person-listado-filtro-departamento" class="listado-filtro-select">
+                            <option value="todo">Departamento: Todo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="listado-detallado" id="person-listado-detallado"></div>
             </div>
         </div>
     `;
@@ -6757,6 +6880,76 @@ function renderizarPersona(data) {
         if (!card) return;
         const id = card.getAttribute('data-id');
         const tipo = card.getAttribute('data-tipo');
+        if (id && tipo) abrirModalMedia(id, tipo);
+    });
+
+    // ===== LISTADO DETALLADO (estilo IMDb) =====
+    creditosDetalladosActual = Array.isArray(data.creditos_detallados) ? data.creditos_detallados : [];
+    filtroListadoTipo = 'todo';
+    filtroListadoAnioDesde = '';
+    filtroListadoAnioHasta = '';
+    filtroListadoDepartamento = 'todo';
+
+    poblarFiltroDepartamento(creditosDetalladosActual);
+    renderizarListadoDetallado();
+
+    // Filtro 1: Tipo
+    document.getElementById('person-listado-filtro-tipo')?.addEventListener('change', (e) => {
+        filtroListadoTipo = e.target.value;
+        renderizarListadoDetallado();
+    });
+
+    // Filtro 3: Departamento
+    document.getElementById('person-listado-filtro-departamento')?.addEventListener('change', (e) => {
+        filtroListadoDepartamento = e.target.value;
+        renderizarListadoDetallado();
+    });
+
+    // Filtro 2: rango de años (dropdown compacto)
+    const fechaBtn = document.getElementById('listado-filtro-fecha-btn');
+    const fechaDropdown = document.getElementById('listado-fecha-dropdown');
+    const fechaAplicarBtn = document.getElementById('listado-fecha-aplicar');
+    const fechaLabel = document.getElementById('listado-filtro-fecha-label');
+
+    if (fechaBtn && fechaDropdown) {
+        fechaBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fechaDropdown.classList.toggle('show');
+        });
+
+        // Cerrar el dropdown si haces click fuera
+        document.addEventListener('click', (e) => {
+            if (!fechaDropdown.contains(e.target) && e.target !== fechaBtn) {
+                fechaDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    if (fechaAplicarBtn) {
+        fechaAplicarBtn.addEventListener('click', () => {
+            const desde = document.getElementById('listado-anio-desde')?.value || '';
+            const hasta = document.getElementById('listado-anio-hasta')?.value || '';
+
+            filtroListadoAnioDesde = desde;
+            filtroListadoAnioHasta = hasta;
+
+            // Actualizamos la etiqueta del boton
+            if (desde && hasta) fechaLabel.textContent = `Fecha: ${desde} - ${hasta}`;
+            else if (desde) fechaLabel.textContent = `Fecha: desde ${desde}`;
+            else if (hasta) fechaLabel.textContent = `Fecha: hasta ${hasta}`;
+            else fechaLabel.textContent = 'Fecha: Todo';
+
+            fechaDropdown.classList.remove('show');
+            renderizarListadoDetallado();
+        });
+    }
+
+    // Click en cualquier fila del listado -> abre el modal de esa peli/serie
+    document.getElementById('person-listado-detallado')?.addEventListener('click', (evento) => {
+        const row = evento.target.closest('.listado-row');
+        if (!row) return;
+        const id = row.getAttribute('data-id');
+        const tipo = row.getAttribute('data-tipo');
         if (id && tipo) abrirModalMedia(id, tipo);
     });
 }
