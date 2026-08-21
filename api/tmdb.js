@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         // =============================================
         if (tipo === 'person' && id) {
             const resPersona = await fetch(
-                `${baseUrl}/person/${id}?language=${tmdbLang}&append_to_response=combined_credits,external_ids`,
+                `${baseUrl}/person/${id}?language=${tmdbLang}&append_to_response=combined_credits,external_ids,images`,
                 { headers }
             );
             const dataPersona = await resPersona.json();
@@ -192,14 +192,17 @@ export default async function handler(req, res) {
                 place_of_birth: dataPersona.place_of_birth,
                 gender: dataPersona.gender,
                 known_for_title: tituloMasConocido,
-                popularity: dataPersona.popularity || 0,
+                known_for_department: traduccionDepartamentos[dataPersona.known_for_department] || dataPersona.known_for_department || 'Desconocido',
                 credits_count: creditosUnicos.length,
                 profile_path: dataPersona.profile_path
                     ? `https://image.tmdb.org/t/p/w500${dataPersona.profile_path}`
                     : null,
                 redes: redes,
                 filmografia: filmografia,
-                creditos_detallados: creditosDetallados
+                creditos_detallados: creditosDetallados,
+                galeria: (dataPersona.images?.profiles || [])
+                    .slice(0, 12)
+                    .map(img => `https://image.tmdb.org/t/p/w300${img.file_path}`)
             });
         }
 

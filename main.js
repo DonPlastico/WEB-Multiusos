@@ -6706,6 +6706,15 @@ function renderizarListadoDetallado() {
     contenedor.innerHTML = html;
 }
 
+// Formatea una fecha simple sin calculo de edad, para la fecha de fallecimiento
+function formatearFechaSimple(fechaStr) {
+    if (!fechaStr) return '';
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+}
+
 // Renderiza el HTML de la vista de persona
 function renderizarPersona(data) {
     const container = document.getElementById('person-view');
@@ -6732,6 +6741,8 @@ function renderizarPersona(data) {
     const fechaNacimiento = formatearFechaNacimiento(data.birthday, data.deathday);
     const genero = formatearGenero(data.gender);
     const conocidoPor = data.known_for_title || 'Desconocido';
+    const profesionPrincipal = data.known_for_department || 'Desconocido';
+    const estado = data.deathday ? `Falleció el ${formatearFechaSimple(data.deathday)}` : 'Activo';
     const creditosConocidos = data.credits_count ?? 0;
     const tambienConocidoComo = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
         ? data.also_known_as.join(', ')
@@ -6754,6 +6765,14 @@ function renderizarPersona(data) {
                         <span class="fact-value">${conocidoPor}</span>
                     </div>
                     <div class="person-fact">
+                        <span class="fact-label">Profesión</span>
+                        <span class="fact-value">${profesionPrincipal}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Estado</span>
+                        <span class="fact-value">${estado}</span>
+                    </div>
+                    <div class="person-fact">
                         <span class="fact-label">Créditos conocidos</span>
                         <span class="fact-value">${creditosConocidos}</span>
                     </div>
@@ -6774,6 +6793,17 @@ function renderizarPersona(data) {
                         <span class="fact-value">${tambienConocidoComo}</span>
                     </div>
                 </div>
+
+                ${data.galeria && data.galeria.length > 0 ? `
+                <div class="person-gallery glass-panel padded-panel">
+                    <h3 class="person-facts-title">Galería de fotos</h3>
+                    <div class="person-gallery-grid">
+                        ${data.galeria.map(foto => `
+                            <img src="${foto}" alt="${nombreArtistico}" class="person-gallery-img" loading="lazy">
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
             </div>
 
             <div class="person-info glass-panel padded-panel">
