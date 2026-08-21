@@ -6806,58 +6806,65 @@ function renderizarPersona(data) {
                 ` : ''}
             </div>
 
-            <div class="person-info glass-panel padded-panel">
+            <div class="person-info-col">
                 <div class="person-title-row">
                     <h1 class="person-name">${nombreArtistico}</h1>
                     ${nombreReal ? `<span class="person-real-name">| ${nombreReal}</span>` : ''}
                 </div>
-                <h3 class="section-title">Biografía</h3>
-                <p class="person-bio-text">${biografia}</p>
 
-                <h3 class="section-title" style="margin-top:24px;">Historial cinematográfico</h3>
-                <div class="filmo-grid" id="person-filmografia-grid"></div>
-
-                <div class="filmo-pagination">
-                    <button type="button" class="filmo-page-btn" id="person-filmografia-prev" title="Página anterior">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <input type="text" id="person-filmografia-page-input" class="filmo-page-input" value="1 / 1" inputmode="numeric">
-                    <button type="button" class="filmo-page-btn" id="person-filmografia-next" title="Página siguiente">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+                <div class="glass-panel padded-panel person-section">
+                    <h3 class="section-title">Biografía</h3>
+                    <p class="person-bio-text">${biografia}</p>
                 </div>
 
-                <div class="listado-header">
-                    <h3 class="section-title" style="margin:0;">Créditos completos</h3>
+                <div class="glass-panel padded-panel person-section">
+                    <h3 class="section-title">Historial cinematográfico</h3>
+                    <div class="filmo-grid" id="person-filmografia-grid"></div>
 
-                    <div class="listado-filtros">
-                        <select id="person-listado-filtro-tipo" class="listado-filtro-select">
-                            <option value="todo">Todo</option>
-                            <option value="movie">Películas</option>
-                            <option value="tv">Series</option>
-                        </select>
-
-                        <div class="listado-filtro-fecha-wrap">
-                            <button type="button" class="listado-filtro-select" id="listado-filtro-fecha-btn">
-                                <span id="listado-filtro-fecha-label">Fecha: Todo</span>
-                                <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:6px;"></i>
-                            </button>
-                            <div class="listado-fecha-dropdown" id="listado-fecha-dropdown">
-                                <label class="listado-fecha-label">Desde (año)</label>
-                                <input type="number" id="listado-anio-desde" class="listado-fecha-input" placeholder="Ej: 2010">
-                                <label class="listado-fecha-label" style="margin-top:8px;">Hasta (año)</label>
-                                <input type="number" id="listado-anio-hasta" class="listado-fecha-input" placeholder="Ej: 2026">
-                                <button type="button" class="listado-fecha-aplicar" id="listado-fecha-aplicar">Aplicar</button>
-                            </div>
-                        </div>
-
-                        <select id="person-listado-filtro-departamento" class="listado-filtro-select">
-                            <option value="todo">Departamento: Todo</option>
-                        </select>
+                    <div class="filmo-pagination">
+                        <button type="button" class="filmo-page-btn" id="person-filmografia-prev" title="Página anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <input type="text" id="person-filmografia-page-input" class="filmo-page-input" value="1 / 1" inputmode="numeric">
+                        <button type="button" class="filmo-page-btn" id="person-filmografia-next" title="Página siguiente">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div class="listado-detallado" id="person-listado-detallado"></div>
+                <div class="glass-panel padded-panel person-section">
+                    <div class="listado-header">
+                        <h3 class="section-title" style="margin:0;">Créditos completos</h3>
+
+                        <div class="listado-filtros">
+                            <select id="person-listado-filtro-tipo" class="listado-filtro-select">
+                                <option value="todo">Todo</option>
+                                <option value="movie">Películas</option>
+                                <option value="tv">Series</option>
+                            </select>
+
+                            <div class="listado-filtro-fecha-wrap">
+                                <button type="button" class="listado-filtro-select" id="listado-filtro-fecha-btn">
+                                    <span id="listado-filtro-fecha-label">Fecha: Todo</span>
+                                    <i class="fas fa-chevron-down" style="font-size:0.7rem; margin-left:6px;"></i>
+                                </button>
+                                <div class="listado-fecha-dropdown" id="listado-fecha-dropdown">
+                                    <label class="listado-fecha-label">Desde (año)</label>
+                                    <input type="number" id="listado-anio-desde" class="listado-fecha-input" placeholder="Ej: 2010">
+                                    <label class="listado-fecha-label" style="margin-top:8px;">Hasta (año)</label>
+                                    <input type="number" id="listado-anio-hasta" class="listado-fecha-input" placeholder="Ej: 2026">
+                                    <button type="button" class="listado-fecha-aplicar" id="listado-fecha-aplicar">Aplicar</button>
+                                </div>
+                            </div>
+
+                            <select id="person-listado-filtro-departamento" class="listado-filtro-select">
+                                <option value="todo">Departamento: Todo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="listado-detallado" id="person-listado-detallado"></div>
+                </div>
             </div>
         </div>
     `;

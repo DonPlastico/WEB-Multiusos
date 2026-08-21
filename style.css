@@ -931,9 +931,17 @@ input[type=number]::-webkit-outer-spin-button {
     cursor: text;
 }
 
-.person-info {
+.person-info-col {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.person-section {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .person-title-row {
