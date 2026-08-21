@@ -768,6 +768,73 @@ input[type=number]::-webkit-outer-spin-button {
     display: block;
 }
 
+/* ===== REDES SOCIALES DEL ACTOR ===== */
+.person-social-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.social-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.social-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* ===== INFORMACIÓN PERSONAL (FICHA DE DATOS) ===== */
+.person-facts {
+    margin-top: 16px;
+}
+
+.person-facts-title {
+    font-size: 1rem;
+    color: var(--text-main);
+    font-weight: 600;
+    margin: 0 0 14px;
+}
+
+.person-fact {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.person-fact:last-child {
+    border-bottom: none;
+}
+
+.fact-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.fact-value {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
 .person-info {
     flex: 1;
     min-width: 0;
@@ -8891,6 +8958,10 @@ cast-carousel::-webkit-scrollbar {
     .person-photo-col {
         flex: 0 0 auto;
         width: 200px;
+    }
+
+    .person-social-links {
+        justify-content: center;
     }
 
     .person-title-row {

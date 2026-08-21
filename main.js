@@ -6510,6 +6510,70 @@ function slugify(texto = '') {
         .replace(/\s+/g, '-');
 }
 
+// Formatea una fecha tipo "1996-06-01" a "1 de junio de 1996 (30 años)"
+function formatearFechaNacimiento(fechaStr, fechaMuerteStr = null) {
+    if (!fechaStr) return 'Desconocida';
+
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    const fechaFormateada = `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+
+    // Calculamos la edad (si ha fallecido, calculamos hasta la fecha de defunción)
+    const fechaLimite = fechaMuerteStr ? new Date(fechaMuerteStr + 'T00:00:00') : new Date();
+    let edad = fechaLimite.getFullYear() - fecha.getFullYear();
+    const mesDiff = fechaLimite.getMonth() - fecha.getMonth();
+    if (mesDiff < 0 || (mesDiff === 0 && fechaLimite.getDate() < fecha.getDate())) {
+        edad--;
+    }
+
+    return `${fechaFormateada} (${edad} años)`;
+}
+
+// Traduce el campo "gender" numerico de TMDB a texto
+function formatearGenero(genderNum) {
+    const generos = { 0: 'No especificado', 1: 'Femenino', 2: 'Masculino', 3: 'No binario' };
+    return generos[genderNum] || 'No especificado';
+}
+
+// Normaliza el campo "popularity" de TMDB (sin techo fijo) a una puntuacion 0-100 aproximada
+function formatearPuntuacion(popularity) {
+    // 100 de popularity de TMDB ya es una persona MUY mainstream, por eso usamos ese techo
+    const score = Math.min(100, Math.round((popularity || 0) / 100 * 100));
+    let texto = '';
+    if (score >= 70) texto = '¡Buena pinta!';
+    else if (score >= 40) texto = 'Popularidad media';
+    else texto = 'Poco conocido';
+    return { score, texto };
+}
+
+// Genera los botones de redes sociales, solo si existe el enlace
+function renderizarRedesSociales(redes) {
+    const iconos = {
+        imdb: 'fa-brands fa-imdb',
+        instagram: 'fa-brands fa-instagram',
+        twitter: 'fa-brands fa-x-twitter',
+        facebook: 'fa-brands fa-facebook',
+        tiktok: 'fa-brands fa-tiktok',
+        youtube: 'fa-brands fa-youtube',
+        tmdb: 'fa-solid fa-film',
+        homepage: 'fa-solid fa-globe'
+    };
+
+    let html = '';
+    for (const key in redes) {
+        if (redes[key]) {
+            html += `
+                <a href="${redes[key]}" target="_blank" rel="noopener noreferrer" class="social-btn social-${key}" title="${key}">
+                    <i class="${iconos[key]}"></i>
+                </a>
+            `;
+        }
+    }
+    return html || '<span style="color:var(--text-muted); font-size:0.85rem;">Sin redes sociales disponibles</span>';
+}
+
 // Renderiza el HTML de la vista de persona
 function renderizarPersona(data) {
     const container = document.getElementById('person-view');
@@ -6527,11 +6591,64 @@ function renderizarPersona(data) {
         ? data.biography
         : 'No hay biografía disponible.';
 
+    // "place_of_birth" viene como string único de TMDB (ej: "Kingston upon Thames, London, England, UK")
+    // Lo partimos por comas para poder mostrarlo separado con " | "
+    const lugarNacimiento = data.place_of_birth
+        ? data.place_of_birth.split(',').map(p => p.trim()).filter(Boolean).join(' | ')
+        : 'Desconocido';
+
+    const fechaNacimiento = formatearFechaNacimiento(data.birthday, data.deathday);
+    const genero = formatearGenero(data.gender);
+    const puntuacion = formatearPuntuacion(data.popularity);
+    const conocidoPor = data.known_for_department || 'Desconocido';
+    const creditosConocidos = data.credits_count ?? 0;
+    const tambienConocidoComo = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
+        ? data.also_known_as.join(', ')
+        : 'No disponible';
+
     container.innerHTML = `
         <div class="person-profile-container">
             <div class="person-photo-col">
                 <img src="${foto}" alt="${nombreArtistico}" class="person-photo">
+
+                <div class="person-social-links">
+                    ${renderizarRedesSociales(data.redes || {})}
+                </div>
+
+                <div class="person-facts glass-panel padded-panel">
+                    <h3 class="person-facts-title">Información personal</h3>
+
+                    <div class="person-fact">
+                        <span class="fact-label">Conocido por</span>
+                        <span class="fact-value">${conocidoPor}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Créditos conocidos</span>
+                        <span class="fact-value">${creditosConocidos}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Género</span>
+                        <span class="fact-value">${genero}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Fecha de nacimiento</span>
+                        <span class="fact-value">${fechaNacimiento}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Lugar de nacimiento</span>
+                        <span class="fact-value">${lugarNacimiento}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">También conocido como</span>
+                        <span class="fact-value">${tambienConocidoComo}</span>
+                    </div>
+                    <div class="person-fact">
+                        <span class="fact-label">Puntuación del contenido</span>
+                        <span class="fact-value">${puntuacion.score}, ${puntuacion.texto}</span>
+                    </div>
+                </div>
             </div>
+
             <div class="person-info glass-panel padded-panel">
                 <div class="person-title-row">
                     <h1 class="person-name">${nombreArtistico}</h1>

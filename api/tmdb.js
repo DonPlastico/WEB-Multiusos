@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         // =============================================
         if (tipo === 'person' && id) {
             const resPersona = await fetch(
-                `${baseUrl}/person/${id}?language=${tmdbLang}&append_to_response=combined_credits`,
+                `${baseUrl}/person/${id}?language=${tmdbLang}&append_to_response=combined_credits,external_ids`,
                 { headers }
             );
             const dataPersona = await resPersona.json();
@@ -101,6 +101,25 @@ export default async function handler(req, res) {
             if (!dataPersona || dataPersona.success === false) {
                 return res.status(404).json({ error: 'Persona no encontrada' });
             }
+
+            // ========== CRÉDITOS CONOCIDOS (deduplicados por id+tipo de media) ==========
+            const creditosCast = dataPersona.combined_credits?.cast || [];
+            const creditosCrew = dataPersona.combined_credits?.crew || [];
+            const creditosUnicos = new Set();
+            [...creditosCast, ...creditosCrew].forEach(c => creditosUnicos.add(`${c.media_type}-${c.id}`));
+
+            // ========== REDES SOCIALES / ENLACES EXTERNOS ==========
+            const ext = dataPersona.external_ids || {};
+            const redes = {
+                imdb: ext.imdb_id ? `https://www.imdb.com/name/${ext.imdb_id}` : null,
+                instagram: ext.instagram_id ? `https://www.instagram.com/${ext.instagram_id}` : null,
+                twitter: ext.twitter_id ? `https://twitter.com/${ext.twitter_id}` : null,
+                facebook: ext.facebook_id ? `https://www.facebook.com/${ext.facebook_id}` : null,
+                tiktok: ext.tiktok_id ? `https://www.tiktok.com/@${ext.tiktok_id}` : null,
+                youtube: ext.youtube_id ? `https://www.youtube.com/${ext.youtube_id}` : null,
+                tmdb: `https://www.themoviedb.org/person/${dataPersona.id}`,
+                homepage: dataPersona.homepage || null
+            };
 
             return res.status(200).json({
                 id: dataPersona.id,
@@ -110,10 +129,14 @@ export default async function handler(req, res) {
                 birthday: dataPersona.birthday,
                 deathday: dataPersona.deathday,
                 place_of_birth: dataPersona.place_of_birth,
+                gender: dataPersona.gender, // 0=no especificado, 1=mujer, 2=hombre, 3=no binario
+                known_for_department: dataPersona.known_for_department,
+                popularity: dataPersona.popularity || 0,
+                credits_count: creditosUnicos.size,
                 profile_path: dataPersona.profile_path
                     ? `https://image.tmdb.org/t/p/w500${dataPersona.profile_path}`
                     : null,
-                known_for_department: dataPersona.known_for_department
+                redes: redes
             });
         }
 
