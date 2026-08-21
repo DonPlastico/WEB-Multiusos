@@ -465,7 +465,6 @@ input[type=number]::-webkit-outer-spin-button {
 /* HERO SECTION MEJORADO (estilo admin-panel) */
 .hero-section {
     padding: 60px 50px;
-    margin-bottom: 50px;
     display: flex;
     gap: 40px;
     text-align: left;
@@ -936,7 +935,7 @@ input[type=number]::-webkit-outer-spin-button {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 7.5px;
 }
 
 .person-section {
@@ -949,7 +948,6 @@ input[type=number]::-webkit-outer-spin-button {
     align-items: baseline;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 20px;
 }
 
 .person-name {
@@ -6577,7 +6575,7 @@ cast-carousel::-webkit-scrollbar {
    ========================================== */
 
 .trends-container {
-    margin: 40px 0 30px;
+    margin: 20px 0 20px;
     padding: 0 20px;
 }
 
@@ -6604,7 +6602,7 @@ cast-carousel::-webkit-scrollbar {
     align-items: center;
     flex-wrap: wrap;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 7.5px;
 }
 
 .trends-header .section-title {
@@ -6626,7 +6624,7 @@ cast-carousel::-webkit-scrollbar {
     gap: 6px;
     background: var(--bg-elevated);
     padding: 4px;
-    border-radius: 30px;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
 }
@@ -6634,7 +6632,7 @@ cast-carousel::-webkit-scrollbar {
 .trend-tab {
     padding: 8px 20px;
     border: none;
-    border-radius: 25px;
+    border-radius: 12px;
     background: transparent;
     color: var(--text-muted);
     font-family: var(--font-cyber);
