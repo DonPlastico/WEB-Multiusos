@@ -6425,23 +6425,9 @@ function cerrarModalMedia() {
     if (bottomGridContainer) {
         bottomGridContainer.style.gridTemplateColumns = '';
     }
+
     const trailerCol = document.querySelector('.media-trailer-col');
-
-    // --- CLICK EN ACTOR DEL REPARTO: navega a la vista de Persona ---
     const castCol = document.querySelector('.media-cast-col');
-    if (castCol) {
-        castCol.addEventListener('click', (evento) => {
-            const card = evento.target.closest('.cast-card');
-            if (!card) return;
-
-            const personId = card.getAttribute('data-id');
-            const personName = card.getAttribute('data-name');
-
-            if (!personId || personId === 'undefined') return;
-
-            abrirPersona(personId, personName);
-        });
-    }
 
     if (trailerCol) trailerCol.style.gridColumn = '';
     if (castCol) castCol.style.gridColumn = '';
@@ -6451,6 +6437,21 @@ function cerrarModalMedia() {
 btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
 modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalMedia(); });
+
+// --- CLICK EN ACTOR DEL REPARTO ---
+// (el contenedor .media-cast-col nunca se destruye, solo su contenido interno,
+// pero delegamos en document para que funcione pase lo que pase)
+document.addEventListener('click', (evento) => {
+    const card = evento.target.closest('.cast-card');
+    if (!card) return;
+
+    const personId = card.getAttribute('data-id');
+    const personName = card.getAttribute('data-name');
+
+    if (!personId || personId === 'undefined') return;
+
+    abrirPersona(personId, personName);
+});
 
 // ============================================================
 //   VISTA DE PERSONA (ACTOR/ACTRIZ)
