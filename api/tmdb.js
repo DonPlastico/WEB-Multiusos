@@ -139,15 +139,32 @@ export default async function handler(req, res) {
             // A diferencia de "filmografia" (solo para las tarjetas 6x4), aqui necesitamos
             // el departamento y el rol exacto de cada credito, y no filtramos por poster
             // (en la lista tipo IMDb tambien aparecen titulos sin cartel, como los "—")
+            // TMDB devuelve los departamentos de "crew" en ingles; los traducimos a español
+            const traduccionDepartamentos = {
+                'Production': 'Producción',
+                'Crew': 'Equipo',
+                'Directing': 'Dirección',
+                'Writing': 'Guion',
+                'Camera': 'Cámara',
+                'Editing': 'Montaje',
+                'Sound': 'Sonido',
+                'Art': 'Arte',
+                'Costume & Make-Up': 'Vestuario y maquillaje',
+                'Visual Effects': 'Efectos visuales',
+                'Lighting': 'Iluminación',
+                'Creator': 'Creador'
+            };
+
             const creditosDetallados = creditosUnicos.map(c => {
                 const esActuacion = c.character !== undefined; // los de "cast" tienen 'character', los de "crew" no
+                const departamentoOriginal = c.department || 'Otros';
                 return {
                     id: c.id,
                     tipo: c.media_type, // 'movie' o 'tv'
                     titulo: c.title || c.name || 'Sin título',
                     poster: c.poster_path ? `https://image.tmdb.org/t/p/w92${c.poster_path}` : null,
                     fecha: c.release_date || c.first_air_date || '',
-                    department: esActuacion ? 'Interpretación' : (c.department || 'Otros'),
+                    department: esActuacion ? 'Interpretación' : (traduccionDepartamentos[departamentoOriginal] || departamentoOriginal),
                     rol: esActuacion ? (c.character || '') : (c.job || '')
                 };
             }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));

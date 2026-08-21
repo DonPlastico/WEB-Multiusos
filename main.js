@@ -6688,15 +6688,15 @@ function renderizarListadoDetallado() {
                     ${filas.map(item => {
             const anio = item.fecha ? item.fecha.slice(0, 4) : '—';
             return `
-                            <div class="listado-row" data-id="${item.id}" data-tipo="${item.tipo}">
-                                <span class="listado-row-year">${anio}</span>
-                                <span class="listado-row-dot"><i class="fas fa-circle"></i></span>
-                                <div class="listado-row-info">
-                                    <span class="listado-row-title">${item.titulo}</span>
-                                    ${item.rol ? `<span class="listado-row-role">${dep === 'Interpretación' ? 'como' : ''} ${item.rol}</span>` : ''}
-                                </div>
-                            </div>
-                        `;
+                <div class="listado-row" data-id="${item.id}" data-tipo="${item.tipo}">
+                    <span class="listado-row-year">${anio}</span>
+                    <img src="${item.poster || 'https://placehold.co/60x90/1a1a24/6b6b7a?text=--'}" alt="${item.titulo}" class="listado-row-poster" loading="lazy">
+                    <div class="listado-row-info">
+                        <span class="listado-row-title">${item.titulo}</span>
+                        ${item.rol ? `<span class="listado-row-role">${dep === 'Interpretación' ? 'como' : ''} ${item.rol}</span>` : ''}
+                    </div>
+                </div>
+            `;
         }).join('')}
                 </div>
             </div>
@@ -6731,7 +6731,6 @@ function renderizarPersona(data) {
 
     const fechaNacimiento = formatearFechaNacimiento(data.birthday, data.deathday);
     const genero = formatearGenero(data.gender);
-    const puntuacion = formatearPuntuacion(data.popularity);
     const conocidoPor = data.known_for_title || 'Desconocido';
     const creditosConocidos = data.credits_count ?? 0;
     const tambienConocidoComo = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
@@ -6773,10 +6772,6 @@ function renderizarPersona(data) {
                     <div class="person-fact">
                         <span class="fact-label">También conocido como</span>
                         <span class="fact-value">${tambienConocidoComo}</span>
-                    </div>
-                    <div class="person-fact">
-                        <span class="fact-label">Puntuación del contenido</span>
-                        <span class="fact-value">${puntuacion.score}, ${puntuacion.texto}</span>
                     </div>
                 </div>
             </div>
