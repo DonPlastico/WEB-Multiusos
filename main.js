@@ -6592,8 +6592,7 @@ function renderizarFilmografia(pagina = 1) {
     const items = filmografiaActual.slice(inicio, inicio + FILMOGRAFIA_POR_PAGINA);
 
     const grid = document.getElementById('person-filmografia-grid');
-    const pagInfo = document.getElementById('person-filmografia-page-input');
-    const pagTotal = document.getElementById('person-filmografia-page-total');
+    const pagInput = document.getElementById('person-filmografia-page-input');
     const btnPrev = document.getElementById('person-filmografia-prev');
     const btnNext = document.getElementById('person-filmografia-next');
 
@@ -6610,8 +6609,8 @@ function renderizarFilmografia(pagina = 1) {
         `).join('');
     }
 
-    if (pagInfo) pagInfo.value = filmografiaPaginaActual;
-    if (pagTotal) pagTotal.textContent = `/ ${totalPaginas}`;
+    // El input muestra "pagina / total" como un solo texto
+    if (pagInput) pagInput.value = `${filmografiaPaginaActual} / ${totalPaginas}`;
     if (btnPrev) btnPrev.disabled = filmografiaPaginaActual <= 1;
     if (btnNext) btnNext.disabled = filmografiaPaginaActual >= totalPaginas;
 }
@@ -6706,10 +6705,7 @@ function renderizarPersona(data) {
                     <button type="button" class="filmo-page-btn" id="person-filmografia-prev" title="Página anterior">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <span class="filmo-page-info">
-                        <input type="number" id="person-filmografia-page-input" class="filmo-page-input" min="1" value="1">
-                        <span id="person-filmografia-page-total">/ 1</span>
-                    </span>
+                    <input type="text" id="person-filmografia-page-input" class="filmo-page-input" value="1 / 1" inputmode="numeric">
                     <button type="button" class="filmo-page-btn" id="person-filmografia-next" title="Página siguiente">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -6733,16 +6729,25 @@ function renderizarPersona(data) {
 
     const inputPagina = document.getElementById('person-filmografia-page-input');
     if (inputPagina) {
+        // Al hacer foco/click, seleccionamos todo el texto para que sea comodo escribir encima
+        inputPagina.addEventListener('focus', () => {
+            inputPagina.select();
+        });
+
         inputPagina.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const valor = parseInt(inputPagina.value) || 1;
-                renderizarFilmografia(valor); // renderizarFilmografia ya hace el clamp al máximo permitido
+                // Extraemos solo el primer numero que el usuario haya escrito (ignora el "/ X" si lo dejo)
+                const match = inputPagina.value.match(/\d+/);
+                const valor = match ? parseInt(match[0]) : 1;
+                renderizarFilmografia(valor); // ya hace el clamp al maximo permitido
+                inputPagina.blur();
             }
         });
-        // Si pierde el foco sin dar Enter, tambien reajustamos por si dejó un valor invalido
+
+        // Si pierde el foco sin dar Enter, repintamos el "pagina / total" correcto (descarta lo escrito)
         inputPagina.addEventListener('blur', () => {
-            const valor = parseInt(inputPagina.value) || 1;
-            renderizarFilmografia(valor);
+            const totalPaginas = Math.max(1, Math.ceil(filmografiaActual.length / FILMOGRAFIA_POR_PAGINA));
+            inputPagina.value = `${filmografiaPaginaActual} / ${totalPaginas}`;
         });
     }
 
