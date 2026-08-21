@@ -6574,6 +6574,48 @@ function renderizarRedesSociales(redes) {
     return html || '<span style="color:var(--text-muted); font-size:0.85rem;">Sin redes sociales disponibles</span>';
 }
 
+// Estado global de la paginación de filmografía
+let filmografiaActual = [];
+let filmografiaPaginaActual = 1;
+const FILMOGRAFIA_POR_PAGINA = 24; // 6 columnas x 4 filas
+
+// Renderiza la cuadrícula 6x4 de filmografía + controles de paginación
+function renderizarFilmografia(pagina = 1) {
+    const totalPaginas = Math.max(1, Math.ceil(filmografiaActual.length / FILMOGRAFIA_POR_PAGINA));
+
+    // Clamp: si piden una página fuera de rango, la ajustamos al límite válido
+    if (pagina < 1) pagina = 1;
+    if (pagina > totalPaginas) pagina = totalPaginas;
+    filmografiaPaginaActual = pagina;
+
+    const inicio = (pagina - 1) * FILMOGRAFIA_POR_PAGINA;
+    const items = filmografiaActual.slice(inicio, inicio + FILMOGRAFIA_POR_PAGINA);
+
+    const grid = document.getElementById('person-filmografia-grid');
+    const pagInfo = document.getElementById('person-filmografia-page-input');
+    const pagTotal = document.getElementById('person-filmografia-page-total');
+    const btnPrev = document.getElementById('person-filmografia-prev');
+    const btnNext = document.getElementById('person-filmografia-next');
+
+    if (!grid) return;
+
+    if (items.length === 0) {
+        grid.innerHTML = `<div style="color:var(--text-muted); padding:20px; text-align:center; grid-column:1/-1;">Sin filmografía disponible.</div>`;
+    } else {
+        grid.innerHTML = items.map(item => `
+            <div class="filmo-card" data-id="${item.id}" data-tipo="${item.tipo}">
+                <img src="${item.poster}" alt="${item.titulo}" class="filmo-poster" loading="lazy">
+                <span class="filmo-titulo" title="${item.titulo}">${item.titulo}</span>
+            </div>
+        `).join('');
+    }
+
+    if (pagInfo) pagInfo.value = filmografiaPaginaActual;
+    if (pagTotal) pagTotal.textContent = `/ ${totalPaginas}`;
+    if (btnPrev) btnPrev.disabled = filmografiaPaginaActual <= 1;
+    if (btnNext) btnNext.disabled = filmografiaPaginaActual >= totalPaginas;
+}
+
 // Renderiza el HTML de la vista de persona
 function renderizarPersona(data) {
     const container = document.getElementById('person-view');
@@ -6600,7 +6642,7 @@ function renderizarPersona(data) {
     const fechaNacimiento = formatearFechaNacimiento(data.birthday, data.deathday);
     const genero = formatearGenero(data.gender);
     const puntuacion = formatearPuntuacion(data.popularity);
-    const conocidoPor = data.known_for_department || 'Desconocido';
+    const conocidoPor = data.known_for_title || 'Desconocido';
     const creditosConocidos = data.credits_count ?? 0;
     const tambienConocidoComo = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
         ? data.also_known_as.join(', ')
@@ -6656,9 +6698,62 @@ function renderizarPersona(data) {
                 </div>
                 <h3 class="person-bio-title">Biografía</h3>
                 <p class="person-bio-text">${biografia}</p>
+
+                <h3 class="person-bio-title" style="margin-top:24px;">Historial cinematográfico</h3>
+                <div class="filmo-grid" id="person-filmografia-grid"></div>
+
+                <div class="filmo-pagination">
+                    <button type="button" class="filmo-page-btn" id="person-filmografia-prev" title="Página anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="filmo-page-info">
+                        <input type="number" id="person-filmografia-page-input" class="filmo-page-input" min="1" value="1">
+                        <span id="person-filmografia-page-total">/ 1</span>
+                    </span>
+                    <button type="button" class="filmo-page-btn" id="person-filmografia-next" title="Página siguiente">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     `;
+
+    // ===== Preparamos la filmografía y pintamos la primera página =====
+    filmografiaActual = Array.isArray(data.filmografia) ? data.filmografia : [];
+    filmografiaPaginaActual = 1;
+    renderizarFilmografia(1);
+
+    // ===== Listeners de paginación =====
+    document.getElementById('person-filmografia-prev')?.addEventListener('click', () => {
+        renderizarFilmografia(filmografiaPaginaActual - 1);
+    });
+    document.getElementById('person-filmografia-next')?.addEventListener('click', () => {
+        renderizarFilmografia(filmografiaPaginaActual + 1);
+    });
+
+    const inputPagina = document.getElementById('person-filmografia-page-input');
+    if (inputPagina) {
+        inputPagina.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const valor = parseInt(inputPagina.value) || 1;
+                renderizarFilmografia(valor); // renderizarFilmografia ya hace el clamp al máximo permitido
+            }
+        });
+        // Si pierde el foco sin dar Enter, tambien reajustamos por si dejó un valor invalido
+        inputPagina.addEventListener('blur', () => {
+            const valor = parseInt(inputPagina.value) || 1;
+            renderizarFilmografia(valor);
+        });
+    }
+
+    // ===== Click en cualquier tarjeta de la filmografía -> abre el modal de esa película/serie =====
+    document.getElementById('person-filmografia-grid')?.addEventListener('click', (evento) => {
+        const card = evento.target.closest('.filmo-card');
+        if (!card) return;
+        const id = card.getAttribute('data-id');
+        const tipo = card.getAttribute('data-tipo');
+        if (id && tipo) abrirModalMedia(id, tipo);
+    });
 }
 
 // ==========================================================================

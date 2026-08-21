@@ -102,11 +102,38 @@ export default async function handler(req, res) {
                 return res.status(404).json({ error: 'Persona no encontrada' });
             }
 
-            // ========== CRÉDITOS CONOCIDOS (deduplicados por id+tipo de media) ==========
+            // ========== CRÉDITOS CONOCIDOS Y FILMOGRAFÍA COMPLETA ==========
             const creditosCast = dataPersona.combined_credits?.cast || [];
             const creditosCrew = dataPersona.combined_credits?.crew || [];
-            const creditosUnicos = new Set();
-            [...creditosCast, ...creditosCrew].forEach(c => creditosUnicos.add(`${c.media_type}-${c.id}`));
+            const todosCreditos = [...creditosCast, ...creditosCrew];
+
+            // Deduplicamos por id+tipo de media (a veces sale como actor Y como productor en el mismo título)
+            const mapaUnicos = new Map();
+            todosCreditos.forEach(c => {
+                const key = `${c.media_type}-${c.id}`;
+                if (!mapaUnicos.has(key)) mapaUnicos.set(key, c);
+            });
+            const creditosUnicos = Array.from(mapaUnicos.values());
+
+            // Título por el que es MÁS conocido: el de mayor popularidad/votos dentro de su propia filmografía
+            let tituloMasConocido = 'Desconocido';
+            if (creditosUnicos.length > 0) {
+                const masPopular = [...creditosUnicos].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))[0];
+                tituloMasConocido = masPopular.title || masPopular.name || 'Desconocido';
+            }
+
+            // Filmografía completa formateada y ordenada por fecha (mas reciente primero)
+            const filmografia = creditosUnicos
+                .filter(c => c.poster_path) // solo con poster, si no la tarjeta queda vacia
+                .map(c => ({
+                    id: c.id,
+                    tipo: c.media_type, // 'movie' o 'tv'
+                    titulo: c.title || c.name,
+                    poster: `https://image.tmdb.org/t/p/w342${c.poster_path}`,
+                    fecha: c.release_date || c.first_air_date || '',
+                    nota: c.vote_average ? c.vote_average.toFixed(1) : '0.0'
+                }))
+                .sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
 
             // ========== REDES SOCIALES / ENLACES EXTERNOS ==========
             const ext = dataPersona.external_ids || {};
@@ -129,14 +156,15 @@ export default async function handler(req, res) {
                 birthday: dataPersona.birthday,
                 deathday: dataPersona.deathday,
                 place_of_birth: dataPersona.place_of_birth,
-                gender: dataPersona.gender, // 0=no especificado, 1=mujer, 2=hombre, 3=no binario
-                known_for_department: dataPersona.known_for_department,
+                gender: dataPersona.gender,
+                known_for_title: tituloMasConocido,
                 popularity: dataPersona.popularity || 0,
-                credits_count: creditosUnicos.size,
+                credits_count: creditosUnicos.length,
                 profile_path: dataPersona.profile_path
                     ? `https://image.tmdb.org/t/p/w500${dataPersona.profile_path}`
                     : null,
-                redes: redes
+                redes: redes,
+                filmografia: filmografia
             });
         }
 
