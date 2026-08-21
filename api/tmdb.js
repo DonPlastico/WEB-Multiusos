@@ -89,6 +89,35 @@ export default async function handler(req, res) {
         }
 
         // =============================================
+        // 1.7. PERSONA (ACTOR/ACTRIZ)
+        // =============================================
+        if (tipo === 'person' && id) {
+            const resPersona = await fetch(
+                `${baseUrl}/person/${id}?language=${tmdbLang}&append_to_response=combined_credits`,
+                { headers }
+            );
+            const dataPersona = await resPersona.json();
+
+            if (!dataPersona || dataPersona.success === false) {
+                return res.status(404).json({ error: 'Persona no encontrada' });
+            }
+
+            return res.status(200).json({
+                id: dataPersona.id,
+                name: dataPersona.name,
+                also_known_as: dataPersona.also_known_as || [],
+                biography: dataPersona.biography || '',
+                birthday: dataPersona.birthday,
+                deathday: dataPersona.deathday,
+                place_of_birth: dataPersona.place_of_birth,
+                profile_path: dataPersona.profile_path
+                    ? `https://image.tmdb.org/t/p/w500${dataPersona.profile_path}`
+                    : null,
+                known_for_department: dataPersona.known_for_department
+            });
+        }
+
+        // =============================================
         // 2. DETALLES (por ID)
         // =============================================
         if (id) {
@@ -167,6 +196,7 @@ export default async function handler(req, res) {
             const actoresBruto = data.credits?.cast || [];
             const repartoFormateado = actoresBruto.slice(0, 15).map(actor => {
                 return {
+                    id: actor.id,
                     nombre: actor.name,
                     personaje: actor.character,
                     foto: actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : null

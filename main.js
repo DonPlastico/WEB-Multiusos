@@ -6105,7 +6105,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
             data.reparto.forEach(actor => {
                 const fotoSrc = actor.foto ? actor.foto : 'https://placehold.co/105x158/1a1a24/6b6b7a?text=NO+FOTO';
                 castHtml += `
-                    <div class="cast-card">
+                    <div class="cast-card" data-id="${actor.id}" data-name="${actor.nombre}">
                         <img src="${fotoSrc}" alt="${actor.nombre}" class="cast-img" loading="lazy">
                         <div class="cast-info">
                             <span class="cast-name" title="${actor.nombre}">${actor.nombre}</span>
@@ -6426,7 +6426,23 @@ function cerrarModalMedia() {
         bottomGridContainer.style.gridTemplateColumns = '';
     }
     const trailerCol = document.querySelector('.media-trailer-col');
+
+    // --- CLICK EN ACTOR DEL REPARTO: navega a la vista de Persona ---
     const castCol = document.querySelector('.media-cast-col');
+    if (castCol) {
+        castCol.addEventListener('click', (evento) => {
+            const card = evento.target.closest('.cast-card');
+            if (!card) return;
+
+            const personId = card.getAttribute('data-id');
+            const personName = card.getAttribute('data-name');
+
+            if (!personId || personId === 'undefined') return;
+
+            abrirPersona(personId, personName);
+        });
+    }
+
     if (trailerCol) trailerCol.style.gridColumn = '';
     if (castCol) castCol.style.gridColumn = '';
 }
@@ -6435,6 +6451,97 @@ function cerrarModalMedia() {
 btnCerrarMedia?.addEventListener('click', cerrarModalMedia);
 modalMedia?.addEventListener('click', (e) => { if (e.target === modalMedia) cerrarModalMedia(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalMedia(); });
+
+// ============================================================
+//   VISTA DE PERSONA (ACTOR/ACTRIZ)
+// ============================================================
+async function abrirPersona(personId, personNameFallback = '') {
+    // 1. Cerramos el modal de película/serie que esté abierto
+    cerrarModalMedia();
+
+    // 2. Ocultamos todas las vistas y mostramos la de persona
+    vistas.forEach(vista => vista.classList.remove('active'));
+    const personView = document.getElementById('person');
+    personView.classList.add('active');
+
+    linksMenu.forEach(link => link.classList.remove('active')); // ningún item del nav queda activo
+    vistaActualGlobal = 'person';
+
+    const container = document.getElementById('person-view');
+
+    // 3. Loader mientras llega la API
+    container.innerHTML = `
+        <div class="person-loading" style="padding:80px 0; text-align:center; color:var(--text-muted);">
+            <i class="fas fa-spinner fa-spin"></i> Cargando...
+        </div>
+    `;
+
+    // 4. Slug + pushState (formato TMDB: /person/1136406-tom-holland)
+    const slug = slugify(personNameFallback);
+    window.history.pushState({ vista: 'person', personId }, '', `/person/${personId}-${slug}`);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // 5. Fetch a tu proxy /api/tmdb (mismo patrón que el resto de tu web)
+    try {
+        const res = await fetch(`/api/tmdb?tipo=person&id=${personId}&lang=${currentLang}`);
+        if (!res.ok) throw new Error('Error al obtener la persona');
+        const data = await res.json();
+
+        renderizarPersona(data);
+    } catch (err) {
+        console.error('Error cargando persona:', err);
+        container.innerHTML = `
+            <div style="padding:80px 0; text-align:center; color:var(--text-muted);">
+                No se pudo cargar la información de este actor.
+            </div>
+        `;
+    }
+}
+
+// Pequeño helper para generar el slug tipo "tom-holland"
+function slugify(texto = '') {
+    return texto
+        .toString()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita acentos
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-');
+}
+
+// Renderiza el HTML de la vista de persona
+function renderizarPersona(data) {
+    const container = document.getElementById('person-view');
+
+    const foto = data.profile_path
+        ? data.profile_path
+        : 'https://placehold.co/500x750/1a1a24/6b6b7a?text=NO+FOTO';
+
+    const nombreArtistico = data.name || '';
+    const nombreReal = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
+        ? data.also_known_as[0]
+        : '';
+
+    const biografia = data.biography && data.biography.trim() !== ''
+        ? data.biography
+        : 'No hay biografía disponible.';
+
+    container.innerHTML = `
+        <div class="person-profile-container">
+            <div class="person-photo-col">
+                <img src="${foto}" alt="${nombreArtistico}" class="person-photo">
+            </div>
+            <div class="person-info glass-panel padded-panel">
+                <div class="person-title-row">
+                    <h1 class="person-name">${nombreArtistico}</h1>
+                    ${nombreReal ? `<span class="person-real-name">| ${nombreReal}</span>` : ''}
+                </div>
+                <h3 class="person-bio-title">Biografía</h3>
+                <p class="person-bio-text">${biografia}</p>
+            </div>
+        </div>
+    `;
+}
 
 // ==========================================================================
 //   CARGA DINÁMICA DE PERFILES PÚBLICOS

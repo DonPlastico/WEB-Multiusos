@@ -742,6 +742,82 @@ input[type=number]::-webkit-outer-spin-button {
     opacity: 0.3;
 }
 
+/* ============================================================
+   VISTA DE PERSONA (ACTOR/ACTRIZ)
+   ============================================================ */
+.person-profile-container {
+    display: flex;
+    gap: 30px;
+    padding: 100px 20px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: flex-start;
+}
+
+.person-photo-col {
+    flex: 0 0 280px;
+}
+
+.person-photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    display: block;
+}
+
+.person-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.person-title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.person-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.person-real-name {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.person-bio-title {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+
+.person-bio-text {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 0.95rem;
+    white-space: pre-line;
+}
+
+/* cast-card ahora es clickeable */
+.cast-card {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.cast-card:hover {
+    transform: translateY(-4px);
+}
+
 /* ==========================================================================
    BUSCADOR Y JUEGOS
    ========================================================================== */
@@ -8813,6 +8889,27 @@ cast-carousel::-webkit-scrollbar {
 
     .cookie-action-section {
         flex-direction: column;
+    }
+
+    .person-profile-container {
+        flex-direction: column;
+        align-items: center;
+        padding-top: 90px;
+    }
+
+    .person-photo-col {
+        flex: 0 0 auto;
+        width: 200px;
+    }
+
+    .person-title-row {
+        flex-direction: column;
+        gap: 2px;
+        text-align: center;
+    }
+
+    .person-info {
+        width: 100%;
     }
 }
 
