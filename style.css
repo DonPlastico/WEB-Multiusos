@@ -808,16 +808,6 @@ input[type=number]::-webkit-outer-spin-button {
     white-space: pre-line;
 }
 
-/* cast-card ahora es clickeable */
-.cast-card {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.cast-card:hover {
-    transform: translateY(-4px);
-}
-
 /* ==========================================================================
    BUSCADOR Y JUEGOS
    ========================================================================== */
@@ -3812,6 +3802,7 @@ cast-carousel::-webkit-scrollbar {
     flex-direction: column;
     transition: transform 0.2s ease, border-color 0.2s ease;
     height: auto;
+    cursor: pointer;
 }
 
 .cast-card:hover {
