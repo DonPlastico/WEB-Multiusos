@@ -6758,7 +6758,7 @@ function renderizarPersona(data) {
                 </div>
 
                 <div class="person-facts glass-panel padded-panel">
-                    <h3 class="person-facts-title">Información personal</h3>
+                    <h3 class="section-title">Información personal</h3>
 
                     <div class="person-fact">
                         <span class="fact-label">Conocido por</span>
@@ -6796,7 +6796,7 @@ function renderizarPersona(data) {
 
                 ${data.galeria && data.galeria.length > 0 ? `
                 <div class="person-gallery glass-panel padded-panel">
-                    <h3 class="person-facts-title">Galería de fotos</h3>
+                    <h3 class="section-title">Galería de fotos</h3>
                     <div class="person-gallery-grid">
                         ${data.galeria.map(foto => `
                             <img src="${foto}" alt="${nombreArtistico}" class="person-gallery-img" loading="lazy">
@@ -6811,10 +6811,10 @@ function renderizarPersona(data) {
                     <h1 class="person-name">${nombreArtistico}</h1>
                     ${nombreReal ? `<span class="person-real-name">| ${nombreReal}</span>` : ''}
                 </div>
-                <h3 class="person-bio-title">Biografía</h3>
+                <h3 class="section-title">Biografía</h3>
                 <p class="person-bio-text">${biografia}</p>
 
-                <h3 class="person-bio-title" style="margin-top:24px;">Historial cinematográfico</h3>
+                <h3 class="section-title" style="margin-top:24px;">Historial cinematográfico</h3>
                 <div class="filmo-grid" id="person-filmografia-grid"></div>
 
                 <div class="filmo-pagination">
@@ -6828,7 +6828,7 @@ function renderizarPersona(data) {
                 </div>
 
                 <div class="listado-header">
-                    <h3 class="person-bio-title" style="margin:0;">Créditos completos</h3>
+                    <h3 class="section-title" style="margin:0;">Créditos completos</h3>
 
                     <div class="listado-filtros">
                         <select id="person-listado-filtro-tipo" class="listado-filtro-select">
