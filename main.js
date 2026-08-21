@@ -6553,7 +6553,7 @@ function renderizarRedesSociales(redes) {
     const iconos = {
         imdb: 'fa-brands fa-imdb',
         instagram: 'fa-brands fa-instagram',
-        twitter: 'fa-brands fa-x-twitter',
+        twitter: 'fa-brands fa-twitter',
         facebook: 'fa-brands fa-facebook',
         tiktok: 'fa-brands fa-tiktok',
         youtube: 'fa-brands fa-youtube',
