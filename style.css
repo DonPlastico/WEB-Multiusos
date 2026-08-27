@@ -9153,29 +9153,6 @@ select.cyber-input option {
 }
 
 /* ==========================================================================
-   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL
-   ========================================================================== */
-.btn-save-floating {
-    position: fixed;
-    top: 90px;
-    /* Espacio exacto debajo de tu Navbar */
-    right: 40px;
-    /* Alineado con los márgenes de la web */
-    z-index: 990;
-    /* Por encima del contenido pero debajo de modales */
-    width: auto !important;
-    /* Sobrescribe el full-width */
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    border-radius: 12px;
-}
-
-/* Efecto hover acentuado para que resalte que es un botón global */
-.btn-save-floating:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
-}
-
-/* ==========================================================================
    BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN STICKY)
    ========================================================================== */
 .sticky-save-wrapper {
@@ -10420,16 +10397,6 @@ select.cyber-input option {
     .profile-triple-row {
         grid-template-columns: 1fr;
     }
-
-    .btn-save-floating {
-        top: 70px;
-        right: 15px;
-        padding: 10px 16px;
-        font-size: 0.8rem;
-        z-index: 90;
-        /* Ajuste para evitar conflictos con menús móviles */
-    }
-
 
     .sticky-save-wrapper {
         top: 80px;
