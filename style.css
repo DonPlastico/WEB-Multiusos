@@ -2596,6 +2596,7 @@ span.flatpickr-weekday {
 
 /* --- Estadísticas detalladas --- */
 .stats-header {
+    margin-top: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -6020,7 +6021,7 @@ cast-carousel::-webkit-scrollbar {
 .profile-col-right {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 7.5px;
     min-width: 0;
 }
 
@@ -8655,6 +8656,7 @@ cast-carousel::-webkit-scrollbar {
    28. ESTANTES VIRTUALES
    ============================================================ */
 .virtual-shelves-section {
+    margin-top: 20px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -8699,9 +8701,9 @@ cast-carousel::-webkit-scrollbar {
 /* ============================================================
    23. GUILTY PLEASURES
    ============================================================ */
-.guilty-pleasures-section {
-    margin-top: 16px;
-    padding: 16px;
+.guilty-pleasures-section,
+.dropped-list-section {
+    padding: 10px;
 }
 
 .guilty-pleasure-card {
@@ -8766,14 +8768,19 @@ cast-carousel::-webkit-scrollbar {
     margin: 0;
 }
 
+.challenges-section {
+    margin-top: 20px;
+}
+
+.top-directors-section {
+    margin-top: 20px;
+    max-height: 250px;
+    overflow-y: scroll;
+}
+
 /* ============================================================
    25. EL CEMENTERIO DE ABANDONOS
    ============================================================ */
-.dropped-list-section {
-    margin-top: 16px;
-    padding: 16px;
-}
-
 .dropped-item {
     display: flex;
     gap: 12px;
