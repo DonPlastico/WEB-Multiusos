@@ -6134,7 +6134,7 @@ cast-carousel::-webkit-scrollbar {
     gap: 7.5px;
     padding: 5px 5px 0 0;
     display: flex;
-    max-height: 850px !important;
+    height: 850px !important;
     overflow-y: auto !important;
 }
 
