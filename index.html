@@ -1921,15 +1921,17 @@
         <!--   VISTA: EDITAR PERFIL (ESTILO ADMIN)                        -->
         <!-- ============================================================ -->
         <section id="edit-profile" class="view">
-
-            <!-- BOTÓN FLOTANTE (Arriba a la derecha) -->
-            <button type="submit" id="btn-save-profile" form="form-edit-profile"
-                class="auth-btn primary btn-save-floating">
-                <i class="fas fa-save"></i> GUARDAR CAMBIOS
-            </button>
-
             <div class="edit-profile-admin-container">
-                <!-- HEADER como el de admin... -->
+
+                <!-- ENVOLTORIO STICKY (La magia para que baje contigo) -->
+                <div class="sticky-save-wrapper">
+                    <button type="submit" id="btn-save-profile" form="form-edit-profile"
+                        class="auth-btn primary btn-save-floating">
+                        <i class="fas fa-save"></i> GUARDAR CAMBIOS
+                    </button>
+                </div>
+
+                <!-- HEADER como el de admin (con titulo y estado) -->
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
                         <h1>

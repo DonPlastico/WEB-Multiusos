@@ -9175,8 +9175,40 @@ select.cyber-input option {
     box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
 }
 
+/* ==========================================================================
+   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN STICKY)
+   ========================================================================== */
+.sticky-save-wrapper {
+    position: sticky;
+    top: 100px;
+    /* Distancia perfecta para quedar debajo de tu Navbar al bajar */
+    z-index: 990;
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    height: 0;
+    /* Altura 0 para no empujar el diseño del header hacia abajo */
+    pointer-events: none;
+    /* Evita que la caja invisible bloquee clics en el header */
+}
 
+.btn-save-floating {
+    pointer-events: auto;
+    /* Reactiva los clics específicamente para el botón */
+    transform: translateY(20px);
+    /* Lo empuja un poco para que solape el header como en tu captura */
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    border-radius: 12px;
+    width: auto !important;
+    margin-right: 20px;
+    /* Margen derecho */
+}
 
+.btn-save-floating:hover {
+    transform: translateY(17px) scale(1.02);
+    /* Mantiene el desplazamiento en el hover */
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6), 0 0 15px rgba(99, 102, 241, 0.3);
+}
 
 
 
@@ -10396,6 +10428,22 @@ select.cyber-input option {
         font-size: 0.8rem;
         z-index: 90;
         /* Ajuste para evitar conflictos con menús móviles */
+    }
+
+
+    .sticky-save-wrapper {
+        top: 80px;
+    }
+
+    .btn-save-floating {
+        transform: translateY(10px);
+        padding: 10px 16px;
+        font-size: 0.8rem;
+        margin-right: 10px;
+    }
+
+    .btn-save-floating:hover {
+        transform: translateY(7px) scale(1.02);
     }
 }
 
