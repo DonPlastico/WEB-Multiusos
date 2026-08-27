@@ -6005,7 +6005,7 @@ cast-carousel::-webkit-scrollbar {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
-    margin-top: 40px;
+    margin-top: 7.5px;
     align-items: start;
 }
 
@@ -8154,8 +8154,8 @@ cast-carousel::-webkit-scrollbar {
 
 .match-score-text {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 0;
+    right: 0;
     width: 84px;
     height: 84px;
     display: flex;
@@ -8278,8 +8278,8 @@ cast-carousel::-webkit-scrollbar {
     display: flex;
     align-items: stretch;
     gap: 0;
-    margin: 16px 0;
-    padding: 22px 28px;
+    margin: 7.5px 0;
+    padding: 10px;
     overflow: hidden;
 }
 
@@ -8378,6 +8378,7 @@ cast-carousel::-webkit-scrollbar {
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -8393,8 +8394,8 @@ cast-carousel::-webkit-scrollbar {
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
+    padding: 10px;
+    margin-bottom: 7.5px;
 }
 
 .tag-bio-item {
@@ -8474,8 +8475,8 @@ cast-carousel::-webkit-scrollbar {
    ============================================================ */
 .curator-meter {
     grid-column: 1 / -1;
-    padding: 18px 22px;
-    margin-top: 16px;
+    margin-top: 7.5px;
+    padding: 7.5px 20px;
 }
 
 .curator-meter-header {
@@ -8539,15 +8540,14 @@ cast-carousel::-webkit-scrollbar {
    ============================================================ */
 .franchise-collector {
     grid-column: 1 / -1;
+    margin-top: 7.5px;
     padding: 18px 22px;
-    margin-top: 16px;
 }
 
 .franchise-rings {
     display: flex;
-    gap: 30px;
+    gap: 25px;
     flex-wrap: wrap;
-    margin-top: 14px;
     justify-content: center;
 }
 
@@ -8584,10 +8584,10 @@ cast-carousel::-webkit-scrollbar {
    27. LÍNEA DE TIEMPO DE HITOS
    ============================================================ */
 .profile-timeline-section {
-    width: 100%;
     box-sizing: border-box;
+    width: 100%;
+    margin-top: 7.5px;
     padding: 20px 24px;
-    margin: 16px 0;
 }
 
 .profile-timeline {
@@ -8657,20 +8657,15 @@ cast-carousel::-webkit-scrollbar {
 .virtual-shelves-section {
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 16px;
-    padding: 24px 28px;
 }
 
 .virtual-shelf {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
     flex-wrap: wrap;
-    margin-top: 20px;
-    padding: 20px 20px 26px;
+    justify-content: center;
+    gap: 50px;
+    padding: 0 0 20px 0;
+    display: flex;
     position: relative;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
-    border-radius: 12px;
 }
 
 .virtual-shelf::after {
@@ -9153,6 +9148,29 @@ select.cyber-input option {
 }
 
 /* ==========================================================================
+   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL
+   ========================================================================== */
+.btn-save-floating {
+    position: fixed;
+    top: 90px;
+    /* Espacio exacto debajo de tu Navbar */
+    right: 40px;
+    /* Alineado con los márgenes de la web */
+    z-index: 990;
+    /* Por encima del contenido pero debajo de modales */
+    width: auto !important;
+    /* Sobrescribe el full-width */
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+}
+
+/* Efecto hover acentuado para que resalte que es un botón global */
+.btn-save-floating:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+}
+
+/* ==========================================================================
    BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN STICKY)
    ========================================================================== */
 .sticky-save-wrapper {
@@ -9167,24 +9185,6 @@ select.cyber-input option {
     /* Altura 0 para no empujar el diseño del header hacia abajo */
     pointer-events: none;
     /* Evita que la caja invisible bloquee clics en el header */
-}
-
-.btn-save-floating {
-    pointer-events: auto;
-    /* Reactiva los clics específicamente para el botón */
-    transform: translateY(20px);
-    /* Lo empuja un poco para que solape el header como en tu captura */
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    border-radius: 12px;
-    width: auto !important;
-    margin-right: 20px;
-    /* Margen derecho */
-}
-
-.btn-save-floating:hover {
-    transform: translateY(17px) scale(1.02);
-    /* Mantiene el desplazamiento en el hover */
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6), 0 0 15px rgba(99, 102, 241, 0.3);
 }
 
 
@@ -10398,19 +10398,18 @@ select.cyber-input option {
         grid-template-columns: 1fr;
     }
 
-    .sticky-save-wrapper {
-        top: 80px;
-    }
-
     .btn-save-floating {
-        transform: translateY(10px);
+        top: 70px;
+        right: 15px;
         padding: 10px 16px;
         font-size: 0.8rem;
-        margin-right: 10px;
+        z-index: 90;
+        /* Ajuste para evitar conflictos con menús móviles */
     }
 
-    .btn-save-floating:hover {
-        transform: translateY(7px) scale(1.02);
+
+    .sticky-save-wrapper {
+        top: 80px;
     }
 }
 
