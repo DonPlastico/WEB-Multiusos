@@ -8773,7 +8773,6 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .top-directors-section {
-    margin-top: 20px;
     max-height: 250px;
     overflow-y: scroll;
 }
