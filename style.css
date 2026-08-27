@@ -8773,7 +8773,7 @@ cast-carousel::-webkit-scrollbar {
 }
 
 .top-directors-section {
-    max-height: 250px;
+    max-height: 210px;
     overflow-y: scroll;
 }
 
@@ -8909,27 +8909,26 @@ cast-carousel::-webkit-scrollbar {
    38. LIBRO DE VISITAS ESTILO RETRO
    ============================================================ */
 .guestbook-footer {
-    margin: 24px 20px 0;
-    padding: 24px;
+    margin-top: 20px;
+    padding: 20px;
 }
 
 .guestbook-entries {
-    margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-height: 360px;
+    gap: 7.5px;
+    max-height: 750px;
     overflow-y: auto;
 }
 
 .guestbook-entry {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    padding: 10px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    display: flex;
 }
 
 .guestbook-avatar {
