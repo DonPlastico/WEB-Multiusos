@@ -457,13 +457,11 @@ async function cargarListasEditables() {
 }
 
 // ==========================================================================
-//   MARCAR / DESMARCAR ITEM EN UNA LISTA
+//   MARCAR / DESMARCAR ITEM EN UNA LISTA (ACTUALIZADO CON METADATA)
 // ==========================================================================
-
-// se llama al marcar/desmarcar un checkbox del menu, inserta o borra el item en supabase
 async function toggleItemEnLista(listaId, marcado, checkboxEl) {
     if (!mediaActualParaLista) return;
-    checkboxEl.disabled = true; // bloqueamos pa que no le den 2 veces mientras carga
+    checkboxEl.disabled = true;
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -471,20 +469,50 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
         const userId = session.user.id;
 
         if (marcado) {
-            // se ha marcado -> insertamos el item en la lista
-            const { error } = await supabase.from('listas_items').insert({
+            showToast('info', 'Guardando...', 'Obteniendo metadata de la obra...');
+
+            // 1. Objeto base para Supabase
+            let insertData = {
                 lista_id: listaId,
                 media_id: mediaActualParaLista.id,
                 media_tipo: mediaActualParaLista.tipo,
-                added_by_user_id: userId
-            });
+                added_by_user_id: userId,
+                titulo: 'Desconocido',
+                poster: '',
+                nota: 0,
+                fecha_estreno: null,
+                plataformas: []
+            };
+
+            // 2. Extraer datos reales de TMDB
+            if (mediaActualParaLista.tipo === 'movie' || mediaActualParaLista.tipo === 'tv') {
+                const res = await fetch(`/api/tmdb?id=${mediaActualParaLista.id}&tipo=${mediaActualParaLista.tipo}&lang=${currentLang}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    insertData.titulo = data.titulo;
+                    insertData.poster = data.poster;
+                    insertData.nota = parseFloat(data.nota) || 0;
+                    insertData.fecha_estreno = data.fecha || null;
+                    insertData.plataformas = data.suscripcion || [];
+                }
+            }
+            // 2.5 Extraer datos de Juegos (desde el HTML activo)
+            else if (mediaActualParaLista.tipo === 'game') {
+                const card = document.querySelector(`.game-card[data-game-id="${mediaActualParaLista.id}"]`);
+                if (card) {
+                    insertData.titulo = card.getAttribute('data-game-title') || 'Juego';
+                    insertData.poster = card.querySelector('img.game-cover')?.src || '';
+                }
+            }
+
+            // 3. Mandar a Supabase
+            const { error } = await supabase.from('listas_items').insert(insertData);
             if (error) throw error;
             showToast('success', 'Añadido', 'Se ha guardado en la lista.');
+
         } else {
-            // se ha desmarcado -> lo borramos de la lista
-            const { error } = await supabase
-                .from('listas_items')
-                .delete()
+            // Borrado normal
+            const { error } = await supabase.from('listas_items').delete()
                 .eq('lista_id', listaId)
                 .eq('media_id', mediaActualParaLista.id)
                 .eq('media_tipo', mediaActualParaLista.tipo);
@@ -492,14 +520,13 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
             showToast('success', 'Quitado', 'Se ha quitado de la lista.');
         }
 
-        // Invalidar caché de listas pa que se vuelva a pedir la próxima vez
         listasCache.mias = null;
         listasCache.compartidas = null;
 
     } catch (err) {
         console.error('Error guardando en la lista:', err);
         showToast('error', 'Error', 'No se pudo actualizar la lista.');
-        checkboxEl.checked = !marcado; // revertimos el check visualmente si algo peto
+        checkboxEl.checked = !marcado;
     } finally {
         checkboxEl.disabled = false;
     }
@@ -13734,7 +13761,7 @@ function configurarFiltroEstiloLista() {
         return;
     }
 
-    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
+    const styleCheckboxes = sidebar.querySelectorAll('#filtro-estilo-tarjeta-content input[type="checkbox"]');
     if (styleCheckboxes.length === 0) {
         console.warn('⚠️ [configurarFiltroEstiloLista] No se encontraron checkboxes de estilo');
         return;
@@ -13783,7 +13810,7 @@ function handleStyleChange(e) {
         return;
     }
 
-    const styleCheckboxes = sidebar.querySelectorAll('.accordion-item .custom-check input[type="checkbox"]');
+    const styleCheckboxes = sidebar.querySelectorAll('#filtro-estilo-tarjeta-content input[type="checkbox"]');
     styleCheckboxes.forEach(cb => {
         if (cb !== changed) {
             cb.checked = false;
@@ -13804,680 +13831,224 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA)
+//   MOTOR DE LISTAS DETALLE (NUEVA ARQUITECTURA SUPABASE + FILTROS)
 // ==========================================================================
-
-let listaItemsOffset = 0;
-const LISTA_ITEMS_LIMIT = 50;
-let listaItemsCargando = false;
-let listaItemsTotal = 0;
-let listaItemsActuales = [];
+let itemsListaActualMemoria = []; // Todos los items crudos de Supabase
+let itemsFiltradosMemoria = [];   // Items después de aplicar los filtros
+let renderOffset = 0;
+const RENDER_LIMIT = 50;
 let listaIdActual = null;
 let listaTipoActual = null;
-let listaObservador = null;
-let listaItemsEnriquecidos = {};
-let listaEnriquecimientoCompleto = false;
 
-/**
- * Carga los items de una lista desde Supabase con paginación
- */
-async function cargarItemsLista(listaId, resetear = true) {
-    if (!listaId) {
-        console.error('❌ [cargarItemsLista] No se proporcionó ID de lista');
-        return;
-    }
+// 1. Carga Inicial de la Lista
+window.cargarDetalleLista = async function (nombreLista) {
+    if (!nombreLista) return;
+    const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
+    const tituloEl = document.getElementById('lista-detalle-nombre');
+    if (tituloEl) tituloEl.textContent = tituloDecodificado;
 
-    if (resetear) {
-        listaItemsOffset = 0;
-        listaItemsActuales = [];
-        listaItemsEnriquecidos = {};
-        listaEnriquecimientoCompleto = false;
-        listaIdActual = listaId;
-
-        const grid = document.getElementById('lista-detalle-grid');
-        if (grid) {
-            grid.innerHTML = '';
-        }
-
-        document.getElementById('lista-detalle-loader').style.display = 'none';
-        document.getElementById('lista-detalle-end').style.display = 'none';
-
-        const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) {
-            mensaje.textContent = 'Cargando elementos...';
-        }
-    }
-
-    if (listaItemsCargando) {
-        return;
-    }
-    listaItemsCargando = true;
-
-    const loader = document.getElementById('lista-detalle-loader');
-    // SOLO mostrar el loader de scroll infinito si NO es la primera carga
-    // En la primera carga, se oculta hasta que se sepa si hay más páginas
-    if (!resetear) {
-        loader.style.display = 'block';
-    } else {
-        loader.style.display = 'none';
-    }
+    const grid = document.getElementById('lista-detalle-grid');
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i><p style="margin-top:10px;">Conectando al Nexus...</p></div>';
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            throw new Error('No hay sesión activa');
-        }
+        if (!session) throw new Error('No hay sesión activa');
 
-        const { data: listaInfo, error: errLista } = await supabase
-            .from('listas_maestra')
-            .select('owner_id, tag_tipo')
-            .eq('id', listaId)
-            .single();
+        // Buscar la lista
+        const { data: lista, error } = await supabase.from('listas_maestra')
+            .select('id, titulo, tag_tipo').eq('titulo', tituloDecodificado).eq('owner_id', session.user.id).single();
 
-        if (errLista) throw errLista;
+        if (error || !lista) throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
 
-        if (listaInfo.owner_id !== session.user.id) {
-            throw new Error('No tienes permisos para ver esta lista');
-        }
+        listaIdActual = lista.id;
+        listaTipoActual = lista.tag_tipo;
 
-        listaTipoActual = listaInfo.tag_tipo;
+        // TRAER TODOS LOS ITEMS DE GOLPE (Rapidísimo desde BD)
+        const { data: items, error: errItems } = await supabase
+            .from('listas_items').select('*').eq('lista_id', lista.id);
 
-        // ================================================================
-        //  CONTAR TOTAL DE ITEMS
-        // ================================================================
-        const { count: totalCount, error: countError } = await supabase
-            .from('listas_items')
-            .select('id', { count: 'exact', head: true })
-            .eq('lista_id', listaId);
+        if (errItems) throw errItems;
 
-        if (countError) {
-            console.error('❌ Error contando items:', countError);
-            listaItemsTotal = 0;
-        } else {
-            listaItemsTotal = totalCount || 0;
-        }
+        itemsListaActualMemoria = items || [];
 
-        // ================================================================
-        //  OBTENER ITEMS CON PAGINACIÓN
-        // ================================================================
-        const { data: items, error: itemsError } = await supabase
-            .from('listas_items')
-            .select('media_id, media_tipo, added_at')
-            .eq('lista_id', listaId)
-            .order('added_at', { ascending: false })
-            .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
-
-        if (itemsError) throw itemsError;
-
-        if (!items || items.length === 0) {
-            if (resetear) {
-                const grid = document.getElementById('lista-detalle-grid');
-                if (grid) {
-                    grid.innerHTML = `
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-                            <i class="fas fa-box-open" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
-                            <p style="font-size: 1.1rem;">Esta lista está vacía</p>
-                            <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
-                        </div>
-                    `;
-                }
-                const mensaje = document.getElementById('lista-detalle-mensaje');
-                if (mensaje) mensaje.textContent = '0 elementos en esta lista';
-            }
-            loader.style.display = 'none';
-            listaItemsCargando = false;
-            return;
-        }
-
-        // ================================================================
-        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS (sin datos de TMDB/IGDB aún)
-        // ================================================================
-        const itemsBasicos = items.map(item => ({
-            id: item.media_id,
-            tipo: item.media_tipo,
-            titulo: `ID: ${item.media_id}`,
-            year: '----',
-            rating: '0.0',
-            imagen: '',
-            placeholder: true,
-            _media_id: item.media_id,
-            _media_tipo: item.media_tipo
-        }));
-
-        if (resetear) {
-            listaItemsActuales = itemsBasicos;
-        } else {
-            listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
-        }
-
-        // ================================================================
-        //  ENRIQUECER TODOS LOS ITEMS (esperar a que terminen)
-        // ================================================================
-        // Mostrar loader SOLO en la primera carga (resetear = true)
-        const grid = document.getElementById('lista-detalle-grid');
-        if (resetear && grid) {
-            grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
-            <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
-        </div>
-    `;
-        }
-
-        // Enriquecer TODOS los items (esperar a que termine)
-        await enriquecerItemsListaCompleto(itemsBasicos);
-
-        // ================================================================
-        //  UNA VEZ ENRIQUECIDOS, RENDERIZAR TODOS DE GOLPE
-        // ================================================================
+        // Actualizar contador
         const mensajeFinal = document.getElementById('lista-detalle-mensaje');
-        if (mensajeFinal) {
-            const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
-                listaTipoActual === 'movie' ? 'Películas' :
-                    listaTipoActual === 'tv' ? 'Series' : 'Elementos';
-            mensajeFinal.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
-        }
+        if (mensajeFinal) mensajeFinal.textContent = `${itemsListaActualMemoria.length} elementos en esta lista`;
 
-        // Renderizar TODOS los items de una sola vez
-        renderizarItemsListaEnriquecidos(itemsBasicos, resetear);
-
-        // ================================================================
-        //  ACTUALIZAR OFFSET Y CONFIGURAR OBSERVADOR
-        // ================================================================
-        listaItemsOffset += items.length;
-
-        const hayMas = listaItemsOffset < listaItemsTotal;
-
-        // Ocultar el loader del grid si existe
-        if (grid) {
-            const loaderMore = grid.querySelector('.loader-more-items');
-            if (loaderMore) loaderMore.remove();
-        }
-
-        if (hayMas) {
-            loader.style.display = 'block';
-            document.getElementById('lista-detalle-end').style.display = 'none';
-            configurarObservadorLista();
-        } else {
-            loader.style.display = 'none';
-            document.getElementById('lista-detalle-end').style.display = 'block';
-            if (listaObservador) {
-                listaObservador.disconnect();
-                listaObservador = null;
-            }
-        }
+        generarFiltroPlataformasDinamico(itemsListaActualMemoria);
+        aplicarFiltrosListaDetalle(); // Aplica filtros y renderiza
 
     } catch (error) {
-        console.error('❌ [cargarItemsLista] Error:', error);
-        const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) mensaje.textContent = 'Error: ' + error.message;
+        console.error('❌ ERROR:', error);
+        if (grid) grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--error);">${error.message}</div>`;
+    }
+};
 
-        const grid = document.getElementById('lista-detalle-grid');
-        if (grid && grid.children.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                    <p>No se pudieron cargar los elementos</p>
-                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
-                        <i class="fas fa-redo"></i> Reintentar
-                    </button>
-                </div>
-            `;
+// 2. Generar el filtro de plataformas dinámico (Solo pinta las plataformas que existen en la lista)
+function generarFiltroPlataformasDinamico(items) {
+    const contenedor = document.getElementById('filtro-plataformas-content');
+    if (!contenedor) return;
+
+    const plataformasUnicas = new Map();
+    items.forEach(item => {
+        if (item.plataformas && Array.isArray(item.plataformas)) {
+            item.plataformas.forEach(p => plataformasUnicas.set(p.name, p.name));
         }
-    } finally {
-        listaItemsCargando = false;
-        // NO ocultamos el loader aquí - se oculta según hayMas
-    }
-}
+    });
 
-async function enriquecerItemsListaCompleto(items) {
-    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-
-    // Recorremos todos los items en paralelo (con límite de 5 concurrentes para no saturar)
-    const batchSize = 5;
-    for (let i = 0; i < items.length; i += batchSize) {
-        const batch = items.slice(i, i + batchSize);
-        await Promise.all(batch.map(async (item) => {
-            const key = `${item._media_id}_${item._media_tipo}`;
-
-            // Si ya está enriquecido, lo saltamos
-            if (listaItemsEnriquecidos[key]) {
-                return;
-            }
-
-            try {
-                let data = null;
-                let enrichedItem = null;
-
-                // ==========================================================
-                // 1. OBTENER DATOS SEGÚN EL TIPO
-                // ==========================================================
-                if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                    // PELÍCULAS Y SERIES → TMDB
-                    const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-                    if (res.ok) {
-                        data = await res.json();
-                    } else {
-                        console.warn(`⚠️ [TMDB] Error ${res.status} para ${item._media_id}`);
-                    }
-
-                    if (data) {
-                        enrichedItem = {
-                            id: item._media_id,
-                            tipo: item._media_tipo,
-                            titulo: data.titulo || `ID: ${item._media_id}`,
-                            year: data.fecha ? new Date(data.fecha).getFullYear() : '----',
-                            rating: data.nota || '0.0',
-                            imagen: data.poster || '',
-                        };
-                    }
-
-                } else if (item._media_tipo === 'game') {
-                    // ======================================================
-                    // JUEGOS → IGDB + STEAM (FALLBACK MEJORADO)
-                    // ======================================================
-                    const mediaIdStr = String(item._media_id);
-                    let juegoData = null;
-
-                    // DETECTAR SI ES ID DE STEAM (empieza con "steam_")
-                    if (mediaIdStr.startsWith('steam_')) {
-                        // Es un juego de Steam → usar API de Steam
-                        const steamId = mediaIdStr.replace('steam_', '');
-                        try {
-                            const res = await fetch(`/api/steam?query=${steamId}&lang=${currentLang}`);
-                            if (res.ok) {
-                                const result = await res.json();
-                                juegoData = result.juegos?.[0] || result[0] || null;
-                            }
-                        } catch (e) {
-                            console.warn(`⚠️ [Steam] Error buscando ${mediaIdStr}:`, e);
-                        }
-
-                        if (juegoData) {
-                            const steamIdNum = mediaIdStr.replace('steam_', '');
-                            enrichedItem = {
-                                id: item._media_id,
-                                tipo: item._media_tipo,
-                                titulo: juegoData.name || `Juego #${mediaIdStr}`,
-                                year: '----',
-                                rating: '0.0',
-                                imagen: `https://steamcdn-a.akamaihd.net/apps/${steamIdNum}/library_600x900_2x.jpg`,
-                            };
-                        }
-
-                    } else {
-                        // ======================================================
-                        // INTENTO 1: Buscar por ID en IGDB
-                        // ======================================================
-                        let igdb404 = false;
-                        try {
-                            const res = await fetch(`/api/igdb?id=${mediaIdStr}&lang=${currentLang}`);
-                            if (res.ok) {
-                                const result = await res.json();
-                                const juegos = result.juegos || result || [];
-                                juegoData = juegos[0] || null;
-                            } else if (res.status === 404) {
-                                igdb404 = true;
-                                console.warn(`⚠️ [IGDB] ID ${mediaIdStr} no encontrado (404) - intentando Steam...`);
-                            }
-                        } catch (e) {
-                            console.warn(`⚠️ [IGDB] Error buscando ${mediaIdStr}:`, e);
-                        }
-
-                        // ======================================================
-                        // INTENTO 2: Si IGDB devolvió 404, buscar en Steam
-                        // ======================================================
-                        if (!juegoData && igdb404) {
-                            try {
-                                const res = await fetch(`/api/steam?query=${mediaIdStr}&lang=${currentLang}`);
-                                if (res.ok) {
-                                    const result = await res.json();
-                                    juegoData = result.juegos?.[0] || result[0] || null;
-                                }
-                            } catch (e) {
-                                console.warn(`⚠️ [Steam] Fallback error para ${mediaIdStr}:`, e);
-                            }
-
-                            // Si Steam devolvió datos, formateamos para que tenga la pinta de IGDB
-                            if (juegoData) {
-                                // Steam ya devuelve en formato IGDB gracias a steam.js
-                                // Pero puede que no tenga first_release_date
-                                juegoData.first_release_date = juegoData.first_release_date || null;
-                                juegoData.rating = juegoData.rating || 0;
-                                juegoData._source = 'steam';
-                            }
-                        }
-
-                        // ======================================================
-                        // INTENTO 3: Si Steam no encontró, buscar en IGDB por query (texto)
-                        // ======================================================
-                        if (!juegoData && !igdb404) {
-                            try {
-                                const res = await fetch(`/api/igdb?query=${mediaIdStr}&lang=${currentLang}`);
-                                if (res.ok) {
-                                    const result = await res.json();
-                                    const juegos = result.juegos || result || [];
-                                    // Buscar coincidencia exacta por ID o por nombre que contenga el ID
-                                    juegoData = juegos.find(j => String(j.id) === mediaIdStr) || juegos[0] || null;
-                                }
-                            } catch (e) {
-                                console.warn(`⚠️ [IGDB] Query fallback error para ${mediaIdStr}:`, e);
-                            }
-                        }
-
-                        if (juegoData) {
-                            let imagen = '';
-
-                            // Si es de Steam, usar la imagen de Steam
-                            if (juegoData._source === 'steam') {
-                                const steamId = juegoData.id?.toString().replace('steam_', '') || mediaIdStr;
-                                imagen = `https://steamcdn-a.akamaihd.net/apps/${steamId}/library_600x900_2x.jpg`;
-                            } else {
-                                // Si es de IGDB, usar la portada de IGDB
-                                imagen = juegoData.cover?.url ? juegoData.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-
-                                // Si no tiene portada en IGDB, intentar con Steam
-                                if (!imagen) {
-                                    const steamId = juegoData.id?.toString().replace('steam_', '') || mediaIdStr;
-                                    imagen = `https://steamcdn-a.akamaihd.net/apps/${steamId}/library_600x900_2x.jpg`;
-                                }
-                            }
-
-                            enrichedItem = {
-                                id: item._media_id,
-                                tipo: item._media_tipo,
-                                titulo: juegoData.name || `Juego #${mediaIdStr}`,
-                                year: juegoData.first_release_date ? new Date(juegoData.first_release_date * 1000).getFullYear() : '----',
-                                rating: juegoData.rating ? (juegoData.rating / 10).toFixed(1) : '0.0',
-                                imagen: imagen,
-                            };
-                        }
-                    }
-
-                    // Si no se encontró ningún dato, crear placeholder
-                    if (!enrichedItem) {
-                        enrichedItem = {
-                            id: item._media_id,
-                            tipo: item._media_tipo,
-                            titulo: `🎮 Juego #${mediaIdStr}`,
-                            year: '----',
-                            rating: '0.0',
-                            imagen: '',
-                        };
-                        console.warn(`⚠️ [enriquecerItemsListaCompleto] No se pudo enriquecer ${key}`);
-                    }
-                }
-
-                // ==========================================================
-                // 2. GUARDAR EL ITEM ENRIQUECIDO
-                // ==========================================================
-                if (enrichedItem) {
-                    listaItemsEnriquecidos[key] = enrichedItem;
-                } else {
-                    // Fallback: datos mínimos
-                    listaItemsEnriquecidos[key] = {
-                        id: item._media_id,
-                        tipo: item._media_tipo,
-                        titulo: `ID: ${item._media_id}`,
-                        year: '----',
-                        rating: '0.0',
-                        imagen: '',
-                    };
-                    console.warn(`⚠️ [enriquecerItemsListaCompleto] Fallback para ${key}`);
-                }
-
-            } catch (e) {
-                console.error(`❌ [enriquecerItemsListaCompleto] Error enriqueciendo ${key}:`, e);
-                // Guardamos el item con datos mínimos para no romper la UI
-                listaItemsEnriquecidos[key] = {
-                    id: item._media_id,
-                    tipo: item._media_tipo,
-                    titulo: `ID: ${item._media_id}`,
-                    year: '----',
-                    rating: '0.0',
-                    imagen: '',
-                };
-            }
-        }));
-    }
-}
-
-/**
- * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
- */
-// async function enriquecerItemsLista(items, resetear) {
-//     const grid = document.getElementById('lista-detalle-grid');
-//     if (!grid) {
-//         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
-//         return;
-//     }
-
-//     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-
-//     for (let i = 0; i < items.length; i++) {
-//         const item = items[i];
-//         const key = `${item._media_id}_${item._media_tipo}`;
-
-//         if (listaItemsEnriquecidos[key]) {
-//             continue;
-//         }
-
-//         try {
-//             let data = null;
-
-//             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     data = await res.json();
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
-//                 }
-//             } else if (item._media_tipo === 'game') {
-//                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     const result = await res.json();
-//                     data = result.juegos?.[0] || result[0] || null;
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
-//                 }
-//             }
-
-//             if (data) {
-//                 let enrichedItem = {
-//                     id: item._media_id,
-//                     tipo: item._media_tipo,
-//                     titulo: data.titulo || data.name || `ID: ${item._media_id}`,
-//                     year: '----',
-//                     rating: '0.0',
-//                     imagen: '',
-//                 };
-
-//                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
-//                     enrichedItem.rating = data.nota || '0.0';
-//                     enrichedItem.imagen = data.poster || '';
-//                 } else if (item._media_tipo === 'game') {
-//                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
-//                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
-//                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-//                 }
-
-//                 listaItemsEnriquecidos[key] = enrichedItem;
-
-//                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
-//                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
-
-//                 if (cards[cardIndex]) {
-//                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
-//                     cards[cardIndex].replaceWith(newCard);
-//                 }
-//             } else {
-//                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
-//             }
-//         } catch (e) {
-//             console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
-//         }
-
-//         await new Promise(resolve => setTimeout(resolve, 100));
-//     }
-// }
-
-function renderizarItemsListaEnriquecidos(items, resetear) {
-    const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) {
-        console.error('❌ [renderizarItemsListaEnriquecidos] Grid no encontrado');
+    if (plataformasUnicas.size === 0) {
+        contenedor.innerHTML = '<span style="font-size:0.8rem; color:var(--text-muted);">Sin plataformas registradas.</span>';
         return;
     }
 
-    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    contenedor.innerHTML = Array.from(plataformasUnicas.values()).map(nombre => `
+        <label class="custom-check">
+            <input type="checkbox" value="${nombre}" class="filtro-plat-lista">
+            <span class="box"></span> ${nombre}
+        </label>
+    `).join('');
 
-    if (resetear) {
-        grid.innerHTML = '';
+    contenedor.querySelectorAll('input').forEach(cb => cb.addEventListener('change', aplicarFiltrosListaDetalle));
+}
+
+// 3. Aplicar Filtros, Ordenar y Renderizar
+window.aplicarFiltrosListaDetalle = function () {
+    // Leer estado de los filtros
+    const estiloCheck = document.querySelector('#filtro-estilo-tarjeta-content input:checked');
+    const estiloSelec = estiloCheck ? estiloCheck.value : 'estilo1';
+    localStorage.setItem('pref_estilo_lista', estiloSelec);
+
+    const orden = document.querySelector('input[name="orden-lista"]:checked')?.value || 'fecha';
+    const plataformas = Array.from(document.querySelectorAll('.filtro-plat-lista:checked')).map(cb => cb.value);
+
+    // Le asignamos una clase 'filtro-añadido-lista' a los checks de Añadido (Hoy, Semana...)
+    const añadidos = Array.from(document.querySelectorAll('.filtro-añadido-lista:checked')).map(cb => cb.value);
+
+    let filtrados = [...itemsListaActualMemoria];
+
+    // Aplicar Filtro Plataformas
+    if (plataformas.length > 0) {
+        filtrados = filtrados.filter(item => {
+            if (!item.plataformas || !Array.isArray(item.plataformas)) return false;
+            return item.plataformas.some(p => plataformas.includes(p.name));
+        });
     }
 
-    // Construir TODAS las tarjetas de una vez
+    // Aplicar Filtro Añadido
+    if (añadidos.length > 0) {
+        const ahora = new Date();
+        filtrados = filtrados.filter(item => {
+            const fechaItem = new Date(item.added_at);
+            const diffDias = (ahora - fechaItem) / (1000 * 60 * 60 * 24);
+
+            if (añadidos.includes('hoy') && diffDias <= 1) return true;
+            if (añadidos.includes('semana') && diffDias <= 7) return true;
+            if (añadidos.includes('mes') && diffDias <= 30) return true;
+            if (añadidos.includes('año') && diffDias <= 365) return true;
+            return false;
+        });
+    }
+
+    // Aplicar Orden
+    if (orden === 'titulo') filtrados.sort((a, b) => (a.titulo || '').localeCompare(b.titulo || ''));
+    if (orden === 'rating') filtrados.sort((a, b) => (parseFloat(b.nota) || 0) - (parseFloat(a.nota) || 0));
+    if (orden === 'fecha') filtrados.sort((a, b) => new Date(b.added_at) - new Date(a.added_at));
+    if (orden === 'año') filtrados.sort((a, b) => new Date(b.fecha_estreno || 0) - new Date(a.fecha_estreno || 0));
+
+    itemsFiltradosMemoria = filtrados;
+    renderOffset = 0; // Resetear scroll
+
+    const grid = document.getElementById('lista-detalle-grid');
+    if (grid) {
+        grid.innerHTML = '';
+        grid.className = `lista-cards-grid cards-grid-5`;
+        if (estiloSelec === 'estilo3') grid.classList.replace('cards-grid-5', 'cards-grid-1');
+
+        if (itemsFiltradosMemoria.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 40px; color: var(--text-muted);">No hay resultados que coincidan con estos filtros.</div>';
+        } else {
+            renderizarSiguientePagina();
+        }
+    }
+};
+
+// 4. Scroll Infinito en Memoria
+function renderizarSiguientePagina() {
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) return;
+
+    const estiloSelec = localStorage.getItem('pref_estilo_lista') || 'estilo1';
     const fragment = document.createDocumentFragment();
 
-    items.forEach((item) => {
-        const key = `${item._media_id || item.id}_${item._media_tipo || item.tipo}`;
-        const enriched = listaItemsEnriquecidos[key];
+    const itemsChunk = itemsFiltradosMemoria.slice(renderOffset, renderOffset + RENDER_LIMIT);
 
-        let card;
-        if (enriched) {
-            card = crearTarjetaConEstilo(estiloGuardado, enriched);
-        } else {
-            // Fallback: si por alguna razón no está enriquecido, mostramos placeholder
-            card = document.createElement('div');
-            card.className = 'list-card-estilo1 list-card-style-1';
-            card.style.opacity = '0.5';
-            card.style.cursor = 'default';
-            const iconMap = { movie: 'fa-film', tv: 'fa-tv', game: 'fa-gamepad' };
-            const icono = iconMap[item.tipo] || 'fa-question-circle';
+    itemsChunk.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `list-card-style-${estiloSelec.replace('estilo', '')}`;
+        card.onclick = () => abrirModalMedia(item.media_id, item.media_tipo);
+        card.style.cursor = 'pointer';
+
+        if (estiloSelec === 'estilo3') {
             card.innerHTML = `
-                <div class="list-card-image">
-                    <div class="no-cover" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);">
-                        <i class="fas ${icono}" style="font-size:3rem;color:var(--text-muted);margin-bottom:6px;"></i>
-                        <span style="font-size:0.7rem;color:var(--text-muted);text-align:center;">Datos no disponibles</span>
-                    </div>
+            <div class="list-card-list-item">
+                <div class="list-card-thumb"><img src="${item.poster || 'https://placehold.co/100x150/1a1a24/6b6b7a?text=NO+FOTO'}" alt="${item.titulo}" loading="lazy"></div>
+                <div class="list-card-info">
+                    <div class="list-card-title">${item.titulo || 'Desconocido'}</div>
+                    <div class="list-card-sub"><i class="fas fa-star" style="color:gold;"></i> ${item.nota || '0.0'}</div>
                 </div>
-                <div class="list-card-title" style="text-align:center;font-size:0.8rem;color:var(--text-muted);">${item.titulo || 'Sin título'}</div>
-            `;
+            </div>`;
+        } else {
+            card.innerHTML = `
+            <div class="list-card-image">
+                <div class="list-card-overlay"><i class="fas fa-star" style="color:gold;"></i> ${item.nota || '0.0'}</div>
+                <img src="${item.poster || 'https://placehold.co/300x450/1a1a24/6b6b7a?text=NO+FOTO'}" alt="${item.titulo}" loading="lazy">
+            </div>
+            <div class="list-card-title">${item.titulo || 'Desconocido'}</div>`;
         }
-
         fragment.appendChild(card);
     });
 
     grid.appendChild(fragment);
-    actualizarGridColumns(estiloGuardado);
-}
+    renderOffset += itemsChunk.length;
 
-/**
- * Renderiza los items en el grid con el estilo actual
- */
-function renderizarItemsLista(items, resetear) {
-    // Esta función ya no se usa en el nuevo flujo, pero la mantenemos para no romper nada.
-    // Ahora usamos renderizarItemsListaEnriquecidos()
-    console.warn('⚠️ [renderizarItemsLista] Esta función está obsoleta. Usa renderizarItemsListaEnriquecidos()');
-    renderizarItemsListaEnriquecidos(items, resetear);
-}
-
-/**
- * Configura el observador de scroll para cargar más elementos
- */
-function configurarObservadorLista() {
-    if (listaObservador) {
-        listaObservador.disconnect();
-        listaObservador = null;
-    }
-
+    // Reactivar observador de scroll
     const loader = document.getElementById('lista-detalle-loader');
-    if (!loader) {
-        console.warn('⚠️ [configurarObservadorLista] Loader no encontrado');
-        return;
+    const endMsg = document.getElementById('lista-detalle-end');
+
+    if (renderOffset < itemsFiltradosMemoria.length) {
+        if (loader) {
+            loader.style.display = 'block';
+            if (window.listaObserverMemoria) window.listaObserverMemoria.disconnect();
+
+            window.listaObserverMemoria = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) renderizarSiguientePagina();
+            }, { rootMargin: '200px' });
+            window.listaObserverMemoria.observe(loader);
+        }
+        if (endMsg) endMsg.style.display = 'none';
+    } else {
+        if (loader) loader.style.display = 'none';
+        if (endMsg) endMsg.style.display = 'block';
+        if (window.listaObserverMemoria) window.listaObserverMemoria.disconnect();
     }
-
-    listaObservador = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !listaItemsCargando) {
-                cargarItemsLista(listaIdActual, false);
-            }
-        });
-    }, {
-        rootMargin: '200px',
-        threshold: 0.1
-    });
-
-    listaObservador.observe(loader);
 }
 
-// ==========================================================================
-//   SOBRESCRIBIR cargarDetalleLista PARA USAR LA CARGA DINÁMICA (VERSIÓN FINAL)
-// ==========================================================================
-window.cargarDetalleLista = async function (nombreLista) {
-    if (!nombreLista) {
-        console.error('❌ [cargarDetalleLista] nombreLista está vacío');
-        return;
+// 5. Escuchar cambios en TODO el Sidebar (Se pisaba en tu versión)
+document.querySelectorAll('#lista-filter-sidebar input').forEach(input => {
+    // Pequeño truco: Le añadimos una clase a los inputs del acordeón "AÑADIDO" para poder filtrarlos
+    if (input.closest('.accordion-item') && input.closest('.accordion-header')?.textContent.includes('AÑADIDO')) {
+        input.classList.add('filtro-añadido-lista');
     }
 
-    const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
-
-    // Actualizar título en el DOM inmediatamente
-    const tituloEl = document.getElementById('lista-detalle-nombre');
-    if (tituloEl) tituloEl.textContent = tituloDecodificado;
-
-    try {
-        // 1. Obtener sesión
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            throw new Error('No hay sesión activa');
+    input.addEventListener('change', (e) => {
+        // Los estilos se comportan como "Radio Buttons" visualmente
+        if (e.target.closest('#filtro-estilo-tarjeta-content')) {
+            document.querySelectorAll('#filtro-estilo-tarjeta-content input').forEach(cb => cb.checked = false);
+            e.target.checked = true;
         }
-
-        // 2. Buscar la lista por título
-        const { data: lista, error } = await supabase
-            .from('listas_maestra')
-            .select('id, titulo, tag_tipo')
-            .eq('titulo', tituloDecodificado)
-            .eq('owner_id', session.user.id)
-            .single();
-
-        if (error || !lista) {
-            console.error('❌ [cargarDetalleLista] Lista no encontrada:', error);
-            throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
-        }
-
-        // 3. Guardar ID para futuras cargas
-        listaIdActual = lista.id;
-        listaTipoActual = lista.tag_tipo;
-
-        // 4. Cargar los items (con paginación)
-        await cargarItemsLista(lista.id, true);
-
-        // 5. Configurar el filtro de estilo DESPUÉS de que los items se hayan renderizado
-        setTimeout(() => {
-            configurarFiltroEstiloLista();
-        }, 500);
-
-    } catch (error) {
-        console.error('❌ [cargarDetalleLista] ERROR:', error);
-        const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) mensaje.textContent = '❌ ' + error.message;
-
-        // Mostrar error en el grid
-        const grid = document.getElementById('lista-detalle-grid');
-        if (grid && grid.children.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                    <p>Error al cargar la lista</p>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">${error.message}</p>
-                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-redo"></i> Reintentar
-                    </button>
-                </div>
-            `;
-        }
-    }
-};
+        aplicarFiltrosListaDetalle(); // Si cualquier cosa cambia, se repinta todo
+    });
+});
 
 // ==========================================================================
 //   LIMPIAR FILTROS DE LISTA
@@ -14518,6 +14089,130 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
         cargarItemsLista(listaIdActual, true);
     }
 });
+
+// ==========================================================================
+//   SCRIPT DE MIGRACIÓN MASIVA (USAR Y TIRAR)
+// ==========================================================================
+window.iniciarMigracionMasiva = async function () {
+    console.log("🚀 [SYS] Iniciando migración masiva...");
+
+    // 1. Buscamos TODOS los items que todavía tienen el título vacío
+    const { data: items, error } = await supabase.from('listas_items').select('*').is('titulo', null);
+    if (error) return console.error("❌ Error de BBDD:", error);
+
+    console.log(`📦 Encontrados ${items.length} items pendientes.`);
+    if (items.length === 0) return console.log("✅ Todo está actualizado.");
+
+    let actualizados = 0;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        console.log(`⏳ Procesando [${i + 1}/${items.length}] - ID: ${item.media_id}`);
+
+        try {
+            let updateData = {};
+
+            if (item.media_tipo === 'movie' || item.media_tipo === 'tv') {
+                const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.media_tipo}&lang=es`);
+                if (res.ok) {
+                    const data = await res.json();
+                    updateData = {
+                        titulo: data.titulo || 'Sin Título',
+                        poster: data.poster || '',
+                        nota: parseFloat(data.nota) || 0,
+                        fecha_estreno: data.fecha || null,
+                        plataformas: data.suscripcion || []
+                    };
+                }
+            }
+
+            if (updateData.titulo) {
+                await supabase.from('listas_items').update(updateData).eq('id', item.id);
+                actualizados++;
+            }
+
+            // FRENO ANTI-BANEO: Esperamos 350ms para no saturar la API de TMDB
+            await new Promise(r => setTimeout(r, 350));
+
+        } catch (err) {
+            console.error(`❌ Fallo en ${item.media_id}:`, err.message);
+        }
+    }
+    console.log(`✅ ¡MIGRACIÓN COMPLETADA! Se actualizaron ${actualizados} registros.`);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Z
 
 // ==========================================================================
 //   SISTEMA DE COOKIES
