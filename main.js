@@ -457,11 +457,13 @@ async function cargarListasEditables() {
 }
 
 // ==========================================================================
-//   MARCAR / DESMARCAR ITEM EN UNA LISTA (ACTUALIZADO CON METADATA)
+//   MARCAR / DESMARCAR ITEM EN UNA LISTA
 // ==========================================================================
+
+// se llama al marcar/desmarcar un checkbox del menu, inserta o borra el item en supabase
 async function toggleItemEnLista(listaId, marcado, checkboxEl) {
     if (!mediaActualParaLista) return;
-    checkboxEl.disabled = true;
+    checkboxEl.disabled = true; // bloqueamos pa que no le den 2 veces mientras carga
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -469,50 +471,20 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
         const userId = session.user.id;
 
         if (marcado) {
-            showToast('info', 'Guardando...', 'Obteniendo metadata de la obra...');
-
-            // 1. Objeto base para Supabase
-            let insertData = {
+            // se ha marcado -> insertamos el item en la lista
+            const { error } = await supabase.from('listas_items').insert({
                 lista_id: listaId,
                 media_id: mediaActualParaLista.id,
                 media_tipo: mediaActualParaLista.tipo,
-                added_by_user_id: userId,
-                titulo: 'Desconocido',
-                poster: '',
-                nota: 0,
-                fecha_estreno: null,
-                plataformas: []
-            };
-
-            // 2. Extraer datos reales de TMDB
-            if (mediaActualParaLista.tipo === 'movie' || mediaActualParaLista.tipo === 'tv') {
-                const res = await fetch(`/api/tmdb?id=${mediaActualParaLista.id}&tipo=${mediaActualParaLista.tipo}&lang=${currentLang}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    insertData.titulo = data.titulo;
-                    insertData.poster = data.poster;
-                    insertData.nota = parseFloat(data.nota) || 0;
-                    insertData.fecha_estreno = data.fecha || null;
-                    insertData.plataformas = data.suscripcion || [];
-                }
-            }
-            // 2.5 Extraer datos de Juegos (desde el HTML activo)
-            else if (mediaActualParaLista.tipo === 'game') {
-                const card = document.querySelector(`.game-card[data-game-id="${mediaActualParaLista.id}"]`);
-                if (card) {
-                    insertData.titulo = card.getAttribute('data-game-title') || 'Juego';
-                    insertData.poster = card.querySelector('img.game-cover')?.src || '';
-                }
-            }
-
-            // 3. Mandar a Supabase
-            const { error } = await supabase.from('listas_items').insert(insertData);
+                added_by_user_id: userId
+            });
             if (error) throw error;
             showToast('success', 'Añadido', 'Se ha guardado en la lista.');
-
         } else {
-            // Borrado normal
-            const { error } = await supabase.from('listas_items').delete()
+            // se ha desmarcado -> lo borramos de la lista
+            const { error } = await supabase
+                .from('listas_items')
+                .delete()
                 .eq('lista_id', listaId)
                 .eq('media_id', mediaActualParaLista.id)
                 .eq('media_tipo', mediaActualParaLista.tipo);
@@ -520,13 +492,14 @@ async function toggleItemEnLista(listaId, marcado, checkboxEl) {
             showToast('success', 'Quitado', 'Se ha quitado de la lista.');
         }
 
+        // Invalidar caché de listas pa que se vuelva a pedir la próxima vez
         listasCache.mias = null;
         listasCache.compartidas = null;
 
     } catch (err) {
         console.error('Error guardando en la lista:', err);
         showToast('error', 'Error', 'No se pudo actualizar la lista.');
-        checkboxEl.checked = !marcado;
+        checkboxEl.checked = !marcado; // revertimos el check visualmente si algo peto
     } finally {
         checkboxEl.disabled = false;
     }
@@ -14269,6 +14242,86 @@ async function enriquecerItemsListaCompleto(items) {
     }
 }
 
+/**
+ * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
+ */
+// async function enriquecerItemsLista(items, resetear) {
+//     const grid = document.getElementById('lista-detalle-grid');
+//     if (!grid) {
+//         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
+//         return;
+//     }
+
+//     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+
+//     for (let i = 0; i < items.length; i++) {
+//         const item = items[i];
+//         const key = `${item._media_id}_${item._media_tipo}`;
+
+//         if (listaItemsEnriquecidos[key]) {
+//             continue;
+//         }
+
+//         try {
+//             let data = null;
+
+//             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+//                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
+//                 if (res.ok) {
+//                     data = await res.json();
+//                 } else {
+//                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
+//                 }
+//             } else if (item._media_tipo === 'game') {
+//                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
+//                 if (res.ok) {
+//                     const result = await res.json();
+//                     data = result.juegos?.[0] || result[0] || null;
+//                 } else {
+//                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
+//                 }
+//             }
+
+//             if (data) {
+//                 let enrichedItem = {
+//                     id: item._media_id,
+//                     tipo: item._media_tipo,
+//                     titulo: data.titulo || data.name || `ID: ${item._media_id}`,
+//                     year: '----',
+//                     rating: '0.0',
+//                     imagen: '',
+//                 };
+
+//                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+//                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
+//                     enrichedItem.rating = data.nota || '0.0';
+//                     enrichedItem.imagen = data.poster || '';
+//                 } else if (item._media_tipo === 'game') {
+//                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
+//                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
+//                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+//                 }
+
+//                 listaItemsEnriquecidos[key] = enrichedItem;
+
+//                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
+//                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
+
+//                 if (cards[cardIndex]) {
+//                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
+//                     cards[cardIndex].replaceWith(newCard);
+//                 }
+//             } else {
+//                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
+//             }
+//         } catch (e) {
+//             console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
+//         }
+
+//         await new Promise(resolve => setTimeout(resolve, 100));
+//     }
+// }
+
 function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) {
@@ -14316,6 +14369,16 @@ function renderizarItemsListaEnriquecidos(items, resetear) {
 
     grid.appendChild(fragment);
     actualizarGridColumns(estiloGuardado);
+}
+
+/**
+ * Renderiza los items en el grid con el estilo actual
+ */
+function renderizarItemsLista(items, resetear) {
+    // Esta función ya no se usa en el nuevo flujo, pero la mantenemos para no romper nada.
+    // Ahora usamos renderizarItemsListaEnriquecidos()
+    console.warn('⚠️ [renderizarItemsLista] Esta función está obsoleta. Usa renderizarItemsListaEnriquecidos()');
+    renderizarItemsListaEnriquecidos(items, resetear);
 }
 
 /**
@@ -14456,55 +14519,14 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
     }
 });
 
-// ==========================================================================
-//   SCRIPT DE MIGRACIÓN MASIVA (USAR Y TIRAR)
-// ==========================================================================
-window.iniciarMigracionMasiva = async function () {
-    console.log("🚀 [SYS] Iniciando migración masiva...");
 
-    // 1. Buscamos TODOS los items que todavía tienen el título vacío
-    const { data: items, error } = await supabase.from('listas_items').select('*').is('titulo', null);
-    if (error) return console.error("❌ Error de BBDD:", error);
 
-    console.log(`📦 Encontrados ${items.length} items pendientes.`);
-    if (items.length === 0) return console.log("✅ Todo está actualizado.");
 
-    let actualizados = 0;
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        console.log(`⏳ Procesando [${i + 1}/${items.length}] - ID: ${item.media_id}`);
 
-        try {
-            let updateData = {};
 
-            if (item.media_tipo === 'movie' || item.media_tipo === 'tv') {
-                const res = await fetch(`/api/tmdb?id=${item.media_id}&tipo=${item.media_tipo}&lang=es`);
-                if (res.ok) {
-                    const data = await res.json();
-                    updateData = {
-                        titulo: data.titulo || 'Sin Título',
-                        poster: data.poster || '',
-                        nota: parseFloat(data.nota) || 0,
-                        fecha_estreno: data.fecha || null,
-                        plataformas: data.suscripcion || []
-                    };
-                }
-            }
 
-            if (updateData.titulo) {
-                await supabase.from('listas_items').update(updateData).eq('id', item.id);
-                actualizados++;
-            }
 
-            // FRENO ANTI-BANEO: Esperamos 350ms para no saturar la API de TMDB
-            await new Promise(r => setTimeout(r, 350));
 
-        } catch (err) {
-            console.error(`❌ Fallo en ${item.media_id}:`, err.message);
-        }
-    }
-    console.log(`✅ ¡MIGRACIÓN COMPLETADA! Se actualizaron ${actualizados} registros.`);
-};
 
 
 
@@ -14573,12 +14595,6 @@ window.iniciarMigracionMasiva = async function () {
 
 
 
-
-
-
-
-
-Z
 
 // ==========================================================================
 //   SISTEMA DE COOKIES
