@@ -1921,8 +1921,15 @@
         <!--   VISTA: EDITAR PERFIL (ESTILO ADMIN)                        -->
         <!-- ============================================================ -->
         <section id="edit-profile" class="view">
+
+            <!-- BOTÓN FLOTANTE (Arriba a la derecha) -->
+            <button type="submit" id="btn-save-profile" form="form-edit-profile"
+                class="auth-btn primary btn-save-floating">
+                <i class="fas fa-save"></i> GUARDAR CAMBIOS
+            </button>
+
             <div class="edit-profile-admin-container">
-                <!-- HEADER como el de admin (con titulo y estado) -->
+                <!-- HEADER como el de admin... -->
                 <div class="edit-profile-admin-header glass-panel">
                     <div class="edit-profile-admin-header-left">
                         <h1>
@@ -2132,10 +2139,6 @@
                                         <div id="edit-char-counter" class="char-counter">0/1500</div>
                                     </div>
                                 </div>
-
-                                <button type="submit" id="btn-save-profile" class="auth-btn primary full-width">
-                                    <i class="fas fa-save"></i> GUARDAR CAMBIOS
-                                </button>
                             </form>
                         </div>
 
@@ -2222,58 +2225,7 @@
                             </div>
                         </div>
 
-                        <!-- 2. INFORMACIÓN -->
-                        <div class="glass-panel edit-profile-admin-side-panel">
-                            <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
-                            </div>
-                            <div class="edit-profile-admin-info-list">
-                                <div class="edit-profile-admin-info-item">
-                                    <span>Usuario</span>
-                                    <span id="edit-profile-username-display">--</span>
-                                </div>
-                                <div class="edit-profile-admin-info-item">
-                                    <span>Miembro desde</span>
-                                    <span id="edit-profile-joined-display">--</span>
-                                </div>
-                                <div class="edit-profile-admin-info-item">
-                                    <span>Color destacado</span>
-                                    <span id="edit-profile-color-display"
-                                        style="display: flex; align-items: center; gap: 8px;">
-                                        <span id="edit-profile-color-dot"
-                                            style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--primary);"></span>
-                                        <span id="edit-profile-color-text">#6366f1</span>
-                                    </span>
-                                </div>
-                                <div class="edit-profile-admin-info-item">
-                                    <span>Estado</span>
-                                    <span><i class="fas fa-check-circle"></i> Verificado</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. SEGURIDAD -->
-                        <div class="glass-panel edit-profile-admin-side-panel">
-                            <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
-                            </div>
-                            <div class="edit-profile-admin-side-actions">
-                                <button class="auth-btn secondary" id="btn-change-password">
-                                    <i class="fas fa-key"></i> Cambiar Contraseña
-                                    <span class="edit-profile-badge-coming">Próximamente</span>
-                                </button>
-                                <button class="auth-btn secondary" id="btn-change-email">
-                                    <i class="fas fa-envelope"></i> Cambiar Correo
-                                    <span class="edit-profile-badge-coming">Próximamente</span>
-                                </button>
-                                <div class="edit-profile-admin-divider"></div>
-                                <button class="auth-btn secondary" id="btn-back-to-profile">
-                                    <i class="fas fa-arrow-left"></i> Volver al Perfil
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 4. PERSONALIZACIÓN DE LA INTERFAZ -->
+                        <!-- 2. PERSONALIZACIÓN DE LA INTERFAZ -->
                         <div class="edit-profile-admin-form glass-panel">
                             <div class="edit-profile-admin-section-header">
                                 <h2><i class="fas fa-paint-brush"></i> PERSONALIZACIÓN DE LA INTERFAZ</h2>
@@ -2325,7 +2277,7 @@
                             </div>
                         </div>
 
-                        <!-- 5. EXTRAS DE IDENTIDAD -->
+                        <!-- 3. EXTRAS DE IDENTIDAD -->
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
                                 <h2><i class="fas fa-fingerprint"></i> EXTRAS DE IDENTIDAD</h2>
@@ -2349,6 +2301,57 @@
                                 <div class="edit-profile-admin-divider"></div>
                                 <button class="auth-btn secondary" id="btn-generate-signature">
                                     <i class="fas fa-code"></i> Generar Firma (Foros)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4. INFORMACIÓN -->
+                        <div class="glass-panel edit-profile-admin-side-panel">
+                            <div class="edit-profile-admin-side-header">
+                                <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
+                            </div>
+                            <div class="edit-profile-admin-info-list">
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Usuario</span>
+                                    <span id="edit-profile-username-display">--</span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Miembro desde</span>
+                                    <span id="edit-profile-joined-display">--</span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Color destacado</span>
+                                    <span id="edit-profile-color-display"
+                                        style="display: flex; align-items: center; gap: 8px;">
+                                        <span id="edit-profile-color-dot"
+                                            style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--primary);"></span>
+                                        <span id="edit-profile-color-text">#6366f1</span>
+                                    </span>
+                                </div>
+                                <div class="edit-profile-admin-info-item">
+                                    <span>Estado</span>
+                                    <span><i class="fas fa-check-circle"></i> Verificado</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. SEGURIDAD -->
+                        <div class="glass-panel edit-profile-admin-side-panel">
+                            <div class="edit-profile-admin-side-header">
+                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
+                            </div>
+                            <div class="edit-profile-admin-side-actions">
+                                <button class="auth-btn secondary" id="btn-change-password">
+                                    <i class="fas fa-key"></i> Cambiar Contraseña
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
+                                </button>
+                                <button class="auth-btn secondary" id="btn-change-email">
+                                    <i class="fas fa-envelope"></i> Cambiar Correo
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
+                                </button>
+                                <div class="edit-profile-admin-divider"></div>
+                                <button class="auth-btn secondary" id="btn-back-to-profile">
+                                    <i class="fas fa-arrow-left"></i> Volver al Perfil
                                 </button>
                             </div>
                         </div>
