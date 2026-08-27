@@ -8095,8 +8095,877 @@ cast-carousel::-webkit-scrollbar {
     box-shadow: 0 6px 20px rgba(244, 63, 94, 0.5) !important;
 }
 
+/* ============================================================
+   26. NIVEL DE USUARIO RPG + MATCH SCORE (CABECERA)
+   ============================================================ */
+.match-score-widget {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 5;
+}
 
+.match-score-ring {
+    width: 70px;
+    height: 70px;
+    transform: rotate(-90deg);
+}
 
+.match-ring-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.15);
+    stroke-width: 6;
+}
+
+.match-ring-fill {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+}
+
+.match-ring-high {
+    stroke: #4ade80;
+    filter: drop-shadow(0 0 4px #4ade8090);
+}
+
+.match-ring-mid {
+    stroke: #facc15;
+}
+
+.match-ring-low {
+    stroke: #ef4444;
+}
+
+.match-score-text {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    pointer-events: none;
+}
+
+.match-score-num {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.match-score-lbl {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.rpg-frame {
+    position: relative;
+    border: 3px solid transparent;
+    border-radius: 50%;
+}
+
+.rpg-frame-gold {
+    border-color: #d4af37;
+    box-shadow: 0 0 12px #d4af3770, inset 0 0 8px #d4af3740;
+}
+
+.rpg-frame-silver {
+    border-color: #c0c0c0;
+    box-shadow: 0 0 10px #c0c0c070;
+}
+
+.rpg-frame-bronze {
+    border-color: #cd7f32;
+    box-shadow: 0 0 10px #cd7f3270;
+}
+
+.rpg-frame-neon {
+    border-color: #00f6ff;
+    box-shadow: 0 0 14px #00f6ffb0;
+}
+
+.rpg-frame-fire {
+    border-color: #ff4d00;
+    box-shadow: 0 0 14px #ff4d00b0;
+}
+
+.rpg-level-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-username-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.activity-streak {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffb020;
+}
+
+.rpg-title {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 2px;
+}
+
+.rpg-xp-bar-wrap {
+    width: 180px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.rpg-xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #ff8fd6);
+    border-radius: 10px;
+}
+
+/* ============================================================
+   35. FIRMA EXPORTABLE (BOTÓN)
+   ============================================================ */
+.share-signature-btn {
+    margin-right: 6px;
+}
+
+/* ============================================================
+   ZONA INTERMEDIA: FRASE CÉLEBRE + RESEÑA ANCLADA
+   ============================================================ */
+.profile-mid-zone {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+/* 30. Frase célebre */
+.quote-banner {
+    position: relative;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.quote-bg-icon {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    font-size: 4rem;
+    color: var(--text-main);
+    opacity: 0.06;
+}
+
+.quote-text {
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--text-main);
+    margin: 0;
+    z-index: 1;
+}
+
+.quote-source {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    z-index: 1;
+}
+
+/* 29. Reseña anclada */
+.pinned-review {
+    padding: 16px;
+}
+
+.pinned-review-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.pinned-review-body {
+    display: flex;
+    gap: 12px;
+}
+
+.pinned-review-poster {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.pinned-review-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pinned-review-stars {
+    color: #facc15;
+    font-size: 0.85rem;
+}
+
+.pinned-review-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pinned-review-helpful {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* 36. Biografía con etiquetas visuales */
+.tag-bio-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+}
+
+.tag-bio-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+}
+
+.tag-blue {
+    border-color: #2563eb;
+    color: #60a5fa;
+    background: #2563eb15;
+}
+
+.tag-black {
+    border-color: #444;
+    color: #ddd;
+    background: #00000030;
+}
+
+.tag-paper {
+    border-color: #b08d57;
+    color: #d8c39a;
+    background: #b08d5715;
+}
+
+.tag-red {
+    border-color: #ef4444;
+    color: #f87171;
+    background: #ef444415;
+}
+
+.tag-neon {
+    border-color: #a855f7;
+    color: #d8b4fe;
+    background: #a855f715;
+}
+
+.tag-bio-edit-btn {
+    margin-left: auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.tag-bio-edit-btn:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* ============================================================
+   34. MEDIDOR DE CURADOR
+   ============================================================ */
+.curator-meter {
+    grid-column: 1 / -1;
+    padding: 18px 22px;
+    margin-top: 16px;
+}
+
+.curator-meter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.curator-meter-header span:first-child {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: uppercase;
+}
+
+.curator-verdict {
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.curator-gauge-track {
+    position: relative;
+    height: 10px;
+    background: linear-gradient(90deg, #ef4444, #facc15, #4ade80);
+    border-radius: 10px;
+}
+
+.curator-gauge-fill {
+    position: absolute;
+    top: -4px;
+    height: 18px;
+    width: 3px;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 0 6px #ffffffa0;
+}
+
+.curator-gauge-marker {
+    position: absolute;
+    top: -6px;
+    width: 2px;
+    height: 22px;
+    background: var(--text-muted);
+}
+
+.curator-gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   37. COLECCIONISMO DE FRANQUICIAS
+   ============================================================ */
+.franchise-collector {
+    grid-column: 1 / -1;
+    padding: 18px 22px;
+    margin-top: 16px;
+}
+
+.franchise-rings {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    justify-content: center;
+}
+
+.franchise-ring-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 110px;
+}
+
+.franchise-ring {
+    width: 80px;
+    height: 80px;
+    transform: rotate(-90deg);
+}
+
+.franchise-ring-pct {
+    position: absolute;
+    top: 28px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.franchise-ring-name {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* ============================================================
+   27. LÍNEA DE TIEMPO DE HITOS
+   ============================================================ */
+.profile-timeline-section {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 24px;
+    margin: 16px 0;
+}
+
+.profile-timeline {
+    position: relative;
+    margin-top: 16px;
+    padding-left: 30px;
+}
+
+.profile-timeline::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.timeline-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -30px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timeline-title {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.timeline-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   28. ESTANTES VIRTUALES
+   ============================================================ */
+.virtual-shelves-section {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+}
+
+.virtual-shelf {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 30px 20px 40px;
+    margin-top: 14px;
+    position: relative;
+    border-bottom: 10px solid #3a2b1a;
+    background: linear-gradient(180deg, transparent 85%, #3a2b1a30 85%);
+    border-radius: 8px;
+}
+
+.shelf-item {
+    width: 100px;
+    height: 142px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.25s ease;
+}
+
+.shelf-item:hover {
+    transform: translateY(-8px) rotate(-2deg) scale(1.05);
+}
+
+/* ============================================================
+   23. GUILTY PLEASURES
+   ============================================================ */
+.guilty-pleasures-section {
+    margin-top: 16px;
+    padding: 16px;
+}
+
+.guilty-pleasure-card {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    padding: 12px;
+    border: 2px dashed #ef4444;
+    border-radius: 8px;
+    background: repeating-linear-gradient(45deg, #ef444408, #ef444408 10px, transparent 10px, transparent 20px);
+}
+
+.guilty-poster {
+    width: 70px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.guilty-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.guilty-title {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.guilty-scores {
+    display: flex;
+    gap: 14px;
+    font-size: 0.8rem;
+}
+
+.guilty-score-bad {
+    color: #ef4444;
+    text-decoration: line-through;
+}
+
+.guilty-score-bad small,
+.guilty-score-good small {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.guilty-score-good {
+    color: #4ade80;
+    font-weight: 800;
+    text-shadow: 0 0 8px #4ade8080;
+}
+
+.guilty-quote {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ============================================================
+   25. EL CEMENTERIO DE ABANDONOS
+   ============================================================ */
+.dropped-list-section {
+    margin-top: 16px;
+    padding: 16px;
+}
+
+.dropped-item {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 10px;
+    opacity: 0.75;
+    transition: opacity 0.3s ease;
+}
+
+.dropped-item:hover {
+    opacity: 1;
+}
+
+.dropped-poster {
+    width: 55px;
+    height: 78px;
+    object-fit: cover;
+    border-radius: 6px;
+    filter: grayscale(100%);
+    flex-shrink: 0;
+}
+
+.dropped-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dropped-title {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.dropped-reason {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.dropped-date {
+    font-size: 0.7rem;
+    color: #6b6b7a;
+}
+
+/* ============================================================
+   32. DESAFÍOS ACTIVOS
+   ============================================================ */
+.challenge-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 10px;
+}
+
+.challenge-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+
+.challenge-name {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.challenge-progress-text {
+    color: var(--text-muted);
+}
+
+.challenge-progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.challenge-progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+/* ============================================================
+   40. TOP 3 DIRECTORES / ESTUDIOS
+   ============================================================ */
+.director-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    margin-top: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.director-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.director-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.director-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.director-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   38. LIBRO DE VISITAS ESTILO RETRO
+   ============================================================ */
+.guestbook-footer {
+    margin: 24px 20px 0;
+    padding: 24px;
+}
+
+.guestbook-entries {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.guestbook-entry {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.guestbook-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.guestbook-entry-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.guestbook-username {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--primary);
+    display: block;
+}
+
+.guestbook-msg {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 2px 0 0;
+    word-break: break-word;
+}
+
+.guestbook-delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.guestbook-delete-btn:hover {
+    color: #ef4444;
+}
+
+.guestbook-input-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.guestbook-input {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+}
+
+.guestbook-send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.guestbook-send-btn:hover {
+    background: var(--primary-hover);
+}
+
+/* ============================================================
+   39. CONTADOR DE REJUGABILIDAD (BADGE PARA CARDS EXISTENTES)
+   ============================================================ */
+.rewatch-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 3px 7px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 3;
+}
+
+.rewatch-badge-gold {
+    box-shadow: 0 0 10px #d4af37b0;
+    background: #d4af3730;
+    border: 1px solid #d4af37;
+}
 
 
 
@@ -9217,7 +10086,6 @@ cast-carousel::-webkit-scrollbar {
         display: flex !important;
     }
 
-    /* Dentro de @media (max-width: 768px) */
     .cookie-content {
         flex-direction: column;
     }
@@ -9237,7 +10105,6 @@ cast-carousel::-webkit-scrollbar {
         gap: 10px;
     }
 
-    /* Dentro de @media (max-width: 600px) */
     .cookie-top-content {
         align-items: flex-start;
     }
@@ -9293,6 +10160,23 @@ cast-carousel::-webkit-scrollbar {
     .listado-filtro-select {
         flex: 1;
         justify-content: center;
+    }
+
+    .profile-mid-zone {
+        grid-template-columns: 1fr;
+    }
+
+    .match-score-widget {
+        position: static;
+        margin: 10px auto 0;
+    }
+
+    .rpg-xp-bar-wrap {
+        width: 140px;
+    }
+
+    .franchise-rings {
+        gap: 18px;
     }
 }
 
