@@ -1476,20 +1476,45 @@
                         <span> Cambiar Portada</span>
                     </div>
 
+                    <!-- GRÁFICO DE AFINIDAD -->
+                    <div class="affinity-score-widget" title="Afinidad de gustos">
+                        <svg class="affinity-ring" viewBox="0 0 36 36">
+                            <path class="ring-bg"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path class="ring-fill match-high" stroke-dasharray="85, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span class="affinity-pct">85%</span>
+                    </div>
+
                     <!-- Info del perfil: avatar + nombre -->
                     <div class="profile-header-info">
                         <div class="profile-avatar" id="avatar-edit-trigger">
                             <div class="edit-overlay-avatar"><i class="fas fa-pen"></i></div>
                             <i class="fas fa-user-astronaut"></i>
+                            <!-- NIVEL DE USUARIO RPG (Marco dinámico) -->
+                            <div class="rpg-avatar-frame frame-diamond"></div>
                         </div>
                         <div class="profile-text">
-                            <h1 id="main-profile-username" class="profile-username">Usuario</h1>
+                            <h1 id="main-profile-username" class="profile-username">
+                                Usuario
+                                <!-- RACHA DE DÍAS -->
+                                <span class="activity-streak" title="Racha activa">🔥 14 Días</span>
+                            </h1>
+                            <!-- NIVEL DE USUARIO RPG (Título) -->
+                            <div class="rpg-level-title"><span class="lvl-badge">[LVL 42]</span> <span
+                                    class="lvl-name">Deidad del Ocio</span></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Estadisticas sociales (siguiendo/seguidores) -->
                 <div class="profile-stats-wrapper">
+                    <!-- TARJETA DE FIRMA EXPORTABLE -->
+                    <button class="icon-btn export-sig-btn" id="btn-export-signature" title="Compartir Estadísticas">
+                        <i class="fas fa-share-nodes"></i>
+                    </button>
+
                     <!-- boton pa agregar amigos -->
                     <button class="icon-btn add-friend-btn" id="btn-add-friend" title="Añadir nuevo amigo">
                         <i class="fas fa-user-plus"></i>
@@ -1504,6 +1529,50 @@
                         <div class="stat-box" id="btn-ver-seguidores">
                             <span class="stat-num">0</span>
                             <span class="stat-label">Seguidores</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!--   ZONA FRASE, BIO Y RESEÑA ANCLADA                           -->
+                <!-- ============================================================ -->
+                <div class="profile-middle-zone">
+                    <div class="profile-middle-left">
+                        <!-- FRASE CÉLEBRE DEL PERFIL -->
+                        <div class="quote-banner glass-panel">
+                            <i class="fas fa-quote-left quote-icon-bg"></i>
+                            <p class="quote-text">"Es peligroso ir solo, toma esto."</p>
+                            <span class="quote-source">- The Legend of Zelda</span>
+                        </div>
+
+                        <!-- BIOGRAFÍA CON ETIQUETAS VISUALES -->
+                        <div class="tag-bio-container glass-panel">
+                            <span class="bio-tag tag-ps"><i class="fab fa-playstation"></i> #CazadorDePlatinos</span>
+                            <span class="bio-tag tag-indie"><i class="fas fa-film"></i> #SoloCineIndie</span>
+                            <span class="bio-tag tag-lore"><i class="fas fa-book-open"></i> #LectorDeLore</span>
+                            <span class="bio-tag tag-danger"><i class="fas fa-forward"></i> #SkipIntro</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-middle-right">
+                        <!-- RESEÑA ANCLADA -->
+                        <div class="pinned-review-card glass-panel">
+                            <div class="pinned-header">
+                                <span class="pinned-badge"><i class="fas fa-thumbtack"></i> RESEÑA ANCLADA</span>
+                                <div class="pinned-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                        class="fas fa-star"></i><i class="fas fa-star"></i><i
+                                        class="fas fa-star-half-alt"></i></div>
+                            </div>
+                            <div class="pinned-content">
+                                <img src="/img/Pruebas/PELICULAS.png" class="pinned-poster" alt="Poster">
+                                <div class="pinned-text-area">
+                                    <h4 class="pinned-title">Interstellar</h4>
+                                    <p class="pinned-text">Una obra maestra visual y sonora. Nolan en su máximo
+                                        esplendor...</p>
+                                    <span class="pinned-helpful"><i class="fas fa-arrow-up"></i> 42 personas encontraron
+                                        esto útil</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1585,63 +1654,263 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- MEDIDOR CURADOR Y COLECCIONISMO -->
+                    <div class="stats-advanced-wrapper">
+                        <!-- MEDIDOR DE CURADOR -->
+                        <div class="curator-meter-card glass-panel">
+                            <h3 class="advanced-stat-title"><i class="fas fa-tachometer-alt"></i> Medidor de Curador
+                            </h3>
+                            <div class="curator-gauge">
+                                <div class="gauge-arc">
+                                    <div class="gauge-needle" style="transform: rotate(65deg);"></div>
+                                </div>
+                                <div class="gauge-labels">
+                                    <span>Hater</span>
+                                    <span>Voz del Pueblo</span>
+                                    <span class="active-label">Disfrutón</span>
+                                </div>
+                            </div>
+                            <p class="curator-verdict">Tus notas son un 12% más altas que la media global.</p>
+                        </div>
+
+                        <!-- COLECCIONISMO DE FRANQUICIAS -->
+                        <div class="franchise-collection-card glass-panel">
+                            <h3 class="advanced-stat-title"><i class="fas fa-ring"></i> Completismo</h3>
+                            <div class="franchise-rings">
+                                <div class="f-ring-item">
+                                    <svg viewBox="0 0 36 36">
+                                        <path class="ring-bg" d="M18 2 a 16 16 0 0 1 0 32 a 16 16 0 0 1 0 -32" />
+                                        <path class="ring-fill marvel" stroke-dasharray="85, 100"
+                                            d="M18 2 a 16 16 0 0 1 0 32 a 16 16 0 0 1 0 -32" />
+                                    </svg>
+                                    <i class="fas fa-spider ring-icon"></i>
+                                    <span>MCU (85%)</span>
+                                </div>
+                                <div class="f-ring-item">
+                                    <svg viewBox="0 0 36 36">
+                                        <path class="ring-bg" d="M18 2 a 16 16 0 0 1 0 32 a 16 16 0 0 1 0 -32" />
+                                        <path class="ring-fill finalfantasy" stroke-dasharray="40, 100"
+                                            d="M18 2 a 16 16 0 0 1 0 32 a 16 16 0 0 1 0 -32" />
+                                    </svg>
+                                    <i class="fas fa-meteor ring-icon"></i>
+                                    <span>Final Fantasy (40%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================ -->
+                <!--   ZONAS FULL WIDTH: HITOS Y ESTANTES 3D                      -->
+                <!-- ============================================================ -->
+                <div class="profile-full-width-modules">
+                    <!-- LÍNEA DE TIEMPO DE HITOS -->
+                    <div class="profile-timeline-container glass-panel">
+                        <h2 class="section-title"><i class="fas fa-history"></i> Línea de Tiempo</h2>
+                        <div class="profile-timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot dot-primary"></div>
+                                <div class="timeline-content">
+                                    <span class="time-date">Octubre 2025</span>
+                                    <h4>Sobrevivió a 100 películas de terror</h4>
+                                    <p>Desbloqueaste la insignia "Alma de Acero".</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot dot-secondary"></div>
+                                <div class="timeline-content">
+                                    <span class="time-date">Agosto 2025</span>
+                                    <h4>Alcanzó las 1,000 horas invertidas</h4>
+                                    <p>Una vida entera dedicada al Nexus.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESTANTES VIRTUALES 3D -->
+                    <div class="virtual-shelves-container glass-panel">
+                        <h2 class="section-title"><i class="fas fa-trophy"></i> Top Absoluto</h2>
+                        <div class="virtual-shelf-wrapper">
+                            <div class="virtual-shelf">
+                                <div class="shelf-item"><img src="/img/Pruebas/JUEGOS.png" alt="Item">
+                                    <div class="shelf-reflection"></div>
+                                </div>
+                                <div class="shelf-item"><img src="/img/Pruebas/PELICULAS.png" alt="Item">
+                                    <div class="shelf-reflection"></div>
+                                </div>
+                                <div class="shelf-item"><img src="/img/Pruebas/SERIES.png" alt="Item">
+                                    <div class="shelf-reflection"></div>
+                                </div>
+                            </div>
+                            <div class="shelf-wood-texture"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ============================================================ -->
                 <!--   MODULOS INFERIORES: WATCHLIST + RECOMENDACIONES            -->
                 <!-- ============================================================ -->
                 <div class="profile-modules-grid">
-
-                    <!-- WATCHLIST - Series pendientes -->
-                    <div id="watchlist-section" class="watchlist-section">
-                        <div class="watchlist-tabs">
-                            <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
-                            <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
-                                <i class="fas fa-th-large"></i>
-                            </button>
+                    <!-- COLUMNA IZQUIERDA -->
+                    <div class="profile-col-left">
+                        <!-- WATCHLIST ACTUAL (Integrado) -->
+                        <div id="watchlist-section" class="watchlist-section">
+                            <div class="watchlist-tabs">
+                                <button class="watchlist-tab active" data-tab="pendiente">LISTA PENDIENTE</button>
+                                <button class="watchlist-btn-icon" id="btn-watchlist-toggle-grid" title="Cambiar vista">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                            </div>
+                            <div id="watchlist-list" class="watchlist-list">
+                                <div class="watchlist-loading">
+                                    <i class="fas fa-circle-notch fa-spin"></i>
+                                </div>
+                            </div>
                         </div>
-                        <div id="watchlist-list" class="watchlist-list">
-                            <div class="watchlist-loading">
-                                <i class="fas fa-circle-notch fa-spin"></i>
+
+                        <!-- [23] SISTEMA DE GUILTY PLEASURES -->
+                        <div class="guilty-pleasures-section">
+                            <div class="police-tape-border"></div>
+                            <h3 class="wanted-title">GUILTY PLEASURES</h3>
+                            <div class="guilty-grid">
+                                <div class="guilty-card">
+                                    <img src="/img/Pruebas/PELICULAS.png" class="guilty-poster" alt="Poster">
+                                    <div class="guilty-scores">
+                                        <span class="critic-score line-through">3.1</span> <span
+                                            class="vs-text">VS</span> <span class="user-score glow-green">9.0</span>
+                                    </div>
+                                    <div class="guilty-speech-bubble">"Me da igual lo que digan, los efectos prácticos
+                                        son una joya."</div>
+                                </div>
+                            </div>
+                            <div class="police-tape-border bottom-tape"></div>
+                        </div>
+
+                        <!-- [25] EL CEMENTERIO DE ABANDONOS -->
+                        <div class="dropped-list-section glass-panel">
+                            <h3 class="graveyard-title"><i class="fas fa-skull"></i> Cementerio de Abandonos</h3>
+                            <div class="dropped-grid">
+                                <div class="tombstone-card">
+                                    <img src="/img/Pruebas/JUEGOS.png" class="dropped-poster" alt="Poster">
+                                    <div class="fog-overlay"></div>
+                                    <div class="rip-info">
+                                        <span class="rip-date">R.I.P 12/04/2025</span>
+                                        <p class="rip-reason">"El grindeo era insoportable y la historia no avanzaba."
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- RECOMENDACIONES - Basadas en lo que has visto -->
-                    <div id="recommendations-section" class="recommendations-section">
-                        <div class="watchlist-tabs">
-                            <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA TI</button>
-                            <!-- BOTÓN DE REFRESCAR -->
-                            <button id="btn-refresh-recommendations" class="watchlist-btn-icon"
-                                title="Cargar nuevas recomendaciones"
-                                style="display: none; margin-bottom: 4px; margin-left: auto;">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
+                    <!-- COLUMNA DERECHA -->
+                    <div class="profile-col-right">
+                        <!-- [33] CÁPSULA DEL TIEMPO ANUAL -->
+                        <div class="time-capsule-section glass-panel">
+                            <div class="capsule-header">
+                                <h3><i class="fas fa-lock"></i> Cápsula 2026</h3>
+                                <span class="capsule-countdown">Se abre en: 124 Días</span>
+                            </div>
+                            <div class="capsule-body locked">
+                                <i class="fas fa-vault vault-icon"></i>
+                                <p>Has sellado 8 obras que juraste ver este año.</p>
+                            </div>
                         </div>
 
-                        <div id="recommendations-list" class="watchlist-list">
-                            <!-- ESTADO DE CARGA -->
-                            <div id="rec-loading" class="watchlist-loading"
-                                style="display: flex; justify-content: center; padding: 40px 0;">
-                                <i class="fas fa-circle-notch fa-spin"
-                                    style="font-size: 1.8rem; color: var(--text-muted);"></i>
+                        <!-- RECOMENDACIONES ACTUAL (Integrado) -->
+                        <div id="recommendations-section" class="recommendations-section">
+                            <div class="watchlist-tabs">
+                                <button class="watchlist-tab active" style="cursor: default;">RECOMENDADO PARA
+                                    TI</button>
+                                <button id="btn-refresh-recommendations" class="watchlist-btn-icon"
+                                    title="Cargar nuevas recomendaciones"
+                                    style="display: none; margin-bottom: 4px; margin-left: auto;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
 
-                            <!-- ESTADO VACÍO (cuando no hay suficientes datos) -->
-                            <div id="rec-empty" class="watchlist-empty"
-                                style="display: none; text-align: center; padding: 40px 20px;">
-                                <i class="fas fa-compass"
-                                    style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 15px; opacity: 0.6;"></i>
-                                <p
-                                    style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
-                                    No hay suficientes datos para recomendarte contenido.<br>
-                                    <span style="font-size: 0.8rem; opacity: 0.7;">
-                                        Marca al menos una película o serie como vista para activar las recomendaciones.
-                                    </span>
-                                </p>
+                            <div id="recommendations-list" class="watchlist-list">
+                                <div id="rec-loading" class="watchlist-loading"
+                                    style="display: flex; justify-content: center; padding: 40px 0;">
+                                    <i class="fas fa-circle-notch fa-spin"
+                                        style="font-size: 1.8rem; color: var(--text-muted);"></i>
+                                </div>
+
+                                <div id="rec-empty" class="watchlist-empty"
+                                    style="display: none; text-align: center; padding: 40px 20px;">
+                                    <i class="fas fa-compass"
+                                        style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 15px; opacity: 0.6;"></i>
+                                    <p
+                                        style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+                                        No hay suficientes datos para recomendarte contenido.<br>
+                                        <span style="font-size: 0.8rem; opacity: 0.7;">
+                                            Marca al menos una película o serie como vista para activar las
+                                            recomendaciones.
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- [32] DESAFÍOS ACTIVOS -->
+                        <div class="active-challenges-section glass-panel">
+                            <h3 class="challenges-title"><i class="fas fa-fire"></i> Desafíos Activos</h3>
+                            <div class="challenge-card">
+                                <div class="challenge-info">
+                                    <h4>Octubre de Terror</h4>
+                                    <span>12 / 31 Películas Vistas</span>
+                                </div>
+                                <div class="challenge-progress-bar">
+                                    <div class="challenge-fill" style="width: 38%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- [40] TOP 3 DIRECTORES / ESTUDIOS -->
+                        <div class="top-creators-section glass-panel">
+                            <h3 class="creators-title"><i class="fas fa-bullhorn"></i> Tus Favoritos Inconscientes</h3>
+                            <div class="creators-list">
+                                <div class="creator-item">
+                                    <div class="creator-avatar"><i class="fas fa-video"></i></div>
+                                    <div class="creator-info">
+                                        <h4>Christopher Nolan</h4>
+                                        <span>11 películas vistas</span>
+                                    </div>
+                                </div>
+                                <div class="creator-item">
+                                    <div class="creator-avatar"><i class="fas fa-gamepad"></i></div>
+                                    <div class="creator-info">
+                                        <h4>FromSoftware</h4>
+                                        <span>5 juegos completados</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- LIBRO DE VISITAS ESTILO RETRO -->
+            <div class="guestbook-section glass-panel">
+                <div class="guestbook-header">
+                    <h2 class="section-title"><i class="fas fa-book"></i> Muro Público</h2>
+                    <button class="icon-btn" title="Limpiar pared"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="guestbook-entries">
+                    <div class="guest-entry">
+                        <span class="guest-name">Pacoporras:</span>
+                        <span class="guest-msg">Tus gustos en RPGs son god tier 🤝</span>
+                    </div>
+                    <div class="guest-entry">
+                        <span class="guest-name">GamerGirl99:</span>
+                        <span class="guest-msg">Tenemos 90% de afinidad, agrégame! ✨</span>
+                    </div>
+                </div>
+                <div class="guestbook-input-area">
+                    <input type="text" class="cyber-input"
+                        placeholder="Deja tu firma en el muro... (Máx 250 carácteres)">
+                    <button class="auth-btn primary"><i class="fas fa-pen-nib"></i> Firmar</button>
                 </div>
             </div>
         </section>
