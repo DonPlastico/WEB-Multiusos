@@ -2819,7 +2819,7 @@ span.flatpickr-weekday {
 .edit-profile-admin-form {
     padding: 15px;
     overflow-y: auto;
-    height: 100%;
+    height: auto;
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
@@ -9042,6 +9042,8 @@ select.cyber-input {
 }
 
 select.cyber-input option {
+    margin-bottom: 5px;
+    padding: 5px 10px;
     background-color: var(--bg-card);
     color: var(--text-main);
 }
@@ -9141,7 +9143,14 @@ select.cyber-input option {
     background-color: #fff;
 }
 
-
+/* Columnas independientes para evitar huecos en el grid */
+.edit-profile-col {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 0;
+    /* Evita que el contenido rompa el grid en pantallas pequeñas */
+}
 
 
 

@@ -1942,375 +1942,319 @@
                     </div>
                 </div>
 
-                <!-- GRID PRINCIPAL como el admin-dashboard-layout -->
+                <!-- GRID PRINCIPAL: Layout en dos columnas independientes -->
                 <div class="edit-profile-admin-grid">
 
-                    <!-- COLUMNA IZQUIERDA: FORMULARIO DE EDICION -->
-                    <div class="edit-profile-admin-form glass-panel">
-                        <div class="edit-profile-admin-section-header">
-                            <h2>
-                                <i class="fas fa-id-card"></i> DATOS PERSONALES
-                            </h2>
-                            <span><i class="fas fa-lock"></i> Seguro</span>
-                        </div>
+                    <!-- ========================================== -->
+                    <!-- COLUMNA IZQUIERDA                          -->
+                    <!-- ========================================== -->
+                    <div class="edit-profile-col">
 
-                        <form id="form-edit-profile" class="auth-form">
-
-                            <!-- Correo electrónico (BORROSO por seguridad) -->
-                            <div class="field-group">
-                                <label class="field-label">
-                                    <i class="fas fa-envelope"></i> Correo electrónico
-                                    <span class="edit-profile-reveal-hint">(clic para revelar)</span>
-                                </label>
-                                <div id="edit-email-container" class="email-blurred-container blurred">
-                                    <span id="edit-email-display" class="email-text">correo@ejemplo.com</span>
-                                </div>
-                                <p class="edit-profile-email-info">
-                                    <i class="fas fa-info-circle"></i> El correo se oculta automáticamente tras 5
-                                    minutos o al salir.
-                                </p>
+                        <!-- 1. DATOS PERSONALES -->
+                        <div class="edit-profile-admin-form glass-panel">
+                            <div class="edit-profile-admin-section-header">
+                                <h2><i class="fas fa-id-card"></i> DATOS PERSONALES</h2>
+                                <span><i class="fas fa-lock"></i> Seguro</span>
                             </div>
 
-                            <!-- Nombre de usuario (obligatorio) -->
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-at"></i> Nombre de usuario <span
-                                        class="required">*</span></label>
-                                <div class="field-wrapper">
-                                    <i class="fas fa-user field-icon"></i>
-                                    <input type="text" id="edit-username" class="cyber-input" placeholder="nexus_user42"
-                                        required minlength="3">
-                                </div>
-                            </div>
-
-                            <!-- Nombre y Apellidos (2 columnas) -->
-                            <div class="fields-row">
+                            <form id="form-edit-profile" class="auth-form">
+                                <!-- Correo electrónico -->
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-user-tag"></i> Nombre</label>
+                                    <label class="field-label">
+                                        <i class="fas fa-envelope"></i> Correo electrónico
+                                        <span class="edit-profile-reveal-hint">(clic para revelar)</span>
+                                    </label>
+                                    <div id="edit-email-container" class="email-blurred-container blurred">
+                                        <span id="edit-email-display" class="email-text">correo@ejemplo.com</span>
+                                    </div>
+                                    <p class="edit-profile-email-info">
+                                        <i class="fas fa-info-circle"></i> El correo se oculta automáticamente tras 5
+                                        minutos o al salir.
+                                    </p>
+                                </div>
+
+                                <!-- Nombre de usuario -->
+                                <div class="field-group">
+                                    <label class="field-label"><i class="fas fa-at"></i> Nombre de usuario <span
+                                            class="required">*</span></label>
                                     <div class="field-wrapper">
                                         <i class="fas fa-user field-icon"></i>
-                                        <input type="text" id="edit-firstname" class="cyber-input"
-                                            placeholder="Tu nombre">
+                                        <input type="text" id="edit-username" class="cyber-input"
+                                            placeholder="nexus_user42" required minlength="3">
                                     </div>
                                 </div>
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-user-tag"></i> Apellidos</label>
-                                    <div class="field-wrapper">
-                                        <i class="fas fa-user field-icon"></i>
-                                        <input type="text" id="edit-lastname" class="cyber-input"
-                                            placeholder="Tus apellidos">
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- Pronombres -->
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-comment-dots"></i> Pronombres</label>
-                                <select id="edit-pronouns" class="cyber-input">
-                                    <option value="--">Selecciona...</option>
-                                    <option value="el">Él / Lo</option>
-                                    <option value="ella">Ella / La</option>
-                                    <option value="neutro">Neutro (Elle)</option>
-                                    <option value="preguntar">Preguntar</option>
-                                </select>
-                            </div>
-
-                            <!-- Fecha de nacimiento -->
-                            <div class="fields-row">
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-birthday-cake"></i> Fecha de
-                                        Nacimiento</label>
-                                    <div class="field-wrapper">
-                                        <input type="date" id="edit-birthdate" class="cyber-input">
+                                <!-- Nombre y Apellidos -->
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-user-tag"></i> Nombre</label>
+                                        <div class="field-wrapper">
+                                            <i class="fas fa-user field-icon"></i>
+                                            <input type="text" id="edit-firstname" class="cyber-input"
+                                                placeholder="Tu nombre">
+                                        </div>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-user-tag"></i> Apellidos</label>
+                                        <div class="field-wrapper">
+                                            <i class="fas fa-user field-icon"></i>
+                                            <input type="text" id="edit-lastname" class="cyber-input"
+                                                placeholder="Tus apellidos">
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- Pronombres -->
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-eye"></i> Privacidad</label>
-                                    <select id="edit-age-privacy" class="cyber-input">
-                                        <option value="full">Mostrar completa</option>
-                                        <option value="partial">Solo Día/Mes (Ocultar año)</option>
-                                        <option value="private">Privado</option>
+                                    <label class="field-label"><i class="fas fa-comment-dots"></i> Pronombres</label>
+                                    <select id="edit-pronouns" class="cyber-input">
+                                        <option value="--">Selecciona...</option>
+                                        <option value="el">Él / Lo</option>
+                                        <option value="ella">Ella / La</option>
+                                        <option value="neutro">Neutro (Elle)</option>
+                                        <option value="preguntar">Preguntar</option>
                                     </select>
                                 </div>
-                            </div>
 
-                            <!-- Selector de Sexo (CUSTOM - estilo cyberpunk) -->
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-venus-mars"></i> Sexo</label>
-                                <div class="cyber-select-wrapper" id="gender-select-wrapper">
-                                    <div class="cyber-select-trigger" id="gender-select-trigger">
-                                        <span id="gender-select-label">--</span>
-                                        <i class="fas fa-chevron-down cyber-select-arrow"></i>
+                                <!-- Fecha de nacimiento y Privacidad -->
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-birthday-cake"></i> Fecha de
+                                            Nacimiento</label>
+                                        <div class="field-wrapper">
+                                            <input type="date" id="edit-birthdate" class="cyber-input">
+                                        </div>
                                     </div>
-                                    <div class="cyber-select-dropdown" id="gender-select-dropdown">
-                                        <div class="cyber-select-option selected" data-value="--">
-                                            <i class="fas fa-circle"></i> --
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Femenino">
-                                            <i class="fas fa-venus"></i> Femenino
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Masculino">
-                                            <i class="fas fa-mars"></i> Masculino
-                                        </div>
-                                        <div class="cyber-select-option" data-value="No binario">
-                                            <i class="fas fa-genderless"></i> No binario
-                                        </div>
-                                        <div class="cyber-select-option" data-value="Prefiero no decirlo">
-                                            <i class="fas fa-user-secret"></i> Prefiero no decirlo
-                                        </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-eye"></i> Privacidad</label>
+                                        <select id="edit-age-privacy" class="cyber-input">
+                                            <option value="full">Mostrar completa</option>
+                                            <option value="partial">Solo Día/Mes (Ocultar año)</option>
+                                            <option value="private">Privado</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <input type="hidden" id="edit-gender" value="--">
-                            </div>
 
-                            <!-- COLOR DESTACADO (Selector de colores) -->
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-palette"></i> Color destacado</label>
-
-                                <!-- FILA 1: Selector RGB Custom -->
-                                <div class="color-picker-row">
-                                    <div class="color-picker-custom">
-                                        <label class="color-picker-sub-label">🎨 RGB Custom</label>
-                                        <div class="color-picker-custom-inner">
-                                            <input type="color" id="edit-color-picker" value="#6366f1">
-                                            <span class="color-picker-hex" id="edit-color-hex-display">#6366f1</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="color-picker-divider"></div>
-
-                                    <!-- FILA 2: Colores Preseleccionados (para seleccion rapida) -->
-                                    <div class="color-picker-presets">
-                                        <label class="color-picker-sub-label">⚡ Preseleccionados</label>
-                                        <div class="color-presets">
-                                            <button type="button" class="color-preset-btn" data-color="#000000"
-                                                style="background: #000000;" title="Negro">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#ffffff"
-                                                style="background: #ffffff; border: 1px solid #333;" title="Blanco">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#ef4444"
-                                                style="background: #ef4444;" title="Rojo">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#3b82f6"
-                                                style="background: #3b82f6;" title="Azul">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#22c55e"
-                                                style="background: #22c55e;" title="Verde">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#ec4899"
-                                                style="background: #ec4899;" title="Rosa">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#8b5cf6"
-                                                style="background: #8b5cf6;" title="Morado">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#6b7280"
-                                                style="background: #6b7280;" title="Gris">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#eab308"
-                                                style="background: #eab308;" title="Amarillo">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#f97316"
-                                                style="background: #f97316;" title="Naranja">
-                                            </button>
-                                            <button type="button" class="color-preset-btn" data-color="#6366f1"
-                                                style="background: #6366f1;" title="Primary (Nexus)">
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Titulos disponibles -->
-                            <div class="fields-row">
+                                <!-- Sexo -->
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-medal"></i> Título de Usuario</label>
-                                    <select id="edit-user-title" class="cyber-input">
-                                        <option value="none">Sin título (Desbloquea jugando)</option>
-                                        <option value="cinefilo">Cinéfilo Veterano</option>
-                                        <option value="platino">Cazador de Platinos</option>
-                                    </select>
+                                    <label class="field-label"><i class="fas fa-venus-mars"></i> Sexo</label>
+                                    <div class="cyber-select-wrapper" id="gender-select-wrapper">
+                                        <div class="cyber-select-trigger" id="gender-select-trigger">
+                                            <span id="gender-select-label">--</span>
+                                            <i class="fas fa-chevron-down cyber-select-arrow"></i>
+                                        </div>
+                                        <div class="cyber-select-dropdown" id="gender-select-dropdown">
+                                            <div class="cyber-select-option selected" data-value="--"><i
+                                                    class="fas fa-circle"></i> --</div>
+                                            <div class="cyber-select-option" data-value="Femenino"><i
+                                                    class="fas fa-venus"></i> Femenino</div>
+                                            <div class="cyber-select-option" data-value="Masculino"><i
+                                                    class="fas fa-mars"></i> Masculino</div>
+                                            <div class="cyber-select-option" data-value="No binario"><i
+                                                    class="fas fa-genderless"></i> No binario</div>
+                                            <div class="cyber-select-option" data-value="Prefiero no decirlo"><i
+                                                    class="fas fa-user-secret"></i> Prefiero no decirlo</div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="edit-gender" value="--">
                                 </div>
+
+                                <!-- Color destacado -->
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-comment-alt"></i> Estado Efímero
-                                        (24h)</label>
-                                    <div class="field-wrapper">
-                                        <input type="text" id="edit-custom-status" class="cyber-input"
-                                            placeholder="Ej: Viendo el maratón de LOTR...">
+                                    <label class="field-label"><i class="fas fa-palette"></i> Color destacado</label>
+                                    <div class="color-picker-row">
+                                        <div class="color-picker-custom">
+                                            <label class="color-picker-sub-label">🎨 RGB Custom</label>
+                                            <div class="color-picker-custom-inner">
+                                                <input type="color" id="edit-color-picker" value="#6366f1">
+                                                <span class="color-picker-hex"
+                                                    id="edit-color-hex-display">#6366f1</span>
+                                            </div>
+                                        </div>
+                                        <div class="color-picker-divider"></div>
+                                        <div class="color-picker-presets">
+                                            <label class="color-picker-sub-label">⚡ Preseleccionados</label>
+                                            <div class="color-presets">
+                                                <button type="button" class="color-preset-btn" data-color="#000000"
+                                                    style="background: #000000;" title="Negro"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#ffffff"
+                                                    style="background: #ffffff; border: 1px solid #333;"
+                                                    title="Blanco"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#ef4444"
+                                                    style="background: #ef4444;" title="Rojo"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#3b82f6"
+                                                    style="background: #3b82f6;" title="Azul"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#22c55e"
+                                                    style="background: #22c55e;" title="Verde"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#ec4899"
+                                                    style="background: #ec4899;" title="Rosa"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#8b5cf6"
+                                                    style="background: #8b5cf6;" title="Morado"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#6b7280"
+                                                    style="background: #6b7280;" title="Gris"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#eab308"
+                                                    style="background: #eab308;" title="Amarillo"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#f97316"
+                                                    style="background: #f97316;" title="Naranja"></button>
+                                                <button type="button" class="color-preset-btn" data-color="#6366f1"
+                                                    style="background: #6366f1;" title="Primary (Nexus)"></button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Descripción (con contador de caracteres) -->
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
-                                <div class="textarea-wrapper">
-                                    <textarea id="edit-description" class="cyber-input edit-description-textarea"
-                                        placeholder="Cuéntanos sobre ti... (máx. 1500 caracteres)" maxlength="1500"
-                                        rows="5"></textarea>
-                                    <div id="edit-char-counter" class="char-counter">0/1500</div>
+                                <!-- Título y Estado -->
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-medal"></i> Título de
+                                            Usuario</label>
+                                        <select id="edit-user-title" class="cyber-input">
+                                            <option value="none">Sin título (Desbloquea jugando)</option>
+                                            <option value="cinefilo">Cinéfilo Veterano</option>
+                                            <option value="platino">Cazador de Platinos</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-comment-alt"></i> Estado Efímero
+                                            (24h)</label>
+                                        <div class="field-wrapper">
+                                            <input type="text" id="edit-custom-status" class="cyber-input"
+                                                placeholder="Ej: Viendo el maratón de LOTR...">
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- BOTÓN GUARDAR CAMBIOS -->
-                            <button type="submit" id="btn-save-profile" class="auth-btn primary full-width">
-                                <i class="fas fa-save"></i> GUARDAR CAMBIOS
-                            </button>
-                        </form>
-                    </div>
+                                <!-- Descripción -->
+                                <div class="field-group">
+                                    <label class="field-label"><i class="fas fa-align-left"></i> Descripción</label>
+                                    <div class="textarea-wrapper">
+                                        <textarea id="edit-description" class="cyber-input edit-description-textarea"
+                                            placeholder="Cuéntanos sobre ti... (máx. 1500 caracteres)" maxlength="1500"
+                                            rows="5"></textarea>
+                                        <div id="edit-char-counter" class="char-counter">0/1500</div>
+                                    </div>
+                                </div>
 
-                    <div class="edit-profile-admin-form glass-panel" style="margin-top: 20px;">
-                        <div class="edit-profile-admin-section-header">
-                            <h2><i class="fas fa-link"></i> REDES Y ENLACES</h2>
+                                <button type="submit" id="btn-save-profile" class="auth-btn primary full-width">
+                                    <i class="fas fa-save"></i> GUARDAR CAMBIOS
+                                </button>
+                            </form>
                         </div>
-                        <div class="auth-form">
-                            <div class="fields-row">
+
+                        <!-- 2. IDENTIDAD Y GUSTOS -->
+                        <div class="edit-profile-admin-form glass-panel">
+                            <div class="edit-profile-admin-section-header">
+                                <h2><i class="fas fa-gamepad"></i> IDENTIDAD Y GUSTOS</h2>
+                            </div>
+                            <div class="auth-form">
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fab fa-discord"></i> Discord</label>
-                                    <input type="text" class="cyber-input" placeholder="TuUsuario#1234">
+                                    <label class="field-label"><i class="fas fa-tags"></i> Top 3 Géneros
+                                        Favoritos</label>
+                                    <select class="cyber-input" multiple size="3" style="height: 150px;">
+                                        <option>RPG / Aventura</option>
+                                        <option>Ciencia Ficción (Cine)</option>
+                                        <option>Shooter / FPS</option>
+                                        <option>Terror / Thriller</option>
+                                    </select>
+                                    <p class="edit-profile-email-info">Mantén CTRL para seleccionar múltiples.</p>
                                 </div>
                                 <div class="field-group">
-                                    <label class="field-label"><i class="fab fa-steam"></i> Steam</label>
+                                    <label class="field-label"><i class="fas fa-desktop"></i> Plataformas
+                                        Favoritas</label>
+                                    <div class="platform-checkboxes">
+                                        <label class="platform-check"><input type="checkbox"> <span>PC</span></label>
+                                        <label class="platform-check"><input type="checkbox"> <span>PS5</span></label>
+                                        <label class="platform-check"><input type="checkbox">
+                                            <span>Switch</span></label>
+                                        <label class="platform-check"><input type="checkbox"> <span>Xbox</span></label>
+                                        <label class="platform-check"><input type="checkbox"> <span>Retro</span></label>
+                                    </div>
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label"><i class="fas fa-star"></i> La Franquicia de mi
+                                        Vida</label>
+                                    <input type="text" class="cyber-input"
+                                        placeholder="Buscar saga (Ej: Star Wars, Dark Souls)...">
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label"><i class="fas fa-quote-left"></i> Banner de Cita (Frase
+                                        célebre)</label>
+                                    <input type="text" class="cyber-input"
+                                        placeholder="Ej: It's dangerous to go alone! Take this.">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. EXTRAS DE IDENTIDAD -->
+                        <div class="glass-panel edit-profile-admin-side-panel">
+                            <div class="edit-profile-admin-side-header">
+                                <h2><i class="fas fa-fingerprint"></i> EXTRAS DE IDENTIDAD</h2>
+                            </div>
+                            <div class="edit-profile-admin-side-actions">
+                                <div class="field-group" style="margin-bottom: 15px;">
+                                    <label class="field-label" style="font-size: 0.8rem;"><i class="fas fa-image"></i>
+                                        Avatar Hover (.gif oculto)</label>
+                                    <input type="file" class="cyber-input" accept="image/gif, image/webp"
+                                        style="padding: 8px; font-size: 0.75rem;">
+                                </div>
+                                <div class="field-group" style="margin-bottom: 15px;">
+                                    <label class="field-label" style="font-size: 0.8rem;"><i class="fas fa-map-pin"></i>
+                                        Insignia Pin (Junto al Nombre)</label>
+                                    <select class="cyber-input" style="font-size: 0.8rem; padding: 8px;">
+                                        <option>Sin Insignia</option>
+                                        <option>🛡️ Fundador Beta</option>
+                                        <option>🔥 Racha 30 Días</option>
+                                    </select>
+                                </div>
+                                <div class="edit-profile-admin-divider"></div>
+                                <button class="auth-btn secondary" id="btn-generate-signature">
+                                    <i class="fas fa-code"></i> Generar Firma (Foros)
+                                </button>
+                            </div>
+                        </div>
+
+                    </div> <!-- /COLUMNA IZQUIERDA -->
+
+
+                    <!-- ========================================== -->
+                    <!-- COLUMNA DERECHA                            -->
+                    <!-- ========================================== -->
+                    <div class="edit-profile-col">
+
+                        <!-- 1. REDES Y ENLACES -->
+                        <div class="edit-profile-admin-form glass-panel">
+                            <div class="edit-profile-admin-section-header">
+                                <h2><i class="fas fa-link"></i> REDES Y ENLACES</h2>
+                            </div>
+                            <div class="auth-form">
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fab fa-discord"></i> Discord</label>
+                                        <input type="text" class="cyber-input" placeholder="TuUsuario#1234">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fab fa-steam"></i> Steam</label>
+                                        <input type="text" class="cyber-input" placeholder="URL de tu perfil">
+                                    </div>
+                                </div>
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fab fa-playstation"></i> PSN ID</label>
+                                        <input type="text" class="cyber-input" placeholder="Tu ID de PSN">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fab fa-twitter"></i> X (Twitter)</label>
+                                        <input type="text" class="cyber-input" placeholder="@usuario">
+                                    </div>
+                                </div>
+                                <div class="field-group">
+                                    <label class="field-label"><i class="fas fa-film"></i> Letterboxd</label>
                                     <input type="text" class="cyber-input" placeholder="URL de tu perfil">
                                 </div>
                             </div>
-                            <div class="fields-row">
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fab fa-playstation"></i> PSN ID</label>
-                                    <input type="text" class="cyber-input" placeholder="Tu ID de PSN">
-                                </div>
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fab fa-twitter"></i> X (Twitter)</label>
-                                    <input type="text" class="cyber-input" placeholder="@usuario">
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-film"></i> Letterboxd</label>
-                                <input type="text" class="cyber-input" placeholder="URL de tu perfil">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="edit-profile-admin-form glass-panel" style="margin-top: 20px;">
-                        <div class="edit-profile-admin-section-header">
-                            <h2><i class="fas fa-gamepad"></i> IDENTIDAD Y GUSTOS</h2>
-                        </div>
-                        <div class="auth-form">
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-tags"></i> Top 3 Géneros Favoritos</label>
-                                <select class="cyber-input" multiple size="3" style="height: auto;">
-                                    <option>RPG / Aventura</option>
-                                    <option>Ciencia Ficción (Cine)</option>
-                                    <option>Shooter / FPS</option>
-                                    <option>Terror / Thriller</option>
-                                </select>
-                                <p class="edit-profile-email-info">Mantén CTRL para seleccionar múltiples.</p>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-desktop"></i> Plataformas Favoritas</label>
-                                <div class="platform-checkboxes">
-                                    <label class="platform-check"><input type="checkbox"> <span>PC</span></label>
-                                    <label class="platform-check"><input type="checkbox"> <span>PS5</span></label>
-                                    <label class="platform-check"><input type="checkbox"> <span>Switch</span></label>
-                                    <label class="platform-check"><input type="checkbox"> <span>Xbox</span></label>
-                                    <label class="platform-check"><input type="checkbox"> <span>Retro</span></label>
-                                </div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-star"></i> La Franquicia de mi Vida</label>
-                                <input type="text" class="cyber-input"
-                                    placeholder="Buscar saga (Ej: Star Wars, Dark Souls)...">
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label"><i class="fas fa-quote-left"></i> Banner de Cita (Frase
-                                    célebre)</label>
-                                <input type="text" class="cyber-input"
-                                    placeholder="Ej: It's dangerous to go alone! Take this.">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Personalización de interfaz -->
-                    <div class="edit-profile-admin-form glass-panel" style="margin-top: 20px;">
-                        <div class="edit-profile-admin-section-header">
-                            <h2><i class="fas fa-paint-brush"></i> PERSONALIZACIÓN DE LA INTERFAZ</h2>
-                        </div>
-                        <div class="auth-form">
-                            <div class="fields-row">
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-music"></i> Tema Musical (ID de
-                                        YT/Spotify)</label>
-                                    <input type="text" class="cyber-input" placeholder="Ej: dQw4w9WgXcQ">
-                                </div>
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-font"></i> Tipografía del Perfil</label>
-                                    <select class="cyber-input">
-                                        <option>Default (Nexus)</option>
-                                        <option>Cyberpunk Pixel</option>
-                                        <option>Cinematic Serif</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="fields-row">
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-magic"></i> Transición de
-                                        Entrada</label>
-                                    <select class="cyber-input">
-                                        <option>Fade In Suave</option>
-                                        <option>Slide Up</option>
-                                        <option>Glitch Reveal Cyberpunk</option>
-                                    </select>
-                                </div>
-                                <div class="field-group">
-                                    <label class="field-label"><i class="fas fa-mouse-pointer"></i> Modo de
-                                        Cursor</label>
-                                    <select class="cyber-input">
-                                        <option>Por Defecto</option>
-                                        <option>Espada Pixel-Art</option>
-                                        <option>Mira Láser</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="field-group layout-toggle-group">
-                                <label class="field-label">Layout Drag & Drop (Vista Pública)</label>
-                                <label class="cyber-switch">
-                                    <input type="checkbox" id="toggle-layout-edit">
-                                    <span class="cyber-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- COLUMNA DERECHA: ACCIONES (como el side panel del admin) -->
-                    <div class="edit-profile-admin-side">
-                        <!-- Panel de seguridad -->
-                        <div class="glass-panel edit-profile-admin-side-panel">
-                            <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
-                            </div>
-
-                            <div class="edit-profile-admin-side-actions">
-                                <!-- Cambiar contraseña (proximamente) -->
-                                <button class="auth-btn secondary" id="btn-change-password">
-                                    <i class="fas fa-key"></i> Cambiar Contraseña
-                                    <span class="edit-profile-badge-coming">Próximamente</span>
-                                </button>
-
-                                <!-- Cambiar correo (proximamente) -->
-                                <button class="auth-btn secondary" id="btn-change-email">
-                                    <i class="fas fa-envelope"></i> Cambiar Correo
-                                    <span class="edit-profile-badge-coming">Próximamente</span>
-                                </button>
-
-                                <div class="edit-profile-admin-divider"></div>
-
-                                <!-- Volver al perfil -->
-                                <button class="auth-btn secondary" id="btn-back-to-profile">
-                                    <i class="fas fa-arrow-left"></i> Volver al Perfil
-                                </button>
-                            </div>
                         </div>
 
-                        <!-- Panel de información adicional -->
+                        <!-- 2. INFORMACIÓN -->
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
                                 <h2><i class="fas fa-info-circle"></i> INFORMACIÓN</h2>
@@ -2340,35 +2284,76 @@
                             </div>
                         </div>
 
-                        <!-- Extras de identidad -->
+                        <!-- 3. SEGURIDAD -->
                         <div class="glass-panel edit-profile-admin-side-panel">
                             <div class="edit-profile-admin-side-header">
-                                <h2><i class="fas fa-fingerprint"></i> EXTRAS DE IDENTIDAD</h2>
+                                <h2><i class="fas fa-shield-alt"></i> SEGURIDAD</h2>
                             </div>
                             <div class="edit-profile-admin-side-actions">
-
-                                <div class="field-group" style="margin-bottom: 15px;">
-                                    <label class="field-label" style="font-size: 0.8rem;"><i class="fas fa-image"></i>
-                                        Avatar Hover (.gif oculto)</label>
-                                    <input type="file" class="cyber-input" accept="image/gif, image/webp"
-                                        style="padding: 8px; font-size: 0.75rem;">
-                                </div>
-
-                                <div class="field-group" style="margin-bottom: 15px;">
-                                    <label class="field-label" style="font-size: 0.8rem;"><i class="fas fa-map-pin"></i>
-                                        Insignia Pin (Junto al Nombre)</label>
-                                    <select class="cyber-input" style="font-size: 0.8rem; padding: 8px;">
-                                        <option>Sin Insignia</option>
-                                        <option>🛡️ Fundador Beta</option>
-                                        <option>🔥 Racha 30 Días</option>
-                                    </select>
-                                </div>
-
-                                <div class="edit-profile-admin-divider"></div>
-
-                                <button class="auth-btn secondary" id="btn-generate-signature">
-                                    <i class="fas fa-code"></i> Generar Firma (Foros)
+                                <button class="auth-btn secondary" id="btn-change-password">
+                                    <i class="fas fa-key"></i> Cambiar Contraseña
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
                                 </button>
+                                <button class="auth-btn secondary" id="btn-change-email">
+                                    <i class="fas fa-envelope"></i> Cambiar Correo
+                                    <span class="edit-profile-badge-coming">Próximamente</span>
+                                </button>
+                                <div class="edit-profile-admin-divider"></div>
+                                <button class="auth-btn secondary" id="btn-back-to-profile">
+                                    <i class="fas fa-arrow-left"></i> Volver al Perfil
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4. PERSONALIZACIÓN DE LA INTERFAZ -->
+                        <div class="edit-profile-admin-form glass-panel">
+                            <div class="edit-profile-admin-section-header">
+                                <h2><i class="fas fa-paint-brush"></i> PERSONALIZACIÓN DE LA INTERFAZ</h2>
+                            </div>
+                            <div class="auth-form">
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-music"></i> Tema Musical (ID de
+                                            YT/Spotify)</label>
+                                        <input type="text" class="cyber-input" placeholder="Ej: dQw4w9WgXcQ">
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-font"></i> Tipografía del
+                                            Perfil</label>
+                                        <select class="cyber-input">
+                                            <option>Default (Nexus)</option>
+                                            <option>Cyberpunk Pixel</option>
+                                            <option>Cinematic Serif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="fields-row">
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-magic"></i> Transición de
+                                            Entrada</label>
+                                        <select class="cyber-input">
+                                            <option>Fade In Suave</option>
+                                            <option>Slide Up</option>
+                                            <option>Glitch Reveal Cyberpunk</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label"><i class="fas fa-mouse-pointer"></i> Modo de
+                                            Cursor</label>
+                                        <select class="cyber-input">
+                                            <option>Por Defecto</option>
+                                            <option>Espada Pixel-Art</option>
+                                            <option>Mira Láser</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Layout Drag & Drop (Vista Pública)</label>
+                                    <label class="cyber-switch">
+                                        <input type="checkbox" id="toggle-layout-edit">
+                                        <span class="cyber-slider"></span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
