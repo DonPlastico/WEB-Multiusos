@@ -9234,15 +9234,12 @@ select.cyber-input option {
 .btn-save-floating {
     position: fixed;
     top: 90px;
-    /* Espacio exacto debajo de tu Navbar */
     right: 40px;
-    /* Alineado con los márgenes de la web */
     z-index: 990;
-    /* Por encima del contenido pero debajo de modales */
     width: auto !important;
-    /* Sobrescribe el full-width */
     box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
     border-radius: 12px;
+    pointer-events: auto;
 }
 
 /* Efecto hover acentuado para que resalte que es un botón global */
