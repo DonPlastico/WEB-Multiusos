@@ -14571,7 +14571,7 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
 });
 
 // ==========================================================================
-//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (MÓDULOS)
+//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL
 // ==========================================================================
 
 window.inicializarEditProfile = async function () {
@@ -14595,7 +14595,7 @@ window.inicializarEditProfile = async function () {
         if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
         if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
 
-        // 2. Cargar estado de los Módulos (APAGADOS por defecto si en BD es false o no existe)
+        // 2. Cargar estado de los Módulos
         const configModulos = perfil.config_modulos || {};
         const modulos = [
             'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
@@ -14606,7 +14606,6 @@ window.inicializarEditProfile = async function () {
         modulos.forEach(mod => {
             const toggle = document.getElementById(`toggle-${mod}`);
             if (toggle) {
-                // Solo marcamos el interruptor si en la base de datos pone textualmente "true"
                 toggle.checked = configModulos[mod] === true;
             }
         });
@@ -14624,7 +14623,7 @@ document.getElementById('form-edit-profile')?.addEventListener('submit', async (
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        // Construimos el JSON leyendo cómo ha dejado el usuario los interruptores
+        // Construimos el JSON de los módulos
         const jsonModulos = {
             'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
             'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
@@ -14640,18 +14639,22 @@ document.getElementById('form-edit-profile')?.addEventListener('submit', async (
             pronombres: document.getElementById('edit-pronouns').value,
             birthdate: document.getElementById('edit-birthdate').value,
             age_privacy: document.getElementById('edit-age-privacy').value,
-            config_modulos: jsonModulos // Guardamos el JSON de visibilidad
+            config_modulos: jsonModulos
         };
+
+        console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", updates); // PRINT PARA DEPURAR
 
         // Enviamos el UPDATE a Supabase
         const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
 
         if (error) {
+            console.error("❌ ERROR DE SUPABASE:", error);
             showToast('error', 'Error', 'No se pudo guardar la configuración.');
-            console.error(error);
         } else {
+            console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
             showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
-            // Refrescamos la vista de perfil para aplicar los cambios
+            
+            // Refrescamos la vista de perfil
             const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
             if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
         }
@@ -14840,104 +14843,104 @@ document.addEventListener('DOMContentLoaded', () => {
 //   SISTEMA DE SEGURIDAD DEL NEXUS (ANTI-FISGONES Y ASCII ART)
 // ==========================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. DIBUJAR ASCII ART EN LA CONSOLA
-    // Usamos setTimeout para dar tiempo a verificarSesion() de consultar a Supabase
-    setTimeout(() => {
-        console.clear();
+// document.addEventListener('DOMContentLoaded', () => {
+//     // 1. DIBUJAR ASCII ART EN LA CONSOLA
+//     // Usamos setTimeout para dar tiempo a verificarSesion() de consultar a Supabase
+//     setTimeout(() => {
+//         console.clear();
 
-        // Si la variable global es true, significa que eres ADMIN
-        if (window.isNexusAdmin) {
-            console.log(
-                '%c¡BIENVENIDO DE VUELTA, CREADOR!',
-                'color: #10b981; font-size: 30px; font-weight: 900; text-shadow: 0 0 10px #10b981; font-family: sans-serif;'
-            );
-            console.log('%cProtocolos de seguridad desactivados. Tienes acceso root y control total sobre el código del Nexus.', 'color: #ededee; font-size: 14px; font-style: italic;');
-            return; // Cortamos la ejecución aquí, no mostramos la alerta roja
-        }
+//         // Si la variable global es true, significa que eres ADMIN
+//         if (window.isNexusAdmin) {
+//             console.log(
+//                 '%c¡BIENVENIDO DE VUELTA, CREADOR!',
+//                 'color: #10b981; font-size: 30px; font-weight: 900; text-shadow: 0 0 10px #10b981; font-family: sans-serif;'
+//             );
+//             console.log('%cProtocolos de seguridad desactivados. Tienes acceso root y control total sobre el código del Nexus.', 'color: #ededee; font-size: 14px; font-style: italic;');
+//             return; // Cortamos la ejecución aquí, no mostramos la alerta roja
+//         }
 
-        // --- SI NO ES ADMIN, MOSTRAMOS LA ALERTA ROJA ---
-        console.log(
-            '%c¡ALTO AHÍ!',
-            'color: #ef4444; font-size: 50px; font-weight: 900; text-shadow: 2px 2px 0 #000, 0 0 20px #ef4444; font-family: sans-serif;'
-        );
+//         // --- SI NO ES ADMIN, MOSTRAMOS LA ALERTA ROJA ---
+//         console.log(
+//             '%c¡ALTO AHÍ!',
+//             'color: #ef4444; font-size: 50px; font-weight: 900; text-shadow: 2px 2px 0 #000, 0 0 20px #ef4444; font-family: sans-serif;'
+//         );
 
-        console.log(
-            '%cCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
-            'color: #ededee; font-size: 14px; background: #14141c; padding: 15px; border: 1px solid #6366f1; border-radius: 8px; font-family: monospace; line-height: 1.5;'
-        );
+//         console.log(
+//             '%cCualquier intento de alteración, inyección de código o vulneración de seguridad quedará registrado en nuestros servidores.',
+//             'color: #ededee; font-size: 14px; background: #14141c; padding: 15px; border: 1px solid #6366f1; border-radius: 8px; font-family: monospace; line-height: 1.5;'
+//         );
 
-        const asciiArt = `
- ██████╗ ██████╗         ███████╗██╗   ██╗███████╗
- ██╔══██╗██╔══██╗        ██╔════╝╚██╗ ██╔╝██╔════╝
- ██║  ██║██████╔╝  █████╗███████╗ ╚████╔╝ ███████╗
- ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
- ██████╔╝██║             ███████║   ██║   ███████║
- ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
+//         const asciiArt = `
+//  ██████╗ ██████╗         ███████╗██╗   ██╗███████╗
+//  ██╔══██╗██╔══██╗        ██╔════╝╚██╗ ██╔╝██╔════╝
+//  ██║  ██║██████╔╝  █████╗███████╗ ╚████╔╝ ███████╗
+//  ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
+//  ██████╔╝██║             ███████║   ██║   ███████║
+//  ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
         
-   © DERECHOS DE AUTOR RESERVADOS - DonPlastico
-   SISTEMA DE GESTIÓN MULTIMEDIA V1.0
-        `;
+//    © DERECHOS DE AUTOR RESERVADOS - DonPlastico
+//    SISTEMA DE GESTIÓN MULTIMEDIA V1.0
+//         `;
 
-        console.log(
-            `%c${asciiArt}`,
-            'color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 14px; text-shadow: 0 0 5px rgba(45, 212, 191, 0.5);'
-        );
+//         console.log(
+//             `%c${asciiArt}`,
+//             'color: #2dd4bf; font-weight: bold; font-family: monospace; font-size: 14px; text-shadow: 0 0 5px rgba(45, 212, 191, 0.5);'
+//         );
 
-        console.log(
-            '%cSi eres un desarrollador y quieres colaborar, cierra esta ventana y contáctame.',
-            'color: #8888a0; font-size: 12px; font-style: italic; margin-top: 20px;'
-        );
-    }, 2000); // 2 segundos de gracia
+//         console.log(
+//             '%cSi eres un desarrollador y quieres colaborar, cierra esta ventana y contáctame.',
+//             'color: #8888a0; font-size: 12px; font-style: italic; margin-top: 20px;'
+//         );
+//     }, 2000); // 2 segundos de gracia
 
-    // 2. BLOQUEO DE TECLAS DE DESARROLLADOR Y CÓDIGO FUENTE
-    document.addEventListener('keydown', (e) => {
-        // ¡LA MAGIA!: Si eres Admin, esta línea hace que el código ignore todos los bloqueos de abajo
-        if (window.isNexusAdmin) return;
+//     // 2. BLOQUEO DE TECLAS DE DESARROLLADOR Y CÓDIGO FUENTE
+//     document.addEventListener('keydown', (e) => {
+//         // ¡LA MAGIA!: Si eres Admin, esta línea hace que el código ignore todos los bloqueos de abajo
+//         if (window.isNexusAdmin) return;
 
-        // Bloquear F12
-        if (e.key === 'F12' || e.keyCode === 123) {
-            e.preventDefault();
-            showToast('error', 'Acceso Denegado', 'Funciones de desarrollador bloqueadas por seguridad.');
-            return false;
-        }
+//         // Bloquear F12
+//         if (e.key === 'F12' || e.keyCode === 123) {
+//             e.preventDefault();
+//             showToast('error', 'Acceso Denegado', 'Funciones de desarrollador bloqueadas por seguridad.');
+//             return false;
+//         }
 
-        // Bloquear Ctrl + Shift + I (Abrir inspector)
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-            e.preventDefault();
-            showToast('error', 'Acceso Denegado', 'Inspección de elementos no autorizada.');
-            return false;
-        }
+//         // Bloquear Ctrl + Shift + I (Abrir inspector)
+//         if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+//             e.preventDefault();
+//             showToast('error', 'Acceso Denegado', 'Inspección de elementos no autorizada.');
+//             return false;
+//         }
 
-        // Bloquear Ctrl + Shift + J (Abrir consola directamente)
-        if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-            e.preventDefault();
-            showToast('error', 'Acceso Denegado', 'Acceso a la consola rechazado.');
-            return false;
-        }
+//         // Bloquear Ctrl + Shift + J (Abrir consola directamente)
+//         if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+//             e.preventDefault();
+//             showToast('error', 'Acceso Denegado', 'Acceso a la consola rechazado.');
+//             return false;
+//         }
 
-        // Bloquear Ctrl + Shift + C o Ctrl + U (Ver código fuente)
-        if ((e.ctrlKey && (e.key === 'U' || e.key === 'u')) || (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c'))) {
-            e.preventDefault();
-            showToast('error', 'Acceso Denegado', 'Lectura de código fuente restringida.');
-            return false;
-        }
-    });
+//         // Bloquear Ctrl + Shift + C o Ctrl + U (Ver código fuente)
+//         if ((e.ctrlKey && (e.key === 'U' || e.key === 'u')) || (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c'))) {
+//             e.preventDefault();
+//             showToast('error', 'Acceso Denegado', 'Lectura de código fuente restringida.');
+//             return false;
+//         }
+//     });
 
-    // 3. BLOQUEAR CLIC DERECHO (Menú contextual)
-    document.addEventListener('contextmenu', (e) => {
-        // Bypass para el administrador
-        if (window.isNexusAdmin) return;
+//     // 3. BLOQUEAR CLIC DERECHO (Menú contextual)
+//     document.addEventListener('contextmenu', (e) => {
+//         // Bypass para el administrador
+//         if (window.isNexusAdmin) return;
 
-        // Excepción: Permitimos el clic derecho en nuestras tarjetas para que funcione el menú de "Añadir a lista" o el "Ojo"
-        if (e.target.closest('.game-card') || e.target.closest('#btn-watch-toggle')) {
-            return true;
-        }
+//         // Excepción: Permitimos el clic derecho en nuestras tarjetas para que funcione el menú de "Añadir a lista" o el "Ojo"
+//         if (e.target.closest('.game-card') || e.target.closest('#btn-watch-toggle')) {
+//             return true;
+//         }
 
-        e.preventDefault();
-        return false;
-    });
-});
+//         e.preventDefault();
+//         return false;
+//     });
+// });
 
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
