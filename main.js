@@ -611,6 +611,12 @@ async function cambiarVista(target, guardarEnHistorial = true, usernameUrl = nul
         }
     });
 
+    // Controlar visibilidad del botón de guardar perfil
+    const btnSaveGlobal = document.getElementById('btn-save-profile');
+    if (btnSaveGlobal) {
+        btnSaveGlobal.style.display = (target === 'edit-profile') ? 'inline-flex' : 'none';
+    }
+
     // vuelvo a la posicion de scroll que tenia (el timeout es pa dar tiempo a q se pinte la vista)
     setTimeout(() => {
         window.scrollTo({

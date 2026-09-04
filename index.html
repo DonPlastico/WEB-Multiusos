@@ -1933,14 +1933,6 @@
         <!--   VISTA: EDITAR PERFIL (ESTILO ADMIN)                        -->
         <!-- ============================================================ -->
         <section id="edit-profile" class="view">
-                <!-- ENVOLTORIO STICKY (La magia para que baje contigo) -->
-                <div class="sticky-save-wrapper">
-                    <button type="submit" id="btn-save-profile" form="form-edit-profile"
-                        class="auth-btn primary btn-save-floating">
-                        <i class="fas fa-save"></i> GUARDAR CAMBIOS
-                    </button>
-                </div>
-
             <div class="edit-profile-admin-container">
                 <!-- HEADER como el de admin -->
                 <div class="edit-profile-admin-header glass-panel">
@@ -3431,6 +3423,12 @@
         <!-- ============================================================ -->
         <input type="file" id="avatar-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
         <input type="file" id="banner-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
+
+        <!-- BOTÓN GLOBAL PARA GUARDAR PERFIL (Fuera de las vistas) -->
+        <button type="submit" id="btn-save-profile" form="form-edit-profile" class="auth-btn primary btn-save-floating"
+            style="display: none;">
+            <i class="fas fa-save"></i> GUARDAR CAMBIOS
+        </button>
 
         <!-- ============================================================ -->
         <!--   BOTON PARA VOLVER ARRIBA (SCROLL TOP)                      -->
