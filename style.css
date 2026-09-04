@@ -8458,7 +8458,7 @@ cast-carousel::-webkit-scrollbar {
 
 .profile-triple-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1.8fr 1fr; 
     gap: 16px;
     margin: 16px 0;
     align-items: stretch;
@@ -8475,9 +8475,8 @@ cast-carousel::-webkit-scrollbar {
    34. MEDIDOR DE CURADOR
    ============================================================ */
 .curator-meter {
-    grid-column: 1 / -1;
-    margin-top: 7.5px;
-    padding: 7.5px 20px;
+    margin-top: 0;
+    padding: 18px 20px;
 }
 
 .curator-meter-header {
@@ -8540,9 +8539,8 @@ cast-carousel::-webkit-scrollbar {
    37. COLECCIONISMO DE FRANQUICIAS
    ============================================================ */
 .franchise-collector {
-    grid-column: 1 / -1;
-    margin-top: 7.5px;
-    padding: 18px 22px;
+    margin-top: 0;
+    padding: 18px 20px;
 }
 
 .franchise-rings {
@@ -8587,7 +8585,7 @@ cast-carousel::-webkit-scrollbar {
 .profile-timeline-section {
     box-sizing: border-box;
     width: 100%;
-    margin-top: 7.5px;
+    margin-top: 0;
     padding: 20px 24px;
 }
 
