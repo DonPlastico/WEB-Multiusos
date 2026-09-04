@@ -2491,11 +2491,10 @@ span.flatpickr-weekday {
 }
 
 .profile-text {
-    margin-bottom: 55px;
-    display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    margin-bottom: 48px;
+    display: flex;
 }
 
 .profile-username {
@@ -2872,6 +2871,22 @@ span.flatpickr-weekday {
 
 .x-icon {
     background: #000;
+}
+
+.facebook-icon {
+    background: #1877f2;
+}
+
+.github-icon {
+    background: #24292f;
+}
+
+.google-icon {
+    background: #4285f4;
+}
+
+.spotify-icon {
+    background: #1db954;
 }
 
 .linked-account-info {

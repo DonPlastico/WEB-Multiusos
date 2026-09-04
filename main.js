@@ -6996,7 +6996,12 @@ function renderizarPersona(data) {
 //   CARGA DINÁMICA DE PERFILES PÚBLICOS
 // ==========================================================================
 const LINKED_ACCOUNT_CONFIG = {
-    discord: { icon: 'fab fa-discord', label: 'Discord' }
+    discord: { icon: 'fab fa-discord', label: 'Discord', profile: id => `https://discord.com/users/${id}` },
+    facebook: { icon: 'fab fa-facebook-f', label: 'Facebook', profile: id => `https://www.facebook.com/${id}` },
+    github: { icon: 'fab fa-github', label: 'GitHub', profile: username => `https://github.com/${username}` },
+    google: { icon: 'fab fa-google', label: 'Google', profile: () => 'https://myaccount.google.com/' },
+    spotify: { icon: 'fab fa-spotify', label: 'Spotify', profile: id => `https://open.spotify.com/user/${id}` },
+    twitter: { icon: 'fab fa-x-twitter', label: 'X', profile: username => `https://x.com/${username}` }
 };
 
 function renderizarCuentasVinculadas(cuentas = []) {
@@ -7031,72 +7036,92 @@ async function cargarCuentasVinculadas(userId) {
     renderizarCuentasVinculadas(data || []);
 }
 
-async function obtenerIdentidadDiscord() {
+async function obtenerIdentidadesVinculadas() {
     const { data, error } = await supabase.auth.getUserIdentities();
     if (error) throw error;
-    return data?.identities?.find(identity => identity.provider === 'discord') || null;
+    return data?.identities || [];
+}
+
+function obtenerDatosIdentidad(identity) {
+    const identityData = identity.identity_data || {};
+    const provider = identity.provider;
+    const providerUserId = identityData.sub || identityData.id || identity.id;
+    const username = identityData.global_name || identityData.preferred_username || identityData.login || identityData.display_name || identityData.name || identityData.email || 'Cuenta vinculada';
+    const config = LINKED_ACCOUNT_CONFIG[provider];
+    return { identityData, provider, providerUserId, username, profileUrl: config?.profile(provider === 'github' || provider === 'twitter' ? username : providerUserId) };
+}
+
+async function sincronizarCuentasOAuth(session) {
+    if (!session) return;
+    const identities = await obtenerIdentidadesVinculadas();
+    const providers = Object.keys(LINKED_ACCOUNT_CONFIG);
+
+    for (const provider of providers) {
+        const status = document.getElementById(`${provider === 'twitter' ? 'x' : provider}-link-status`);
+        const button = provider === 'discord'
+            ? document.getElementById('btn-link-discord')
+            : document.querySelector(`[data-link-provider="${provider}"]`);
+        const identity = identities.find(item => item.provider === provider);
+
+        if (!status || !button) continue;
+        if (!identity) {
+            status.textContent = 'No vinculada';
+            button.innerHTML = `<i class="${LINKED_ACCOUNT_CONFIG[provider].icon}"></i> VINCULAR`;
+            button.dataset.linked = 'false';
+            continue;
+        }
+
+        const datos = obtenerDatosIdentidad(identity);
+        const { error } = await supabase.from('cuentas_vinculadas').upsert({
+            user_id: session.user.id,
+            proveedor: provider,
+            proveedor_user_id: datos.providerUserId,
+            username: datos.username,
+            profile_url: datos.profileUrl,
+            avatar_url: datos.identityData.avatar_url || datos.identityData.picture || null,
+            metadata: datos.identityData
+        }, { onConflict: 'user_id,proveedor' });
+
+        if (error) throw error;
+        status.textContent = datos.username;
+        button.innerHTML = '<i class="fas fa-unlink"></i> DESVINCULAR';
+        button.dataset.linked = 'true';
+    }
 }
 
 async function sincronizarCuentaDiscord(session) {
-    const status = document.getElementById('discord-link-status');
-    const button = document.getElementById('btn-link-discord');
-    if (!session || !status || !button) return;
-
-    const identity = await obtenerIdentidadDiscord();
-    if (!identity) {
-        status.textContent = 'No vinculada';
-        button.innerHTML = '<i class="fab fa-discord"></i> VINCULAR';
-        button.dataset.linked = 'false';
-        return;
-    }
-
-    const identityData = identity.identity_data || {};
-    const providerUserId = identityData.sub || identityData.id || identity.id;
-    const username = identityData.global_name || identityData.preferred_username || identityData.full_name || 'Cuenta vinculada';
-    const { error } = await supabase.from('cuentas_vinculadas').upsert({
-        user_id: session.user.id,
-        proveedor: 'discord',
-        proveedor_user_id: providerUserId,
-        username,
-        profile_url: `https://discord.com/users/${providerUserId}`,
-        avatar_url: identityData.avatar_url || null,
-        metadata: identityData
-    }, { onConflict: 'user_id,proveedor' });
-
-    if (error) throw error;
-    status.textContent = username;
-    button.innerHTML = '<i class="fas fa-unlink"></i> DESVINCULAR';
-    button.dataset.linked = 'true';
+    await sincronizarCuentasOAuth(session);
 }
 
-async function iniciarVinculacionDiscord() {
+async function iniciarVinculacionOAuth(provider) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-        showToast('error', 'Acceso denegado', 'Debes iniciar sesión para vincular Discord.');
+        showToast('error', 'Acceso denegado', 'Debes iniciar sesión para vincular una cuenta.');
         return;
     }
 
     const { data, error } = await supabase.auth.linkIdentity({
-        provider: 'discord',
+        provider,
         options: {
-            redirectTo: `${window.location.origin}/editar-perfil?oauth=discord`,
-            scopes: 'identify email'
+            redirectTo: `${window.location.origin}/editar-perfil?oauth=${provider}`,
+            scopes: provider === 'spotify' ? 'user-read-email user-read-private' : undefined
         }
     });
 
     if (error) {
         const manualLinkingDisabled = error.message?.toLowerCase().includes('manual linking is disabled');
         const mensaje = manualLinkingDisabled
-            ? 'Activa "Allow manual linking" en Supabase > Authentication > Settings y vuelve a intentarlo.'
+            ? 'Activa "Allow manual linking" en la configuración de Identity Linking de Supabase.'
             : error.message;
-        showToast('error', 'No se pudo vincular Discord', mensaje);
+        showToast('error', `No se pudo vincular ${LINKED_ACCOUNT_CONFIG[provider]?.label || provider}`, mensaje);
         return;
     }
     if (data?.url) window.location.assign(data.url);
 }
 
-async function desvincularDiscord() {
-    const identity = await obtenerIdentidadDiscord();
+async function desvincularOAuth(provider) {
+    const identities = await obtenerIdentidadesVinculadas();
+    const identity = identities.find(item => item.provider === provider);
     if (!identity) return;
 
     const { error } = await supabase.auth.unlinkIdentity(identity);
@@ -7104,18 +7129,43 @@ async function desvincularDiscord() {
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        await supabase.from('cuentas_vinculadas')
-            .delete()
+        await supabase.from('cuentas_vinculadas').delete()
             .eq('user_id', session.user.id)
-            .eq('proveedor', 'discord');
-        await sincronizarCuentaDiscord(session);
+            .eq('proveedor', provider);
+        await sincronizarCuentasOAuth(session);
     }
+}
+
+function configurarVinculacionOAuth() {
+    document.querySelectorAll('[data-link-provider]').forEach(button => {
+        button.onclick = async () => {
+            const provider = button.dataset.linkProvider;
+            try {
+                if (button.dataset.linked === 'true') {
+                    await desvincularOAuth(provider);
+                    showToast('success', `${LINKED_ACCOUNT_CONFIG[provider].label} desvinculado`, 'La cuenta ya no aparece en tu perfil.');
+                } else {
+                    await iniciarVinculacionOAuth(provider);
+                }
+            } catch (error) {
+                console.error(`Error gestionando ${provider}:`, error);
+                showToast('error', `Error con ${LINKED_ACCOUNT_CONFIG[provider].label}`, error.message);
+            }
+        };
+    });
+}
+
+async function iniciarVinculacionDiscord() {
+    return iniciarVinculacionOAuth('discord');
+}
+
+async function desvincularDiscord() {
+    return desvincularOAuth('discord');
 }
 
 function configurarVinculacionDiscord() {
     const button = document.getElementById('btn-link-discord');
     if (!button) return;
-
     button.onclick = async () => {
         try {
             if (button.dataset.linked === 'true') {
@@ -7129,6 +7179,7 @@ function configurarVinculacionDiscord() {
             showToast('error', 'Error con Discord', error.message);
         }
     };
+    configurarVinculacionOAuth();
 }
 
 // Funcion que carga el perfil de un usuario por su nombre de usuario
