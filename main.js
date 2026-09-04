@@ -7051,6 +7051,47 @@ async function cargarPerfilPublico(usernameTarget) {
         const profileUsername = document.querySelector('.profile-username');
         if (profileUsername) profileUsername.textContent = perfilTarget.username;
 
+        // ============================================
+        // MOSTRAR PRONOMBRES Y EDAD CON PRIVACIDAD
+        // ============================================
+        const pronsDisplay = document.getElementById('profile-pronouns-display');
+        if (pronsDisplay) {
+            const pronsMap = {
+                'el': 'Él / Lo',
+                'ella': 'Ella / La',
+                'neutro': 'Neutro (Elle)',
+                'preguntar': 'Preguntar pronombres'
+            };
+            if (perfilTarget.pronombres && perfilTarget.pronombres !== '--') {
+                pronsDisplay.querySelector('.val').textContent = pronsMap[perfilTarget.pronombres] || perfilTarget.pronombres;
+                pronsDisplay.style.display = 'inline-block';
+            } else {
+                pronsDisplay.style.display = 'none';
+            }
+        }
+
+        const ageDisplay = document.getElementById('profile-age-display');
+        if (ageDisplay && perfilTarget.birthdate) {
+            const privacy = perfilTarget.age_privacy || 'full';
+            const bdate = new Date(perfilTarget.birthdate);
+
+            if (privacy === 'private') {
+                ageDisplay.style.display = 'none';
+            } else if (privacy === 'partial') {
+                // Modo parcial: Día y Mes
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                ageDisplay.querySelector('.val').textContent = `${bdate.getDate()} de ${meses[bdate.getMonth()]}`;
+                ageDisplay.style.display = 'inline-block';
+            } else {
+                // Modo completo: Edad calculada usando tu función calcularEdad()
+                const edad = calcularEdad(perfilTarget.birthdate);
+                ageDisplay.querySelector('.val').textContent = `${edad} años`;
+                ageDisplay.style.display = 'inline-block';
+            }
+        } else if (ageDisplay) {
+            ageDisplay.style.display = 'none';
+        }
+
         // Pintar Avatar (con el mismo sistema que en cargarDisenoPerfil)
         const avatarDB = perfilTarget.avatar ? perfilTarget.avatar.replace(/'/g, "") : 'default';
         const bannerDB = perfilTarget.banner ? perfilTarget.banner.replace(/'/g, "") : 'default';
@@ -14786,6 +14827,64 @@ document.getElementById('btn-save-profile')?.addEventListener('click', async (e)
         btn.innerHTML = txtOriginal;
         btn.disabled = false;
     }
+});
+
+// ==========================================================================
+//   LOGICA DE EDITAR PERFIL (CARGAR Y GUARDAR)
+// ==========================================================================
+window.inicializarEditProfile = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    // Pedimos los datos del usuario logueado
+    const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', session.user.email)
+        .single();
+
+    if (perfil) {
+        // Cargar Pronombres y Privacidad de Edad
+        const selectPronombres = document.getElementById('edit-pronouns');
+        const inputBirthdate = document.getElementById('edit-birthdate');
+        const selectAgePrivacy = document.getElementById('edit-age-privacy');
+
+        if (selectPronombres && perfil.pronombres) selectPronombres.value = perfil.pronombres;
+        if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
+        if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
+    }
+};
+
+// Escuchar el evento "submit" del formulario de edición (El botón flotante lo dispara automáticamente)
+document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btnSave = document.getElementById('btn-save-profile');
+    const originalText = btnSave.innerHTML;
+
+    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+    btnSave.disabled = true;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        const updates = {
+            pronombres: document.getElementById('edit-pronouns').value,
+            birthdate: document.getElementById('edit-birthdate').value,
+            age_privacy: document.getElementById('edit-age-privacy').value
+        };
+
+        const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
+
+        if (error) {
+            showToast('error', 'Error', 'No se pudo guardar la configuración.');
+        } else {
+            showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
+            // Actualizamos la información visual de inmediato
+            cargarPerfilPublico();
+        }
+    }
+
+    btnSave.innerHTML = originalText;
+    btnSave.disabled = false;
 });
 
 // ==========================================================================
