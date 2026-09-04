@@ -9229,19 +9229,59 @@ select.cyber-input option {
 }
 
 /* ==========================================================================
+   VISIBILIDAD DE MÓDULOS (DISEÑO TARJETAS)
+   ========================================================================== */
+.modules-visibility-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.module-toggle-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 16px 20px;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.module-toggle-card:hover {
+    background: rgba(236, 72, 153, 0.05);
+    /* Tinte rosa al pasar el ratón */
+    border-color: rgba(236, 72, 153, 0.3);
+}
+
+.module-toggle-card .field-label {
+    margin: 0;
+    text-align: center;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    font-size: 0.75rem;
+}
+
+/* Modificador para que el interruptor sea Rosa Neón como en la foto */
+.cyber-switch.pink-switch input:checked+.cyber-slider {
+    background-color: #ec4899;
+    border-color: #ec4899;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+}
+
+/* ==========================================================================
    BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN GLOBAL)
    ========================================================================== */
 .btn-save-floating {
-    position: fixed;
-    top: 90px;
-    right: 40px;
-    z-index: 9900; /* Super alto para que flote sobre todo */
-    width: auto !important;
-    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
-    border-radius: 12px;
-    padding: 14px 24px;
-    transition: all 0.3s ease;
+    z-index: 9900;
     pointer-events: auto;
+    transition: all .3s;
+    position: fixed;
+    bottom: 60px;
+    right: 65px;
+    width: auto !important;
 }
 
 .btn-save-floating:hover {
