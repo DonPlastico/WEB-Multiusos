@@ -7034,9 +7034,9 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
-        // Buscamos en Supabase el perfil del usuario
+        // Buscamos en Supabase el perfil directamente en la tabla completa
         const { data: perfilTarget, error } = await supabase
-            .from('perfiles_publicos')
+            .from('usuarios')
             .select('*')
             .eq('username', usuarioABuscar)
             .single();
@@ -7134,7 +7134,8 @@ async function cargarPerfilPublico(usernameTarget) {
         // CARGAR CONTADORES DE SEGUIDORES/SIGUIENDO
         // ============================================
         try {
-            const targetId = perfilTarget.auth_id;
+            // Pillamos el ID correcto dependiendo de si viene como auth_id o id
+            const targetId = perfilTarget.auth_id || perfilTarget.id;
 
             // Contamos a cuantos sigue el usuario
             const { count: siguiendoCount } = await supabase
@@ -14653,7 +14654,7 @@ document.getElementById('form-edit-profile')?.addEventListener('submit', async (
         } else {
             console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
             showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
-            
+
             // Refrescamos la vista de perfil
             const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
             if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
@@ -14877,7 +14878,7 @@ document.addEventListener('DOMContentLoaded', () => {
 //  ██║  ██║██╔═══╝   ╚════╝╚════██║  ╚██╔╝  ╚════██║
 //  ██████╔╝██║             ███████║   ██║   ███████║
 //  ╚═════╝ ╚═╝             ╚══════╝   ╚═╝   ╚══════╝
-        
+
 //    © DERECHOS DE AUTOR RESERVADOS - DonPlastico
 //    SISTEMA DE GESTIÓN MULTIMEDIA V1.0
 //         `;
