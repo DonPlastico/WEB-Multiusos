@@ -9426,6 +9426,19 @@ async function cargarDatosPerfil() {
         const descriptionInput = document.getElementById('edit-description');
         if (descriptionInput) descriptionInput.value = perfil?.descripcion || '';
 
+        const pronounsInput = document.getElementById('edit-pronouns');
+        if (pronounsInput) pronounsInput.value = perfil?.pronombres || '--';
+
+        const birthdateInput = document.getElementById('edit-birthdate');
+        if (birthdateInput) {
+            birthdateInput.value = perfil?.birthdate
+                ? String(perfil.birthdate).split('T')[0]
+                : '';
+        }
+
+        const agePrivacyInput = document.getElementById('edit-age-privacy');
+        if (agePrivacyInput) agePrivacyInput.value = perfil?.age_privacy || 'full';
+
         // Asignar sexo correctamente
         const genderSelect = document.getElementById('edit-gender');
         if (genderSelect) {
