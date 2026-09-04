@@ -4655,7 +4655,7 @@ function openCustomizationModal(type) {
         for (let i = 1; i <= 5; i++) {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('banner', '${i}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://fakeimg.pl/600x300/14141c/6366f1?text=BANNER+${i}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Banners/${i}.webp" alt="Banner ${i}" loading="lazy" onerror="this.src='https://via.placeholder.com/600x300/14141c/6366f1?text=BANNER+${i}'">
                 </div>
             `;
         }
@@ -4686,7 +4686,7 @@ function openCustomizationModal(type) {
         avataresLocales.forEach(avatar => {
             htmlAcumulado += `
                 <div class="custom-card-item" onclick="seleccionarDiseño('avatar', '${avatar}')">
-                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://fakeimg.pl/300x300/14141c/2dd4bf?text=${avatar}'">
+                    <img src="https://raw.githubusercontent.com/DonPlastico/WEB-Multiusos/main/public/img/Avatars/${avatar}.webp" alt="Avatar ${avatar}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x300/14141c/2dd4bf?text=${avatar}'">
                 </div>
             `;
         });
@@ -5604,7 +5604,7 @@ function renderGaleriaMediaJuego(juego) {
             thumb.setAttribute('data-label', item.label);
             thumb.innerHTML = `
                 <!-- Le metemos el onerror por si el vídeo del juego ya no existe en YouTube -->
-                <img src="${item.thumbnail}" alt="${item.label}" loading="lazy" onerror="this.src='https://fakeimg.pl/320x180/1a1a24/6b6b7a?text=VIDEO+NO+DISPONIBLE'">
+                <img src="${item.thumbnail}" alt="${item.label}" loading="lazy" onerror="this.src='https://via.placeholder.com/320x180/1a1a24/6b6b7a?text=VIDEO+NO+DISPONIBLE'">
                 <div class="thumb-play-icon-overlay">
                     <i class="fas fa-play"></i>
                 </div>
@@ -6109,7 +6109,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         if (data.reparto && data.reparto.length > 0) {
             let castHtml = '';
             data.reparto.forEach(actor => {
-                const fotoSrc = actor.foto ? actor.foto : 'https://fakeimg.pl/105x158/1a1a24/6b6b7a?text=NO+FOTO';
+                const fotoSrc = actor.foto ? actor.foto : 'https://via.placeholder.com/105x158/1a1a24/6b6b7a?text=NO+FOTO';
                 castHtml += `
                     <div class="cast-card" data-id="${actor.id}" data-name="${actor.nombre}">
                         <img src="${fotoSrc}" alt="${actor.nombre}" class="cast-img" loading="lazy">
@@ -6188,7 +6188,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
                                     let episodesHtml = '<div class="episodes-list">';
                                     seasonData.episodes.forEach(ep => {
-                                        const epImg = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://fakeimg.pl/300x170/1a1a24/6b6b7a?text=NO+FOTO';
+                                        const epImg = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : 'https://via.placeholder.com/300x170/1a1a24/6b6b7a?text=NO+FOTO';
                                         const fecha = ep.air_date ? new Date(ep.air_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
                                         const nota = ep.vote_average ? ep.vote_average.toFixed(1) : '0.0';
 
@@ -6696,7 +6696,7 @@ function renderizarListadoDetallado() {
             return `
                 <div class="listado-row" data-id="${item.id}" data-tipo="${item.tipo}">
                     <span class="listado-row-year">${anio}</span>
-                    <img src="${item.poster || 'https://fakeimg.pl/60x90/1a1a24/6b6b7a?text=--'}" alt="${item.titulo}" class="listado-row-poster" loading="lazy">
+                    <img src="${item.poster || 'https://via.placeholder.com/60x90/1a1a24/6b6b7a?text=--'}" alt="${item.titulo}" class="listado-row-poster" loading="lazy">
                     <div class="listado-row-info">
                         <span class="listado-row-title">${item.titulo}</span>
                         ${item.rol ? `<span class="listado-row-role">${dep === 'Interpretación' ? 'como' : ''} ${item.rol}</span>` : ''}
@@ -6727,7 +6727,7 @@ function renderizarPersona(data) {
 
     const foto = data.profile_path
         ? data.profile_path
-        : 'https://fakeimg.pl/500x750/1a1a24/6b6b7a?text=NO+FOTO';
+        : 'https://via.placeholder.com/500x750/1a1a24/6b6b7a?text=NO+FOTO';
 
     const nombreArtistico = data.name || '';
     const nombreReal = (Array.isArray(data.also_known_as) && data.also_known_as.length > 0)
@@ -11308,7 +11308,7 @@ function crearTarjetaTrendPelicula(pelicula, posicion) {
     card.dataset.tipo = 'movie';
     card.style.cursor = 'pointer';
 
-    const posterUrl = pelicula.poster || 'https://fakeimg.pl/180x270/14141c/6366f1?text=SIN+POSTER';
+    const posterUrl = pelicula.poster || 'https://via.placeholder.com/180x270/14141c/6366f1?text=SIN+POSTER';
     const titulo = pelicula.titulo || t('common.untitled');
     const fecha = pelicula.fecha ? new Date(pelicula.fecha).toLocaleDateString('es-ES', {
         year: 'numeric',
@@ -11537,7 +11537,7 @@ function crearTarjetaTrendSerie(serie, posicion) {
     card.dataset.tipo = 'tv';
     card.style.cursor = 'pointer';
 
-    const posterUrl = serie.poster || 'https://fakeimg.pl/180x270/14141c/6366f1?text=SIN+POSTER';
+    const posterUrl = serie.poster || 'https://via.placeholder.com/180x270/14141c/6366f1?text=SIN+POSTER';
     const titulo = serie.titulo || t('common.untitled');
     const fecha = serie.fecha ? new Date(serie.fecha).toLocaleDateString('es-ES', {
         year: 'numeric',
@@ -11911,7 +11911,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
         titulo = item.name || t('common.untitled');
         posterUrl = item.cover && item.cover.url
             ? item.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
-            : 'https://fakeimg.pl/180x270/14141c/6366f1?text=SIN+POSTER';
+            : 'https://via.placeholder.com/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.first_release_date
             ? new Date(item.first_release_date * 1000).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
             : t('trends_extra.coming_soon');
@@ -11920,7 +11920,7 @@ function crearTarjetaTrendTrailer(item, tipo, posicion) {
     } else {
         // Película o Serie (TMDB)
         titulo = item.titulo || t('common.untitled');
-        posterUrl = item.poster || 'https://fakeimg.pl/180x270/14141c/6366f1?text=SIN+POSTER';
+        posterUrl = item.poster || 'https://via.placeholder.com/180x270/14141c/6366f1?text=SIN+POSTER';
         fecha = item.fecha
             ? new Date(item.fecha).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })
             : t('trends_extra.coming_soon');
@@ -14570,7 +14570,96 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
     }
 });
 
+// ==========================================================================
+//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (MÓDULOS)
+// ==========================================================================
 
+window.inicializarEditProfile = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    // Pedimos los datos del usuario logueado a la BD
+    const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', session.user.email)
+        .single();
+
+    if (perfil) {
+        // 1. Cargar Pronombres, Fecha y Privacidad
+        const selectPronombres = document.getElementById('edit-pronouns');
+        const inputBirthdate = document.getElementById('edit-birthdate');
+        const selectAgePrivacy = document.getElementById('edit-age-privacy');
+
+        if (selectPronombres && perfil.pronombres) selectPronombres.value = perfil.pronombres;
+        if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
+        if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
+
+        // 2. Cargar estado de los Módulos (APAGADOS por defecto si en BD es false o no existe)
+        const configModulos = perfil.config_modulos || {};
+        const modulos = [
+            'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
+            'module-guilty-pleasures', 'module-dropped', 'module-challenges',
+            'module-top-directors', 'module-guestbook'
+        ];
+
+        modulos.forEach(mod => {
+            const toggle = document.getElementById(`toggle-${mod}`);
+            if (toggle) {
+                // Solo marcamos el interruptor si en la base de datos pone textualmente "true"
+                toggle.checked = configModulos[mod] === true;
+            }
+        });
+    }
+};
+
+// ÚNICO EVENTO DE GUARDADO: Escuchar el evento "submit" del formulario
+document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evitamos que la página se recargue
+    const btnSave = document.getElementById('btn-save-profile');
+    const originalText = btnSave.innerHTML;
+
+    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+    btnSave.disabled = true;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        // Construimos el JSON leyendo cómo ha dejado el usuario los interruptores
+        const jsonModulos = {
+            'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
+            'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
+            'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked || false,
+            'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked || false,
+            'module-dropped': document.getElementById('toggle-module-dropped')?.checked || false,
+            'module-challenges': document.getElementById('toggle-module-challenges')?.checked || false,
+            'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked || false,
+            'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked || false
+        };
+
+        const updates = {
+            pronombres: document.getElementById('edit-pronouns').value,
+            birthdate: document.getElementById('edit-birthdate').value,
+            age_privacy: document.getElementById('edit-age-privacy').value,
+            config_modulos: jsonModulos // Guardamos el JSON de visibilidad
+        };
+
+        // Enviamos el UPDATE a Supabase
+        const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
+
+        if (error) {
+            showToast('error', 'Error', 'No se pudo guardar la configuración.');
+            console.error(error);
+        } else {
+            showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
+            // Refrescamos la vista de perfil para aplicar los cambios
+            const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
+            if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
+        }
+    }
+
+    btnSave.innerHTML = originalText;
+    btnSave.disabled = false;
+});
 
 
 
@@ -14745,140 +14834,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filterSidebar) filterSidebar.style.top = `calc(100px + ${alertHeight}px)`;
         }
     });
-});
-
-// ==========================================================================
-//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (MÓDULOS)
-// ==========================================================================
-
-window.inicializarEditProfile = async function () {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    // Pedimos los datos del usuario logueado a la BD
-    const { data: perfil } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', session.user.email)
-        .single();
-
-    if (perfil) {
-        // 1. Cargar Pronombres, Fecha y Privacidad
-        const selectPronombres = document.getElementById('edit-pronouns');
-        const inputBirthdate = document.getElementById('edit-birthdate');
-        const selectAgePrivacy = document.getElementById('edit-age-privacy');
-
-        if (selectPronombres && perfil.pronombres) selectPronombres.value = perfil.pronombres;
-        if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
-        if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
-
-        // 2. Cargar estado de los Módulos (APAGADOS por defecto si en BD es false o no existe)
-        const configModulos = perfil.config_modulos || {};
-        const modulos = [
-            'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
-            'module-guilty-pleasures', 'module-dropped', 'module-challenges',
-            'module-top-directors', 'module-guestbook'
-        ];
-
-        modulos.forEach(mod => {
-            const toggle = document.getElementById(`toggle-${mod}`);
-            if (toggle) {
-                // Solo marcamos el interruptor si en la base de datos pone textualmente "true"
-                toggle.checked = configModulos[mod] === true;
-            }
-        });
-    }
-};
-
-// Escuchar el evento "submit" del formulario de edición (El botón flotante lo dispara automáticamente)
-document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Evitamos que la página se recargue
-    const btnSave = document.getElementById('btn-save-profile');
-    const originalText = btnSave.innerHTML;
-
-    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
-    btnSave.disabled = true;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        // Construimos el JSON leyendo cómo ha dejado el usuario los interruptores
-        const jsonModulos = {
-            'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
-            'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
-            'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked || false,
-            'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked || false,
-            'module-dropped': document.getElementById('toggle-module-dropped')?.checked || false,
-            'module-challenges': document.getElementById('toggle-module-challenges')?.checked || false,
-            'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked || false,
-            'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked || false
-        };
-
-        const updates = {
-            pronombres: document.getElementById('edit-pronouns').value,
-            birthdate: document.getElementById('edit-birthdate').value,
-            age_privacy: document.getElementById('edit-age-privacy').value,
-            config_modulos: jsonModulos // Guardamos el JSON de visibilidad
-        };
-
-        // Enviamos el UPDATE a Supabase
-        const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
-
-        if (error) {
-            showToast('error', 'Error', 'No se pudo guardar la configuración.');
-            console.error(error);
-        } else {
-            showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
-            // Refrescamos la vista de perfil en segundo plano para aplicar los cambios de inmediato
-            const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
-            if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
-        }
-    }
-
-    btnSave.innerHTML = originalText;
-    btnSave.disabled = false;
-});
-
-// Guardar los cambios del perfil al pulsar el botón flotante
-document.getElementById('btn-save-profile')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    // 1. Recolectar estado de los módulos de la UI
-    const configModulos = {
-        'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked ?? true,
-        'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked ?? true,
-        'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked ?? true,
-        'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked ?? true,
-        'module-dropped': document.getElementById('toggle-module-dropped')?.checked ?? true,
-        'module-challenges': document.getElementById('toggle-module-challenges')?.checked ?? true,
-        'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked ?? true,
-        'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked ?? true
-    };
-
-    // Estado de carga en el botón
-    const btn = document.getElementById('btn-save-profile');
-    const txtOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
-    btn.disabled = true;
-
-    try {
-        // 2. Subir configuración a Supabase
-        const { error } = await supabase
-            .from('usuarios')
-            .update({ config_modulos: configModulos })
-            .eq('email', session.user.email);
-
-        if (error) throw error;
-
-        showToast('success', 'Perfil Guardado', 'Tu configuración ha sido actualizada en el Nexus.');
-    } catch (err) {
-        console.error("Error guardando perfil:", err);
-        showToast('error', 'Error', 'Fallo al guardar la configuración.');
-    } finally {
-        btn.innerHTML = txtOriginal;
-        btn.disabled = false;
-    }
 });
 
 // ==========================================================================

@@ -268,7 +268,7 @@ export default async function handler(req, res) {
 
             const formatProvider = (p) => ({
                 name: p.provider_name,
-                logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : 'https://fakeimg.pl/92x92/14141c/6366f1?text=PLAY'
+                logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : 'https://via.placeholder.com/92x92/14141c/6366f1?text=PLAY'
             });
 
             const suscripcion = providersES?.flatrate ? providersES.flatrate.map(formatProvider) : [];
