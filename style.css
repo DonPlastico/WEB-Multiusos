@@ -2815,6 +2815,7 @@ span.flatpickr-weekday {
     grid-template-columns: 2.2fr 1fr;
     gap: 15px;
     align-items: start;
+    margin-bottom: 12px;
 }
 
 .edit-profile-admin-form {
@@ -2871,7 +2872,7 @@ span.flatpickr-weekday {
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
     border-radius: 16px;
-    padding: 15px 15px 26px 15px;
+    padding: 15px 15px 25.5px 15px;
 }
 
 .edit-profile-admin-side-header {
@@ -9913,6 +9914,11 @@ select.cyber-input option {
     .lista-detalle-layout {
         grid-template-columns: 1fr;
     }
+
+    /* Añadir dentro de @media (max-width: 768px) */
+    .modules-visibility-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* ===== MÓVILES (max 768px) ===== */
@@ -10503,12 +10509,16 @@ select.cyber-input option {
     }
 
     .btn-save-floating {
-        top: 70px;
-        right: 15px;
+        bottom: 45px;
+        right: 60px;
         padding: 10px 16px;
         font-size: 0.8rem;
         z-index: 90;
-        /* Ajuste para evitar conflictos con menús móviles */
+    }
+
+    /* Añadir dentro de @media (max-width: 600px) */
+    .modules-visibility-grid {
+        grid-template-columns: 1fr;
     }
 }
 
