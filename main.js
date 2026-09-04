@@ -14681,13 +14681,23 @@ if (btnSaveProfile) {
                 query = query.ilike('email', session.user.email);
             }
 
-            const { error } = await query;
+            // Pedimos la fila actualizada para detectar también actualizaciones bloqueadas por RLS.
+            const { data: perfilActualizado, error } = await query
+                .select('id, birthdate')
+                .single();
 
             if (error) {
                 console.error("❌ ERROR DE SUPABASE:", error);
-                if (typeof showToast === 'function') showToast('error', 'Error', 'No se pudo guardar la configuración.');
+                if (typeof showToast === 'function') {
+                    showToast('error', 'Error', error.message || 'No se pudo guardar la configuración.');
+                }
+            } else if (!perfilActualizado) {
+                console.error("❌ SUPABASE NO ACTUALIZÓ NINGUNA FILA");
+                if (typeof showToast === 'function') {
+                    showToast('error', 'Error', 'No se encontró tu perfil para guardar los cambios.');
+                }
             } else {
-                console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
+                console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS:", perfilActualizado);
                 if (typeof showToast === 'function') showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
 
                 // Refrescamos tu perfil para que la nueva edad se calcule y muestre automáticamente
