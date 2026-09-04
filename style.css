@@ -2813,7 +2813,7 @@ span.flatpickr-weekday {
 .edit-profile-admin-grid {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
-    gap: 7.5px;
+    gap: 15px;
     align-items: start;
 }
 
