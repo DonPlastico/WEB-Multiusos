@@ -9229,33 +9229,34 @@ select.cyber-input option {
 }
 
 /* ==========================================================================
-   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN STICKY)
+   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN FIXED)
    ========================================================================== */
 .sticky-save-wrapper {
-    position: sticky;
-    top: 85px; /* Espacio exacto debajo de tu Navbar */
+    position: fixed;
+    /* Anclado al monitor */
+    top: 95px;
+    /* Separación desde arriba */
+    right: 40px;
+    /* Separación desde la derecha */
     z-index: 990;
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-    height: 0; /* Para no empujar el panel hacia abajo */
-    pointer-events: none; /* Evita que el contenedor bloquee clics */
+    pointer-events: none;
+    /* Para no bloquear clics fantasma */
 }
 
 .btn-save-floating {
-    pointer-events: auto; /* Reactiva los clics SOLO en el botón */
+    pointer-events: auto;
+    /* Reactiva el clic en el botón */
     width: auto !important;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+    /* Sombra a juego con la UI */
     border-radius: 12px;
-    margin-top: 15px; /* Margen respecto al tope del sticky */
-    margin-right: 15px; /* Margen respecto a la derecha de la pantalla */
+    padding: 14px 24px;
     transition: all 0.3s ease;
 }
 
-/* Efecto hover acentuado */
 .btn-save-floating:hover {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+    box-shadow: 0 10px 30px rgba(236, 72, 153, 0.5);
 }
 
 
@@ -9561,7 +9562,8 @@ select.cyber-input option {
 
     to {
         opacity: 1;
-        transform: scale(1);
+        transform: none;
+        /* ESTA ES LA CLAVE MÁGICA */
     }
 }
 
@@ -10469,6 +10471,11 @@ select.cyber-input option {
         grid-template-columns: 1fr;
     }
 
+    .sticky-save-wrapper {
+        top: 80px;
+        right: 20px;
+    }
+
     .btn-save-floating {
         top: 70px;
         right: 15px;
@@ -10476,11 +10483,6 @@ select.cyber-input option {
         font-size: 0.8rem;
         z-index: 90;
         /* Ajuste para evitar conflictos con menús móviles */
-    }
-
-
-    .sticky-save-wrapper {
-        top: 80px;
     }
 }
 
