@@ -7085,7 +7085,11 @@ async function iniciarVinculacionDiscord() {
     });
 
     if (error) {
-        showToast('error', 'No se pudo vincular Discord', error.message);
+        const manualLinkingDisabled = error.message?.toLowerCase().includes('manual linking is disabled');
+        const mensaje = manualLinkingDisabled
+            ? 'Activa "Allow manual linking" en Supabase > Authentication > Settings y vuelve a intentarlo.'
+            : error.message;
+        showToast('error', 'No se pudo vincular Discord', mensaje);
         return;
     }
     if (data?.url) window.location.assign(data.url);
