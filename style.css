@@ -9229,40 +9229,33 @@ select.cyber-input option {
 }
 
 /* ==========================================================================
-   BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL
-   ========================================================================== */
-.btn-save-floating {
-    position: fixed;
-    top: 90px;
-    right: 40px;
-    z-index: 990;
-    width: auto !important;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-    border-radius: 12px;
-    pointer-events: auto;
-}
-
-/* Efecto hover acentuado para que resalte que es un botón global */
-.btn-save-floating:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
-}
-
-/* ==========================================================================
    BOTÓN FLOTANTE: GUARDAR CAMBIOS PERFIL (VERSIÓN STICKY)
    ========================================================================== */
 .sticky-save-wrapper {
     position: sticky;
-    top: 100px;
-    /* Distancia perfecta para quedar debajo de tu Navbar al bajar */
+    top: 85px; /* Espacio exacto debajo de tu Navbar */
     z-index: 990;
     display: flex;
     justify-content: flex-end;
     width: 100%;
-    height: 0;
-    /* Altura 0 para no empujar el diseño del header hacia abajo */
-    pointer-events: none;
-    /* Evita que la caja invisible bloquee clics en el header */
+    height: 0; /* Para no empujar el panel hacia abajo */
+    pointer-events: none; /* Evita que el contenedor bloquee clics */
+}
+
+.btn-save-floating {
+    pointer-events: auto; /* Reactiva los clics SOLO en el botón */
+    width: auto !important;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    margin-top: 15px; /* Margen respecto al tope del sticky */
+    margin-right: 15px; /* Margen respecto a la derecha de la pantalla */
+    transition: all 0.3s ease;
+}
+
+/* Efecto hover acentuado */
+.btn-save-floating:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
 }
 
 
