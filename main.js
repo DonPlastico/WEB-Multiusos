@@ -7047,6 +7047,8 @@ async function cargarPerfilPublico(usernameTarget) {
             return;
         }
 
+        await cargarCuentasVinculadas(perfilTarget.auth_id);
+
         // Pintamos el Nombre de usuario
         const profileUsername = document.querySelector('.profile-username');
         if (profileUsername) profileUsername.textContent = perfilTarget.username;
@@ -9413,6 +9415,9 @@ async function cargarDatosPerfil() {
         // Rellenar campos del formulario con los datos del perfil
         const emailDisplay = document.getElementById('edit-email-display');
         if (emailDisplay) emailDisplay.textContent = session.user.email;
+
+        configurarVinculacionDiscord();
+        await sincronizarCuentaDiscord(session);
 
         const usernameInput = document.getElementById('edit-username');
         if (usernameInput) usernameInput.value = perfil?.username || '';
