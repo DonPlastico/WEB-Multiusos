@@ -7191,14 +7191,19 @@ async function sincronizarOAuthTrasCallback() {
     const oauthProvider = new URLSearchParams(window.location.search).get('oauth');
     if (!oauthProvider || !LINKED_ACCOUNT_CONFIG[oauthProvider]) return;
 
-    for (let intento = 0; intento < 3; intento++) {
+    for (let intento = 0; intento < 6; intento++) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            await sincronizarCuentasOAuth(session);
-            return;
+            const identities = await obtenerIdentidadesVinculadas();
+            if (identities.some(identity => identity.provider === oauthProvider)) {
+                await sincronizarCuentasOAuth(session);
+                return;
+            }
         }
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 750));
     }
+
+    console.warn(`La identidad OAuth de ${oauthProvider} todavía no aparece en la sesión.`);
 }
 
 function manejarErrorOAuthCallback() {
