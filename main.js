@@ -7037,6 +7037,12 @@ async function cargarCuentasVinculadas(userId) {
 }
 
 async function obtenerIdentidadesVinculadas() {
+    // Tras volver de OAuth, fuerza la actualización para no leer una sesión antigua.
+    const { error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+        console.warn('[OAuth] No se pudo refrescar la sesión:', refreshError.message);
+    }
+
     const { data, error } = await supabase.auth.getUserIdentities();
     if (error) {
         console.error('[OAuth] Error obteniendo identidades:', error);
