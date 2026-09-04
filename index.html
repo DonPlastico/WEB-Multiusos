@@ -1538,7 +1538,7 @@
                 <!-- ============================================================ -->
                 <!--   ZONA INTERMEDIA: FRASE CÉLEBRE + RESEÑA ANCLADA            -->
                 <!-- ============================================================ -->
-                <div class="profile-mid-zone glass-panel">
+                <div class="profile-mid-zone glass-panel" id="module-mid-zone">
                     <!-- FRASE CÉLEBRE DEL PERFIL -->
                     <div class="quote-banner">
                         <span class="quote-accent-bar"></span>
@@ -1661,7 +1661,7 @@
                     <!-- ============================================================ -->
                     <!--   CONTENEDOR 3 COLUMNAS (Franquicias | Hitos | Medidor)      -->
                     <!-- ============================================================ -->
-                    <div class="profile-triple-row">
+                    <div class="profile-triple-row" id="module-triple-row">>
                         <!-- COLECCIONISMO DE FRANQUICIAS (IZQUIERDA) -->
                         <div class="franchise-collector">
                             <div class="curator-meter-header">
@@ -1752,7 +1752,7 @@
                     </div>
 
                     <!-- ESTANTES VIRTUALES -->
-                    <div class="virtual-shelves-section">
+                    <div class="virtual-shelves-section" id="module-virtual-shelves">
                         <h2 class="section-title">Top Absoluto</h2>
                         <div class="virtual-shelf">
                             <img src="https://placehold.co/120x170/1a1a24/6b6b7a?text=1" class="shelf-item" alt="top1">
@@ -1786,7 +1786,7 @@
                             </div>
 
                             <!-- GUILTY PLEASURES -->
-                            <div class="guilty-pleasures-section glass-panel">
+                            <div class="guilty-pleasures-section glass-panel" id="module-guilty-pleasures">
                                 <div class="watchlist-tabs">
                                     <button class="watchlist-tab active" style="cursor:default;"><i
                                             class="fas fa-mask"></i>
@@ -1809,7 +1809,7 @@
                             </div>
 
                             <!-- EL CEMENTERIO DE ABANDONOS -->
-                            <div class="dropped-list-section glass-panel">
+                            <div class="dropped-list-section glass-panel" id="module-dropped">
                                 <div class="watchlist-tabs">
                                     <button class="watchlist-tab active" style="cursor:default;"><i
                                             class="fas fa-skull-crossbones"></i> CEMENTERIO DE ABANDONOS</button>
@@ -1867,7 +1867,7 @@
                                 </div>
 
                                 <!-- DESAFÍOS ACTIVOS -->
-                                <div class="challenges-section">
+                                <div class="challenges-section" id="module-challenges">
                                     <h3 class="section-title">Desafíos Activos</h3>
                                     <div class="challenge-card">
                                         <div class="challenge-card-header">
@@ -1881,22 +1881,24 @@
                                 </div>
 
                                 <!-- TOP 3 DIRECTORES / ESTUDIOS -->
-                                <h3 class="section-title" style="margin-top: 20px;">Tu director favorito</h3>
-                                <div class="top-directors-section">
-                                    <div class="director-card">
-                                        <img src="https://placehold.co/60x60/1a1a24/6b6b7a?text=CN"
-                                            class="director-photo" alt="director">
-                                        <div class="director-info">
-                                            <span class="director-name">Christopher Nolan</span>
-                                            <span class="director-count">11 películas vistas</span>
+                                <div id="module-top-directors">
+                                    <h3 class="section-title" style="margin-top: 20px;">Tu director favorito</h3>
+                                    <div class="top-directors-section">
+                                        <div class="director-card">
+                                            <img src="https://placehold.co/60x60/1a1a24/6b6b7a?text=CN"
+                                                class="director-photo" alt="director">
+                                            <div class="director-info">
+                                                <span class="director-name">Christopher Nolan</span>
+                                                <span class="director-count">11 películas vistas</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="director-card">
-                                        <img src="https://placehold.co/60x60/1a1a24/6b6b7a?text=FS"
-                                            class="director-photo" alt="studio">
-                                        <div class="director-info">
-                                            <span class="director-name">FromSoftware</span>
-                                            <span class="director-count">5 juegos completados</span>
+                                        <div class="director-card">
+                                            <img src="https://placehold.co/60x60/1a1a24/6b6b7a?text=FS"
+                                                class="director-photo" alt="studio">
+                                            <div class="director-info">
+                                                <span class="director-name">FromSoftware</span>
+                                                <span class="director-count">5 juegos completados</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1906,7 +1908,7 @@
                 </div>
 
                 <!-- LIBRO DE VISITAS ESTILO RETRO -->
-                <div class="guestbook-footer glass-panel">
+                <div class="guestbook-footer glass-panel" id="module-guestbook">
                     <h2 class="section-title">Libro de Visitas</h2>
                     <div class="guestbook-entries">
                         <div class="guestbook-entry">
@@ -2194,6 +2196,57 @@
                                         célebre)</label>
                                     <input type="text" class="cyber-input"
                                         placeholder="Ej: It's dangerous to go alone! Take this.">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VISIBILIDAD DE MÓDULOS -->
+                        <div class="edit-profile-admin-form glass-panel">
+                            <div class="edit-profile-admin-section-header">
+                                <h2><i class="fas fa-eye"></i> VISIBILIDAD DE MÓDULOS</h2>
+                            </div>
+                            <div class="auth-form">
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Frase Célebre y Reseña</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-mid-zone"
+                                            checked><span class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Coleccionismo, Hitos y Medidor</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-triple-row"
+                                            checked><span class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Estantes Virtuales</label>
+                                    <label class="cyber-switch"><input type="checkbox"
+                                            id="toggle-module-virtual-shelves" checked><span
+                                            class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Guilty Pleasures</label>
+                                    <label class="cyber-switch"><input type="checkbox"
+                                            id="toggle-module-guilty-pleasures" checked><span
+                                            class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Cementerio de Abandonos</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-dropped"
+                                            checked><span class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Desafíos Activos</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-challenges"
+                                            checked><span class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Top Directores / Estudios</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-top-directors"
+                                            checked><span class="cyber-slider"></span></label>
+                                </div>
+                                <div class="field-group layout-toggle-group">
+                                    <label class="field-label">Libro de Visitas</label>
+                                    <label class="cyber-switch"><input type="checkbox" id="toggle-module-guestbook"
+                                            checked><span class="cyber-slider"></span></label>
                                 </div>
                             </div>
                         </div>

@@ -7240,6 +7240,25 @@ async function cargarPerfilPublico(usernameTarget) {
             console.error("Error al extraer telemetría de amistades o medios:", err);
         }
 
+        // ============================================
+        // APLICAR VISIBILIDAD DE MÓDULOS DEL USUARIO
+        // ============================================
+        const configModulos = perfilTarget.config_modulos || {};
+        const modulosPerfil = [
+            'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
+            'module-guilty-pleasures', 'module-dropped', 'module-challenges',
+            'module-top-directors', 'module-guestbook'
+        ];
+
+        modulosPerfil.forEach(modId => {
+            const el = document.getElementById(modId);
+            if (el) {
+                // Mostrar por defecto (true) a menos que explícitamente sea false en su BD
+                const isVisible = configModulos[modId] !== false;
+                el.style.display = isVisible ? '' : 'none';
+            }
+        });
+
         // CONTROL DE SEGURIDAD (Ocultar edición si no es mi perfil)
         // Si estamos viendo nuestro propio perfil, mostramos los botones de edicion
         // Si estamos viendo el perfil de otro, los ocultamos
@@ -14694,6 +14713,88 @@ document.addEventListener('DOMContentLoaded', () => {
             if (filterSidebar) filterSidebar.style.top = `calc(100px + ${alertHeight}px)`;
         }
     });
+});
+
+// ==========================================================================
+//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (MÓDULOS)
+// ==========================================================================
+
+// Función para inicializar la vista de Editar Perfil al entrar en ella
+window.inicializarEditProfile = async function () {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    try {
+        const { data: userData, error } = await supabase
+            .from('usuarios')
+            .select('config_modulos') // Agrega aquí más campos si los necesitas luego (username, bio...)
+            .eq('email', session.user.email)
+            .single();
+
+        if (error) throw error;
+
+        // 1. Setear los interruptores (toggles) de visibilidad
+        const config = userData.config_modulos || {};
+        const modulosPerfil = [
+            'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
+            'module-guilty-pleasures', 'module-dropped', 'module-challenges',
+            'module-top-directors', 'module-guestbook'
+        ];
+
+        modulosPerfil.forEach(modId => {
+            const toggle = document.getElementById('toggle-' + modId);
+            if (toggle) {
+                // Se marcan (true) si no existen en BD o si son explícitamente true
+                toggle.checked = config[modId] !== false;
+            }
+        });
+
+    } catch (err) {
+        console.error("Error cargando datos de edición de perfil:", err);
+    }
+};
+
+// Guardar los cambios del perfil al pulsar el botón flotante
+document.getElementById('btn-save-profile')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    // 1. Recolectar estado de los módulos de la UI
+    const configModulos = {
+        'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked ?? true,
+        'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked ?? true,
+        'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked ?? true,
+        'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked ?? true,
+        'module-dropped': document.getElementById('toggle-module-dropped')?.checked ?? true,
+        'module-challenges': document.getElementById('toggle-module-challenges')?.checked ?? true,
+        'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked ?? true,
+        'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked ?? true
+    };
+
+    // Estado de carga en el botón
+    const btn = document.getElementById('btn-save-profile');
+    const txtOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+    btn.disabled = true;
+
+    try {
+        // 2. Subir configuración a Supabase
+        const { error } = await supabase
+            .from('usuarios')
+            .update({ config_modulos: configModulos })
+            .eq('email', session.user.email);
+
+        if (error) throw error;
+
+        showToast('success', 'Perfil Guardado', 'Tu configuración ha sido actualizada en el Nexus.');
+    } catch (err) {
+        console.error("Error guardando perfil:", err);
+        showToast('error', 'Error', 'Fallo al guardar la configuración.');
+    } finally {
+        btn.innerHTML = txtOriginal;
+        btn.disabled = false;
+    }
 });
 
 // ==========================================================================
