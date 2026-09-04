@@ -8458,96 +8458,113 @@ cast-carousel::-webkit-scrollbar {
 
 .profile-triple-row {
     display: grid;
-    grid-template-columns: 1fr 1.8fr 1fr; 
-    gap: 16px;
-    margin: 16px 0;
+    grid-template-columns: 1fr 1.6fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
     align-items: stretch;
 }
 
-.curator-meter,
+/* Fondos oscuros ultra-premium en lugar de cristal */
 .franchise-collector,
-.profile-timeline-section {
+.profile-timeline-section,
+.curator-meter {
     margin: 0;
-    padding: 18px 20px;
+    padding: 24px;
+    background: #0f0f14;
+    border: 1px solid #232330;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
 }
 
 /* ============================================================
    34. MEDIDOR DE CURADOR
    ============================================================ */
-.curator-meter {
-    margin-top: 0;
-    padding: 18px 20px;
-}
-
 .curator-meter-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 24px;
 }
 
-.curator-meter-header span:first-child {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--text-main);
-    text-transform: uppercase;
+.curator-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--neon-white);
+    font-family: var(--font-cyber);
+    letter-spacing: 0.5px;
 }
 
 .curator-verdict {
-    background: var(--primary);
+    background: #ec4899;
     color: #fff;
     font-size: 0.75rem;
-    font-weight: 700;
-    padding: 4px 12px;
+    font-weight: 800;
+    padding: 6px 14px;
     border-radius: 20px;
+    box-shadow: 0 0 12px rgba(236, 72, 153, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.curator-gauge {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
 }
 
 .curator-gauge-track {
     position: relative;
-    height: 10px;
-    background: linear-gradient(90deg, #ef4444, #facc15, #4ade80);
-    border-radius: 10px;
+    height: 14px;
+    background: #4ade80;
+    /* Base verde brillante */
+    border-radius: 14px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 12px rgba(74, 222, 128, 0.15);
 }
 
 .curator-gauge-fill {
     position: absolute;
-    top: -4px;
-    height: 18px;
-    width: 3px;
+    top: 0;
+    left: 0;
+    height: 100%;
     background: #fff;
-    border-radius: 2px;
-    box-shadow: 0 0 6px #ffffffa0;
+    border-radius: 14px;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+    z-index: 1;
 }
 
 .curator-gauge-marker {
     position: absolute;
     top: -6px;
-    width: 2px;
-    height: 22px;
-    background: var(--text-muted);
+    width: 3px;
+    height: 26px;
+    background: #8888a0;
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+    z-index: 2;
 }
 
 .curator-gauge-labels {
     display: flex;
     justify-content: space-between;
-    margin-top: 8px;
+    margin-top: 14px;
     font-size: 0.75rem;
     color: var(--text-muted);
+    font-weight: 600;
 }
 
 /* ============================================================
    37. COLECCIONISMO DE FRANQUICIAS
    ============================================================ */
-.franchise-collector {
-    margin-top: 0;
-    padding: 18px 20px;
-}
-
 .franchise-rings {
     display: flex;
-    gap: 25px;
+    gap: 20px 10px;
     flex-wrap: wrap;
     justify-content: center;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .franchise-ring-item {
@@ -8555,94 +8572,155 @@ cast-carousel::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 110px;
+    width: 45%;
+    min-width: 90px;
+}
+
+.franchise-ring-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.3));
 }
 
 .franchise-ring {
-    width: 80px;
-    height: 80px;
+    width: 100%;
+    height: 100%;
     transform: rotate(-90deg);
+}
+
+.match-ring-bg {
+    fill: none;
+    stroke: #1a1a24;
+    stroke-width: 8;
+    /* Anillo más grueso */
+}
+
+.match-ring-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.match-ring-high {
+    stroke: #4ade80;
+    filter: drop-shadow(0 0 6px #4ade8090);
+}
+
+.match-ring-mid {
+    stroke: #facc15;
+    filter: drop-shadow(0 0 6px #facc1590);
+}
+
+.match-ring-low {
+    stroke: #ef4444;
+    filter: drop-shadow(0 0 6px #ef444490);
 }
 
 .franchise-ring-pct {
     position: absolute;
-    top: 28px;
-    font-size: 0.9rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Centrado matemático perfecto */
+    font-size: 0.95rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--neon-white);
+    margin: 0;
 }
 
 .franchise-ring-name {
-    margin-top: 8px;
+    margin-top: 12px;
     font-size: 0.75rem;
     color: var(--text-muted);
     text-align: center;
+    line-height: 1.3;
+    font-weight: 600;
 }
 
 /* ============================================================
    27. LÍNEA DE TIEMPO DE HITOS
    ============================================================ */
-.profile-timeline-section {
-    box-sizing: border-box;
-    width: 100%;
-    margin-top: 0;
-    padding: 20px 24px;
+.profile-timeline-section h2.section-title {
+    margin-bottom: 20px;
+    font-size: 1.15rem;
+    color: var(--neon-white);
+    display: flex;
+    align-items: center;
+}
+
+/* Decorador rosa para el título */
+.profile-timeline-section h2.section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: #ec4899;
+    border-radius: 4px;
+    margin-right: 10px;
+    display: inline-block;
 }
 
 .profile-timeline {
     position: relative;
-    margin-top: 16px;
-    padding-left: 30px;
+    margin-top: 5px;
+    padding-left: 35px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    flex-grow: 1;
+    justify-content: center;
 }
 
+/* Línea de tiempo principal (Degradado rosa a morado) */
 .profile-timeline::before {
     content: '';
     position: absolute;
-    left: 13px;
-    top: 6px;
-    bottom: 6px;
+    left: 14px;
+    top: 5px;
+    bottom: 5px;
     width: 2px;
-    background: var(--border-color);
+    background: linear-gradient(180deg, #ec4899, #8b5cf6, transparent);
+    border-radius: 2px;
 }
 
 .timeline-item {
     position: relative;
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 22px;
-}
-
-.timeline-item:last-child {
-    margin-bottom: 0;
+    align-items: center;
+    gap: 15px;
 }
 
 .timeline-dot {
     position: absolute;
-    left: -30px;
-    width: 28px;
-    height: 28px;
+    left: -35px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: var(--bg-card);
-    border: 2px solid var(--primary);
-    color: var(--primary);
+    background: #ec4899;
+    border: 4px solid #0f0f14;
+    /* Truco para "cortar" la línea detrás */
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
+    z-index: 2;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
 }
 
 .timeline-content {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .timeline-title {
-    font-size: 0.9rem;
-    color: var(--text-main);
-    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--neon-white);
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .timeline-date {
