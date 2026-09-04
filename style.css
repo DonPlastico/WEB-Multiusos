@@ -2866,6 +2866,14 @@ span.flatpickr-weekday {
     background: #5865f2;
 }
 
+.steam-icon {
+    background: #1b2838;
+}
+
+.x-icon {
+    background: #000;
+}
+
 .linked-account-info {
     min-width: 0;
     flex: 1;
