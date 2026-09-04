@@ -14572,31 +14572,46 @@ document.getElementById('btn-reset-lista-filters')?.addEventListener('click', ()
 });
 
 // ==========================================================================
-//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (VERSIÓN ANTIMATRIX)
+//   SISTEMA: INICIALIZAR Y GUARDAR AJUSTES DE PERFIL (VERSIÓN DEFINITIVA)
 // ==========================================================================
 
 window.inicializarEditProfile = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
+    // Pedimos los datos usando "ilike" (ignora mayúsculas/minúsculas)
     const { data: perfil } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('email', session.user.email)
+        .ilike('email', session.user.email)
         .single();
 
-    // 🌟 LÓGICA DE FECHA: Si no hay en tabla, rescata la del registro original (metadata)
-    const birthdateToSet = perfil?.birthdate || session.user.user_metadata?.birthdate || '';
-    const pronombresToSet = perfil?.pronombres || '--';
-    const privacyToSet = perfil?.age_privacy || 'full';
-    const configModulos = perfil?.config_modulos || {};
+    if (!perfil) return;
 
-    // 🌟 TRUCO ANTIMATRIX: Actualizamos TODOS los clones ocultos a la vez
+    // Guardamos el ID exacto de tu fila para actualizar con precisión láser luego
+    window._miFilaUsuarioId = perfil.id;
+    window._miFilaUsuarioAuthId = perfil.auth_id;
+
+    // 1. LÓGICA DE FECHA: Rescatamos de BD, si no hay, de metadata. Y ASEGURAMOS formato YYYY-MM-DD
+    let birthdateToSet = perfil.birthdate || session.user.user_metadata?.birthdate || '';
+    if (birthdateToSet) {
+        birthdateToSet = birthdateToSet.split('T')[0]; // Corta la hora/zona horaria si la tiene
+    }
+
+    const pronombresToSet = perfil.pronombres || '--';
+    const privacyToSet = perfil.age_privacy || 'full';
+    const configModulos = perfil.config_modulos || {};
+
+    // Forzamos la actualización en TODOS los posibles clones HTML para que no queden vacíos
     document.querySelectorAll('[id="edit-pronouns"]').forEach(el => el.value = pronombresToSet);
     document.querySelectorAll('[id="edit-birthdate"]').forEach(el => el.value = birthdateToSet);
     document.querySelectorAll('[id="edit-age-privacy"]').forEach(el => el.value = privacyToSet);
 
-    const modulos = ['module-mid-zone', 'module-triple-row', 'module-virtual-shelves', 'module-guilty-pleasures', 'module-dropped', 'module-challenges', 'module-top-directors', 'module-guestbook'];
+    const modulos = [
+        'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
+        'module-guilty-pleasures', 'module-dropped', 'module-challenges',
+        'module-top-directors', 'module-guestbook'
+    ];
 
     modulos.forEach(mod => {
         document.querySelectorAll(`[id="toggle-${mod}"]`).forEach(toggle => {
@@ -14605,77 +14620,88 @@ window.inicializarEditProfile = async function () {
     });
 };
 
-// 🌟 TRUCO ANTIMATRIX 2: Usar delegación global para atrapar el clic de CUALQUIER botón de guardado
-document.addEventListener('click', async (e) => {
-    // Si el clic viene del botón de guardar...
-    const btnSave = e.target.closest('[id="btn-save-profile"]');
-    if (!btnSave) return;
+// ==========================================================================
+// ÚNICO EVENTO DE GUARDADO CENTRALIZADO
+// ==========================================================================
+const btnSaveProfile = document.getElementById('btn-save-profile');
+if (btnSaveProfile) {
 
-    e.preventDefault();
+    // Convertimos a "button" para evitar que el HTML recargue la página por su cuenta
+    btnSaveProfile.type = "button";
 
-    // Al haber HTML clonado, leemos siempre los valores de la ÚLTIMA copia (la visible en pantalla)
-    const allPronouns = document.querySelectorAll('[id="edit-pronouns"]');
-    const pronombreValue = allPronouns[allPronouns.length - 1].value;
+    btnSaveProfile.addEventListener('click', async (e) => {
+        e.preventDefault();
 
-    const allBirthdates = document.querySelectorAll('[id="edit-birthdate"]');
-    const birthdateValue = allBirthdates[allBirthdates.length - 1].value || null; // || null evita el error 400
+        // Leemos los valores que estás viendo en pantalla
+        const pronombreValue = document.getElementById('edit-pronouns').value;
+        const birthdateValue = document.getElementById('edit-birthdate').value || null;
+        const privacyValue = document.getElementById('edit-age-privacy').value;
 
-    const allPrivacies = document.querySelectorAll('[id="edit-age-privacy"]');
-    const privacyValue = allPrivacies[allPrivacies.length - 1].value;
-
-    const getToggleVal = (mod) => {
-        const toggles = document.querySelectorAll(`[id="toggle-${mod}"]`);
-        return toggles.length > 0 ? toggles[toggles.length - 1].checked : false;
-    };
-
-    const originalText = btnSave.innerHTML;
-    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
-    btnSave.disabled = true;
-
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        const jsonModulos = {
-            'module-mid-zone': getToggleVal('module-mid-zone'),
-            'module-triple-row': getToggleVal('module-triple-row'),
-            'module-virtual-shelves': getToggleVal('module-virtual-shelves'),
-            'module-guilty-pleasures': getToggleVal('module-guilty-pleasures'),
-            'module-dropped': getToggleVal('module-dropped'),
-            'module-challenges': getToggleVal('module-challenges'),
-            'module-top-directors': getToggleVal('module-top-directors'),
-            'module-guestbook': getToggleVal('module-guestbook')
+        const getToggleVal = (mod) => {
+            const el = document.getElementById(`toggle-${mod}`);
+            return el ? el.checked : false;
         };
 
-        const updates = {
-            pronombres: pronombreValue,
-            birthdate: birthdateValue, // Se actualizará a la edad nueva si la cambias
-            age_privacy: privacyValue,
-            config_modulos: jsonModulos
-        };
+        const originalText = btnSaveProfile.innerHTML;
+        btnSaveProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+        btnSaveProfile.disabled = true;
 
-        console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", updates);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
 
-        const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
+            const jsonModulos = {
+                'module-mid-zone': getToggleVal('module-mid-zone'),
+                'module-triple-row': getToggleVal('module-triple-row'),
+                'module-virtual-shelves': getToggleVal('module-virtual-shelves'),
+                'module-guilty-pleasures': getToggleVal('module-guilty-pleasures'),
+                'module-dropped': getToggleVal('module-dropped'),
+                'module-challenges': getToggleVal('module-challenges'),
+                'module-top-directors': getToggleVal('module-top-directors'),
+                'module-guestbook': getToggleVal('module-guestbook')
+            };
 
-        if (error) {
-            console.error("❌ ERROR DE SUPABASE:", error);
-            if (typeof showToast === 'function') showToast('error', 'Error', 'No se pudo guardar.');
-        } else {
-            console.log("✅ GUARDADO EXITOSO");
-            if (typeof showToast === 'function') showToast('success', 'Guardado', 'Perfil actualizado.');
+            const updates = {
+                pronombres: pronombreValue,
+                birthdate: birthdateValue,
+                age_privacy: privacyValue,
+                config_modulos: jsonModulos
+            };
 
-            // Refrescamos tu perfil para que la nueva edad y pronombres se visualicen
-            const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
-            if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
+            console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", updates);
+
+            // ACTUALIZACIÓN CON PRECISIÓN LÁSER POR ID (Adiós al problema de las mayúsculas en el email)
+            let query = supabase.from('usuarios').update(updates);
+
+            if (window._miFilaUsuarioAuthId) {
+                query = query.eq('auth_id', window._miFilaUsuarioAuthId);
+            } else if (window._miFilaUsuarioId) {
+                query = query.eq('id', window._miFilaUsuarioId);
+            } else {
+                query = query.ilike('email', session.user.email);
+            }
+
+            const { error } = await query;
+
+            if (error) {
+                console.error("❌ ERROR DE SUPABASE:", error);
+                if (typeof showToast === 'function') showToast('error', 'Error', 'No se pudo guardar la configuración.');
+            } else {
+                console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
+                if (typeof showToast === 'function') showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
+
+                // Refrescamos tu perfil para que la nueva edad se calcule y muestre automáticamente
+                const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
+                if (typeof cargarPerfilPublico === 'function') await cargarPerfilPublico(username);
+            }
+        } catch (err) {
+            console.error("❌ ERROR GENERAL:", err);
+        } finally {
+            btnSaveProfile.innerHTML = originalText;
+            btnSaveProfile.disabled = false;
         }
-    } catch (err) {
-        console.error("❌ ERROR GENERAL:", err);
-    } finally {
-        btnSave.innerHTML = originalText;
-        btnSave.disabled = false;
-    }
-});
+    });
+}
 
 
 
