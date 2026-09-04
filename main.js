@@ -14297,82 +14297,82 @@ async function enriquecerItemsListaCompleto(items) {
 /**
  * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
  */
-// async function enriquecerItemsLista(items, resetear) {
-//     const grid = document.getElementById('lista-detalle-grid');
-//     if (!grid) {
-//         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
-//         return;
-//     }
+async function enriquecerItemsLista(items, resetear) {
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) {
+        console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
+        return;
+    }
 
-//     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
 
-//     for (let i = 0; i < items.length; i++) {
-//         const item = items[i];
-//         const key = `${item._media_id}_${item._media_tipo}`;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const key = `${item._media_id}_${item._media_tipo}`;
 
-//         if (listaItemsEnriquecidos[key]) {
-//             continue;
-//         }
+        if (listaItemsEnriquecidos[key]) {
+            continue;
+        }
 
-//         try {
-//             let data = null;
+        try {
+            let data = null;
 
-//             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     data = await res.json();
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
-//                 }
-//             } else if (item._media_tipo === 'game') {
-//                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     const result = await res.json();
-//                     data = result.juegos?.[0] || result[0] || null;
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
-//                 }
-//             }
+            if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
+                if (res.ok) {
+                    data = await res.json();
+                } else {
+                    console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
+                }
+            } else if (item._media_tipo === 'game') {
+                const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
+                if (res.ok) {
+                    const result = await res.json();
+                    data = result.juegos?.[0] || result[0] || null;
+                } else {
+                    console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
+                }
+            }
 
-//             if (data) {
-//                 let enrichedItem = {
-//                     id: item._media_id,
-//                     tipo: item._media_tipo,
-//                     titulo: data.titulo || data.name || `ID: ${item._media_id}`,
-//                     year: '----',
-//                     rating: '0.0',
-//                     imagen: '',
-//                 };
+            if (data) {
+                let enrichedItem = {
+                    id: item._media_id,
+                    tipo: item._media_tipo,
+                    titulo: data.titulo || data.name || `ID: ${item._media_id}`,
+                    year: '----',
+                    rating: '0.0',
+                    imagen: '',
+                };
 
-//                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
-//                     enrichedItem.rating = data.nota || '0.0';
-//                     enrichedItem.imagen = data.poster || '';
-//                 } else if (item._media_tipo === 'game') {
-//                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
-//                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
-//                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-//                 }
+                if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+                    enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
+                    enrichedItem.rating = data.nota || '0.0';
+                    enrichedItem.imagen = data.poster || '';
+                } else if (item._media_tipo === 'game') {
+                    enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
+                    enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
+                    enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+                }
 
-//                 listaItemsEnriquecidos[key] = enrichedItem;
+                listaItemsEnriquecidos[key] = enrichedItem;
 
-//                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
-//                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
+                const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
+                const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
 
-//                 if (cards[cardIndex]) {
-//                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
-//                     cards[cardIndex].replaceWith(newCard);
-//                 }
-//             } else {
-//                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
-//             }
-//         } catch (e) {
-//             console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
-//         }
+                if (cards[cardIndex]) {
+                    const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
+                    cards[cardIndex].replaceWith(newCard);
+                }
+            } else {
+                console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
+            }
+        } catch (e) {
+            console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
+        }
 
-//         await new Promise(resolve => setTimeout(resolve, 100));
-//     }
-// }
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+}
 
 function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
