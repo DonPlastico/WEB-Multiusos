@@ -2865,12 +2865,13 @@ span.flatpickr-weekday {
 }
 
 .edit-profile-admin-side-panel {
-    padding: 15px;
     background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
-    border-radius: 16px;
     box-shadow: var(--shadow-md);
+    border-radius: 16px;
+    padding: 15px 15px 26px 15px;
 }
 
 .edit-profile-admin-side-header {
