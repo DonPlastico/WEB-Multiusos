@@ -7071,21 +7071,26 @@ async function sincronizarCuentasOAuth(session) {
             continue;
         }
 
-        const datos = obtenerDatosIdentidad(identity);
-        const { error } = await supabase.from('cuentas_vinculadas').upsert({
-            user_id: session.user.id,
-            proveedor: provider,
-            proveedor_user_id: datos.providerUserId,
-            username: datos.username,
-            profile_url: datos.profileUrl,
-            avatar_url: datos.identityData.avatar_url || datos.identityData.picture || null,
-            metadata: datos.identityData
-        }, { onConflict: 'user_id,proveedor' });
+        try {
+            const datos = obtenerDatosIdentidad(identity);
+            const { error } = await supabase.from('cuentas_vinculadas').upsert({
+                user_id: session.user.id,
+                proveedor: provider,
+                proveedor_user_id: datos.providerUserId,
+                username: datos.username,
+                profile_url: datos.profileUrl,
+                avatar_url: datos.identityData.avatar_url || datos.identityData.picture || null,
+                metadata: datos.identityData
+            }, { onConflict: 'user_id,proveedor' });
 
-        if (error) throw error;
-        status.textContent = datos.username;
-        button.innerHTML = '<i class="fas fa-unlink"></i> DESVINCULAR';
-        button.dataset.linked = 'true';
+            if (error) throw error;
+            status.textContent = datos.username;
+            button.innerHTML = '<i class="fas fa-unlink"></i> DESVINCULAR';
+            button.dataset.linked = 'true';
+        } catch (providerError) {
+            console.warn(`No se pudo sincronizar ${provider}:`, providerError.message);
+            status.textContent = 'Autorizada, falta guardar';
+        }
     }
 }
 
@@ -7180,6 +7185,20 @@ function configurarVinculacionDiscord() {
         }
     };
     configurarVinculacionOAuth();
+}
+
+async function sincronizarOAuthTrasCallback() {
+    const oauthProvider = new URLSearchParams(window.location.search).get('oauth');
+    if (!oauthProvider || !LINKED_ACCOUNT_CONFIG[oauthProvider]) return;
+
+    for (let intento = 0; intento < 3; intento++) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            await sincronizarCuentasOAuth(session);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+    }
 }
 
 // Funcion que carga el perfil de un usuario por su nombre de usuario
@@ -9607,6 +9626,7 @@ async function cargarDatosPerfil() {
         try {
             configurarVinculacionDiscord();
             await sincronizarCuentaDiscord(session);
+            await sincronizarOAuthTrasCallback();
         } catch (discordError) {
             console.warn('Discord no disponible; continuamos cargando el perfil:', discordError);
         }
