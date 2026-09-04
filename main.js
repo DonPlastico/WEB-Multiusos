@@ -9813,21 +9813,6 @@ function handleColorPresetClick(e) {
 //   VOLVER AL PERFIL DESDE EDITAR
 // ==========================================================================
 
-// Boton para volver al perfil desde la vista de edicion
-document.getElementById('btn-back-to-profile')?.addEventListener('click', () => {
-    // Obtener el username actual del perfil
-    const usernameDisplay = document.getElementById('main-profile-username');
-    const username = usernameDisplay?.textContent || null;
-
-    // Si no hay username, ir a profile sin parámetro
-    if (username && username !== 'Usuario') {
-        cambiarVista('profile', true, username);
-    } else {
-        cambiarVista('profile', true);
-    }
-});
-
-// === FUNCIÓN: Aplicar color dinámico (GUARDADO) ===
 // Esta version guarda el color en localStorage y lo aplica permanentemente
 function aplicarColorDinamico(colorHex) {
     if (!colorHex) return;
