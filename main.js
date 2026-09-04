@@ -14755,11 +14755,15 @@ window.inicializarEditProfile = async function () {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
-    // Pedimos los datos del usuario logueado
-    const { data: perfil } = await supabase.from('usuarios').select('*').eq('email', session.user.email).single();
+    // Pedimos los datos del usuario logueado a la BD
+    const { data: perfil } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', session.user.email)
+        .single();
 
     if (perfil) {
-        // 1. Cargar datos básicos
+        // 1. Cargar Pronombres, Fecha y Privacidad
         const selectPronombres = document.getElementById('edit-pronouns');
         const inputBirthdate = document.getElementById('edit-birthdate');
         const selectAgePrivacy = document.getElementById('edit-age-privacy');
@@ -14768,7 +14772,7 @@ window.inicializarEditProfile = async function () {
         if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
         if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
 
-        // 2. Cargar estado de los módulos (Por defecto APAGADOS si no existen en BD)
+        // 2. Cargar estado de los Módulos (APAGADOS por defecto si en BD es false o no existe)
         const configModulos = perfil.config_modulos || {};
         const modulos = [
             'module-mid-zone', 'module-triple-row', 'module-virtual-shelves',
@@ -14779,15 +14783,16 @@ window.inicializarEditProfile = async function () {
         modulos.forEach(mod => {
             const toggle = document.getElementById(`toggle-${mod}`);
             if (toggle) {
-                toggle.checked = configModulos[mod] === true; // Solo encendido si en la BD es explícitamente true
+                // Solo marcamos el interruptor si en la base de datos pone textualmente "true"
+                toggle.checked = configModulos[mod] === true;
             }
         });
     }
 };
 
-// Escuchar evento de guardado
+// Escuchar el evento "submit" del formulario de edición (El botón flotante lo dispara automáticamente)
 document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Evitamos que la página se recargue
     const btnSave = document.getElementById('btn-save-profile');
     const originalText = btnSave.innerHTML;
 
@@ -14796,7 +14801,7 @@ document.getElementById('form-edit-profile')?.addEventListener('submit', async (
 
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
-        // Construimos el JSON de los módulos leyendo los checkboxes
+        // Construimos el JSON leyendo cómo ha dejado el usuario los interruptores
         const jsonModulos = {
             'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
             'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
@@ -14812,17 +14817,20 @@ document.getElementById('form-edit-profile')?.addEventListener('submit', async (
             pronombres: document.getElementById('edit-pronouns').value,
             birthdate: document.getElementById('edit-birthdate').value,
             age_privacy: document.getElementById('edit-age-privacy').value,
-            config_modulos: jsonModulos // Guardamos TODOS los módulos
+            config_modulos: jsonModulos // Guardamos el JSON de visibilidad
         };
 
+        // Enviamos el UPDATE a Supabase
         const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
 
         if (error) {
             showToast('error', 'Error', 'No se pudo guardar la configuración.');
+            console.error(error);
         } else {
             showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
-            // Actualizamos la información visual de inmediato (forzando tu propio usuario)
-            cargarPerfilPublico(session.user.user_metadata.username || session.user.email.split('@')[0]);
+            // Refrescamos la vista de perfil en segundo plano para aplicar los cambios de inmediato
+            const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
+            if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
         }
     }
 
