@@ -14593,7 +14593,12 @@ window.inicializarEditProfile = async function () {
         const selectAgePrivacy = document.getElementById('edit-age-privacy');
 
         if (selectPronombres && perfil.pronombres) selectPronombres.value = perfil.pronombres;
-        if (inputBirthdate && perfil.birthdate) inputBirthdate.value = perfil.birthdate;
+
+        // Intentamos coger la fecha de la tabla, y si está vacía, rescatamos la que puso en el registro original
+        if (inputBirthdate) {
+            inputBirthdate.value = perfil.birthdate || session.user.user_metadata?.birthdate || '';
+        }
+
         if (selectAgePrivacy && perfil.age_privacy) selectAgePrivacy.value = perfil.age_privacy;
 
         // 2. Cargar estado de los Módulos
@@ -14649,8 +14654,6 @@ if (btnSaveProfile) {
                     config_modulos: jsonModulos
                 };
 
-                console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", JSON.stringify(updates, null, 2));
-
                 // Enviamos el UPDATE a Supabase
                 const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
 
@@ -14658,7 +14661,6 @@ if (btnSaveProfile) {
                     console.error("❌ ERROR DE SUPABASE:", error);
                     if (typeof showToast === 'function') showToast('error', 'Error', 'No se pudo guardar la configuración.');
                 } else {
-                    console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
                     if (typeof showToast === 'function') showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
 
                     // Refrescamos la vista de perfil para aplicar cambios
