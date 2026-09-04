@@ -14644,7 +14644,7 @@ if (btnSaveProfile) {
 
                 const updates = {
                     pronombres: document.getElementById('edit-pronouns').value,
-                    birthdate: document.getElementById('edit-birthdate').value,
+                    birthdate: document.getElementById('edit-birthdate').value || null,
                     age_privacy: document.getElementById('edit-age-privacy').value,
                     config_modulos: jsonModulos
                 };
