@@ -14297,82 +14297,82 @@ async function enriquecerItemsListaCompleto(items) {
 /**
  * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
  */
-async function enriquecerItemsLista(items, resetear) {
-    const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) {
-        console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
-        return;
-    }
+// async function enriquecerItemsLista(items, resetear) {
+//     const grid = document.getElementById('lista-detalle-grid');
+//     if (!grid) {
+//         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
+//         return;
+//     }
 
-    const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
+//     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
 
-    for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        const key = `${item._media_id}_${item._media_tipo}`;
+//     for (let i = 0; i < items.length; i++) {
+//         const item = items[i];
+//         const key = `${item._media_id}_${item._media_tipo}`;
 
-        if (listaItemsEnriquecidos[key]) {
-            continue;
-        }
+//         if (listaItemsEnriquecidos[key]) {
+//             continue;
+//         }
 
-        try {
-            let data = null;
+//         try {
+//             let data = null;
 
-            if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-                if (res.ok) {
-                    data = await res.json();
-                } else {
-                    console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
-                }
-            } else if (item._media_tipo === 'game') {
-                const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
-                if (res.ok) {
-                    const result = await res.json();
-                    data = result.juegos?.[0] || result[0] || null;
-                } else {
-                    console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
-                }
-            }
+//             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+//                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
+//                 if (res.ok) {
+//                     data = await res.json();
+//                 } else {
+//                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
+//                 }
+//             } else if (item._media_tipo === 'game') {
+//                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
+//                 if (res.ok) {
+//                     const result = await res.json();
+//                     data = result.juegos?.[0] || result[0] || null;
+//                 } else {
+//                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
+//                 }
+//             }
 
-            if (data) {
-                let enrichedItem = {
-                    id: item._media_id,
-                    tipo: item._media_tipo,
-                    titulo: data.titulo || data.name || `ID: ${item._media_id}`,
-                    year: '----',
-                    rating: '0.0',
-                    imagen: '',
-                };
+//             if (data) {
+//                 let enrichedItem = {
+//                     id: item._media_id,
+//                     tipo: item._media_tipo,
+//                     titulo: data.titulo || data.name || `ID: ${item._media_id}`,
+//                     year: '----',
+//                     rating: '0.0',
+//                     imagen: '',
+//                 };
 
-                if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                    enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
-                    enrichedItem.rating = data.nota || '0.0';
-                    enrichedItem.imagen = data.poster || '';
-                } else if (item._media_tipo === 'game') {
-                    enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
-                    enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
-                    enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-                }
+//                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
+//                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
+//                     enrichedItem.rating = data.nota || '0.0';
+//                     enrichedItem.imagen = data.poster || '';
+//                 } else if (item._media_tipo === 'game') {
+//                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
+//                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
+//                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
+//                 }
 
-                listaItemsEnriquecidos[key] = enrichedItem;
+//                 listaItemsEnriquecidos[key] = enrichedItem;
 
-                const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
-                const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
+//                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
+//                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
 
-                if (cards[cardIndex]) {
-                    const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
-                    cards[cardIndex].replaceWith(newCard);
-                }
-            } else {
-                console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
-            }
-        } catch (e) {
-            console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
-        }
+//                 if (cards[cardIndex]) {
+//                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
+//                     cards[cardIndex].replaceWith(newCard);
+//                 }
+//             } else {
+//                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
+//             }
+//         } catch (e) {
+//             console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
+//         }
 
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-}
+//         await new Promise(resolve => setTimeout(resolve, 100));
+//     }
+// }
 
 function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
@@ -14613,57 +14613,67 @@ window.inicializarEditProfile = async function () {
     }
 };
 
-// ÚNICO EVENTO DE GUARDADO: Escuchar el evento "submit" del formulario
-document.getElementById('form-edit-profile')?.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Evitamos que la página se recargue
-    const btnSave = document.getElementById('btn-save-profile');
-    const originalText = btnSave.innerHTML;
+// ÚNICO EVENTO DE GUARDADO: Escuchamos el "click" directo del botón
+const btnSaveProfile = document.getElementById('btn-save-profile');
+if (btnSaveProfile) {
 
-    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
-    btnSave.disabled = true;
+    // Convertimos el botón a tipo "button" para matar cualquier recarga nativa de HTML
+    btnSaveProfile.type = "button";
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-        // Construimos el JSON de los módulos
-        const jsonModulos = {
-            'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
-            'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
-            'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked || false,
-            'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked || false,
-            'module-dropped': document.getElementById('toggle-module-dropped')?.checked || false,
-            'module-challenges': document.getElementById('toggle-module-challenges')?.checked || false,
-            'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked || false,
-            'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked || false
-        };
+    btnSaveProfile.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const originalText = btnSaveProfile.innerHTML;
 
-        const updates = {
-            pronombres: document.getElementById('edit-pronouns').value,
-            birthdate: document.getElementById('edit-birthdate').value,
-            age_privacy: document.getElementById('edit-age-privacy').value,
-            config_modulos: jsonModulos
-        };
+        btnSaveProfile.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GUARDANDO...';
+        btnSaveProfile.disabled = true;
 
-        console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", updates); // PRINT PARA DEPURAR
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Construimos el JSON de los módulos
+                const jsonModulos = {
+                    'module-mid-zone': document.getElementById('toggle-module-mid-zone')?.checked || false,
+                    'module-triple-row': document.getElementById('toggle-module-triple-row')?.checked || false,
+                    'module-virtual-shelves': document.getElementById('toggle-module-virtual-shelves')?.checked || false,
+                    'module-guilty-pleasures': document.getElementById('toggle-module-guilty-pleasures')?.checked || false,
+                    'module-dropped': document.getElementById('toggle-module-dropped')?.checked || false,
+                    'module-challenges': document.getElementById('toggle-module-challenges')?.checked || false,
+                    'module-top-directors': document.getElementById('toggle-module-top-directors')?.checked || false,
+                    'module-guestbook': document.getElementById('toggle-module-guestbook')?.checked || false
+                };
 
-        // Enviamos el UPDATE a Supabase
-        const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
+                const updates = {
+                    pronombres: document.getElementById('edit-pronouns').value,
+                    birthdate: document.getElementById('edit-birthdate').value,
+                    age_privacy: document.getElementById('edit-age-privacy').value,
+                    config_modulos: jsonModulos
+                };
 
-        if (error) {
-            console.error("❌ ERROR DE SUPABASE:", error);
-            showToast('error', 'Error', 'No se pudo guardar la configuración.');
-        } else {
-            console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
-            showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
+                console.log("➡️ INTENTANDO GUARDAR EN SUPABASE:", JSON.stringify(updates, null, 2));
 
-            // Refrescamos la vista de perfil
-            const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
-            if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
+                // Enviamos el UPDATE a Supabase
+                const { error } = await supabase.from('usuarios').update(updates).eq('email', session.user.email);
+
+                if (error) {
+                    console.error("❌ ERROR DE SUPABASE:", error);
+                    if (typeof showToast === 'function') showToast('error', 'Error', 'No se pudo guardar la configuración.');
+                } else {
+                    console.log("✅ GUARDADO EXITOSO EN LA BASE DE DATOS");
+                    if (typeof showToast === 'function') showToast('success', 'Guardado', 'Perfil actualizado correctamente.');
+
+                    // Refrescamos la vista de perfil para aplicar cambios
+                    const username = session.user.user_metadata?.username || session.user.email.split('@')[0];
+                    if (typeof cargarPerfilPublico === 'function') cargarPerfilPublico(username);
+                }
+            }
+        } catch (err) {
+            console.error("❌ ERROR GENERAL:", err);
+        } finally {
+            btnSaveProfile.innerHTML = originalText;
+            btnSaveProfile.disabled = false;
         }
-    }
-
-    btnSave.innerHTML = originalText;
-    btnSave.disabled = false;
-});
+    });
+}
 
 
 
