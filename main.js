@@ -7038,8 +7038,17 @@ async function cargarCuentasVinculadas(userId) {
 
 async function obtenerIdentidadesVinculadas() {
     const { data, error } = await supabase.auth.getUserIdentities();
-    if (error) throw error;
-    return data?.identities || [];
+    if (error) {
+        console.error('[OAuth] Error obteniendo identidades:', error);
+        throw error;
+    }
+    const identities = data?.identities || [];
+    console.debug('[OAuth] Identidades recibidas:', identities.map(identity => ({
+        provider: identity.provider,
+        id: identity.id,
+        identityId: identity.identity_id
+    })));
+    return identities;
 }
 
 function obtenerDatosIdentidad(identity) {
@@ -7056,6 +7065,10 @@ async function sincronizarCuentasOAuth(session) {
     const identities = await obtenerIdentidadesVinculadas();
     const providers = Object.keys(LINKED_ACCOUNT_CONFIG);
 
+    console.groupCollapsed('[OAuth] Sincronización de cuentas vinculadas');
+    console.debug('[OAuth] Usuario:', session.user.id);
+    console.debug('[OAuth] Proveedores detectados:', identities.map(identity => identity.provider));
+
     for (const provider of providers) {
         const status = document.getElementById(`${provider === 'twitter' ? 'x' : provider}-link-status`);
         const button = provider === 'discord'
@@ -7063,8 +7076,12 @@ async function sincronizarCuentasOAuth(session) {
             : document.querySelector(`[data-link-provider="${provider}"]`);
         const identity = identities.find(item => item.provider === provider);
 
-        if (!status || !button) continue;
+        if (!status || !button) {
+            console.debug(`[OAuth:${provider}] Elementos de interfaz no encontrados`);
+            continue;
+        }
         if (!identity) {
+            console.debug(`[OAuth:${provider}] Sin identidad en Supabase`);
             status.textContent = 'No vinculada';
             button.innerHTML = `<i class="${LINKED_ACCOUNT_CONFIG[provider].icon}"></i> VINCULAR`;
             button.dataset.linked = 'false';
@@ -7073,7 +7090,7 @@ async function sincronizarCuentasOAuth(session) {
 
         try {
             const datos = obtenerDatosIdentidad(identity);
-            const { error } = await supabase.from('cuentas_vinculadas').upsert({
+            const payload = {
                 user_id: session.user.id,
                 proveedor: provider,
                 proveedor_user_id: datos.providerUserId,
@@ -7081,17 +7098,36 @@ async function sincronizarCuentasOAuth(session) {
                 profile_url: datos.profileUrl,
                 avatar_url: datos.identityData.avatar_url || datos.identityData.picture || null,
                 metadata: datos.identityData
-            }, { onConflict: 'user_id,proveedor' });
+            };
 
-            if (error) throw error;
+            console.debug(`[OAuth:${provider}] Payload de guardado:`, {
+                proveedor: payload.proveedor,
+                proveedor_user_id: payload.proveedor_user_id,
+                username: payload.username,
+                profile_url: payload.profile_url,
+                metadataKeys: Object.keys(payload.metadata || {})
+            });
+
+            const { data: savedAccount, error } = await supabase
+                .from('cuentas_vinculadas')
+                .upsert(payload, { onConflict: 'user_id,proveedor' })
+                .select('id, proveedor, proveedor_user_id, username, profile_url')
+                .single();
+
+            if (error) {
+                console.error(`[OAuth:${provider}] Error de Supabase al guardar:`, error);
+                throw error;
+            }
+            console.info(`[OAuth:${provider}] Cuenta guardada correctamente:`, savedAccount);
             status.textContent = datos.username;
             button.innerHTML = '<i class="fas fa-unlink"></i> DESVINCULAR';
             button.dataset.linked = 'true';
         } catch (providerError) {
-            console.warn(`No se pudo sincronizar ${provider}:`, providerError.message);
+            console.error(`[OAuth:${provider}] Fallo completo de sincronización:`, providerError);
             status.textContent = 'Autorizada, falta guardar';
         }
     }
+    console.groupEnd();
 }
 
 async function sincronizarCuentaDiscord(session) {
@@ -7191,11 +7227,18 @@ async function sincronizarOAuthTrasCallback() {
     const oauthProvider = new URLSearchParams(window.location.search).get('oauth');
     if (!oauthProvider || !LINKED_ACCOUNT_CONFIG[oauthProvider]) return;
 
+    console.info(`[OAuth:${oauthProvider}] Callback detectado, esperando identidad...`);
+
     for (let intento = 0; intento < 6; intento++) {
         const { data: { session } } = await supabase.auth.getSession();
+        console.debug(`[OAuth:${oauthProvider}] Intento ${intento + 1}/6`, {
+            haySesion: Boolean(session),
+            userId: session?.user?.id
+        });
         if (session) {
             const identities = await obtenerIdentidadesVinculadas();
             if (identities.some(identity => identity.provider === oauthProvider)) {
+                console.info(`[OAuth:${oauthProvider}] Identidad encontrada, sincronizando tabla...`);
                 await sincronizarCuentasOAuth(session);
                 return;
             }
