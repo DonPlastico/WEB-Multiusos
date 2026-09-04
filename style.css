@@ -9232,9 +9232,9 @@ select.cyber-input option {
    VISIBILIDAD DE MÓDULOS (DISEÑO TARJETAS)
    ========================================================================== */
 .modules-visibility-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7.5px;
 }
 
 .module-toggle-card {
