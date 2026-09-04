@@ -7201,6 +7201,31 @@ async function sincronizarOAuthTrasCallback() {
     }
 }
 
+function manejarErrorOAuthCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (!error) return;
+
+    const provider = params.get('oauth') || 'la cuenta externa';
+    const descripcion = params.get('error_description') || params.get('error_code') || error;
+    console.error(`Error OAuth de ${provider}:`, descripcion);
+
+    const mensaje = descripcion.toLowerCase().includes('getting user')
+        ? 'GitHub debe configurarse como OAuth App clásica, no como GitHub App.'
+        : descripcion.replace(/\+/g, ' ');
+
+    window.setTimeout(() => {
+        if (typeof showToast === 'function') {
+            showToast('error', `No se pudo vincular ${provider}`, mensaje);
+        }
+    }, 500);
+
+    const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+    window.history.replaceState({}, document.title, cleanUrl);
+}
+
+manejarErrorOAuthCallback();
+
 // Funcion que carga el perfil de un usuario por su nombre de usuario
 async function cargarPerfilPublico(usernameTarget) {
     try {
