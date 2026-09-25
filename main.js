@@ -15118,13 +15118,13 @@ if (btnSaveProfile) {
 }
 
 // ==========================================================================
-//   FILTRADO VISUAL PARA MIS LISTAS (BÚSQUEDA Y ESTADO CON SUPABASE)
+//   FILTRADO PARA MIS LISTAS (BÚSQUEDA Y ESTADO CON SUPABASE)
 // ==========================================================================
 
 // Limpiar la caché de vistos cada vez que se carga una lista nueva
 const originalCargarDetalleLista = window.cargarDetalleLista;
 window.cargarDetalleLista = async function (nombreLista) {
-    window.vistosCacheLista = null; // Reiniciar caché
+    window.vistosCacheSet = null; // Reiniciamos la caché para tener datos frescos
     await originalCargarDetalleLista(nombreLista);
 };
 
@@ -15140,7 +15140,7 @@ document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => 
     });
 });
 
-// 3. Función principal
+// 3. Función principal de filtrado
 window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
     const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
@@ -15150,20 +15150,42 @@ window.aplicarFiltrosListaDetalle = async function () {
 
     const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
 
-    // --- CARGA DE CACHÉ DESDE SUPABASE (Solo si piden filtrar por estado) ---
-    if (estadoSeleccionado !== 'todas' && !window.vistosCacheLista) {
+    // --- CARGA DE CACHÉ DESDE SUPABASE (Descarga paginada sin límites) ---
+    if (estadoSeleccionado !== 'todas' && !window.vistosCacheSet) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            // Descargamos de un golpe todos los media_id que el usuario ha visto
-            const { data } = await supabase
-                .from('user_media')
-                .select('media_id')
-                .eq('user_id', session.user.id)
-                .eq('visto', true);
+            let allVistos = new Set();
+            let keepFetching = true;
+            let currentOffset = 0;
+            const fetchLimit = 1000;
 
-            window.vistosCacheLista = data ? data.map(d => String(d.media_id)) : [];
+            while (keepFetching) {
+                const { data, error } = await supabase
+                    .from('user_media')
+                    .select('media_id, tipo')
+                    .eq('user_id', session.user.id)
+                    .eq('visto', true)
+                    .range(currentOffset, currentOffset + fetchLimit - 1);
+
+                if (error) {
+                    console.error("Error obteniendo historial:", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    data.forEach(d => {
+                        // Guardamos una clave compuesta segura (ej: "movie_123", "tv_episode_32726_T8_E20")
+                        allVistos.add(`${d.tipo}_${d.media_id}`);
+                    });
+                    currentOffset += fetchLimit;
+                    if (data.length < fetchLimit) keepFetching = false;
+                } else {
+                    keepFetching = false;
+                }
+            }
+            window.vistosCacheSet = allVistos;
         } else {
-            window.vistosCacheLista = [];
+            window.vistosCacheSet = new Set();
         }
     }
 
@@ -15180,20 +15202,31 @@ window.aplicarFiltrosListaDetalle = async function () {
         }
 
         // B. Filtro de Estado
-        if (mostrar && estadoSeleccionado !== 'todas' && window.vistosCacheLista) {
-            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || '';
-            const tipo = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
+        if (mostrar && estadoSeleccionado !== 'todas' && window.vistosCacheSet) {
+            // Extraer ID y Tipo de la tarjeta (Cubre todos tus estilos de lista)
+            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
+            const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
+            const tipo = tipoAttr.toLowerCase();
 
             let estaVisto = false;
 
-            if (tipo === 'movie') {
-                // Películas: Búsqueda exacta del ID
-                estaVisto = window.vistosCacheLista.includes(id);
-            } else if (tipo === 'tv') {
-                // Series: Verificamos si existe al menos un episodio visto (ej: "32726_T8_F20")
-                estaVisto = window.vistosCacheLista.some(mId => mId.startsWith(`${id}_`));
+            if (id) {
+                if (tipo === 'movie' || tipo === 'pelicula') {
+                    estaVisto = window.vistosCacheSet.has(`movie_${id}`);
+                } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
+                    // Para series, verificamos si vio la serie global o si ha visto algún episodio de ella
+                    const cacheArray = Array.from(window.vistosCacheSet);
+                    estaVisto = window.vistosCacheSet.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
+                } else if (tipo === 'game' || tipo === 'juego') {
+                    estaVisto = window.vistosCacheSet.has(`game_${id}`);
+                } else {
+                    // Fallback genérico por si no trae tipo claro
+                    const cacheArray = Array.from(window.vistosCacheSet);
+                    estaVisto = cacheArray.some(key => key.includes(`_${id}`));
+                }
             }
 
+            // Lógica de visualización final
             if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
             if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
         }
