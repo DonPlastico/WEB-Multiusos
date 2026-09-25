@@ -14232,9 +14232,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         const loaderEl = document.getElementById('lista-detalle-loader');
         if (loaderEl) loaderEl.style.display = 'none';
 
-        const endEl = document.getElementById('lista-detalle-end');
-        if (endEl) endEl.style.display = 'none';
-
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) mensaje.textContent = 'Cargando elementos...';
     }
@@ -14351,13 +14348,9 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         if (hayMas) {
             if (loader) loader.style.display = 'block';
-            const endEl = document.getElementById('lista-detalle-end');
-            if (endEl) endEl.style.display = 'none';
             configurarObservadorLista();
         } else {
             if (loader) loader.style.display = 'none';
-            const endEl = document.getElementById('lista-detalle-end');
-            if (endEl) endEl.style.display = 'block';
             if (listaObservador) {
                 listaObservador.disconnect();
                 listaObservador = null;
@@ -14845,9 +14838,7 @@ window.aplicarFiltrosListaDetalle = async function () {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    const tarjetas = Array.from(grid.children).filter(
-        t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end'
-    );
+    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader');
 
     tarjetas.forEach(tarjeta => {
         let mostrar = true;
@@ -15101,7 +15092,8 @@ window.aplicarFiltrosListaDetalle = async function () {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
+    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader');
+
 
     // --- CARGA DE CACHÉ DESDE SUPABASE (Descarga paginada sin límites) ---
     if (estadoSeleccionado !== 'todas' && !window.vistosCacheSet) {
