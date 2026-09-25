@@ -14748,16 +14748,58 @@ document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => 
 
 window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
+    const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
+    const ordenSeleccionado = document.querySelector('input[name="orden-lista"]:checked')?.value || 'fecha_desc';
 
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
+    // Convertimos los hijos del grid en un array para poder ordenarlos
     const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader');
 
+    // --- CARGA DE CACHÉ DESDE SUPABASE (Descarga paginada sin límites) ---
+    if (estadoSeleccionado !== 'todas' && !window.vistosCacheSet) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            let allVistos = new Set();
+            let keepFetching = true;
+            let currentOffset = 0;
+            const fetchLimit = 1000;
+
+            while (keepFetching) {
+                const { data, error } = await supabase
+                    .from('user_media')
+                    .select('media_id, tipo')
+                    .eq('user_id', session.user.id)
+                    .eq('visto', true)
+                    .range(currentOffset, currentOffset + fetchLimit - 1);
+
+                if (error) {
+                    console.error("Error obteniendo historial:", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    data.forEach(d => {
+                        allVistos.add(`${d.tipo}_${d.media_id}`);
+                    });
+                    currentOffset += fetchLimit;
+                    if (data.length < fetchLimit) keepFetching = false;
+                } else {
+                    keepFetching = false;
+                }
+            }
+            window.vistosCacheSet = allVistos;
+        } else {
+            window.vistosCacheSet = new Set();
+        }
+    }
+
+    // --- APLICAR FILTROS A LAS TARJETAS ---
     tarjetas.forEach(tarjeta => {
         let mostrar = true;
 
-        // Solo filtro de texto (el de estado ya lo hace la RPC en servidor)
+        // A. Filtro de Búsqueda
         const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
         if (tituloEl && textoBuscador) {
             if (!tituloEl.textContent.toLowerCase().includes(textoBuscador)) {
@@ -14765,8 +14807,92 @@ window.aplicarFiltrosListaDetalle = async function () {
             }
         }
 
+        // B. Filtro de Estado
+        if (mostrar && estadoSeleccionado !== 'todas' && window.vistosCacheSet) {
+            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
+            const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
+            const tipo = tipoAttr.toLowerCase();
+
+            let estaVisto = false;
+
+            if (id) {
+                if (tipo === 'movie' || tipo === 'pelicula') {
+                    estaVisto = window.vistosCacheSet.has(`movie_${id}`);
+                } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
+                    const cacheArray = Array.from(window.vistosCacheSet);
+                    estaVisto = window.vistosCacheSet.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
+                } else if (tipo === 'game' || tipo === 'juego') {
+                    estaVisto = window.vistosCacheSet.has(`game_${id}`);
+                } else {
+                    const cacheArray = Array.from(window.vistosCacheSet);
+                    estaVisto = cacheArray.some(key => key.includes(`_${id}`));
+                }
+            }
+
+            if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
+            if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
+        }
+
         tarjeta.style.display = mostrar ? '' : 'none';
     });
+
+    // --- ORDENACIÓN DE LAS TARJETAS ---
+    // Ordenamos el array de tarjetas según el filtro seleccionado
+    tarjetas.sort((a, b) => {
+        // Extraemos los datos. Usamos atributos 'data-' o el texto de la tarjeta
+        const getTitle = (el) => (el.querySelector('.game-title, .list-card-title, .filmo-titulo')?.textContent || '').trim().toLowerCase();
+        const getRating = (el) => {
+            const text = el.getAttribute('data-rating') || el.querySelector('.rating-count')?.textContent || '0';
+            return parseFloat(text.replace(/[^0-9.]/g, '')) || 0;
+        };
+        const getYear = (el) => {
+            const text = el.getAttribute('data-year') || el.querySelector('.list-card-sub')?.textContent || '0';
+            // Extrae los primeros 4 dígitos que encuentre (año)
+            const match = text.match(/\d{4}/);
+            return match ? parseInt(match[0]) : 0;
+        };
+        const getDateAdded = (el) => {
+            // El ID de la tarjeta o un atributo data-added-at. 
+            // Como no tenemos un campo de fecha explícito en las listas de Supabase en el DOM,
+            // usamos el ID como aproximación de orden de añadido (los últimos tienen IDs más altos).
+            // Si tuvieras un data-timestamp, lo usarías aquí.
+            const id = el.getAttribute('data-id') || el.getAttribute('data-media-id') || '0';
+            return parseFloat(id) || 0;
+        };
+
+        let valA, valB;
+
+        switch (ordenSeleccionado) {
+            case 'titulo_asc':
+                valA = getTitle(a); valB = getTitle(b);
+                return valA.localeCompare(valB);
+            case 'titulo_desc':
+                valA = getTitle(a); valB = getTitle(b);
+                return valB.localeCompare(valA);
+            case 'rating_desc':
+                valA = getRating(a); valB = getRating(b);
+                return valB - valA;
+            case 'rating_asc':
+                valA = getRating(a); valB = getRating(b);
+                return valA - valB;
+            case 'año_desc':
+                valA = getYear(a); valB = getYear(b);
+                return valB - valA;
+            case 'año_asc':
+                valA = getYear(a); valB = getYear(b);
+                return valA - valB;
+            case 'fecha_asc': // Más antiguo primero
+                valA = getDateAdded(a); valB = getDateAdded(b);
+                return valA - valB;
+            case 'fecha_desc': // Más reciente primero (Defecto)
+            default:
+                valA = getDateAdded(a); valB = getDateAdded(b);
+                return valB - valA;
+        }
+    });
+
+    // Volvemos a insertar las tarjetas en el grid en el nuevo orden
+    tarjetas.forEach(tarjeta => grid.appendChild(tarjeta));
 };
 
 // ==========================================================================
@@ -14955,7 +15081,7 @@ if (btnSaveProfile) {
 //   FILTRADO VISUAL PARA MIS LISTAS (BÚSQUEDA, ESTADO Y PAGINACIÓN)
 // ==========================================================================
 
-// 1. Vigilante (Observer) para detectar cuando el scroll inyecta 50 tarjetas nuevas
+// Vigilante (Observer) para detectar cuando el scroll inyecta 50 tarjetas nuevas
 const gridFiltrosObserver = new MutationObserver((mutations) => {
     let hayNuevasTarjetas = false;
     mutations.forEach(mutation => {
@@ -14970,7 +15096,7 @@ const gridFiltrosObserver = new MutationObserver((mutations) => {
     }
 });
 
-// 2. Interceptar la carga de la lista para reiniciar caché y activar el vigilante
+// Interceptar la carga de la lista para reiniciar caché y activar el vigilante
 const originalCargarDetalleLista = window.cargarDetalleLista;
 
 window.cargarDetalleLista = async function (nombreLista) {
@@ -14986,19 +15112,29 @@ window.cargarDetalleLista = async function (nombreLista) {
     }
 };
 
-// 3. Escuchar buscador
+// Escuchar buscador
 document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
     window.aplicarFiltrosListaDetalle();
 });
 
-// 4. Escuchar radio buttons de estado
+// Escuchar radio buttons de estado
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
         window.aplicarFiltrosListaDetalle();
     });
 });
 
-// 5. Función principal de filtrado (intacta)
+// Escuchar cambios en el filtro de ordenación
+document.querySelectorAll('input[name="orden-lista"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        // Solo reordenamos si la lista actual tiene tarjetas cargadas
+        if (listaIdActual) {
+            window.aplicarFiltrosListaDetalle();
+        }
+    });
+});
+
+// Función principal de filtrado (intacta)
 window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
     const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
