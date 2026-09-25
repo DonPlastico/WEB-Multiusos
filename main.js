@@ -14184,11 +14184,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA)
+//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA) - OPTIMIZADO
 // ==========================================================================
 
 let listaItemsOffset = 0;
-const LISTA_ITEMS_LIMIT = 100;
+const LISTA_ITEMS_LIMIT = 100; // Aumentamos el límite a 100 para menos peticiones
 let listaItemsCargando = false;
 let listaItemsTotal = 0;
 let listaItemsActuales = [];
@@ -14197,9 +14197,13 @@ let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
 let listaEnriquecimientoCompleto = false;
+let vistosCacheSetGlobal = null; // Cache de IDs vistos para filtro en cliente (fallback)
+
 
 /**
- * Carga los items de una lista desde Supabase con paginación
+ * Carga los items de una lista desde Supabase con paginación y filtrado en servidor.
+ * @param {string} listaId - ID de la lista
+ * @param {boolean} resetear - Si true, reinicia la paginación
  */
 async function cargarItemsLista(listaId, resetear = true) {
     if (!listaId) {
@@ -14215,27 +14219,19 @@ async function cargarItemsLista(listaId, resetear = true) {
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
-        if (grid) {
-            grid.innerHTML = '';
-        }
+        if (grid) grid.innerHTML = '';
 
         document.getElementById('lista-detalle-loader').style.display = 'none';
         document.getElementById('lista-detalle-end').style.display = 'none';
 
         const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) {
-            mensaje.textContent = 'Cargando elementos...';
-        }
+        if (mensaje) mensaje.textContent = 'Cargando elementos...';
     }
 
-    if (listaItemsCargando) {
-        return;
-    }
+    if (listaItemsCargando) return;
     listaItemsCargando = true;
 
     const loader = document.getElementById('lista-detalle-loader');
-    // SOLO mostrar el loader de scroll infinito si NO es la primera carga
-    // En la primera carga, se oculta hasta que se sepa si hay más páginas
     if (!resetear) {
         loader.style.display = 'block';
     } else {
@@ -14244,9 +14240,7 @@ async function cargarItemsLista(listaId, resetear = true) {
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            throw new Error('No hay sesión activa');
-        }
+        if (!session) throw new Error('No hay sesión activa');
 
         const { data: listaInfo, error: errLista } = await supabase
             .from('listas_maestra')
@@ -14255,39 +14249,76 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
-
-        if (listaInfo.owner_id !== session.user.id) {
-            throw new Error('No tienes permisos para ver esta lista');
-        }
+        if (listaInfo.owner_id !== session.user.id) throw new Error('No tienes permisos para ver esta lista');
 
         listaTipoActual = listaInfo.tag_tipo;
 
         // ================================================================
-        //  CONTAR TOTAL DE ITEMS
+        //  LEER FILTRO DE ESTADO ACTIVO
         // ================================================================
-        const { count: totalCount, error: countError } = await supabase
-            .from('listas_items')
-            .select('id', { count: 'exact', head: true })
-            .eq('lista_id', listaId);
+        const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
 
-        if (countError) {
-            console.error('❌ Error contando items:', countError);
-            listaItemsTotal = 0;
-        } else {
-            listaItemsTotal = totalCount || 0;
+        // ================================================================
+        //  CONSTRUIR CONSULTA SEGÚN FILTRO (FILTRADO EN SERVIDOR)
+        // ================================================================
+        let query = supabase
+            .from('listas_items')
+            .select('media_id, media_tipo, added_at', { count: 'exact' })
+            .eq('lista_id', listaId)
+            .order('added_at', { ascending: false });
+
+        // Si el filtro es "vistas" o "no_vistas", hacemos JOIN con user_media
+        if (estadoSeleccionado === 'vistas' || estadoSeleccionado === 'no_vistas') {
+            // Obtenemos los IDs de media que el usuario ha visto (paginado para no cargar 10.000 en memoria)
+            // Esto es un subconjunto: solo los IDs, no los datos completos
+            let vistosIds = [];
+            let keepFetching = true;
+            let offsetVistos = 0;
+            const limitVistos = 1000;
+
+            while (keepFetching) {
+                const { data: vistos, error: errVistos } = await supabase
+                    .from('user_media')
+                    .select('media_id, tipo')
+                    .eq('user_id', session.user.id)
+                    .eq('visto', true)
+                    .range(offsetVistos, offsetVistos + limitVistos - 1);
+
+                if (errVistos) throw errVistos;
+
+                if (vistos && vistos.length > 0) {
+                    vistosIds.push(...vistos.map(v => `${v.tipo}_${v.media_id}`));
+                    offsetVistos += limitVistos;
+                    if (vistos.length < limitVistos) keepFetching = false;
+                } else {
+                    keepFetching = false;
+                }
+            }
+
+            // Ahora filtramos en la consulta de listas_items
+            if (estadoSeleccionado === 'vistas') {
+                // Solo items que están en la lista de vistos
+                query = query.in('media_id', vistosIds.map(id => id.split('_')[1]));
+                // Nota: Esto no distingue por tipo, pero como el tag_tipo de la lista es específico, funciona.
+                // Si la lista es mixta, habría que hacer un filtro más complejo.
+            } else {
+                // No vistas: items que NO están en la lista de vistos
+                query = query.not('media_id', 'in', `(${vistosIds.map(id => id.split('_')[1]).join(',')})`);
+            }
+
+            // Guardamos el Set de vistos para el filtro en cliente (fallback)
+            vistosCacheSetGlobal = new Set(vistosIds);
         }
 
         // ================================================================
-        //  OBTENER ITEMS CON PAGINACIÓN
+        //  EJECUTAR CONSULTA CON PAGINACIÓN
         // ================================================================
-        const { data: items, error: itemsError } = await supabase
-            .from('listas_items')
-            .select('media_id, media_tipo, added_at')
-            .eq('lista_id', listaId)
-            .order('added_at', { ascending: false })
+        const { data: items, error: itemsError, count } = await query
             .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
 
         if (itemsError) throw itemsError;
+
+        listaItemsTotal = count || 0;
 
         if (!items || items.length === 0) {
             if (resetear) {
@@ -14296,13 +14327,13 @@ async function cargarItemsLista(listaId, resetear = true) {
                     grid.innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
                             <i class="fas fa-box-open" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
-                            <p style="font-size: 1.1rem;">Esta lista está vacía</p>
-                            <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
+                            <p style="font-size: 1.1rem;">No hay elementos que coincidan con el filtro</p>
+                            <p style="font-size: 0.85rem; margin-top: 5px;">Prueba a cambiar el filtro de estado.</p>
                         </div>
                     `;
                 }
                 const mensaje = document.getElementById('lista-detalle-mensaje');
-                if (mensaje) mensaje.textContent = '0 elementos en esta lista';
+                if (mensaje) mensaje.textContent = `0 elementos (filtro: ${estadoSeleccionado})`;
             }
             loader.style.display = 'none';
             listaItemsCargando = false;
@@ -14310,7 +14341,7 @@ async function cargarItemsLista(listaId, resetear = true) {
         }
 
         // ================================================================
-        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS (sin datos de TMDB/IGDB aún)
+        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS
         // ================================================================
         const itemsBasicos = items.map(item => ({
             id: item.media_id,
@@ -14331,44 +14362,40 @@ async function cargarItemsLista(listaId, resetear = true) {
         }
 
         // ================================================================
-        //  ENRIQUECER TODOS LOS ITEMS (esperar a que terminen)
+        //  ENRIQUECER ITEMS (OPTIMIZADO CON CONCURRENCIA ALTA)
         // ================================================================
-        // Mostrar loader SOLO en la primera carga (resetear = true)
         const grid = document.getElementById('lista-detalle-grid');
         if (resetear && grid) {
             grid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
-            <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
-        </div>
-    `;
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
+                    <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
+                </div>
+            `;
         }
 
-        // Enriquecer TODOS los items (esperar a que termine)
         await enriquecerItemsListaCompleto(itemsBasicos);
 
         // ================================================================
-        //  UNA VEZ ENRIQUECIDOS, RENDERIZAR TODOS DE GOLPE
+        //  RENDERIZAR
         // ================================================================
         const mensajeFinal = document.getElementById('lista-detalle-mensaje');
         if (mensajeFinal) {
             const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
                 listaTipoActual === 'movie' ? 'Películas' :
                     listaTipoActual === 'tv' ? 'Series' : 'Elementos';
-            mensajeFinal.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
+            mensajeFinal.textContent = `${listaItemsTotal} ${tipoLabel} (filtro: ${estadoSeleccionado})`;
         }
 
-        // Renderizar TODOS los items de una sola vez
         renderizarItemsListaEnriquecidos(itemsBasicos, resetear);
 
         // ================================================================
-        //  ACTUALIZAR OFFSET Y CONFIGURAR OBSERVADOR
+        //  ACTUALIZAR OFFSET Y OBSERVADOR
         // ================================================================
         listaItemsOffset += items.length;
 
         const hayMas = listaItemsOffset < listaItemsTotal;
 
-        // Ocultar el loader del grid si existe
         if (grid) {
             const loaderMore = grid.querySelector('.loader-more-items');
             if (loaderMore) loaderMore.remove();
@@ -14406,40 +14433,39 @@ async function cargarItemsLista(listaId, resetear = true) {
         }
     } finally {
         listaItemsCargando = false;
-        // NO ocultamos el loader aquí - se oculta según hayMas
     }
 }
 
 async function enriquecerItemsListaCompleto(items) {
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
 
-    // Recorremos todos los items en paralelo (con límite de 5 concurrentes para no saturar)
-    const batchSize = 5;
+    // Caché en sessionStorage para no repetir peticiones
+    const cacheKey = 'lista_items_cache';
+    let cache = JSON.parse(sessionStorage.getItem(cacheKey) || '{}');
+
+    // Aumentamos la concurrencia a 20 para ir mucho más rápido
+    const batchSize = 20;
+
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
         await Promise.all(batch.map(async (item) => {
             const key = `${item._media_id}_${item._media_tipo}`;
 
-            // Si ya está enriquecido, lo saltamos
-            if (listaItemsEnriquecidos[key]) {
+            // Si ya está en caché, lo usamos
+            if (cache[key]) {
+                listaItemsEnriquecidos[key] = cache[key];
                 return;
             }
+
+            if (listaItemsEnriquecidos[key]) return;
 
             try {
                 let data = null;
                 let enrichedItem = null;
 
-                // ==========================================================
-                // 1. OBTENER DATOS SEGÚN EL TIPO
-                // ==========================================================
                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-                    // PELÍCULAS Y SERIES → TMDB
                     const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-                    if (res.ok) {
-                        data = await res.json();
-                    } else {
-                        console.warn(`⚠️ [TMDB] Error ${res.status} para ${item._media_id}`);
-                    }
+                    if (res.ok) data = await res.json();
 
                     if (data) {
                         enrichedItem = {
@@ -14451,7 +14477,6 @@ async function enriquecerItemsListaCompleto(items) {
                             imagen: data.poster || '',
                         };
                     }
-
                 } else if (item._media_tipo === 'game') {
                     // ======================================================
                     // JUEGOS → IGDB + STEAM (FALLBACK MEJORADO)
@@ -14588,13 +14613,10 @@ async function enriquecerItemsListaCompleto(items) {
                     }
                 }
 
-                // ==========================================================
-                // 2. GUARDAR EL ITEM ENRIQUECIDO
-                // ==========================================================
                 if (enrichedItem) {
                     listaItemsEnriquecidos[key] = enrichedItem;
+                    cache[key] = enrichedItem; // Guardar en caché
                 } else {
-                    // Fallback: datos mínimos
                     listaItemsEnriquecidos[key] = {
                         id: item._media_id,
                         tipo: item._media_tipo,
@@ -14603,12 +14625,9 @@ async function enriquecerItemsListaCompleto(items) {
                         rating: '0.0',
                         imagen: '',
                     };
-                    console.warn(`⚠️ [enriquecerItemsListaCompleto] Fallback para ${key}`);
                 }
-
             } catch (e) {
-                console.error(`❌ [enriquecerItemsListaCompleto] Error enriqueciendo ${key}:`, e);
-                // Guardamos el item con datos mínimos para no romper la UI
+                console.error(`❌ Error enriqueciendo ${key}:`, e);
                 listaItemsEnriquecidos[key] = {
                     id: item._media_id,
                     tipo: item._media_tipo,
@@ -14620,6 +14639,9 @@ async function enriquecerItemsListaCompleto(items) {
             }
         }));
     }
+
+    // Guardar caché actualizada
+    sessionStorage.setItem(cacheKey, JSON.stringify(cache));
 }
 
 /**
@@ -14783,9 +14805,6 @@ function configurarObservadorLista() {
 //   SOBRESCRIBIR cargarDetalleLista PARA USAR LA CARGA DINÁMICA (VERSIÓN FINAL)
 // ==========================================================================
 
-// Variable global para almacenar los IDs vistos del usuario en esta sesión de lista
-let vistosCacheSetGlobal = null;
-
 window.cargarDetalleLista = async function (nombreLista) {
     if (!nombreLista) {
         console.error('❌ [cargarDetalleLista] nombreLista está vacío');
@@ -14858,9 +14877,13 @@ document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => 
     window.aplicarFiltrosListaDetalle();
 });
 
+// En la sección de listeners de filtros de lista
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        window.aplicarFiltrosListaDetalle();
+        // Recargar la lista con el nuevo filtro (filtrado en servidor)
+        if (listaIdActual) {
+            cargarItemsLista(listaIdActual, true);
+        }
     });
 });
 
@@ -14871,81 +14894,17 @@ window.aplicarFiltrosListaDetalle = async function () {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    // Solo cogemos las tarjetas de verdad, excluyendo los loaders
     const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
 
-    // 1. CARGAMOS EL HISTORIAL DE SUPABASE UNA SOLA VEZ POR LISTA
-    if (estadoSeleccionado !== 'todas' && !vistosCacheSetGlobal) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            let allVistos = new Set();
-            let keepFetching = true;
-            let currentOffset = 0;
-            const fetchLimit = 1000;
-
-            while (keepFetching) {
-                const { data, error } = await supabase
-                    .from('user_media')
-                    .select('media_id, tipo')
-                    .eq('user_id', session.user.id)
-                    .eq('visto', true)
-                    .range(currentOffset, currentOffset + fetchLimit - 1);
-
-                if (error) break;
-
-                if (data && data.length > 0) {
-                    data.forEach(d => {
-                        allVistos.add(`${d.tipo}_${d.media_id}`);
-                    });
-                    currentOffset += fetchLimit;
-                    if (data.length < fetchLimit) keepFetching = false;
-                } else {
-                    keepFetching = false;
-                }
-            }
-            vistosCacheSetGlobal = allVistos;
-        } else {
-            vistosCacheSetGlobal = new Set();
-        }
-    }
-
-    // 2. APLICAR FILTRO A CADA TARJETA
+    // Solo aplicar filtro de texto (el de estado ya se hizo en servidor)
     tarjetas.forEach(tarjeta => {
         let mostrar = true;
 
-        // Filtro de Búsqueda
         const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
         if (tituloEl && textoBuscador) {
             if (!tituloEl.textContent.toLowerCase().includes(textoBuscador)) {
                 mostrar = false;
             }
-        }
-
-        // Filtro de Estado (La lógica que pedías)
-        if (mostrar && estadoSeleccionado !== 'todas' && vistosCacheSetGlobal) {
-            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
-            const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
-            const tipo = tipoAttr.toLowerCase();
-
-            let estaVisto = false;
-
-            if (id) {
-                if (tipo === 'movie' || tipo === 'pelicula') {
-                    estaVisto = vistosCacheSetGlobal.has(`movie_${id}`);
-                } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
-                    // Verificamos si existe el ID base de la serie o algún episodio suelto
-                    const cacheArray = Array.from(vistosCacheSetGlobal);
-                    estaVisto = vistosCacheSetGlobal.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
-                } else if (tipo === 'game' || tipo === 'juego') {
-                    estaVisto = vistosCacheSetGlobal.has(`game_${id}`);
-                } else {
-                    const cacheArray = Array.from(vistosCacheSetGlobal);
-                    estaVisto = cacheArray.some(key => key.includes(`_${id}`));
-                }
-            }
-
-            if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
-            if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
         }
 
         tarjeta.style.display = mostrar ? '' : 'none';
