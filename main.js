@@ -14704,10 +14704,7 @@ async function enriquecerItemsListaCompleto(items) {
 
 function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
-    if (!grid) {
-        console.error('❌ [renderizarItemsListaEnriquecidos] Grid no encontrado');
-        return;
-    }
+    if (!grid) return;
 
     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
 
@@ -14715,7 +14712,6 @@ function renderizarItemsListaEnriquecidos(items, resetear) {
         grid.innerHTML = '';
     }
 
-    // Construir TODAS las tarjetas de una vez
     const fragment = document.createDocumentFragment();
 
     items.forEach((item) => {
@@ -14726,7 +14722,6 @@ function renderizarItemsListaEnriquecidos(items, resetear) {
         if (enriched) {
             card = crearTarjetaConEstilo(estiloGuardado, enriched);
         } else {
-            // Fallback: si por alguna razón no está enriquecido, mostramos placeholder
             card = document.createElement('div');
             card.className = 'list-card-estilo1 list-card-style-1';
             card.style.opacity = '0.5';
@@ -14737,7 +14732,6 @@ function renderizarItemsListaEnriquecidos(items, resetear) {
                 <div class="list-card-image">
                     <div class="no-cover" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-secondary);">
                         <i class="fas ${icono}" style="font-size:3rem;color:var(--text-muted);margin-bottom:6px;"></i>
-                        <span style="font-size:0.7rem;color:var(--text-muted);text-align:center;">Datos no disponibles</span>
                     </div>
                 </div>
                 <div class="list-card-title" style="text-align:center;font-size:0.8rem;color:var(--text-muted);">${item.titulo || 'Sin título'}</div>
@@ -14749,16 +14743,11 @@ function renderizarItemsListaEnriquecidos(items, resetear) {
 
     grid.appendChild(fragment);
     actualizarGridColumns(estiloGuardado);
-}
 
-/**
- * Renderiza los items en el grid con el estilo actual
- */
-function renderizarItemsLista(items, resetear) {
-    // Esta función ya no se usa en el nuevo flujo, pero la mantenemos para no romper nada.
-    // Ahora usamos renderizarItemsListaEnriquecidos()
-    console.warn('⚠️ [renderizarItemsLista] Esta función está obsoleta. Usa renderizarItemsListaEnriquecidos()');
-    renderizarItemsListaEnriquecidos(items, resetear);
+    // --- APLICAR FILTRO AL INSTANTE DESPUÉS DE PINTAR LAS NUEVAS TARJETAS ---
+    setTimeout(() => {
+        window.aplicarFiltrosListaDetalle();
+    }, 50);
 }
 
 /**
@@ -14793,6 +14782,10 @@ function configurarObservadorLista() {
 // ==========================================================================
 //   SOBRESCRIBIR cargarDetalleLista PARA USAR LA CARGA DINÁMICA (VERSIÓN FINAL)
 // ==========================================================================
+
+// Variable global para almacenar los IDs vistos del usuario en esta sesión de lista
+let vistosCacheSetGlobal = null;
+
 window.cargarDetalleLista = async function (nombreLista) {
     if (!nombreLista) {
         console.error('❌ [cargarDetalleLista] nombreLista está vacío');
@@ -14800,19 +14793,13 @@ window.cargarDetalleLista = async function (nombreLista) {
     }
 
     const tituloDecodificado = decodeURIComponent(nombreLista).replace(/_/g, ' ');
-
-    // Actualizar título en el DOM inmediatamente
     const tituloEl = document.getElementById('lista-detalle-nombre');
     if (tituloEl) tituloEl.textContent = tituloDecodificado;
 
     try {
-        // 1. Obtener sesión
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            throw new Error('No hay sesión activa');
-        }
+        if (!session) throw new Error('No hay sesión activa');
 
-        // 2. Buscar la lista por título
         const { data: lista, error } = await supabase
             .from('listas_maestra')
             .select('id, titulo, tag_tipo')
@@ -14820,32 +14807,27 @@ window.cargarDetalleLista = async function (nombreLista) {
             .eq('owner_id', session.user.id)
             .single();
 
-        if (error || !lista) {
-            console.error('❌ [cargarDetalleLista] Lista no encontrada:', error);
-            throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
-        }
+        if (error || !lista) throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
 
-        // 3. Guardar ID para futuras cargas
         listaIdActual = lista.id;
         listaTipoActual = lista.tag_tipo;
 
-        // 4. Cargar los items (con paginación)
+        // Limpiar la caché de Vistos antes de cargar una nueva lista
+        vistosCacheSetGlobal = null;
+
         await cargarItemsLista(lista.id, true);
 
-        // 5. Configurar el filtro de estilo DESPUÉS de que los items se hayan renderizado
         setTimeout(() => {
             configurarFiltroEstiloLista();
         }, 500);
 
-        // Mostrar/Ocultar filtro de estado según el tipo de lista
+        // Control del filtro de ESTADO en la barra lateral
         const estadoContainer = document.getElementById('filtro-estado-lista-container');
         if (estadoContainer) {
-            // Solo mostramos el filtro si la lista es estrictamente de películas o series
             if (lista.tag_tipo === 'movie' || lista.tag_tipo === 'tv') {
                 estadoContainer.style.display = 'block';
             } else {
                 estadoContainer.style.display = 'none';
-                // Forzamos el reset a "Todas" para que no se quede trabado si cambias de lista
                 const radioTodas = document.querySelector('input[name="estado-lista-filtro"][value="todas"]');
                 if (radioTodas) radioTodas.checked = true;
             }
@@ -14853,19 +14835,14 @@ window.cargarDetalleLista = async function (nombreLista) {
 
     } catch (error) {
         console.error('❌ [cargarDetalleLista] ERROR:', error);
-        const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) mensaje.textContent = '❌ ' + error.message;
-
-        // Mostrar error en el grid
         const grid = document.getElementById('lista-detalle-grid');
         if (grid && grid.children.length === 0) {
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
                     <p>Error al cargar la lista</p>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">${error.message}</p>
                     <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-redo"></i> Reintentar
+                        Reintentar
                     </button>
                 </div>
             `;
@@ -14874,63 +14851,103 @@ window.cargarDetalleLista = async function (nombreLista) {
 };
 
 // ==========================================================================
-//   FILTRADO VISUAL PARA MIS LISTAS (BÚSQUEDA Y ESTADO)
+//   FILTRADO VISUAL MANUAL (INTEGRADO EN EL RENDERIZADO)
 // ==========================================================================
 
-// 1. Escuchar cuando el usuario escribe en el buscador
 document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
-    aplicarFiltrosListaDetalle();
+    window.aplicarFiltrosListaDetalle();
 });
 
-// 2. Escuchar cuando el usuario cambia el radio button de estado (Todas, Vistas, No Vistas)
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        aplicarFiltrosListaDetalle();
+        window.aplicarFiltrosListaDetalle();
     });
 });
 
-// 3. Función principal de filtrado visual
-window.aplicarFiltrosListaDetalle = function () {
-    // Obtenemos los valores actuales
+window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
     const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
 
-    // Seleccionamos el grid y todas sus tarjetas hijas directas
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    const tarjetas = grid.children;
+    // Solo cogemos las tarjetas de verdad, excluyendo los loaders
+    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
 
-    Array.from(tarjetas).forEach(tarjeta => {
-        // Ignoramos el loader o el mensaje final si están en el grid
-        if (tarjeta.id === 'lista-detalle-loader' || tarjeta.id === 'lista-detalle-end') return;
+    // 1. CARGAMOS EL HISTORIAL DE SUPABASE UNA SOLA VEZ POR LISTA
+    if (estadoSeleccionado !== 'todas' && !vistosCacheSetGlobal) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            let allVistos = new Set();
+            let keepFetching = true;
+            let currentOffset = 0;
+            const fetchLimit = 1000;
 
+            while (keepFetching) {
+                const { data, error } = await supabase
+                    .from('user_media')
+                    .select('media_id, tipo')
+                    .eq('user_id', session.user.id)
+                    .eq('visto', true)
+                    .range(currentOffset, currentOffset + fetchLimit - 1);
+
+                if (error) break;
+
+                if (data && data.length > 0) {
+                    data.forEach(d => {
+                        allVistos.add(`${d.tipo}_${d.media_id}`);
+                    });
+                    currentOffset += fetchLimit;
+                    if (data.length < fetchLimit) keepFetching = false;
+                } else {
+                    keepFetching = false;
+                }
+            }
+            vistosCacheSetGlobal = allVistos;
+        } else {
+            vistosCacheSetGlobal = new Set();
+        }
+    }
+
+    // 2. APLICAR FILTRO A CADA TARJETA
+    tarjetas.forEach(tarjeta => {
         let mostrar = true;
 
-        // --- A. BÚSQUEDA POR TÍTULO ---
-        // Buscamos la clase del título según el estilo de tarjeta que esté activo
-        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title');
+        // Filtro de Búsqueda
+        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
         if (tituloEl && textoBuscador) {
-            const titulo = tituloEl.textContent.toLowerCase();
-            if (!titulo.includes(textoBuscador)) {
+            if (!tituloEl.textContent.toLowerCase().includes(textoBuscador)) {
                 mostrar = false;
             }
         }
 
-        // --- B. FILTRO DE ESTADO (Vistas / No Vistas) ---
-        if (mostrar && estadoSeleccionado !== 'todas') {
-            // Sabemos que un ítem está visto si existe el botón con la clase '.watched'
-            const estaVisto = tarjeta.querySelector('.btn-card-watched-status.watched') !== null;
+        // Filtro de Estado (La lógica que pedías)
+        if (mostrar && estadoSeleccionado !== 'todas' && vistosCacheSetGlobal) {
+            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
+            const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
+            const tipo = tipoAttr.toLowerCase();
 
-            if (estadoSeleccionado === 'vistas' && !estaVisto) {
-                mostrar = false;
+            let estaVisto = false;
+
+            if (id) {
+                if (tipo === 'movie' || tipo === 'pelicula') {
+                    estaVisto = vistosCacheSetGlobal.has(`movie_${id}`);
+                } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
+                    // Verificamos si existe el ID base de la serie o algún episodio suelto
+                    const cacheArray = Array.from(vistosCacheSetGlobal);
+                    estaVisto = vistosCacheSetGlobal.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
+                } else if (tipo === 'game' || tipo === 'juego') {
+                    estaVisto = vistosCacheSetGlobal.has(`game_${id}`);
+                } else {
+                    const cacheArray = Array.from(vistosCacheSetGlobal);
+                    estaVisto = cacheArray.some(key => key.includes(`_${id}`));
+                }
             }
-            if (estadoSeleccionado === 'no_vistas' && estaVisto) {
-                mostrar = false;
-            }
+
+            if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
+            if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
         }
 
-        // --- APLICAR VISIBILIDAD ---
         tarjeta.style.display = mostrar ? '' : 'none';
     });
 };
