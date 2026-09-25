@@ -14184,11 +14184,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA) - OPTIMIZADO
+//   CARGA DINÁMICA DE ITEMS DE LISTA (VERSIÓN OPTIMIZADA CON RPC)
 // ==========================================================================
 
 let listaItemsOffset = 0;
-const LISTA_ITEMS_LIMIT = 100; // Aumentamos el límite a 100 para menos peticiones
+const LISTA_ITEMS_LIMIT = 100;
 let listaItemsCargando = false;
 let listaItemsTotal = 0;
 let listaItemsActuales = [];
@@ -14196,31 +14196,18 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
-let listaEnriquecimientoCompleto = false;
-let vistosCacheSetGlobal = null; // Cache de IDs vistos para filtro en cliente (fallback)
 
-
-/**
- * Carga los items de una lista desde Supabase con paginación y filtrado en servidor.
- * @param {string} listaId - ID de la lista
- * @param {boolean} resetear - Si true, reinicia la paginación
- */
 async function cargarItemsLista(listaId, resetear = true) {
-    if (!listaId) {
-        console.error('❌ [cargarItemsLista] No se proporcionó ID de lista');
-        return;
-    }
+    if (!listaId) return;
 
     if (resetear) {
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
-        listaEnriquecimientoCompleto = false;
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
         if (grid) grid.innerHTML = '';
-
         document.getElementById('lista-detalle-loader').style.display = 'none';
         document.getElementById('lista-detalle-end').style.display = 'none';
 
@@ -14232,16 +14219,13 @@ async function cargarItemsLista(listaId, resetear = true) {
     listaItemsCargando = true;
 
     const loader = document.getElementById('lista-detalle-loader');
-    if (!resetear) {
-        loader.style.display = 'block';
-    } else {
-        loader.style.display = 'none';
-    }
+    if (!resetear) loader.style.display = 'block';
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('No hay sesión activa');
 
+        // 1. Obtener info de la lista (tipo y owner)
         const { data: listaInfo, error: errLista } = await supabase
             .from('listas_maestra')
             .select('owner_id, tag_tipo')
@@ -14249,76 +14233,27 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
-        if (listaInfo.owner_id !== session.user.id) throw new Error('No tienes permisos para ver esta lista');
-
+        if (listaInfo.owner_id !== session.user.id) throw new Error('Sin permisos');
         listaTipoActual = listaInfo.tag_tipo;
 
-        // ================================================================
-        //  LEER FILTRO DE ESTADO ACTIVO
-        // ================================================================
-        const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
+        // 2. Leer filtro activo
+        const estadoSeleccionado =
+            document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
 
-        // ================================================================
-        //  CONSTRUIR CONSULTA SEGÚN FILTRO (FILTRADO EN SERVIDOR)
-        // ================================================================
-        let query = supabase
-            .from('listas_items')
-            .select('media_id, media_tipo, added_at', { count: 'exact' })
-            .eq('lista_id', listaId)
-            .order('added_at', { ascending: false });
+        // 3. Llamar a la RPC (TODO el filtrado ocurre en el servidor)
+        const { data: items, error: rpcError } = await supabase.rpc('get_items_lista_filtrados', {
+            p_lista_id: listaId,
+            p_user_id: session.user.id,
+            p_estado: estadoSeleccionado,
+            p_media_tipo: listaTipoActual,   // 'movie', 'tv', 'game' o 'mixta'
+            p_limit: LISTA_ITEMS_LIMIT,
+            p_offset: listaItemsOffset
+        });
 
-        // Si el filtro es "vistas" o "no_vistas", hacemos JOIN con user_media
-        if (estadoSeleccionado === 'vistas' || estadoSeleccionado === 'no_vistas') {
-            // Obtenemos los IDs de media que el usuario ha visto (paginado para no cargar 10.000 en memoria)
-            // Esto es un subconjunto: solo los IDs, no los datos completos
-            let vistosIds = [];
-            let keepFetching = true;
-            let offsetVistos = 0;
-            const limitVistos = 1000;
+        if (rpcError) throw rpcError;
 
-            while (keepFetching) {
-                const { data: vistos, error: errVistos } = await supabase
-                    .from('user_media')
-                    .select('media_id, tipo')
-                    .eq('user_id', session.user.id)
-                    .eq('visto', true)
-                    .range(offsetVistos, offsetVistos + limitVistos - 1);
-
-                if (errVistos) throw errVistos;
-
-                if (vistos && vistos.length > 0) {
-                    vistosIds.push(...vistos.map(v => `${v.tipo}_${v.media_id}`));
-                    offsetVistos += limitVistos;
-                    if (vistos.length < limitVistos) keepFetching = false;
-                } else {
-                    keepFetching = false;
-                }
-            }
-
-            // Ahora filtramos en la consulta de listas_items
-            if (estadoSeleccionado === 'vistas') {
-                // Solo items que están en la lista de vistos
-                query = query.in('media_id', vistosIds.map(id => id.split('_')[1]));
-                // Nota: Esto no distingue por tipo, pero como el tag_tipo de la lista es específico, funciona.
-                // Si la lista es mixta, habría que hacer un filtro más complejo.
-            } else {
-                // No vistas: items que NO están en la lista de vistos
-                query = query.not('media_id', 'in', `(${vistosIds.map(id => id.split('_')[1]).join(',')})`);
-            }
-
-            // Guardamos el Set de vistos para el filtro en cliente (fallback)
-            vistosCacheSetGlobal = new Set(vistosIds);
-        }
-
-        // ================================================================
-        //  EJECUTAR CONSULTA CON PAGINACIÓN
-        // ================================================================
-        const { data: items, error: itemsError, count } = await query
-            .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
-
-        if (itemsError) throw itemsError;
-
-        listaItemsTotal = count || 0;
+        // El total viene en cada fila (mismo valor repetido)
+        listaItemsTotal = items && items.length > 0 ? Number(items[0].total_count) : 0;
 
         if (!items || items.length === 0) {
             if (resetear) {
@@ -14328,9 +14263,7 @@ async function cargarItemsLista(listaId, resetear = true) {
                         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
                             <i class="fas fa-box-open" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
                             <p style="font-size: 1.1rem;">No hay elementos que coincidan con el filtro</p>
-                            <p style="font-size: 0.85rem; margin-top: 5px;">Prueba a cambiar el filtro de estado.</p>
-                        </div>
-                    `;
+                        </div>`;
                 }
                 const mensaje = document.getElementById('lista-detalle-mensaje');
                 if (mensaje) mensaje.textContent = `0 elementos (filtro: ${estadoSeleccionado})`;
@@ -14340,9 +14273,7 @@ async function cargarItemsLista(listaId, resetear = true) {
             return;
         }
 
-        // ================================================================
-        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS
-        // ================================================================
+        // 4. Mapear items al formato que espera el resto del código
         const itemsBasicos = items.map(item => ({
             id: item.media_id,
             tipo: item.media_tipo,
@@ -14361,24 +14292,20 @@ async function cargarItemsLista(listaId, resetear = true) {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
         }
 
-        // ================================================================
-        //  ENRIQUECER ITEMS (OPTIMIZADO CON CONCURRENCIA ALTA)
-        // ================================================================
+        // 5. Mostrar loader central en la primera carga
         const grid = document.getElementById('lista-detalle-grid');
         if (resetear && grid) {
             grid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
                     <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
                     <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
-                </div>
-            `;
+                </div>`;
         }
 
+        // 6. Enriquecer (con concurrencia 20 y caché)
         await enriquecerItemsListaCompleto(itemsBasicos);
 
-        // ================================================================
-        //  RENDERIZAR
-        // ================================================================
+        // 7. Renderizar
         const mensajeFinal = document.getElementById('lista-detalle-mensaje');
         if (mensajeFinal) {
             const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
@@ -14389,11 +14316,8 @@ async function cargarItemsLista(listaId, resetear = true) {
 
         renderizarItemsListaEnriquecidos(itemsBasicos, resetear);
 
-        // ================================================================
-        //  ACTUALIZAR OFFSET Y OBSERVADOR
-        // ================================================================
+        // 8. Actualizar offset y observador
         listaItemsOffset += items.length;
-
         const hayMas = listaItemsOffset < listaItemsTotal;
 
         if (grid) {
@@ -14418,19 +14342,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         console.error('❌ [cargarItemsLista] Error:', error);
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) mensaje.textContent = 'Error: ' + error.message;
-
-        const grid = document.getElementById('lista-detalle-grid');
-        if (grid && grid.children.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                    <p>No se pudieron cargar los elementos</p>
-                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
-                        <i class="fas fa-redo"></i> Reintentar
-                    </button>
-                </div>
-            `;
-        }
     } finally {
         listaItemsCargando = false;
     }
@@ -14880,34 +14791,28 @@ document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => 
 // En la sección de listeners de filtros de lista
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        // Recargar la lista con el nuevo filtro (filtrado en servidor)
+        // Recargar la lista con el nuevo filtro (filtrado en servidor vía RPC)
         if (listaIdActual) {
             cargarItemsLista(listaIdActual, true);
         }
     });
 });
 
-window.aplicarFiltrosListaDetalle = async function () {
+window.aplicarFiltrosListaDetalle = function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
-    const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
-
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
+    const tarjetas = Array.from(grid.children)
+        .filter(t => t.id !== 'lista-detalle-loader' && t.id !== 'lista-detalle-end');
 
-    // Solo aplicar filtro de texto (el de estado ya se hizo en servidor)
     tarjetas.forEach(tarjeta => {
-        let mostrar = true;
-
-        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
+        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .film-titulo');
         if (tituloEl && textoBuscador) {
-            if (!tituloEl.textContent.toLowerCase().includes(textoBuscador)) {
-                mostrar = false;
-            }
+            tarjeta.style.display = tituloEl.textContent.toLowerCase().includes(textoBuscador) ? '' : 'none';
+        } else {
+            tarjeta.style.display = '';
         }
-
-        tarjeta.style.display = mostrar ? '' : 'none';
     });
 };
 
