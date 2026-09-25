@@ -170,6 +170,11 @@ const _originalCambiarVista = window.cambiarVista || cambiarVista;
 // 2. Sobrescribir cambiarVista para incluir actualización de meta tags y CERRAR MODALES
 window.cambiarVista = async function (target, guardarEnHistorial = true, usernameUrl = null) {
 
+    // Resetear caché del botón aleatorio al salir de la lista
+    if (typeof resetearCacheAleatorio === 'function') {
+        resetearCacheAleatorio();
+    }
+
     // CERRAR MODALES ESPECÍFICOS POR ID
     const mediaModal = document.getElementById('media-details-modal');
     if (mediaModal) mediaModal.classList.remove('show');
@@ -14212,6 +14217,9 @@ async function cargarItemsLista(listaId, resetear = true) {
     }
 
     if (resetear) {
+        // Resetear caché del botón aleatorio al recargar la lista
+        resetearCacheAleatorio();
+
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
@@ -14794,6 +14802,8 @@ window.cargarDetalleLista = async function (nombreLista) {
             }
         }
 
+        configurarBotonAleatorio();
+
     } catch (error) {
         console.error('❌ [cargarDetalleLista] ERROR:', error);
         const grid = document.getElementById('lista-detalle-grid');
@@ -15057,6 +15067,7 @@ const gridFiltrosObserver = new MutationObserver((mutations) => {
 
 // 2. Interceptar la carga de la lista para reiniciar caché y activar el vigilante
 const originalCargarDetalleLista = window.cargarDetalleLista;
+
 window.cargarDetalleLista = async function (nombreLista) {
     window.vistosCacheSet = null; // Reiniciar caché para tener datos frescos
 
@@ -15172,7 +15183,106 @@ window.aplicarFiltrosListaDetalle = async function () {
     });
 };
 
+// ==========================================================================
+//   BOTÓN ALEATORIO PARA LISTA DETALLE
+// ==========================================================================
 
+// Cache de IDs ya mostrados en esta sesión de lista
+// Se resetea al salir de la lista (al cambiar de vista o al recargar la lista)
+let randomPickCache = new Set();
+
+// Flag para saber si el botón ya tiene listener (evitar duplicados)
+let randomPickBtnListo = false;
+
+/**
+ * Configura el botón aleatorio (una sola vez)
+ */
+function configurarBotonAleatorio() {
+    const btn = document.getElementById('btn-random-pick');
+    if (!btn || randomPickBtnListo) return;
+
+    btn.addEventListener('click', async () => {
+        // Evitar doble click mientras carga
+        if (btn.disabled) return;
+
+        // 1. Comprobar que estamos en una lista
+        if (!listaIdActual) {
+            showToast('error', 'Sin lista', 'No hay ninguna lista activa.');
+            return;
+        }
+
+        // 2. Feedback visual (icono girando)
+        btn.disabled = true;
+        btn.classList.add('loading');
+
+        try {
+            // 3. Leer el filtro de estado activo
+            const estadoSeleccionado =
+                document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
+
+            // 4. Pedir a Supabase TODOS los IDs que cumplen el filtro (sin paginar, solo IDs)
+            //    Usamos la misma RPC pero con un límite altísimo para traer todos los IDs.
+            const { data: todosLosItems, error } = await supabase.rpc('get_items_lista_filtrados', {
+                p_lista_id: listaIdActual,
+                p_user_id: (await supabase.auth.getSession()).data.session?.user?.id,
+                p_estado: estadoSeleccionado,
+                p_media_tipo: listaTipoActual,
+                p_limit: 10000,   // <-- límite alto, solo queremos contar
+                p_offset: 0
+            });
+
+            if (error) throw error;
+
+            if (!todosLosItems || todosLosItems.length === 0) {
+                showToast('warning', 'Lista vacía', 'No hay títulos con el filtro actual.');
+                return;
+            }
+
+            // 5. Filtrar los que YA se han mostrado antes en esta sesión
+            const idsDisponibles = todosLosItems
+                .map(item => item.media_id)
+                .filter(id => !randomPickCache.has(id));
+
+            // 6. Si ya se han mostrado TODOS los de la lista, resetear la caché automáticamente
+            if (idsDisponibles.length === 0) {
+                randomPickCache.clear();
+                showToast('info', 'Nueva vuelta', 'Has visto todos los títulos. Reiniciando...');
+                // Reintentamos con todos los IDs
+                const idAleatorio = todosLosItems[Math.floor(Math.random() * todosLosItems.length)].media_id;
+                await abrirModalMedia(idAleatorio, listaTipoActual, true);
+                randomPickCache.add(idAleatorio);
+                return;
+            }
+
+            // 7. Elegir un ID aleatorio de los disponibles
+            const idAleatorio = idsDisponibles[Math.floor(Math.random() * idsDisponibles.length)];
+
+            // 8. Marcarlo como ya mostrado ANTES de abrir el modal
+            randomPickCache.add(idAleatorio);
+
+            // 9. Abrir el modal correspondiente
+            await abrirModalMedia(idAleatorio, listaTipoActual, true);
+
+        } catch (err) {
+            console.error('❌ Error en botón aleatorio:', err);
+            showToast('error', 'Error', 'No se pudo seleccionar un título aleatorio.');
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+        }
+    });
+
+    randomPickBtnListo = true;
+}
+
+/**
+ * Resetea la caché del botón aleatorio.
+ * Se llama al salir de la lista o al recargarla.
+ */
+function resetearCacheAleatorio() {
+    randomPickCache.clear();
+    console.log('🎲 Caché del botón aleatorio reseteada');
+}
 
 
 
