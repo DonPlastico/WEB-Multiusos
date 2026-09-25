@@ -14201,6 +14201,7 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
+let vistosCacheSetGlobal = null; // Cache de IDs vistos para filtro en cliente (fallback)
 
 /**
  * Carga los items de una lista desde Supabase con paginación y filtrado en servidor.
