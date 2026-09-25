@@ -14201,8 +14201,6 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
-let listaEnriquecimientoCompleto = false;
-let vistosCacheSetGlobal = null; // Cache de IDs vistos para filtro en cliente (fallback)
 
 
 /**
@@ -14223,7 +14221,6 @@ async function cargarItemsLista(listaId, resetear = true) {
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
-        listaEnriquecimientoCompleto = false;
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
@@ -14693,9 +14690,6 @@ window.cargarDetalleLista = async function (nombreLista) {
 
         listaIdActual = lista.id;
         listaTipoActual = lista.tag_tipo;
-
-        // Limpiar la caché de Vistos antes de cargar una nueva lista
-        vistosCacheSetGlobal = null;
 
         await cargarItemsLista(lista.id, true);
 
