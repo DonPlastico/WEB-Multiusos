@@ -14669,6 +14669,8 @@ function configurarObservadorLista() {
 window.cargarDetalleLista = async function (nombreLista) {
     if (!nombreLista) {
         console.error('❌ [cargarDetalleLista] nombreLista está vacío');
+        // Si no hay nombre de lista, volvemos a Mis Listas
+        cambiarVista('mis-listas', true);
         return;
     }
 
@@ -14687,7 +14689,13 @@ window.cargarDetalleLista = async function (nombreLista) {
             .eq('owner_id', session.user.id)
             .single();
 
-        if (error || !lista) throw new Error(`Lista "${tituloDecodificado}" no encontrada`);
+        // Si la lista no existe o hay error, volvemos a Mis Listas silenciosamente
+        if (error || !lista) {
+            console.warn(`⚠️ Lista "${tituloDecodificado}" no encontrada. Volviendo a Mis Listas.`);
+            showToast('warning', 'Lista no encontrada', `La lista "${tituloDecodificado}" no existe o no te pertenece.`);
+            cambiarVista('mis-listas', true);
+            return;
+        }
 
         listaIdActual = lista.id;
         listaTipoActual = lista.tag_tipo;
@@ -14717,18 +14725,8 @@ window.cargarDetalleLista = async function (nombreLista) {
 
     } catch (error) {
         console.error('❌ [cargarDetalleLista] ERROR:', error);
-        const grid = document.getElementById('lista-detalle-grid');
-        if (grid && grid.children.length === 0) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
-                    <p>Error al cargar la lista</p>
-                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer;">
-                        Reintentar
-                    </button>
-                </div>
-            `;
-        }
+        showToast('error', 'Error', error.message || 'No se pudo cargar la lista.');
+        cambiarVista('mis-listas', true);
     }
 };
 
