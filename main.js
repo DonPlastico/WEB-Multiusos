@@ -15118,29 +15118,52 @@ if (btnSaveProfile) {
 }
 
 // ==========================================================================
-//   FILTRADO PARA MIS LISTAS (BÚSQUEDA Y ESTADO CON SUPABASE)
+//   FILTRADO VISUAL PARA MIS LISTAS (BÚSQUEDA, ESTADO Y PAGINACIÓN)
 // ==========================================================================
 
-// Limpiar la caché de vistos cada vez que se carga una lista nueva
-const originalCargarDetalleLista = window.cargarDetalleLista;
-window.cargarDetalleLista = async function (nombreLista) {
-    window.vistosCacheSet = null; // Reiniciamos la caché para tener datos frescos
-    await originalCargarDetalleLista(nombreLista);
-};
-
-// 1. Escuchar buscador
-document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
-    aplicarFiltrosListaDetalle();
+// 1. Vigilante (Observer) para detectar cuando el scroll inyecta 50 tarjetas nuevas
+const gridFiltrosObserver = new MutationObserver((mutations) => {
+    let hayNuevasTarjetas = false;
+    mutations.forEach(mutation => {
+        // Solo nos interesa si se añaden nodos hijos (nuevas tarjetas)
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            hayNuevasTarjetas = true;
+        }
+    });
+    // Si la paginación inyectó tarjetas, re-aplicamos el filtro al vuelo
+    if (hayNuevasTarjetas) {
+        window.aplicarFiltrosListaDetalle();
+    }
 });
 
-// 2. Escuchar radio buttons de estado
+// 2. Interceptar la carga de la lista para reiniciar caché y activar el vigilante
+const originalCargarDetalleLista = window.cargarDetalleLista;
+window.cargarDetalleLista = async function (nombreLista) {
+    window.vistosCacheSet = null; // Reiniciar caché para tener datos frescos
+
+    await originalCargarDetalleLista(nombreLista);
+
+    // Enganchamos el vigilante al grid de las tarjetas
+    const grid = document.getElementById('lista-detalle-grid');
+    if (grid) {
+        gridFiltrosObserver.disconnect(); // Desenganchar de listas anteriores
+        gridFiltrosObserver.observe(grid, { childList: true }); // Vigilar hijos nuevos
+    }
+};
+
+// 3. Escuchar buscador
+document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
+    window.aplicarFiltrosListaDetalle();
+});
+
+// 4. Escuchar radio buttons de estado
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        aplicarFiltrosListaDetalle();
+        window.aplicarFiltrosListaDetalle();
     });
 });
 
-// 3. Función principal de filtrado
+// 5. Función principal de filtrado (intacta)
 window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
     const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
@@ -15174,7 +15197,6 @@ window.aplicarFiltrosListaDetalle = async function () {
 
                 if (data && data.length > 0) {
                     data.forEach(d => {
-                        // Guardamos una clave compuesta segura (ej: "movie_123", "tv_episode_32726_T8_E20")
                         allVistos.add(`${d.tipo}_${d.media_id}`);
                     });
                     currentOffset += fetchLimit;
@@ -15203,7 +15225,6 @@ window.aplicarFiltrosListaDetalle = async function () {
 
         // B. Filtro de Estado
         if (mostrar && estadoSeleccionado !== 'todas' && window.vistosCacheSet) {
-            // Extraer ID y Tipo de la tarjeta (Cubre todos tus estilos de lista)
             const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
             const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
             const tipo = tipoAttr.toLowerCase();
@@ -15214,19 +15235,16 @@ window.aplicarFiltrosListaDetalle = async function () {
                 if (tipo === 'movie' || tipo === 'pelicula') {
                     estaVisto = window.vistosCacheSet.has(`movie_${id}`);
                 } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
-                    // Para series, verificamos si vio la serie global o si ha visto algún episodio de ella
                     const cacheArray = Array.from(window.vistosCacheSet);
                     estaVisto = window.vistosCacheSet.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
                 } else if (tipo === 'game' || tipo === 'juego') {
                     estaVisto = window.vistosCacheSet.has(`game_${id}`);
                 } else {
-                    // Fallback genérico por si no trae tipo claro
                     const cacheArray = Array.from(window.vistosCacheSet);
                     estaVisto = cacheArray.some(key => key.includes(`_${id}`));
                 }
             }
 
-            // Lógica de visualización final
             if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
             if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
         }
