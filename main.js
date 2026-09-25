@@ -12317,6 +12317,25 @@ async function inicializarMisListas() {
     listasCache.siguiendo = null;
 
     await cargarListas(listasTabActual);
+
+    // ==========================================================================
+    //   LISTENERS: FILTROS DE LISTA DETALLE (BUSCADOR Y ESTADO)
+    // ==========================================================================
+    const buscadorLista = document.getElementById('filtro-buscar-lista');
+    if (buscadorLista) {
+        buscadorLista.addEventListener('input', () => {
+            // Llama aquí a la función que pinta las tarjetas de tu lista
+            // Ej: renderizarGridListaDetalle(); 
+        });
+    }
+
+    const radiosEstadoLista = document.querySelectorAll('input[name="estado-lista-filtro"]');
+    radiosEstadoLista.forEach(radio => {
+        radio.addEventListener('change', () => {
+            // Llama aquí a la función que pinta las tarjetas de tu lista
+            // Ej: renderizarGridListaDetalle(); 
+        });
+    });
 }
 
 // ==========================================================================
@@ -14818,6 +14837,20 @@ window.cargarDetalleLista = async function (nombreLista) {
             configurarFiltroEstiloLista();
         }, 500);
 
+        // Mostrar/Ocultar filtro de estado según el tipo de lista
+        const estadoContainer = document.getElementById('filtro-estado-lista-container');
+        if (estadoContainer) {
+            // Solo mostramos el filtro si la lista es estrictamente de películas o series
+            if (lista.tag_tipo === 'movie' || lista.tag_tipo === 'tv') {
+                estadoContainer.style.display = 'block';
+            } else {
+                estadoContainer.style.display = 'none';
+                // Forzamos el reset a "Todas" para que no se quede trabado si cambias de lista
+                const radioTodas = document.querySelector('input[name="estado-lista-filtro"][value="todas"]');
+                if (radioTodas) radioTodas.checked = true;
+            }
+        }
+
     } catch (error) {
         console.error('❌ [cargarDetalleLista] ERROR:', error);
         const mensaje = document.getElementById('lista-detalle-mensaje');
@@ -14838,6 +14871,68 @@ window.cargarDetalleLista = async function (nombreLista) {
             `;
         }
     }
+};
+
+// ==========================================================================
+//   FILTRADO VISUAL PARA MIS LISTAS (BÚSQUEDA Y ESTADO)
+// ==========================================================================
+
+// 1. Escuchar cuando el usuario escribe en el buscador
+document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
+    aplicarFiltrosListaDetalle();
+});
+
+// 2. Escuchar cuando el usuario cambia el radio button de estado (Todas, Vistas, No Vistas)
+document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        aplicarFiltrosListaDetalle();
+    });
+});
+
+// 3. Función principal de filtrado visual
+window.aplicarFiltrosListaDetalle = function () {
+    // Obtenemos los valores actuales
+    const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
+    const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
+
+    // Seleccionamos el grid y todas sus tarjetas hijas directas
+    const grid = document.getElementById('lista-detalle-grid');
+    if (!grid) return;
+
+    const tarjetas = grid.children;
+
+    Array.from(tarjetas).forEach(tarjeta => {
+        // Ignoramos el loader o el mensaje final si están en el grid
+        if (tarjeta.id === 'lista-detalle-loader' || tarjeta.id === 'lista-detalle-end') return;
+
+        let mostrar = true;
+
+        // --- A. BÚSQUEDA POR TÍTULO ---
+        // Buscamos la clase del título según el estilo de tarjeta que esté activo
+        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title');
+        if (tituloEl && textoBuscador) {
+            const titulo = tituloEl.textContent.toLowerCase();
+            if (!titulo.includes(textoBuscador)) {
+                mostrar = false;
+            }
+        }
+
+        // --- B. FILTRO DE ESTADO (Vistas / No Vistas) ---
+        if (mostrar && estadoSeleccionado !== 'todas') {
+            // Sabemos que un ítem está visto si existe el botón con la clase '.watched'
+            const estaVisto = tarjeta.querySelector('.btn-card-watched-status.watched') !== null;
+
+            if (estadoSeleccionado === 'vistas' && !estaVisto) {
+                mostrar = false;
+            }
+            if (estadoSeleccionado === 'no_vistas' && estaVisto) {
+                mostrar = false;
+            }
+        }
+
+        // --- APLICAR VISIBILIDAD ---
+        tarjeta.style.display = mostrar ? '' : 'none';
+    });
 };
 
 // ==========================================================================
