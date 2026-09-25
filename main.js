@@ -14184,11 +14184,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================================================
-//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN ULTRA-RÁPIDA CON FILTRO EN BD)
+//   CARGA DINÁMICA DE ITEMS DE LISTA (PAGINACIÓN INFINITA)
 // ==========================================================================
 
 let listaItemsOffset = 0;
-const LISTA_ITEMS_LIMIT = 50;
+const LISTA_ITEMS_LIMIT = 100;
 let listaItemsCargando = false;
 let listaItemsTotal = 0;
 let listaItemsActuales = [];
@@ -14196,38 +14196,57 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
+let listaEnriquecimientoCompleto = false;
 
 /**
- * Carga los items de una lista desde Supabase aplicando el filtro de Visto/No Visto directamente en la BBDD
+ * Carga los items de una lista desde Supabase con paginación
  */
 async function cargarItemsLista(listaId, resetear = true) {
-    if (!listaId) return;
+    if (!listaId) {
+        console.error('❌ [cargarItemsLista] No se proporcionó ID de lista');
+        return;
+    }
 
     if (resetear) {
         listaItemsOffset = 0;
         listaItemsActuales = [];
         listaItemsEnriquecidos = {};
+        listaEnriquecimientoCompleto = false;
         listaIdActual = listaId;
 
         const grid = document.getElementById('lista-detalle-grid');
-        if (grid) grid.innerHTML = '';
+        if (grid) {
+            grid.innerHTML = '';
+        }
 
         document.getElementById('lista-detalle-loader').style.display = 'none';
         document.getElementById('lista-detalle-end').style.display = 'none';
 
         const mensaje = document.getElementById('lista-detalle-mensaje');
-        if (mensaje) mensaje.textContent = 'Buscando elementos...';
+        if (mensaje) {
+            mensaje.textContent = 'Cargando elementos...';
+        }
     }
 
-    if (listaItemsCargando) return;
+    if (listaItemsCargando) {
+        return;
+    }
     listaItemsCargando = true;
 
     const loader = document.getElementById('lista-detalle-loader');
-    if (!resetear) loader.style.display = 'block';
+    // SOLO mostrar el loader de scroll infinito si NO es la primera carga
+    // En la primera carga, se oculta hasta que se sepa si hay más páginas
+    if (!resetear) {
+        loader.style.display = 'block';
+    } else {
+        loader.style.display = 'none';
+    }
 
     try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session) throw new Error('No hay sesión activa');
+        if (!session) {
+            throw new Error('No hay sesión activa');
+        }
 
         const { data: listaInfo, error: errLista } = await supabase
             .from('listas_maestra')
@@ -14236,88 +14255,63 @@ async function cargarItemsLista(listaId, resetear = true) {
             .single();
 
         if (errLista) throw errLista;
-        listaTipoActual = listaInfo.tag_tipo;
 
-        // 1. LEER EL ESTADO ACTUAL DEL FILTRO (Todas, Vistas, No Vistas)
-        const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
-
-        // 2. PREPARAR LA QUERY BASE
-        let query = supabase
-            .from('listas_items')
-            .select('media_id, media_tipo, added_at', { count: 'exact' })
-            .eq('lista_id', listaId);
-
-        // 3. SI FILTRAMOS POR VISTAS / NO VISTAS, OBTENEMOS EL HISTORIAL DEL USUARIO PRIMERO
-        if (estadoSeleccionado !== 'todas') {
-            const { data: miHistorial } = await supabase
-                .from('user_media')
-                .select('media_id, tipo')
-                .eq('user_id', session.user.id)
-                .eq('visto', true);
-
-            // Creamos un Set con los IDs que el usuario ha visto
-            const idsVistosSet = new Set(miHistorial ? miHistorial.map(h => String(h.media_id)) : []);
-
-            // Primero necesitamos saber todos los media_id de esta lista para cruzarlos de forma ultra rápida
-            const { data: todosLosItemsDeLaLista } = await supabase
-                .from('listas_items')
-                .select('media_id')
-                .eq('lista_id', listaId);
-
-            if (!todosLosItemsDeLaLista || todosLosItemsDeLaLista.length === 0) {
-                mostrarGridVacio('Esta lista está vacía');
-                return;
-            }
-
-            // Filtramos en memoria de forma instantánea qué IDs cumplen la condición de vistas/no vistas
-            const idsFiltrados = todosLosItemsDeLaLista
-                .map(i => String(i.media_id))
-                .filter(mediaId => {
-                    const estaVisto = idsVistosSet.has(mediaId);
-                    return estadoSeleccionado === 'vistas' ? estaVisto : !estaVisto;
-                });
-
-            listaItemsTotal = idsFiltrados.length;
-
-            if (idsFiltrados.length === 0) {
-                mostrarGridVacio(estadoSeleccionado === 'vistas' ? 'No hay elementos marcados como vistos' : 'No hay elementos pendientes de ver');
-                return;
-            }
-
-            // Aplicamos el filtro .in() con los IDs exactos que sí deben mostrarse
-            const idsPagina = idsFiltrados.slice(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT);
-
-            if (idsPagina.length === 0) {
-                loader.style.display = 'none';
-                document.getElementById('lista-detalle-end').style.display = 'block';
-                listaItemsCargando = false;
-                return;
-            }
-
-            query = query.in('media_id', idsPagina);
-        } else {
-            // Si está en "Todas", contamos e iteramos normalmente con paginación
-            const { count: totalCount } = await supabase
-                .from('listas_items')
-                .select('id', { count: 'exact', head: true })
-                .eq('lista_id', listaId);
-
-            listaItemsTotal = totalCount || 0;
-
-            query = query.order('added_at', { ascending: false })
-                .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
+        if (listaInfo.owner_id !== session.user.id) {
+            throw new Error('No tienes permisos para ver esta lista');
         }
 
-        const { data: items, error: itemsError } = await query;
+        listaTipoActual = listaInfo.tag_tipo;
+
+        // ================================================================
+        //  CONTAR TOTAL DE ITEMS
+        // ================================================================
+        const { count: totalCount, error: countError } = await supabase
+            .from('listas_items')
+            .select('id', { count: 'exact', head: true })
+            .eq('lista_id', listaId);
+
+        if (countError) {
+            console.error('❌ Error contando items:', countError);
+            listaItemsTotal = 0;
+        } else {
+            listaItemsTotal = totalCount || 0;
+        }
+
+        // ================================================================
+        //  OBTENER ITEMS CON PAGINACIÓN
+        // ================================================================
+        const { data: items, error: itemsError } = await supabase
+            .from('listas_items')
+            .select('media_id, media_tipo, added_at')
+            .eq('lista_id', listaId)
+            .order('added_at', { ascending: false })
+            .range(listaItemsOffset, listaItemsOffset + LISTA_ITEMS_LIMIT - 1);
+
         if (itemsError) throw itemsError;
 
         if (!items || items.length === 0) {
-            if (resetear) mostrarGridVacio('No hay elementos en esta sección');
+            if (resetear) {
+                const grid = document.getElementById('lista-detalle-grid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                            <i class="fas fa-box-open" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.3;"></i>
+                            <p style="font-size: 1.1rem;">Esta lista está vacía</p>
+                            <p style="font-size: 0.85rem; margin-top: 5px;">Añade contenido desde las tarjetas de juegos, películas o series.</p>
+                        </div>
+                    `;
+                }
+                const mensaje = document.getElementById('lista-detalle-mensaje');
+                if (mensaje) mensaje.textContent = '0 elementos en esta lista';
+            }
             loader.style.display = 'none';
             listaItemsCargando = false;
             return;
         }
 
+        // ================================================================
+        //  CONSTRUIR ARRAY DE ITEMS BÁSICOS (sin datos de TMDB/IGDB aún)
+        // ================================================================
         const itemsBasicos = items.map(item => ({
             id: item.media_id,
             tipo: item.media_tipo,
@@ -14330,39 +14324,55 @@ async function cargarItemsLista(listaId, resetear = true) {
             _media_tipo: item.media_tipo
         }));
 
-        const grid = document.getElementById('lista-detalle-grid');
-        if (resetear && grid) {
-            grid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
-                    <p>Cargando ${itemsBasicos.length} elementos...</p>
-                </div>
-            `;
-        }
-
-        // Enriquecer con TMDB/IGDB
-        await enriquecerItemsListaCompleto(itemsBasicos);
-
         if (resetear) {
             listaItemsActuales = itemsBasicos;
         } else {
             listaItemsActuales = [...listaItemsActuales, ...itemsBasicos];
         }
 
+        // ================================================================
+        //  ENRIQUECER TODOS LOS ITEMS (esperar a que terminen)
+        // ================================================================
+        // Mostrar loader SOLO en la primera carga (resetear = true)
+        const grid = document.getElementById('lista-detalle-grid');
+        if (resetear && grid) {
+            grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
+            <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; display: block; margin-bottom: 15px; color: var(--primary);"></i>
+            <p>Cargando datos de ${itemsBasicos.length} elementos...</p>
+        </div>
+    `;
+        }
+
+        // Enriquecer TODOS los items (esperar a que termine)
+        await enriquecerItemsListaCompleto(itemsBasicos);
+
+        // ================================================================
+        //  UNA VEZ ENRIQUECIDOS, RENDERIZAR TODOS DE GOLPE
+        // ================================================================
         const mensajeFinal = document.getElementById('lista-detalle-mensaje');
         if (mensajeFinal) {
-            mensajeFinal.textContent = `${listaItemsTotal} elementos encontrados`;
+            const tipoLabel = listaTipoActual === 'game' ? 'Juegos' :
+                listaTipoActual === 'movie' ? 'Películas' :
+                    listaTipoActual === 'tv' ? 'Series' : 'Elementos';
+            mensajeFinal.textContent = `${listaItemsTotal} ${tipoLabel} en esta lista`;
         }
 
+        // Renderizar TODOS los items de una sola vez
         renderizarItemsListaEnriquecidos(itemsBasicos, resetear);
 
-        if (estadoSeleccionado === 'todas') {
-            listaItemsOffset += items.length;
-        } else {
-            listaItemsOffset += items.length; // En modo filtrado por BD avanzamos el offset de la lista filtrada
-        }
+        // ================================================================
+        //  ACTUALIZAR OFFSET Y CONFIGURAR OBSERVADOR
+        // ================================================================
+        listaItemsOffset += items.length;
 
         const hayMas = listaItemsOffset < listaItemsTotal;
+
+        // Ocultar el loader del grid si existe
+        if (grid) {
+            const loaderMore = grid.querySelector('.loader-more-items');
+            if (loaderMore) loaderMore.remove();
+        }
 
         if (hayMas) {
             loader.style.display = 'block';
@@ -14381,28 +14391,23 @@ async function cargarItemsLista(listaId, resetear = true) {
         console.error('❌ [cargarItemsLista] Error:', error);
         const mensaje = document.getElementById('lista-detalle-mensaje');
         if (mensaje) mensaje.textContent = 'Error: ' + error.message;
+
+        const grid = document.getElementById('lista-detalle-grid');
+        if (grid && grid.children.length === 0) {
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--error);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; display: block; margin-bottom: 15px;"></i>
+                    <p>No se pudieron cargar los elementos</p>
+                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 30px; background: var(--primary); border: none; color: white; border-radius: 8px; cursor: pointer; font-family: var(--font-cyber);">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
     } finally {
         listaItemsCargando = false;
+        // NO ocultamos el loader aquí - se oculta según hayMas
     }
-}
-
-// Función auxiliar para vaciar el grid de forma limpia
-function mostrarGridVacio(texto) {
-    const grid = document.getElementById('lista-detalle-grid');
-    if (grid) {
-        grid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-muted);">
-                <i class="fas fa-filter-circle-xmark" style="font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.4;"></i>
-                <p style="font-size: 1.1rem;">${texto}</p>
-            </div>
-        `;
-    }
-    const mensaje = document.getElementById('lista-detalle-mensaje');
-    if (mensaje) mensaje.textContent = '0 elementos';
-
-    document.getElementById('lista-detalle-loader').style.display = 'none';
-    document.getElementById('lista-detalle-end').style.display = 'none';
-    listaItemsCargando = false;
 }
 
 async function enriquecerItemsListaCompleto(items) {
@@ -14846,31 +14851,16 @@ window.cargarDetalleLista = async function (nombreLista) {
 };
 
 // ==========================================================================
-//   EVENTOS DEL FILTRO LATERAL
+//   FILTRADO VISUAL MANUAL (INTEGRADO EN EL RENDERIZADO)
 // ==========================================================================
 
-// Búsqueda por texto (como la búsqueda de texto requiere el título en español enriquecido por TMDB,
-// hacemos un filtrado visual local para que sea instantáneo sin gastar peticiones a Supabase)
-document.getElementById('filtro-buscar-lista')?.addEventListener('input', (e) => {
-    const textoBuscador = e.target.value.toLowerCase().trim();
-    const tarjetas = document.querySelectorAll('#lista-detalle-grid > div:not([id])');
-
-    tarjetas.forEach(tarjeta => {
-        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
-        if (tituloEl) {
-            const titulo = tituloEl.textContent.toLowerCase();
-            tarjeta.style.display = titulo.includes(textoBuscador) ? '' : 'none';
-        }
-    });
+document.getElementById('filtro-buscar-lista')?.addEventListener('input', () => {
+    window.aplicarFiltrosListaDetalle();
 });
 
-// Esto requiere una nueva petición a la base de datos, así que disparamos cargarItemsLista
 document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => {
     radio.addEventListener('change', () => {
-        if (listaIdActual) {
-            // Esto reiniciará la paginación y le pedirá a Supabase solo las vistas/no vistas al instante
-            cargarItemsLista(listaIdActual, true);
-        }
+        window.aplicarFiltrosListaDetalle();
     });
 });
 
