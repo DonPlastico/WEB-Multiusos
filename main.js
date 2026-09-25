@@ -15220,14 +15220,19 @@ function configurarBotonAleatorio() {
             const estadoSeleccionado =
                 document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
 
-            // 4. Pedir a Supabase TODOS los IDs que cumplen el filtro (sin paginar, solo IDs)
-            //    Usamos la misma RPC pero con un límite altísimo para traer todos los IDs.
+            const session = (await supabase.auth.getSession()).data.session;
+            if (!session) {
+                showToast('error', 'Sin sesión', 'Inicia sesión para usar esta función.');
+                return;
+            }
+
+            // 4. Pedir a Supabase TODOS los IDs que cumplen el filtro
             const { data: todosLosItems, error } = await supabase.rpc('get_items_lista_filtrados', {
                 p_lista_id: listaIdActual,
-                p_user_id: (await supabase.auth.getSession()).data.session?.user?.id,
+                p_user_id: session.user.id,
                 p_estado: estadoSeleccionado,
                 p_media_tipo: listaTipoActual,
-                p_limit: 10000,   // <-- límite alto, solo queremos contar
+                p_limit: 10000,
                 p_offset: 0
             });
 
@@ -15247,9 +15252,8 @@ function configurarBotonAleatorio() {
             if (idsDisponibles.length === 0) {
                 randomPickCache.clear();
                 showToast('info', 'Nueva vuelta', 'Has visto todos los títulos. Reiniciando...');
-                // Reintentamos con todos los IDs
                 const idAleatorio = todosLosItems[Math.floor(Math.random() * todosLosItems.length)].media_id;
-                await abrirModalMedia(idAleatorio, listaTipoActual, true);
+                await abrirFichaAleatoria(idAleatorio, listaTipoActual);
                 randomPickCache.add(idAleatorio);
                 return;
             }
@@ -15260,8 +15264,8 @@ function configurarBotonAleatorio() {
             // 8. Marcarlo como ya mostrado ANTES de abrir el modal
             randomPickCache.add(idAleatorio);
 
-            // 9. Abrir el modal correspondiente
-            await abrirModalMedia(idAleatorio, listaTipoActual, true);
+            // 9. Abrir el modal correcto según el tipo
+            await abrirFichaAleatoria(idAleatorio, listaTipoActual);
 
         } catch (err) {
             console.error('❌ Error en botón aleatorio:', err);
@@ -15273,6 +15277,59 @@ function configurarBotonAleatorio() {
     });
 
     randomPickBtnListo = true;
+}
+
+/**
+ * Abre la ficha (modal) de un item aleatorio, sea juego, peli o serie.
+ * - Si es juego → procesarAperturaModalJuego
+ * - Si es movie/tv → abrirModalMedia
+ */
+async function abrirFichaAleatoria(mediaId, tipo) {
+    if (tipo === 'game') {
+        // Para juegos necesitamos construir el objeto `juegoData` que espera
+        // procesarAperturaModalJuego. Lo más simple es pedir los datos a la API primero.
+        try {
+            const res = await fetch(`/api/igdb?id=${mediaId}&lang=${currentLang}`);
+            if (!res.ok) throw new Error('No se pudo obtener el juego');
+            const data = await res.json();
+            const juegos = data.juegos || data || [];
+            const juego = juegos[0];
+            if (!juego) {
+                showToast('error', 'Error', 'No se encontró el juego en IGDB.');
+                return;
+            }
+
+            const portada = juego.cover?.url
+                ? juego.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://')
+                : '';
+            const fecha = juego.first_release_date
+                ? new Date(juego.first_release_date * 1000).toLocaleDateString('es-ES', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                })
+                : 'TBA';
+
+            const juegoData = {
+                idJuego: juego.id,
+                titulo: juego.name,
+                urlAmigable: juego.name.replace(/[^a-zA-Z0-9 \-]/g, '').trim().replace(/\s+/g, '_'),
+                storesRaw: juego.itad?.stores || 'none',
+                storeUrlRaw: juego.itad?.url || '',
+                portadaSrc: portada,
+                htmlPlataformas: '',
+                fecha: fecha,
+                priceText: juego.itad?.precio ? `${juego.itad.precio.toFixed(2)} €` : null,
+                priceNaText: null
+            };
+
+            procesarAperturaModalJuego(juegoData, true);
+        } catch (e) {
+            console.error('❌ Error abriendo juego aleatorio:', e);
+            showToast('error', 'Error', 'No se pudo abrir el juego aleatorio.');
+        }
+    } else {
+        // Para pelis y series, abrirModalMedia ya funciona perfecto
+        await abrirModalMedia(mediaId, tipo, true);
+    }
 }
 
 /**
