@@ -11,6 +11,13 @@
     /* Quita el highlight azul feo en moviles al tocar */
     /* Transiciones suaves para todos los elementos que cambian de color/borde/sombra */
     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+
+    /* Evita que se pueda seleccionar texto y que se puedan arrastrar elementos */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-drag: none;
 }
 
 /* Estilos de la scrollbar personalizada (mas finita y con color) */
@@ -9525,7 +9532,33 @@ select.cyber-input option {
     transform: none;
 }
 
+/* ==========================================================================
+   EXCEPCIONES A LA REGLA DE NO SELECCIÓN
+   ========================================================================== */
 
+/* Permitir selección en títulos de juegos, películas y series */
+.game-title,
+.filmo-titulo,
+.list-card-title,
+.trend-card .game-title,
+.watchlist-show-name,
+.watchlist-ep-name,
+.listado-row-title {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Permitir selección en inputs y textareas (son necesarios para escribir) */
+input,
+textarea,
+[contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
 
 
 

@@ -14201,9 +14201,6 @@ let listaIdActual = null;
 let listaTipoActual = null;
 let listaObservador = null;
 let listaItemsEnriquecidos = {};
-let listaEnriquecimientoCompleto = false;
-let vistosCacheSetGlobal = null; // Cache de IDs vistos para filtro en cliente (fallback)
-
 
 /**
  * Carga los items de una lista desde Supabase con paginación y filtrado en servidor.
@@ -14586,86 +14583,6 @@ async function enriquecerItemsListaCompleto(items) {
     // Guardar caché actualizada
     sessionStorage.setItem(cacheKey, JSON.stringify(cache));
 }
-
-/**
- * Enriquece los items de la lista con datos de TMDB/IGDB en segundo plano
- */
-// async function enriquecerItemsLista(items, resetear) {
-//     const grid = document.getElementById('lista-detalle-grid');
-//     if (!grid) {
-//         console.warn('⚠️ [enriquecerItemsLista] Grid no encontrado');
-//         return;
-//     }
-
-//     const estiloGuardado = localStorage.getItem('pref_estilo_lista') || 'estilo1';
-
-//     for (let i = 0; i < items.length; i++) {
-//         const item = items[i];
-//         const key = `${item._media_id}_${item._media_tipo}`;
-
-//         if (listaItemsEnriquecidos[key]) {
-//             continue;
-//         }
-
-//         try {
-//             let data = null;
-
-//             if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                 const res = await fetch(`/api/tmdb?id=${item._media_id}&tipo=${item._media_tipo}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     data = await res.json();
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] TMDB error: ${res.status}`);
-//                 }
-//             } else if (item._media_tipo === 'game') {
-//                 const res = await fetch(`/api/igdb?query=${encodeURIComponent(item._media_id)}&lang=${currentLang}`);
-//                 if (res.ok) {
-//                     const result = await res.json();
-//                     data = result.juegos?.[0] || result[0] || null;
-//                 } else {
-//                     console.warn(`⚠️ [enriquecerItemsLista] IGDB error: ${res.status}`);
-//                 }
-//             }
-
-//             if (data) {
-//                 let enrichedItem = {
-//                     id: item._media_id,
-//                     tipo: item._media_tipo,
-//                     titulo: data.titulo || data.name || `ID: ${item._media_id}`,
-//                     year: '----',
-//                     rating: '0.0',
-//                     imagen: '',
-//                 };
-
-//                 if (item._media_tipo === 'movie' || item._media_tipo === 'tv') {
-//                     enrichedItem.year = data.fecha ? new Date(data.fecha).getFullYear() : '----';
-//                     enrichedItem.rating = data.nota || '0.0';
-//                     enrichedItem.imagen = data.poster || '';
-//                 } else if (item._media_tipo === 'game') {
-//                     enrichedItem.year = data.first_release_date ? new Date(data.first_release_date * 1000).getFullYear() : '----';
-//                     enrichedItem.rating = data.rating ? (data.rating / 10).toFixed(1) : '0.0';
-//                     enrichedItem.imagen = data.cover?.url ? data.cover.url.replace('t_thumb', 't_cover_big').replace('//', 'https://') : '';
-//                 }
-
-//                 listaItemsEnriquecidos[key] = enrichedItem;
-
-//                 const cards = grid.querySelectorAll('.list-card-estilo1, .list-card-estilo2, .list-card-estilo3, .list-card-estilo4');
-//                 const cardIndex = resetear ? i : listaItemsOffset - items.length + i;
-
-//                 if (cards[cardIndex]) {
-//                     const newCard = crearTarjetaConEstilo(estiloGuardado, enrichedItem);
-//                     cards[cardIndex].replaceWith(newCard);
-//                 }
-//             } else {
-//                 console.warn(`⚠️ [enriquecerItemsLista] No se pudo enriquecer ${key}`);
-//             }
-//         } catch (e) {
-//             console.error(`❌ [enriquecerItemsLista] Error enriqueciendo ${key}:`, e);
-//         }
-
-//         await new Promise(resolve => setTimeout(resolve, 100));
-//     }
-// }
 
 function renderizarItemsListaEnriquecidos(items, resetear) {
     const grid = document.getElementById('lista-detalle-grid');
@@ -15609,13 +15526,34 @@ document.addEventListener('DOMContentLoaded', () => {
 //     });
 // });
 
+// ==========================================================================
+//   SISTEMA ANTI-SELECCIÓN Y ANTI-COPIA GLOBAL
+// ==========================================================================
+// Bloqueamos la selección de texto y el arrastre de elementos en toda la web.
+// Las excepciones (títulos, inputs, etc.) se definen en style.css con user-select: text.
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Bloquear el atajo de teclado Ctrl+A (Seleccionar Todo)
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+        }
+    });
+
+    // 2. Bloquear el evento de arrastrar (drag) en toda la página
+    // Evita que se puedan arrastrar imágenes o texto seleccionado
+    document.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
+
+});
+
 // ==========================================
 //   ARRANQUE MAESTRO DE LA APLICACIÓN
 // ==========================================
-// Funcion que inicializa toda la aplicacion cuando el DOM esta listo
 async function inicializarApp() {
     // 1. INICIALIZAR IDIOMAS Y EVENTOS DEL MENÚ
-    initLanguage(); // Primero cargamos el idioma base
+    initLanguage();
 
     // Configurar los eventos de los botones de idioma
     document.querySelectorAll('.lang-option').forEach(opt => {
@@ -15624,21 +15562,17 @@ async function inicializarApp() {
             const lang = this.dataset.lang;
             const flag = this.dataset.flag;
 
-            // Actualizar bandera en el botón principal
             const flagImg = document.getElementById('lang-toggle')?.querySelector('img');
             if (flagImg) {
                 flagImg.src = `https://flagcdn.com/32x24/${flag || lang}.png`;
                 flagImg.alt = lang.toUpperCase();
             }
 
-            // Marcar opción como activa
             document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
             this.classList.add('active');
 
-            // Aplicar cambio de idioma
             await setLanguage(lang);
 
-            // Cerrar el menú desplegable
             document.querySelector('.lang-menu')?.classList.remove('show');
             if (typeof langMenuOpen !== 'undefined') langMenuOpen = false;
         });
@@ -15650,7 +15584,7 @@ async function inicializarApp() {
     initCountryFilterForType();
     initDateFilters();
 
-    // 3. VIGILANTES DE ESTADO Y PESTAÑAS (Con sus respectivos delays)
+    // 3. VIGILANTES DE ESTADO Y PESTAÑAS
     setTimeout(detectPageAndUpdate, 100);
 
     setTimeout(() => {
@@ -15658,6 +15592,4 @@ async function inicializarApp() {
     }, 800);
 }
 
-// 4. EL ÚNICO LISTENER DE ARRANQUE EN TODO EL ARCHIVO
-// Cuando el DOM esta listo, arrancamos la aplicacion
 document.addEventListener('DOMContentLoaded', inicializarApp);
