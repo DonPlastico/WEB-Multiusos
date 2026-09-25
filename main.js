@@ -13972,6 +13972,7 @@ function aplicarEstiloLista(estilo) {
  */
 function crearTarjetaConEstilo(estilo, data) {
     const card = document.createElement('div');
+    card.dataset.addedAt = data.added_at;
     const numeroEstilo = estilo.replace('estilo', '');
     card.className = `list-card-${estilo} list-card-style-${numeroEstilo}`;
 
@@ -14554,8 +14555,9 @@ async function enriquecerItemsListaCompleto(items) {
                 }
 
                 if (enrichedItem) {
+                    enrichedItem.added_at = item._added_at || new Date().toISOString();
                     listaItemsEnriquecidos[key] = enrichedItem;
-                    cache[key] = enrichedItem; // Guardar en caché
+                    cache[key] = enrichedItem;
                 } else {
                     listaItemsEnriquecidos[key] = {
                         id: item._media_id,
@@ -14746,6 +14748,10 @@ document.querySelectorAll('input[name="estado-lista-filtro"]').forEach(radio => 
     });
 });
 
+// ==========================================================================
+//   FILTRADO VISUAL Y ORDENACIÓN PARA LISTA DETALLE
+// ==========================================================================
+
 window.aplicarFiltrosListaDetalle = async function () {
     const textoBuscador = document.getElementById('filtro-buscar-lista')?.value.toLowerCase().trim() || '';
     const estadoSeleccionado = document.querySelector('input[name="estado-lista-filtro"]:checked')?.value || 'todas';
@@ -14754,10 +14760,10 @@ window.aplicarFiltrosListaDetalle = async function () {
     const grid = document.getElementById('lista-detalle-grid');
     if (!grid) return;
 
-    // Convertimos los hijos del grid en un array para poder ordenarlos
-    const tarjetas = Array.from(grid.children).filter(t => t.id !== 'lista-detalle-loader');
+    // 1. Obtenemos todas las tarjetas y filtramos las que no son tarjetas (loaders, etc)
+    let tarjetas = Array.from(grid.children).filter(t => t.classList.contains('list-card-estilo1') || t.classList.contains('list-card-style-1') || t.classList.contains('list-card-estilo2') || t.classList.contains('list-card-style-2') || t.classList.contains('list-card-estilo3') || t.classList.contains('list-card-style-3') || t.classList.contains('list-card-estilo4') || t.classList.contains('list-card-style-4'));
 
-    // --- CARGA DE CACHÉ DESDE SUPABASE (Descarga paginada sin límites) ---
+    // --- CARGA DE CACHÉ DESDE SUPABASE (para filtro de estado) ---
     if (estadoSeleccionado !== 'todas' && !window.vistosCacheSet) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
@@ -14774,20 +14780,13 @@ window.aplicarFiltrosListaDetalle = async function () {
                     .eq('visto', true)
                     .range(currentOffset, currentOffset + fetchLimit - 1);
 
-                if (error) {
-                    console.error("Error obteniendo historial:", error);
-                    break;
-                }
+                if (error) { console.error("Error obteniendo historial:", error); break; }
 
                 if (data && data.length > 0) {
-                    data.forEach(d => {
-                        allVistos.add(`${d.tipo}_${d.media_id}`);
-                    });
+                    data.forEach(d => { allVistos.add(`${d.tipo}_${d.media_id}`); });
                     currentOffset += fetchLimit;
                     if (data.length < fetchLimit) keepFetching = false;
-                } else {
-                    keepFetching = false;
-                }
+                } else { keepFetching = false; }
             }
             window.vistosCacheSet = allVistos;
         } else {
@@ -14795,12 +14794,12 @@ window.aplicarFiltrosListaDetalle = async function () {
         }
     }
 
-    // --- APLICAR FILTROS A LAS TARJETAS ---
+    // --- 2. APLICAR FILTROS (búsqueda y estado) ---
     tarjetas.forEach(tarjeta => {
         let mostrar = true;
 
         // A. Filtro de Búsqueda
-        const tituloEl = tarjeta.querySelector('.game-title, .list-card-title, .filmo-titulo');
+        const tituloEl = tarjeta.querySelector('.list-card-title, .game-title');
         if (tituloEl && textoBuscador) {
             if (!tituloEl.textContent.toLowerCase().includes(textoBuscador)) {
                 mostrar = false;
@@ -14809,26 +14808,19 @@ window.aplicarFiltrosListaDetalle = async function () {
 
         // B. Filtro de Estado
         if (mostrar && estadoSeleccionado !== 'todas' && window.vistosCacheSet) {
-            const id = tarjeta.getAttribute('data-id') || tarjeta.getAttribute('data-media-id') || tarjeta.getAttribute('data-game-id') || '';
-            const tipoAttr = tarjeta.getAttribute('data-type') || tarjeta.getAttribute('data-tipo') || '';
-            const tipo = tipoAttr.toLowerCase();
+            const id = tarjeta.getAttribute('data-id') || '';
+            const tipo = tarjeta.getAttribute('data-tipo') || '';
 
             let estaVisto = false;
-
             if (id) {
-                if (tipo === 'movie' || tipo === 'pelicula') {
-                    estaVisto = window.vistosCacheSet.has(`movie_${id}`);
-                } else if (tipo === 'tv' || tipo === 'serie' || tipo === 'series') {
+                if (tipo === 'movie') estaVisto = window.vistosCacheSet.has(`movie_${id}`);
+                else if (tipo === 'tv') {
                     const cacheArray = Array.from(window.vistosCacheSet);
                     estaVisto = window.vistosCacheSet.has(`tv_${id}`) || cacheArray.some(key => key.startsWith(`tv_episode_${id}_`));
-                } else if (tipo === 'game' || tipo === 'juego') {
-                    estaVisto = window.vistosCacheSet.has(`game_${id}`);
-                } else {
-                    const cacheArray = Array.from(window.vistosCacheSet);
-                    estaVisto = cacheArray.some(key => key.includes(`_${id}`));
                 }
+                else if (tipo === 'game') estaVisto = window.vistosCacheSet.has(`game_${id}`);
+                else { const cacheArray = Array.from(window.vistosCacheSet); estaVisto = cacheArray.some(key => key.includes(`_${id}`)); }
             }
-
             if (estadoSeleccionado === 'vistas' && !estaVisto) mostrar = false;
             if (estadoSeleccionado === 'no_vistas' && estaVisto) mostrar = false;
         }
@@ -14836,62 +14828,38 @@ window.aplicarFiltrosListaDetalle = async function () {
         tarjeta.style.display = mostrar ? '' : 'none';
     });
 
-    // --- ORDENACIÓN DE LAS TARJETAS ---
-    // Ordenamos el array de tarjetas según el filtro seleccionado
+    // --- 3. ORDENACIÓN DE LAS TARJETAS ---
     tarjetas.sort((a, b) => {
-        // Extraemos los datos. Usamos atributos 'data-' o el texto de la tarjeta
-        const getTitle = (el) => (el.querySelector('.game-title, .list-card-title, .filmo-titulo')?.textContent || '').trim().toLowerCase();
+        const getTitle = (el) => (el.querySelector('.list-card-title, .game-title')?.textContent || '').trim().toLowerCase();
         const getRating = (el) => {
             const text = el.getAttribute('data-rating') || el.querySelector('.rating-count')?.textContent || '0';
             return parseFloat(text.replace(/[^0-9.]/g, '')) || 0;
         };
         const getYear = (el) => {
             const text = el.getAttribute('data-year') || el.querySelector('.list-card-sub')?.textContent || '0';
-            // Extrae los primeros 4 dígitos que encuentre (año)
             const match = text.match(/\d{4}/);
             return match ? parseInt(match[0]) : 0;
         };
         const getDateAdded = (el) => {
-            // El ID de la tarjeta o un atributo data-added-at. 
-            // Como no tenemos un campo de fecha explícito en las listas de Supabase en el DOM,
-            // usamos el ID como aproximación de orden de añadido (los últimos tienen IDs más altos).
-            // Si tuvieras un data-timestamp, lo usarías aquí.
-            const id = el.getAttribute('data-id') || el.getAttribute('data-media-id') || '0';
-            return parseFloat(id) || 0;
+            // ¡AQUÍ ESTÁ LA MAGIA! Usamos el atributo 'data-added-at' que ahora inyectaremos en el HTML.
+            const dateStr = el.getAttribute('data-added-at');
+            return dateStr ? new Date(dateStr).getTime() : 0;
         };
 
         let valA, valB;
-
         switch (ordenSeleccionado) {
-            case 'titulo_asc':
-                valA = getTitle(a); valB = getTitle(b);
-                return valA.localeCompare(valB);
-            case 'titulo_desc':
-                valA = getTitle(a); valB = getTitle(b);
-                return valB.localeCompare(valA);
-            case 'rating_desc':
-                valA = getRating(a); valB = getRating(b);
-                return valB - valA;
-            case 'rating_asc':
-                valA = getRating(a); valB = getRating(b);
-                return valA - valB;
-            case 'año_desc':
-                valA = getYear(a); valB = getYear(b);
-                return valB - valA;
-            case 'año_asc':
-                valA = getYear(a); valB = getYear(b);
-                return valA - valB;
-            case 'fecha_asc': // Más antiguo primero
-                valA = getDateAdded(a); valB = getDateAdded(b);
-                return valA - valB;
-            case 'fecha_desc': // Más reciente primero (Defecto)
-            default:
-                valA = getDateAdded(a); valB = getDateAdded(b);
-                return valB - valA;
+            case 'titulo_asc': valA = getTitle(a); valB = getTitle(b); return valA.localeCompare(valB);
+            case 'titulo_desc': valA = getTitle(a); valB = getTitle(b); return valB.localeCompare(valA);
+            case 'rating_desc': valA = getRating(a); valB = getRating(b); return valB - valA;
+            case 'rating_asc': valA = getRating(a); valB = getRating(b); return valA - valB;
+            case 'año_desc': valA = getYear(a); valB = getYear(b); return valB - valA;
+            case 'año_asc': valA = getYear(a); valB = getYear(b); return valA - valB;
+            case 'fecha_asc': valA = getDateAdded(a); valB = getDateAdded(b); return valA - valB;
+            case 'fecha_desc': default: valA = getDateAdded(a); valB = getDateAdded(b); return valB - valA;
         }
     });
 
-    // Volvemos a insertar las tarjetas en el grid en el nuevo orden
+    // 4. Volvemos a insertar las tarjetas en el grid en el nuevo orden
     tarjetas.forEach(tarjeta => grid.appendChild(tarjeta));
 };
 
