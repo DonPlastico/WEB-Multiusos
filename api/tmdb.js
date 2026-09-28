@@ -5,8 +5,6 @@
 // Soporta busqueda, detalles, tendencias, generos, temporadas,
 // proveedores de streaming, reparto, trailers y mas.
 
-import * as cheerio from 'cheerio';
-
 export default async function handler(req, res) {
     const TMDB_TOKEN = process.env.TMDB_TOKEN;
     const query = req.query;
@@ -263,35 +261,6 @@ export default async function handler(req, res) {
 
             if (!sinopsisExtendida || sinopsisExtendida.trim() === '') {
                 sinopsisExtendida = 'No hay sinopsis disponible para este título en el Nexus.';
-            }
-
-            // ========== PLATAFORMAS DE STREAMING ==========
-            const providersES = data['watch/providers']?.results?.ES;
-            const tmdbWatchLink = providersES?.link || null;
-
-            // Diccionario para guardar los links reales extraídos
-            let linksDirectos = {};
-
-            // Hacemos scraping rápido a la URL genérica que da TMDB
-            if (tmdbWatchLink) {
-                try {
-                    const resHtml = await fetch(tmdbWatchLink, {
-                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-                    });
-                    const html = await resHtml.text();
-                    const $ = cheerio.load(html);
-
-                    // TMDB guarda los enlaces en elementos <a> dentro de la lista de proveedores
-                    $('.ott_provider a').each((i, el) => {
-                        const url = $(el).attr('href');
-                        const imgTitle = $(el).find('img').attr('alt');
-                        if (url && imgTitle) {
-                            linksDirectos[imgTitle.trim()] = url;
-                        }
-                    });
-                } catch (e) {
-                    console.error('Scraping de TMDB fallido:', e);
-                }
             }
 
             const formatProvider = (p) => ({

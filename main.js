@@ -5717,6 +5717,59 @@ document.querySelectorAll('#movies-grid, #series-grid').forEach(grid => {
 });
 
 // Funcion principal que abre el modal de detalles de pelicula/serie
+// ============================================================
+//   ENLACES DIRECTOS A PLATAFORMAS DE STREAMING
+// ============================================================
+// TMDB nos da el NOMBRE de la plataforma ("Amazon Video", "Movistar Plus+"...)
+// y /api/streaming nos da el ENLACE REAL con su propio id ("prime", "movistar"...).
+// Estas funciones los emparejan.
+function normalizarNombreServicio(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
+const ALIAS_SERVICIOS_STREAMING = {
+    netflix: ['netflix'],
+    prime: ['amazonprimevideo', 'primevideo', 'amazonprime', 'amazonvideo', 'amazon'],
+    disney: ['disneyplus', 'disney'],
+    hbo: ['max', 'hbomax', 'hbo'],
+    apple: ['appletv', 'appletvplus', 'appletvstore'],
+    movistar: ['movistarplus', 'movistar'],
+    rakuten: ['rakutentv', 'rakuten'],
+    google: ['googleplaymovies', 'googleplay', 'googletv'],
+    filmin: ['filmin'],
+    crunchyroll: ['crunchyroll'],
+    skyshowtime: ['skyshowtime'],
+    atresplayer: ['atresplayer'],
+    rtve: ['rtveplay', 'rtve'],
+    mubi: ['mubi'],
+    youtube: ['youtube', 'youtubepremium']
+};
+
+const TIPOS_STREAMING_POR_COLUMNA = {
+    'providers-flatrate': ['subscription', 'free', 'addon'],
+    'providers-rent': ['rent'],
+    'providers-buy': ['buy']
+};
+
+function servicioCoincide(nombreTmdb, opcion) {
+    const n = normalizarNombreServicio(nombreTmdb);
+    const idApi = normalizarNombreServicio(opcion.servicio_id);
+    const nombreApi = normalizarNombreServicio(opcion.servicio_nombre);
+    if (idApi && ALIAS_SERVICIOS_STREAMING[idApi]?.some(a => n.includes(a) || a === n)) return true;
+    if (nombreApi && (n === nombreApi || n.includes(nombreApi) || nombreApi.includes(n))) return true;
+    if (idApi && n.includes(idApi)) return true;
+    return false;
+}
+
+// Devuelve el mejor enlace (play directo > ficha) o null si no hay
+function buscarEnlaceStreaming(nombreTmdb, contenedorId, opciones) {
+    const tipos = TIPOS_STREAMING_POR_COLUMNA[contenedorId] || [];
+    const candidatas = (opciones || []).filter(o => tipos.includes(o.tipo) && servicioCoincide(nombreTmdb, o));
+    if (!candidatas.length) return null;
+    const mejor = candidatas.find(o => o.video_link) || candidatas[0];
+    return mejor.video_link || mejor.link || null;
+}
+
 async function abrirModalMedia(id, tipo, updateHistory = true) {
     if (!id) return;
 
@@ -6025,7 +6078,7 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
 
         // 7. FUNCIÓN DINÁMICA PARA INYECTAR LAS PLATAFORMAS EN LAS 3 COLUMNAS
         // Esta funcion recibe una lista de plataformas y las pinta en el contenedor correspondiente
-        function inyectarPlataformas(lista, contenedorId) {
+        function inyectarPlataformas(lista, contenedorId, opcionesStreaming = []) {
             const contenedor = document.getElementById(contenedorId);
             contenedor.innerHTML = '';
 
@@ -6060,39 +6113,46 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     }
 
                     // ==============================================================
-                    // GENERADOR DE DEEP LINKS (GRATUITO, DIRECTO Y COMPATIBLE CON APPS)
+                    // ENLACE A LA PLATAFORMA
+                    // 1) Enlace REAL a la ficha/play (API de streaming, via /api/streaming)
+                    // 2) Si no hay, buscador de la plataforma (plan B)
                     // ==============================================================
-                    let linkDirecto = plat.link_directo || '#';
                     const providerLower = plat.name.toLowerCase();
+                    let linkDirecto = buscarEnlaceStreaming(plat.name, contenedorId, opcionesStreaming);
+                    let esEnlaceReal = !!linkDirecto;
 
-                    if (providerLower.includes('netflix')) {
-                        linkDirecto = `https://www.netflix.com/search?q=${query}`;
-                    } else if (providerLower.includes('amazon') || providerLower.includes('prime')) {
-                        linkDirecto = `https://www.primevideo.com/search/ref=atv_sr_sug_1?phrase=${query}`;
-                    } else if (providerLower.includes('disney')) {
-                        linkDirecto = `https://www.disneyplus.com/search?q=${query}`;
-                    } else if (providerLower.includes('max') || providerLower.includes('hbo')) {
-                        linkDirecto = `https://play.max.com/search?q=${query}`;
-                    } else if (providerLower.includes('apple')) {
-                        linkDirecto = `https://tv.apple.com/es/search?q=${query}`;
-                    } else if (providerLower.includes('movistar')) {
-                        linkDirecto = `https://www.movistarplus.es/buscador?q=${query}`;
-                    } else if (providerLower.includes('rakuten')) {
-                        linkDirecto = `https://rakuten.tv/es/search?q=${query}`;
-                    } else if (providerLower.includes('google play')) {
-                        linkDirecto = `https://play.google.com/store/search?q=${query}&c=movies`;
-                    } else if (providerLower.includes('filmin')) {
-                        linkDirecto = `https://www.filmin.es/buscador?q=${query}`;
-                    } else if (providerLower.includes('crunchyroll')) {
-                        linkDirecto = `https://www.crunchyroll.com/es/search?q=${query}`;
-                    } else if (linkDirecto === '#') {
-                        // Respaldo de seguridad si es una plataforma no registrada
-                        linkDirecto = `https://www.google.com/search?q=Ver+${query}+en+${plat.name}`;
+                    if (!linkDirecto) {
+                        linkDirecto = plat.link_directo || '#';
+
+                        if (providerLower.includes('netflix')) {
+                            linkDirecto = `https://www.netflix.com/search?q=${query}`;
+                        } else if (providerLower.includes('amazon') || providerLower.includes('prime')) {
+                            linkDirecto = `https://www.primevideo.com/search/ref=atv_sr_sug_1?phrase=${query}`;
+                        } else if (providerLower.includes('disney')) {
+                            linkDirecto = `https://www.disneyplus.com/search?q=${query}`;
+                        } else if (providerLower.includes('max') || providerLower.includes('hbo')) {
+                            linkDirecto = `https://play.max.com/search?q=${query}`;
+                        } else if (providerLower.includes('apple')) {
+                            linkDirecto = `https://tv.apple.com/es/search?q=${query}`;
+                        } else if (providerLower.includes('movistar')) {
+                            linkDirecto = `https://www.movistarplus.es/buscador?q=${query}`;
+                        } else if (providerLower.includes('rakuten')) {
+                            linkDirecto = `https://rakuten.tv/es/search?q=${query}`;
+                        } else if (providerLower.includes('google play')) {
+                            linkDirecto = `https://play.google.com/store/search?q=${query}&c=movies`;
+                        } else if (providerLower.includes('filmin')) {
+                            linkDirecto = `https://www.filmin.es/buscador?q=${query}`;
+                        } else if (providerLower.includes('crunchyroll')) {
+                            linkDirecto = `https://www.crunchyroll.com/es/search?q=${query}`;
+                        } else if (linkDirecto === '#') {
+                            // Respaldo de seguridad si es una plataforma no registrada
+                            linkDirecto = `https://www.google.com/search?q=Ver+${query}+en+${plat.name}`;
+                        }
                     }
 
                     // Inyectamos el ancla <a> real
                     contenedor.innerHTML += `
-                        <a href="${linkDirecto}" target="_blank" rel="noopener noreferrer" class="provider-item" title="${plat.name}" style="text-decoration: none;">
+                        <a href="${linkDirecto}" target="_blank" rel="noopener noreferrer" class="provider-item${esEnlaceReal ? ' provider-item--directo' : ''}" title="${plat.name}" style="text-decoration: none;">
                             <img src="${plat.logo}" alt="${plat.name}" class="provider-logo" loading="lazy">
                             <span class="provider-price">${nombreCorto}</span>
                         </a>
@@ -6104,9 +6164,25 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
         }
 
         // Inyectamos las plataformas en las 3 columnas (suscripcion, alquiler, compra)
+        // 1º pintamos al instante con el plan B (buscador) para que la ficha no espere
         inyectarPlataformas(data.suscripcion, 'providers-flatrate');
         inyectarPlataformas(data.alquiler, 'providers-rent');
         inyectarPlataformas(data.compra, 'providers-buy');
+
+        // 2º pedimos los enlaces REALES y, si llegan, repintamos con ellos
+        // (si falla o tarda, el usuario ya tiene los botones funcionando)
+        fetch(`/api/streaming?id=${id}&tipo=${tipo}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(res => {
+                if (!res || !Array.isArray(res.opciones) || res.opciones.length === 0) return;
+                // Si el usuario ya cerró esta ficha o abrió otra, no tocamos nada
+                if (modalMedia.getAttribute('data-current-type') !== tipo) return;
+                if (document.getElementById('media-detail-title').textContent !== data.titulo) return;
+                inyectarPlataformas(data.suscripcion, 'providers-flatrate', res.opciones);
+                inyectarPlataformas(data.alquiler, 'providers-rent', res.opciones);
+                inyectarPlataformas(data.compra, 'providers-buy', res.opciones);
+            })
+            .catch(err => console.warn('Enlaces directos no disponibles:', err));
 
         // 8. Tráiler
         let urlTrailer = '';
