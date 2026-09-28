@@ -6033,24 +6033,25 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                 // Filtramos duplicados basándonos en el nombre de la plataforma
                 const unicos = Array.from(new Map(lista.map(item => [item.name, item])).values());
 
+                // Capturamos el título exacto de la película/serie actual
+                const tituloObra = document.getElementById('media-detail-title').textContent || '';
+                const query = encodeURIComponent(tituloObra);
+
                 unicos.forEach(plat => {
-                    // LIMPIEZA INTELIGENTE DE NOMBRES DE JUSTWATCH
-                    // Esto es para que los nombres de las plataformas queden bonitos y cortos
+                    // LIMPIEZA INTELIGENTE DE NOMBRES
                     let nombreCorto = plat.name
-                        .replace(' Amazon Channel', '') // Quita la coletilla de los canales de Amazon
-                        .replace(' (with Ads)', '')     // Quita lo de "con anuncios"
+                        .replace(' Amazon Channel', '')
+                        .replace(' (with Ads)', '')
                         .replace(' Plus', '+')
                         .replace(' Video', '');
 
-                    // Ajustes manuales comunes para que queden perfectos debajo del icono
                     if (nombreCorto === 'Amazon Prime') nombreCorto = 'Amazon';
                     if (nombreCorto === 'Apple TV+') nombreCorto = 'Apple TV';
                     if (nombreCorto === 'Google Play Movies') nombreCorto = 'Google';
                     if (nombreCorto === 'Microsoft Store') nombreCorto = 'Microsoft';
                     if (nombreCorto.includes('Movistar')) nombreCorto = 'Movistar';
-                    if (nombreCorto === 'HBO Max') nombreCorto = 'Max'; // Actualización de marca
+                    if (nombreCorto === 'HBO Max' || nombreCorto === 'Max') nombreCorto = 'Max';
 
-                    // Si aún así el nombre es larguísimo, lo cortamos por el primer espacio
                     if (nombreCorto.length > 10) {
                         nombreCorto = nombreCorto.split(' ')[0];
                         if (nombreCorto.length > 10) {
@@ -6058,8 +6059,40 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                         }
                     }
 
+                    // ==============================================================
+                    // GENERADOR DE DEEP LINKS (GRATUITO, DIRECTO Y COMPATIBLE CON APPS)
+                    // ==============================================================
+                    let linkDirecto = plat.link_directo || '#';
+                    const providerLower = plat.name.toLowerCase();
+
+                    if (providerLower.includes('netflix')) {
+                        linkDirecto = `https://www.netflix.com/search?q=${query}`;
+                    } else if (providerLower.includes('amazon') || providerLower.includes('prime')) {
+                        linkDirecto = `https://www.primevideo.com/search/ref=atv_sr_sug_1?phrase=${query}`;
+                    } else if (providerLower.includes('disney')) {
+                        linkDirecto = `https://www.disneyplus.com/search?q=${query}`;
+                    } else if (providerLower.includes('max') || providerLower.includes('hbo')) {
+                        linkDirecto = `https://play.max.com/search?q=${query}`;
+                    } else if (providerLower.includes('apple')) {
+                        linkDirecto = `https://tv.apple.com/es/search?q=${query}`;
+                    } else if (providerLower.includes('movistar')) {
+                        linkDirecto = `https://www.movistarplus.es/buscador?q=${query}`;
+                    } else if (providerLower.includes('rakuten')) {
+                        linkDirecto = `https://rakuten.tv/es/search?q=${query}`;
+                    } else if (providerLower.includes('google play')) {
+                        linkDirecto = `https://play.google.com/store/search?q=${query}&c=movies`;
+                    } else if (providerLower.includes('filmin')) {
+                        linkDirecto = `https://www.filmin.es/buscador?q=${query}`;
+                    } else if (providerLower.includes('crunchyroll')) {
+                        linkDirecto = `https://www.crunchyroll.com/es/search?q=${query}`;
+                    } else if (linkDirecto === '#') {
+                        // Respaldo de seguridad si es una plataforma no registrada
+                        linkDirecto = `https://www.google.com/search?q=Ver+${query}+en+${plat.name}`;
+                    }
+
+                    // Inyectamos el ancla <a> real
                     contenedor.innerHTML += `
-                        <a href="${plat.link_directo}" target="_blank" rel="noopener noreferrer" class="provider-item" title="${plat.name}" style="text-decoration: none;">
+                        <a href="${linkDirecto}" target="_blank" rel="noopener noreferrer" class="provider-item" title="${plat.name}" style="text-decoration: none;">
                             <img src="${plat.logo}" alt="${plat.name}" class="provider-logo" loading="lazy">
                             <span class="provider-price">${nombreCorto}</span>
                         </a>

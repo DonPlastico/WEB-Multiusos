@@ -268,10 +268,10 @@ export default async function handler(req, res) {
             // ========== PLATAFORMAS DE STREAMING ==========
             const providersES = data['watch/providers']?.results?.ES;
             const tmdbWatchLink = providersES?.link || null;
-            
+
             // Diccionario para guardar los links reales extraídos
             let linksDirectos = {};
-            
+
             // Hacemos scraping rápido a la URL genérica que da TMDB
             if (tmdbWatchLink) {
                 try {
@@ -280,7 +280,7 @@ export default async function handler(req, res) {
                     });
                     const html = await resHtml.text();
                     const $ = cheerio.load(html);
-                    
+
                     // TMDB guarda los enlaces en elementos <a> dentro de la lista de proveedores
                     $('.ott_provider a').each((i, el) => {
                         const url = $(el).attr('href');
