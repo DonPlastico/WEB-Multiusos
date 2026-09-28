@@ -6059,10 +6059,10 @@ async function abrirModalMedia(id, tipo, updateHistory = true) {
                     }
 
                     contenedor.innerHTML += `
-                        <div class="provider-item" title="${plat.name}" onclick="event.preventDefault()">
+                        <a href="${plat.link_directo}" target="_blank" rel="noopener noreferrer" class="provider-item" title="${plat.name}" style="text-decoration: none;">
                             <img src="${plat.logo}" alt="${plat.name}" class="provider-logo" loading="lazy">
                             <span class="provider-price">${nombreCorto}</span>
-                        </div>
+                        </a>
                     `;
                 });
             } else {
