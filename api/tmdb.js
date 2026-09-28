@@ -263,6 +263,35 @@ export default async function handler(req, res) {
                 sinopsisExtendida = 'No hay sinopsis disponible para este título en el Nexus.';
             }
 
+            // ========== PLATAFORMAS DE STREAMING ==========
+            const providersES = data['watch/providers']?.results?.ES;
+            const tmdbWatchLink = providersES?.link || null;
+
+            // Diccionario para guardar los links reales extraídos
+            let linksDirectos = {};
+
+            // Hacemos scraping rápido a la URL genérica que da TMDB
+            if (tmdbWatchLink) {
+                try {
+                    const resHtml = await fetch(tmdbWatchLink, {
+                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+                    });
+                    const html = await resHtml.text();
+                    const $ = cheerio.load(html);
+
+                    // TMDB guarda los enlaces en elementos <a> dentro de la lista de proveedores
+                    $('.ott_provider a').each((i, el) => {
+                        const url = $(el).attr('href');
+                        const imgTitle = $(el).find('img').attr('alt');
+                        if (url && imgTitle) {
+                            linksDirectos[imgTitle.trim()] = url;
+                        }
+                    });
+                } catch (e) {
+                    console.error('Scraping de TMDB fallido:', e);
+                }
+            }
+
             const formatProvider = (p) => ({
                 name: p.provider_name,
                 logo: p.logo_path ? `https://image.tmdb.org/t/p/w92${p.logo_path}` : 'https://via.placeholder.com/92x92/14141c/6366f1?text=PLAY',
