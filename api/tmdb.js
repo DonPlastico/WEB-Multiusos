@@ -5,6 +5,8 @@
 // Soporta busqueda, detalles, tendencias, generos, temporadas,
 // proveedores de streaming, reparto, trailers y mas.
 
+import * as cheerio from 'cheerio';
+
 export default async function handler(req, res) {
     const TMDB_TOKEN = process.env.TMDB_TOKEN;
     const query = req.query;
